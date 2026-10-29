@@ -2057,30 +2057,13 @@ class Map{
     const panel=$('searchResults');panel.innerHTML='<div class="search-state">正在查找地点…</div>';panel.classList.add('visible');
     const btn=$('searchForm').querySelector('button');btn.disabled=true;
     try{
-      // Prefer our same-origin, keyless search API. It avoids browser CORS problems,
-      // returns real OSM places, and keeps the existing direct-provider fallback intact.
-      try{
-        const center=currentCenter(),params=new URLSearchParams({q,limit:'10'});
-        
-        const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),7200);
-        try{
-          const response=await fetch('https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=zh-CN&'+new URLSearchParams({q,limit:'10'}),{signal:ctrl.signal,headers:{Accept:'application/json'}});
-          if(response.ok){
-            const data=await response.json();
-            if(Array.isArray(data)&&data.length){
-              if(rId===searchRequest)renderSearchResults(data);
-              return;
-            }
-          }
-        }finally{clearTimeout(timeout)}
-      }catch(e){console.info('Travel Atlas 搜索服务不可用，尝试备用地点搜索',e?.message||e)}
-      if(rId!==searchRequest)return;
+      // GitHub Pages is static: query Nominatim once, then use Photon as fallback.
       const url='https://nominatim.openstreetmap.org/search?format=json&limit=10&addressdetails=1&accept-language=zh-CN&q='+encodeURIComponent(q);
       let data=[];
       try{const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),9000);
-        const r=await fetch(url,{signal:ctl.signal,headers:{'Accept':'application/json'}});clearTimeout(t);
+        const r=await fetch(url,{signal:ctl.signal,headers:{'Accept':'application/json'}});
         if(!r.ok)throw Error('search '+r.status);data=await r.json();
-      }catch(primaryError){console.warn('主搜索暂不可用，切换地点搜索服务',primaryError)}
+      }catch(primaryError){console.warn('主搜索暂不可用，切换地点搜索服务',primaryError)}finally{clearTimeout(t)}
       if(rId!==searchRequest)return;
       if(!Array.isArray(data)||!data.length){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),9000);
         try{const r=await fetch('https://photon.komoot.io/api/?limit=10&q='+encodeURIComponent(q),{signal:ctl.signal});if(!r.ok)throw Error('secondary search '+r.status);
