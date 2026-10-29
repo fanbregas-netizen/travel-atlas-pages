@@ -23,6 +23,24 @@ jobs:
           mkdir -p _site
           cp index.html atlas-orbit.css atlas-orbit.js atlas-stage5.js sw.js manifest.webmanifest icon.svg _site/
           touch _site/.nojekyll
+      - name: Validate static deployment assets
+        run: |
+          node --check atlas-orbit.js
+          node --check atlas-stage5.js
+          node --check sw.js
+          node - <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('index.html','utf8');
+          const prefix = '/travel-atlas-pages/';
+          for (const asset of ['atlas-orbit.css','atlas-orbit.js','atlas-stage5.js','manifest.webmanifest','icon.svg','sw.js']) {
+            if (!html.includes(prefix + asset)) throw Error('Missing Pages asset reference: ' + asset);
+            if (!fs.existsSync(asset)) throw Error('Missing deployment asset: ' + asset);
+          }
+          const manifest = JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
+          if (manifest.start_url !== prefix || manifest.scope !== prefix) throw Error('PWA scope mismatch');
+          if (!html.includes('Array.isArray(data)&&data.length')) throw Error('Geocoding response parser mismatch');
+          console.log('Pages static asset checks passed');
+          NODE
       - uses: actions/configure-pages@v5
         with:
           enablement: true
