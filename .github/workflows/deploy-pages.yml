@@ -24,6 +24,8 @@ jobs:
           cp index.html atlas-orbit.css atlas-orbit.js atlas-stage5.js sw.js manifest.webmanifest icon.svg _site/
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
