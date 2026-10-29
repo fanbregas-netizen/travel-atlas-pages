@@ -1,0 +1,21 @@
+{
+  "id": "/travel-atlas-pages/",
+  "name": "Travel Atlas · 私人旅行地图",
+  "short_name": "Travel Atlas",
+  "description": "把想去的地点与旅行回忆收藏在一张地图上。",
+  "lang": "zh-CN",
+  "start_url": "/travel-atlas-pages/",
+  "scope": "/travel-atlas-pages/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f6f3",
+  "theme_color": "#f7f6f3",
+  "icons": [
+    {
+      "src": "/travel-atlas-pages/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
