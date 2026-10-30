@@ -111,7 +111,7 @@ function drawNearby(p){
    for(const place of places){
     const b=document.createElement('button');b.className='orbit-near-item';b.type='button';b.title=String(place.address||place.name||'');
     b.append(text('span','orbit-near-name',String(place.name||'地点')));
-    const distance=Number(place.distance);b.append(text('span','orbit-near-dist',Number.isFinite(distance)?(distance<1000?Math.round(distance)+'m':(distance/1000).toFixed(1)+'km'):'附近'));
+    const distance=place.distance==null||place.distance===''?NaN:Number(place.distance);b.append(text('span','orbit-near-dist',Number.isFinite(distance)&&distance>=0?(distance<1000?Math.round(distance)+'m':(distance/1000).toFixed(1)+'km'):'附近'));
     b.addEventListener('click',()=>{
      hide(true);if(Number.isFinite(Number(place.lat))&&Number.isFinite(Number(place.lng)))window.__atlasDemo?.select?.(String(place.name||'景点'),Number(place.lat),Number(place.lng));
     });list.append(b);
