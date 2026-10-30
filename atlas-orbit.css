@@ -359,3 +359,17 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
 @media(max-height:500px) and (orientation:landscape){
  #atlasOrbit{--orbit-brief-h:calc(var(--orbit-h) * .88);--orbit-media-h:var(--orbit-h);--orbit-lower-h:var(--orbit-h)}
 }
+
+/* Phone-fit correction: asymmetric cards must stay within the safe viewport. */
+@media(max-width:700px) and (orientation:portrait){
+ #atlasOrbit{
+  --orbit-brief-h:min(calc(var(--orbit-h) * .78),calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--orbit-gap) - 56px)/2));
+  --orbit-media-h:min(calc(var(--orbit-h) * 1.13),calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--orbit-gap) - 56px)/2));
+  --orbit-lower-h:min(calc(var(--orbit-h) * .92),calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--orbit-gap) - 56px)/2));
+ }
+ #atlasOrbit .orbit-bubble .orbit-content{min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+ #atlasOrbit .orbit-bubble.tl .orbit-note{flex:0 1 auto}
+}
+@media(max-height:500px) and (orientation:landscape){
+ #atlasOrbit{--orbit-brief-h:var(--orbit-h);--orbit-media-h:var(--orbit-h);--orbit-lower-h:var(--orbit-h)}
+}
