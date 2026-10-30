@@ -498,3 +498,57 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  #atlasOrbit.is-open .orbit-content > *,
  #atlasOrbit.is-open .orbit-bubble{opacity:1!important}
 }
+
+
+/* Phase 1: single responsive geometry contract. Keep the V4 surfaces and content.
+   All inward corners share the same origin offset and the same tail module. */
+#atlasOrbit{
+ --orbit-unit:12;--orbit-gap:80px;--orbit-cx:50%;--orbit-cy:50%;
+ --orbit-media-w:min(304px,calc((100vw - 112px)/2));
+ --orbit-media-h:min(270px,calc((100dvh - 120px)/2));
+ --orbit-brief-w:calc(var(--orbit-media-w)*.74);
+ --orbit-brief-h:calc(var(--orbit-media-h)*.64);
+ --orbit-lower-w:calc(var(--orbit-media-w)*.88);
+ --orbit-lower-h:calc(var(--orbit-media-h)*.79);
+}
+#atlasOrbit .orbit-bubble{max-width:none;overflow:visible}
+#atlasOrbit .orbit-bubble.tl{width:var(--orbit-brief-w);height:var(--orbit-brief-h);left:calc(var(--orbit-cx) - var(--orbit-gap)/2 - var(--orbit-brief-w));top:calc(var(--orbit-cy) - var(--orbit-gap)/2 - var(--orbit-brief-h))}
+#atlasOrbit .orbit-bubble.tr{width:var(--orbit-media-w);height:var(--orbit-media-h);left:calc(var(--orbit-cx) + var(--orbit-gap)/2);top:calc(var(--orbit-cy) - var(--orbit-gap)/2 - var(--orbit-media-h))}
+#atlasOrbit .orbit-bubble.bl{width:var(--orbit-lower-w);height:var(--orbit-lower-h);left:calc(var(--orbit-cx) - var(--orbit-gap)/2 - var(--orbit-lower-w));top:calc(var(--orbit-cy) + var(--orbit-gap)/2)}
+#atlasOrbit .orbit-bubble.br{width:calc(var(--orbit-media-w)*.92);height:calc(var(--orbit-lower-h)*1.07);left:calc(var(--orbit-cx) + var(--orbit-gap)/2);top:calc(var(--orbit-cy) + var(--orbit-gap)/2)}
+#atlasOrbit .orbit-center{left:var(--orbit-cx);top:var(--orbit-cy);width:48px;height:48px;padding:0;border:0;background:transparent;box-shadow:none;color:#ffc53e;border-radius:0}
+#atlasOrbit .orbit-center svg{width:44px;height:44px;filter:drop-shadow(0 3px 4px #60441438)}
+#atlasOrbit .orbit-center:active{box-shadow:none}
+#atlasOrbit .orbit-content{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+#atlasOrbit .orbit-content::-webkit-scrollbar{display:none}
+#atlasOrbit .orbit-kicker,#atlasOrbit .orbit-title,#atlasOrbit .orbit-action{flex-shrink:0}
+#atlasOrbit .orbit-bubble.tr .orbit-media-hero{flex:1 1 60px;min-height:44px}
+#atlasOrbit .orbit-bubble .orbit-action{min-height:36px}
+#atlasOrbit .orbit-links .orbit-link,#atlasOrbit .orbit-near-item{flex-shrink:0}
+@media(max-width:700px){
+ #atlasOrbit{--orbit-unit:8;--orbit-gap:64px;--orbit-cx:45%;
+ --orbit-cy:calc(50% + (env(safe-area-inset-top) - env(safe-area-inset-bottom))/2);
+ --orbit-media-w:calc(55vw - 44px);
+ --orbit-media-h:min(246px,calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 112px)/2));
+ --orbit-brief-w:calc(45vw - 52px);--orbit-brief-h:calc(var(--orbit-media-h)*.68);
+ --orbit-lower-w:calc(45vw - 44px);--orbit-lower-h:calc(var(--orbit-media-h)*.82)}
+ #atlasOrbit .orbit-content,#atlasOrbit .orbit-bubble.tl .orbit-content{padding:10px;gap:6px}
+ #atlasOrbit .orbit-bubble .orbit-title{font-size:14px;line-height:1.3}
+ #atlasOrbit .orbit-bubble.tl .orbit-title{font-size:13px}
+ #atlasOrbit .orbit-bubble .orbit-note{font-size:12px;line-height:1.45}
+ #atlasOrbit .orbit-bubble .orbit-kicker{font-size:8px;line-height:1.35;white-space:normal}
+ #atlasOrbit .orbit-bubble .orbit-action{font-size:11px;min-height:36px;padding:6px 8px}
+ #atlasOrbit .orbit-bubble.tl .orbit-note{flex:1 1 auto;-webkit-line-clamp:3}
+ #atlasOrbit .orbit-center svg{width:38px;height:38px}
+ #atlasOrbit .orbit-link{font-size:11px;min-height:36px}
+}
+@media(max-width:350px){
+ #atlasOrbit{--orbit-gap:56px;--orbit-media-w:calc(55vw - 40px);--orbit-brief-w:calc(45vw - 44px);--orbit-lower-w:calc(45vw - 40px)}
+ #atlasOrbit .orbit-content,#atlasOrbit .orbit-bubble.tl .orbit-content{padding:8px;gap:4px}
+ #atlasOrbit .orbit-bubble .orbit-title{font-size:12px}
+ #atlasOrbit .orbit-bubble .orbit-note{font-size:11px}
+}
+@media(max-height:500px) and (orientation:landscape){
+ #atlasOrbit{--orbit-unit:7;--orbit-gap:56px;--orbit-cx:50%;--orbit-media-w:min(280px,calc((100vw - 88px)/2));--orbit-media-h:calc((100dvh - 88px)/2);--orbit-brief-w:calc(var(--orbit-media-w)*.74);--orbit-brief-h:calc(var(--orbit-media-h)*.84);--orbit-lower-w:calc(var(--orbit-media-w)*.88);--orbit-lower-h:calc(var(--orbit-media-h)*.9)}
+ #atlasOrbit .orbit-content{padding:8px;gap:4px}
+}
