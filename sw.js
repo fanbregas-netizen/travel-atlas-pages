@@ -1,5 +1,5 @@
 // Travel Atlas V4. Only cache our public application shell, never APIs, media or map tiles.
-const CACHE='atlas-v4-shell-pages-orbit-layout-20261030-v2';
+const CACHE='atlas-v4-shell-pages-orbit-map-20261030-v3';
 const SHELL=['/travel-atlas-pages/','/travel-atlas-pages/manifest.webmanifest','/travel-atlas-pages/icon.svg','/travel-atlas-pages/atlas-orbit.css','/travel-atlas-pages/atlas-orbit.js','/travel-atlas-pages/atlas-stage5.js','/travel-atlas-pages/atlas-services.js'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));
