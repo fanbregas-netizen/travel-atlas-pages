@@ -1556,7 +1556,7 @@ class Map{
       if(!officialMap){
         $('amapSurface').hidden=false;
         const c=currentCenter();
-        officialMap=new officialSDK.Map('amapSurface',{zoom:currentZoom(),center:wgsToGcj(c.lng,c.lat),viewMode:'3D',pitch:0,rotation:0,isHotspot:true,mapStyle:'amap://styles/whitesmoke',resizeEnable:true,rotateEnable:false,pitchEnable:false,dragEnable:true,zoomEnable:true,keyboardEnable:false,jogEnable:false});
+        officialMap=new officialSDK.Map('amapSurface',{zoom:currentZoom(),center:wgsToGcj(c.lng,c.lat),viewMode:'2D',pitch:0,rotation:0,isHotspot:true,mapStyle:'amap://styles/whitesmoke',resizeEnable:true,rotateEnable:false,pitchEnable:false,dragEnable:true,zoomEnable:true,keyboardEnable:false,jogEnable:false});
         officialMap.on('complete',()=>{if(isOfficial()){document.body.classList.add('atlas-remote-ready');mapConnection('',false);queueOfficialNearby();}});
         officialMap.on('hotspotclick',e=>{
           if(!isOfficial()||picking||Date.now()-lastPoiTap<700)return;
