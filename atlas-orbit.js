@@ -24,9 +24,12 @@ const action=(label,fn)=>{const b=text('button','orbit-action',label);b.type='bu
 function pathFor(w,h,direction){
  // One continuous closed silhouette per card. Each tail is part of the
  // perimeter (not a separate triangle), with symmetric inward corner geometry.
- const r=Math.min(18,w/7,h/7);
- const t=Math.min(15,w*.095,h*.095);
- const base=Math.min(44,w*.29,h*.33);
+ // All four shapes share one dimensionless geometry system. Different
+ // card sizes preserve identical relative corner/tail proportions.
+ const unit=Math.min(w,h);
+ const r=unit*.12;
+ const t=unit*.09;
+ const base=unit*.28;
  const tip=t;
  if(direction==='tl')return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-base}
  C ${w} ${h-base*.42} ${w+tip*.62} ${h+tip*.5} ${w+tip} ${h+tip}
