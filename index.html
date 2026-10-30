@@ -1463,7 +1463,7 @@ class Map{
   function syncNativeFeatures(){
     if(!officialMap)return;
     const z=officialMap.getZoom();
-    const mode=z<12?['bg','road','building']:['bg','road','point','building'];
+    const mode=z<8?['bg','road','point']:['bg','road','point','building'];
     const signature=mode.join(',');
     if(officialFeatureSignature===signature)return;
     officialFeatureSignature=signature;
@@ -1485,7 +1485,7 @@ class Map{
       if(!officialBuildings&&A.Buildings){
         officialBuildings=new A.Buildings({zIndex:130,zooms:[15,20],wallColor:'#e4e4e4',roofColor:'#ffffff',heightFactor:1});
       }
-      if(officialBuildings)officialMap.add(officialBuildings);
+      if(officialBuildings){officialMap.remove(officialBuildings);officialBuildings=null;} // No extruded buildings in orthographic plan view.
       officialMap.setPitch?.(desiredModelPitch(officialMap.getZoom()));
       officialMap.setRotation?.(0);
       applyOfficialStatus();
