@@ -160,6 +160,12 @@ backdrop.addEventListener('click',()=>hide(true));star.addEventListener('click',
 root.addEventListener('pointerdown',event=>{if(event.target===root)hide(true)});
 // iOS Safari changes the visual viewport when browser chrome collapses or orientation changes.
 // Recompute the four real SVG silhouettes after CSS viewport dimensions settle.
+// ResizeObserver catches font loading, card content changes and browser UI resizing
+// that do not always dispatch a window resize event on iOS Safari.
+if(typeof ResizeObserver!=='undefined'){
+ const shapeObserver=new ResizeObserver(()=>{if(!root.hidden)requestAnimationFrame(resizeShapes)});
+ for(const {card} of cards.values())shapeObserver.observe(card);
+}
 window.addEventListener('resize',resizeShapes,{passive:true});
 window.visualViewport?.addEventListener('resize',resizeShapes,{passive:true});
 window.addEventListener('orientationchange',()=>requestAnimationFrame(resizeShapes),{passive:true});
