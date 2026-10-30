@@ -43,6 +43,22 @@ jobs:
           if (!html.includes('window.AtlasServices.search(q,')) throw Error('Search action not wired to static service');
           const services=fs.readFileSync('atlas-services.js','utf8');
           if (!services.includes('window.AtlasServices={staticHost,search,nearby}')) throw Error('Static services API not exported');
+          const orbit = fs.readFileSync('atlas-orbit.js','utf8');
+          const stage5 = fs.readFileSync('atlas-stage5.js','utf8');
+          for (const [name,ok] of [
+            ['four independent vector bubbles', orbit.includes("['tl'") && orbit.includes("['tr'") && orbit.includes("['bl'") && orbit.includes("['br'") && orbit.includes("pathFor(pw,ph,key)")],
+            ['star and backdrop dismissal', orbit.includes("star.addEventListener('click'") && orbit.includes("backdrop.addEventListener('click'")],
+            ['Brief editor action', orbit.includes("memo-edit")],
+            ['media panel renderer', orbit.includes('function drawMedia(')],
+            ['guides panel renderer', orbit.includes('function drawGuides(')],
+            ['nearby panel renderer', orbit.includes('function drawNearby(')],
+            ['nearby request cancellation', orbit.includes('requestController.abort()')],
+            ['iPhone viewport resize', orbit.includes("visualViewport?.addEventListener('resize'")],
+            ['saved-place state bridge', html.includes('__atlasOrbitState')],
+            ['local media storage', html.includes('indexedDB')],
+            ['memory opening event', html.includes('atlas:memory-open') && stage5.includes('atlas:memory-open')]
+          ]) if (!ok) throw Error('V4 regression wiring failed: ' + name);
+          console.log('V4 feature wiring regression checks passed');
           console.log('Pages static asset checks passed');
           NODE
       - uses: actions/configure-pages@v5
