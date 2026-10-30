@@ -2,7 +2,7 @@
 'use strict';
 const sheet=document.getElementById('memorySheet');
 if(!sheet||document.getElementById('atlasOrbit'))return;
-const root=document.createElement('section');root.id='atlasOrbit';root.hidden=true;root.setAttribute('role','dialog');root.setAttribute('aria-label','星标旅行记忆：四向展开');root.setAttribute('aria-modal','true');
+const root=document.createElement('section');root.id='atlasOrbit';root.hidden=true;root.setAttribute('role','dialog');root.setAttribute('aria-label','星标旅行记忆：四向展开');
 const backdrop=document.createElement('div');backdrop.className='orbit-backdrop';root.append(backdrop);
 const regions=[['tl','为什么想去 · BRIEF'],['tr','照片与视频 · MEDIA'],['bl','相关攻略 · GUIDES'],['br','附近景点 · NEARBY']];
 const cards=new Map();
