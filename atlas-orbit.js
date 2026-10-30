@@ -22,13 +22,31 @@ const text=(tag,cls,value)=>{const el=document.createElement(tag);if(cls)el.clas
 const kicker=(label)=>text('div','orbit-kicker',label);
 const action=(label,fn)=>{const b=text('button','orbit-action',label);b.type='button';b.addEventListener('click',fn);return b};
 function pathFor(w,h,direction){
- // Rounded bubble and a single smoothly attached inward tail per quadrant.
- // Keep the tip within the central gap and away from the yellow star.
- const r=Math.min(18,w/7,h/7),reach=Math.min(17,w*.1,h*.12),base=Math.min(42,w*.28);
- if(direction==='tl')return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h-5} ${w-8} ${h-3} C ${w+2} ${h+2} ${w+reach-6} ${h+reach-5} ${w+reach} ${h+reach} C ${w+1} ${h+reach-3} ${w-base+13} ${h+2} ${w-base} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
- if(direction==='tr')return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${base} C ${base-13} ${h+2} -1 ${h+reach-3} ${-reach} ${h+reach} C ${-reach+6} ${h+reach-5} -2 ${h+2} 8 ${h-3} Q 0 ${h-5} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
- if(direction==='bl')return `M ${r} 0 H ${w-base} C ${w-base+13} -2 ${w+1} ${-reach+3} ${w+reach} ${-reach} C ${w+reach-6} ${-reach+5} ${w+2} -2 ${w-8} 3 Q ${w} 5 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
- return `M ${r} 0 Q 0 0 0 ${r} Q 0 5 8 3 C -2 -2 ${-reach+6} ${-reach+5} ${-reach} ${-reach} C -1 ${-reach+3} ${base-13} -2 ${base} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Z`;
+ // One continuous closed silhouette per card. Each tail is part of the
+ // perimeter (not a separate triangle), with symmetric inward corner geometry.
+ const r=Math.min(18,w/7,h/7);
+ const t=Math.min(15,w*.095,h*.095);
+ const base=Math.min(44,w*.29,h*.33);
+ const tip=t;
+ if(direction==='tl')return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-base}
+ C ${w} ${h-base*.42} ${w+tip*.62} ${h+tip*.5} ${w+tip} ${h+tip}
+ C ${w+tip*.5} ${h+tip*.62} ${w-base*.42} ${h} ${w-base} ${h}
+ H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
+ if(direction==='tr')return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r}
+ Q ${w} ${h} ${w-r} ${h} H ${base}
+ C ${base*.42} ${h} ${-tip*.5} ${h+tip*.62} ${-tip} ${h+tip}
+ C ${-tip*.62} ${h+tip*.5} 0 ${h-base*.42} 0 ${h-base}
+ V ${r} Q 0 0 ${r} 0 Z`;
+ if(direction==='bl')return `M ${r} 0 H ${w-base}
+ C ${w-base*.42} 0 ${w+tip*.5} ${-tip*.62} ${w+tip} ${-tip}
+ C ${w+tip*.62} ${-tip*.5} ${w} ${base*.42} ${w} ${base}
+ V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r}
+ Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
+ return `M ${base} 0 H ${w-r} Q ${w} 0 ${w} ${r}
+ V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r}
+ Q 0 ${h} 0 ${h-r} V ${base}
+ C 0 ${base*.42} ${-tip*.62} ${-tip*.5} ${-tip} ${-tip}
+ C ${-tip*.5} ${-tip*.62} ${base*.42} 0 ${base} 0 Z`;
 }
 function resizeShapes(){
  if(root.hidden)return;
