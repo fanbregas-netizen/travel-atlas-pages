@@ -162,12 +162,17 @@ root.addEventListener('pointerdown',event=>{if(event.target===root)hide(true)});
 // Recompute the four real SVG silhouettes after CSS viewport dimensions settle.
 // ResizeObserver catches font loading, card content changes and browser UI resizing
 // that do not always dispatch a window resize event on iOS Safari.
+let resizeFrame=null;
+function queueShapeResize(){
+ if(root.hidden||resizeFrame!==null)return;
+ resizeFrame=requestAnimationFrame(()=>{resizeFrame=null;resizeShapes()});
+}
 if(typeof ResizeObserver!=='undefined'){
- const shapeObserver=new ResizeObserver(()=>{if(!root.hidden)requestAnimationFrame(resizeShapes)});
+ const shapeObserver=new ResizeObserver(queueShapeResize);
  for(const {card} of cards.values())shapeObserver.observe(card);
 }
-window.addEventListener('resize',resizeShapes,{passive:true});
-window.visualViewport?.addEventListener('resize',resizeShapes,{passive:true});
+window.addEventListener('resize',queueShapeResize,{passive:true});
+window.visualViewport?.addEventListener('resize',queueShapeResize,{passive:true});
 window.addEventListener('orientationchange',()=>requestAnimationFrame(resizeShapes),{passive:true});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!root.hidden&&!document.getElementById('editor')?.open){event.preventDefault();hide(true)}});
 scheduleSync();
