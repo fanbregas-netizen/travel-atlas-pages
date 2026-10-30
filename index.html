@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
+<meta name="atlas-hosting" content="static">
+<meta name="atlas-release" content="V4.20261030.1">
+<script src="/travel-atlas-pages/atlas-services.js"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f8fa">
@@ -1506,7 +1509,7 @@ class Map{
     });
   }
   async function checkOfficialConfiguration(){
-    if(location.hostname.endsWith('github.io'))throw Error('GitHub Pages 不提供高德地图服务端配置；请使用默认地图模式');
+    if(window.AtlasServices?.staticHost)throw Error('GitHub Pages 不提供高德地图服务端配置；请使用默认地图模式');
     let response;
     try{response=await fetch('/travel-atlas-pages/api/amap-config',{cache:'no-store',credentials:'same-origin'})}
     catch(_){throw Error('暂时无法联系地图配置服务')}
@@ -1629,7 +1632,7 @@ class Map{
   async function allStored(){if(fallback){try{const value=JSON.parse(localStorage.getItem('travel-places')||'null');return (Array.isArray(value)?value:volatilePlaces).map(hydratePlace)}catch(e){return volatilePlaces.map(hydratePlace)}}return (await txn('places','readonly',s=>s.getAll())).map(hydratePlace)}
   async function getMeta(key){if(fallback){try{return JSON.parse(localStorage.getItem('travel-meta-'+key)||'null')||volatileMeta[key]||null}catch(e){return volatileMeta[key]||null}}return await txn('meta','readonly',s=>s.get(key))}
   async function setMeta(key,value){if(fallback){volatileMeta[key]={key,value};try{localStorage.setItem('travel-meta-'+key,JSON.stringify({key,value}))}catch(e){}return}return await txn('meta','readwrite',s=>s.put({key,value}))}
-  async function upsert(place){const stored=await preparePlace(place);if(fallback){const a=[...(await allStored())],i=a.findIndex(p=>p.id===place.id);if(i<0)a.push(stored);else a[i]=stored;volatilePlaces=a;try{localStorage.setItem('travel-places',JSON.stringify(a))}catch(e){console.warn('当前浏览器不允许永久保存，请先导出备份')}return}await txn('places','readwrite',s=>s.put(stored))}
+  async function upsert(place){const stored=await preparePlace(place);if(fallback){const a=[...(await allStored())],i=a.findIndex(p=>p.id===place.id);if(i<0)a.push(stored);else a[i]=stored;volatilePlaces=a;try{localStorage.setItem('travel-places',JSON.stringify(a))}catch(e){storageIsTransient=true;throw Error('本机存储失败，请导出备份')}return}await txn('places','readwrite',s=>s.put(stored))}
   async function remove(id){if(fallback){const a=(await allStored()).filter(p=>p.id!==id);volatilePlaces=a;try{localStorage.setItem('travel-places',JSON.stringify(a))}catch(e){}return}return await txn('places','readwrite',s=>s.delete(id))}
   // Restore every place in one transaction; an import must never partially
   // overwrite the user's map if a video or photo hits the browser storage quota.
@@ -1739,6 +1742,7 @@ class Map{
   }
   function stopInlineVideos(release=true){if(inlineObserver){inlineObserver.disconnect();inlineObserver=null}document.querySelectorAll('.atlas-video').forEach(b=>pauseInlineVideo(b,release))}
   function startInlineVideos(place){
+    if(window.__atlasOrbitEnabled)return;
     stopInlineVideos();const videos=mediaItems(place);
     if(!('IntersectionObserver' in window))return;
     inlineObserver=new IntersectionObserver(entries=>{
@@ -1768,11 +1772,15 @@ class Map{
     if(!p)return;
     if(location.protocol==='file:'){toast('请在部署后的网页打开，再分享可访问的链接');return}
     const title='来和我一起 HI / Explore · '+p.title;
-    const fallback=new URL(location.origin+'/');fallback.searchParams.set('atlas',encodeShare(p));
+    const fallback=new URL('./',location.href);fallback.searchParams.set('atlas',encodeShare(p));
     async function sendLink(url,mediaCount){
       if(navigator.share){try{await navigator.share({title,text:title,url});return}catch(e){if(e?.name==='AbortError')return}}
       try{await navigator.clipboard.writeText(url);toast(mediaCount?'照片、视频分享链接已复制':'分享链接已复制，可以发送到微信或小红书')}
       catch(_){window.prompt('复制分享链接',url)}
+    }
+    if(window.AtlasServices?.staticHost){
+      if(!confirm('分享这个地点和 Brief？获得链接的人可查看这些文字和位置。照片与视频只保存在本机，不会包含在链接中。'))return;
+      await sendLink(fallback.toString(),0);return;
     }
     // Be explicit: remote sharing publishes this selected memory, not the user's entire atlas.
     const photos=(p.photos||[]).filter(x=>photoSrc(x.src)).slice(0,9);
@@ -1941,19 +1949,26 @@ class Map{
     if(editorPhotos.length<9||editorVideos.length<6){const b=document.createElement('button');b.type='button';b.className='add-photos';b.innerHTML='<span><b>＋</b>照片 / 视频</span>';b.onclick=()=>$('photoUpload').click();el.append(b)}
   }
   async function shrink(file){return new Promise((resolve,reject)=>{const fr=new FileReader();fr.onerror=()=>reject(Error('图片无法读取'));fr.onload=()=>{const im=new Image();im.onerror=()=>reject(Error('图片格式不支持'));im.onload=()=>{const max=1600,scale=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);c.getContext('2d').drawImage(im,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.86))};im.src=fr.result};fr.readAsDataURL(file)})}
-  let savingEditor=false;
+  let savingEditor=false,ingestingMedia=false;
   async function commitEditor(openMemory=false){
     if(!editing||savingEditor)return;
+    if(ingestingMedia){toast('影像正在处理，请稍候再保存');return}
     const title=$('placeName').value.trim();if(!title){toast('请填写目的地名称');return}
     savingEditor=true;const btn=$('savePlace');btn.disabled=true;
     try{const p={...editing,title,date:$('placeDate').value||today(),note:$('placeNote').value.trim(),rank:Number(document.querySelector('input[name=starRank]:checked')?.value||2),photos:editorPhotos,videos:editorVideos,demo:false};
-      await upsert(p);editing=null;if($('editor').open)$('editor').close();await refresh();if(openMemory)showPlace(p.id,true);else closeMemory();
+      await upsert(p);await refresh();editing=null;if(openMemory)showPlace(p.id,true);else closeMemory();if($('editor').open)$('editor').close();
       toast(storageIsTransient?'浏览器未能持久保存，请立即导出备份':'★ 旅行 Brief 已保存');
     }catch(err){console.error(err);toast('保存失败，请减少照片或视频大小')}finally{savingEditor=false;btn.disabled=false}
   }
   async function savePlace(e){e.preventDefault();await commitEditor(true)}
   async function ingestFiles(files,targetId=null){
+    if(ingestingMedia){toast('影像正在处理，请稍候再添加');return}
+    ingestingMedia=true;$('savePlace').disabled=true;
+    try{await ingestFilesNow(files,targetId)}finally{ingestingMedia=false;$('savePlace').disabled=false}
+  }
+  async function ingestFilesNow(files,targetId=null){
     const dst=targetId?places.find(x=>x.id===targetId):null;
+    if(targetId&&!dst){toast('地点已不存在，未保存影像');return}
     let photos=dst?[...(dst.photos||[])]:editorPhotos;
     let videos=dst?[...(dst.videos||[])]:editorVideos;
     let added=0;
@@ -1974,20 +1989,22 @@ class Map{
   function updateViewer(){if(!viewingPlace)return;const list=mediaItems(viewingPlace);if(!list.length)return;
     const ph=list[((photoIndex%list.length)+list.length)%list.length];photoIndex=((photoIndex%list.length)+list.length)%list.length;
     $('viewerTitle').textContent=viewingPlace.title;stopVideo();
-    if(ph.kind==='video'){activeVideoUrl=makeVideoURL(ph);$('viewerImage').style.display='none';$('viewerVideo').style.display='block';$('viewerVideo').src=activeVideoUrl||'';$('viewerVideo').muted=false;$('viewerVideo').playsInline=true;$('viewerVideo').play().catch(()=>{})}
+    if(ph.kind==='video'){activeVideoUrl=makeVideoURL(ph);$('viewerImage').style.display='none';$('viewerVideo').style.display='block';$('viewerVideo').src=activeVideoUrl||'';$('viewerVideo').muted=false;$('viewerVideo').playsInline=true;$('viewerVideo').play().catch(()=>{if($('viewerVideo').error)toast('当前浏览器无法播放此视频编码，请尝试 MP4（H.264）或 WebM')})}
     else{$('viewerVideo').style.display='none';$('viewerImage').style.display='block';$('viewerImage').src=photoSrc(ph.src)}
     $('viewerCaption').textContent=`${photoIndex+1} / ${list.length}${ph.kind==='video'?' · 视频':ph.demo?' · 演示图片，非实拍':''}`;
     $('viewerPrev').style.display=list.length>1?'block':'none';$('viewerNext').style.display=list.length>1?'block':'none';
   }
   function closeViewer(){stopVideo();$('viewer').classList.remove('visible');if(selectedId){const p=places.find(x=>x.id===selectedId);if(p)startInlineVideos(p)}}
+  function loadMapView(){try{const v=JSON.parse(localStorage.getItem('atlas-map-view')||'null');return v&&Number.isFinite(v.lat)&&Math.abs(v.lat)<=85&&Number.isFinite(v.lng)&&Math.abs(v.lng)<=180&&Number.isFinite(v.zoom)?v:null}catch{return null}}
+  function rememberMapView(){try{const c=currentCenter();localStorage.setItem('atlas-map-view',JSON.stringify({lat:c.lat,lng:c.lng,zoom:currentZoom()}))}catch{}}
   function initMap(){
-    map=new maplibregl.Map({container:'map',style:styleFor('standard'),center:(()=>{const c=loadLastCoords();return c?[c.lng,c.lat]:[121.905,29.492]})(),zoom:13.35,
+    map=new maplibregl.Map({container:'map',style:styleFor('standard'),center:(()=>{const c=loadMapView()||loadLastCoords();return c?[c.lng,c.lat]:[121.905,29.492]})(),zoom:loadMapView()?.zoom||13.35,
       minZoom:2,maxZoom:19,attributionControl:true,cooperativeGestures:false,
       dragRotate:false,pitchWithRotate:false,renderWorldCopies:true,fadeDuration:120});
     map.touchZoomRotate.disableRotation();
     updateLayerLabel();
     map.on('error',handleMapError);
-    map.on('load',hideMapWarning);map.on('repaint',paintBuildings);map.on('moveend',()=>{scheduleFigure();renderDestinations();if(automaticScaleMode&&!autoMapSwitching)updateAutomaticMode()});map.on('load',scheduleFigure);
+    map.on('load',hideMapWarning);map.on('repaint',paintBuildings);map.on('moveend',()=>{rememberMapView();scheduleFigure();renderDestinations();if(automaticScaleMode&&!autoMapSwitching)updateAutomaticMode()});map.on('load',scheduleFigure);
     map.on('dragstart',()=>{userHasMovedMap=true;if(!picking){closeMemory();hideDestination()}closeSearchResults()});
     map.on('zoomstart',()=>{if(!picking)closeMemory()});
     window.addEventListener('resize',()=>map.resize(),{passive:true});
@@ -2029,8 +2046,10 @@ class Map{
     if(!el.children.length)el.innerHTML='<div class="search-state">没有找到地点，试试城市＋景点名称</div>';
     el.classList.add('visible');
   }
+  let searchDebounce=null,searchController=null;
+  function invalidateSearch(){clearTimeout(searchDebounce);searchRequest++;searchController?.abort();searchController=null}
   async function performSearch(e){
-    e.preventDefault();
+    e?.preventDefault();invalidateSearch();
     const q=$('searchInput').value.trim();if(!q)return;
     const rId=++searchRequest;
     // A saved destination should be immediately discoverable, even without network access.
@@ -2055,28 +2074,9 @@ class Map{
     }
     if(rId!==searchRequest)return;
     const panel=$('searchResults');panel.innerHTML='<div class="search-state">正在查找地点…</div>';panel.classList.add('visible');
-    const btn=$('searchForm').querySelector('button');btn.disabled=true;
-    try{
-      // GitHub Pages is static: query Nominatim once, then use Photon as fallback.
-      const url='https://nominatim.openstreetmap.org/search?format=json&limit=10&addressdetails=1&accept-language=zh-CN&q='+encodeURIComponent(q);
-      let data=[];
-      const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),9000);
-      try{
-        const r=await fetch(url,{signal:ctl.signal,headers:{'Accept':'application/json'}});
-        if(!r.ok)throw Error('search '+r.status);data=await r.json();
-      }catch(primaryError){console.warn('主搜索暂不可用，切换地点搜索服务',primaryError)}finally{clearTimeout(t)}
-      if(rId!==searchRequest)return;
-      if(!Array.isArray(data)||!data.length){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),9000);
-        try{const r=await fetch('https://photon.komoot.io/api/?limit=10&q='+encodeURIComponent(q),{signal:ctl.signal});if(!r.ok)throw Error('secondary search '+r.status);
-          const features=(await r.json()).features||[];
-          data=features.map(x=>({lat:x.geometry?.coordinates?.[1],lon:x.geometry?.coordinates?.[0],name:x.properties?.name||q,display_name:[x.properties?.name,x.properties?.city,x.properties?.state,x.properties?.country].filter(Boolean).join(' · '),type:x.properties?.osm_value||x.properties?.osm_key||'地点'}));
-        }finally{clearTimeout(t)}
-      }
-      if(rId===searchRequest)renderSearchResults(data);
-    }catch(err){
-      console.warn('Map search failed',err);
-      if(rId===searchRequest){panel.innerHTML='<div class="search-state">网络搜索暂时不可用。可拖动地图到目标位置，再点「添加星标」。</div>';panel.classList.add('visible');}
-    }finally{if(rId===searchRequest)btn.disabled=false;}
+    searchController=new AbortController();const controller=searchController;
+    try{const data=await window.AtlasServices.search(q,{signal:controller.signal,center:currentCenter(),allowFallback:!!e});if(rId===searchRequest)renderSearchResults(data)}
+    catch(err){if(rId===searchRequest&&!controller.signal.aborted){panel.innerHTML='<div class="search-state">网络搜索暂时不可用。请按搜索重试，或拖动地图后标记地点。</div>';panel.classList.add('visible')}}
   }
   // ZIP backup uses the standard "stored" ZIP format to preserve binary video files;
   // no external library or remote upload is needed.
@@ -2364,7 +2364,7 @@ class Map{
       vectorMap.on('error',e=>{if(!loaded){console.warn('矢量图层加载中',e.error);mapConnection('矢量瓦片加载失败，请检查网络后刷新');}});
       vectorMap.on('click',selectVectorTap);
       vectorMap.on('move',()=>{userHasMovedMap=true;renderVectorBookmarks();if(selectedId)relayoutMemoryOpen();const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='0'});
-      vectorMap.on('moveend',()=>{renderVectorBookmarks();scheduleVectorPOIs();const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='1';const c=vectorMap.getCenter();map.jumpTo({center:[c.lng,c.lat],zoom:vectorMap.getZoom()});});
+      vectorMap.on('moveend',()=>{rememberMapView();renderVectorBookmarks();scheduleVectorPOIs();const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='1';const c=vectorMap.getCenter();map.jumpTo({center:[c.lng,c.lat],zoom:vectorMap.getZoom()});});
       vectorMap.on('zoomend',()=>{updateVectorCamera();renderVectorBookmarks();scheduleVectorPOIs()});
       vectorMap.on('styledata',scheduleVectorPOIs);
       setTimeout(()=>{if(!loaded&&mapMode==='vector')recoverFromVectorFailure('矢量瓦片连接超时，已切换到基础地图。')},13500);
@@ -2377,7 +2377,7 @@ class Map{
     const initFlag=await getMeta('initialized');
     if(!initFlag){await setMeta('initialized',true)}
     try{initMap()}catch(err){console.error('地图组件启动失败:',err);showMapWarning('地图组件遇到问题，但不会影响你的收藏和照片，请在「足迹」中查看或导出备份。')}
-    await refresh();if(!mobileStableMap)requestCurrentLocation(false);setTimeout(showIncomingShare,400); // iPhone: location permission is only requested when the user taps Locate
+    await refresh();setTimeout(showIncomingShare,400); // iPhone: location permission is only requested when the user taps Locate
     // Startup uses the authorized AMap credentials; any failure leaves the existing read-only fallback visible.
     officialView='white';automaticScaleMode=false;
     // Stay on architectural black/white map; initialize official AMap near building scale only.
@@ -2397,7 +2397,7 @@ class Map{
     $('quickNear').onclick=()=>{discoverNear();closeSearchResults()};$('quickStars').onclick=openDrawer;$('quickPin').onclick=()=>{$('navAdd').click()};
     $('chipDiscover').onclick=discoverNear;
     $('chipAll').onclick=()=>{closeMemory();setPicking(false);if(places.length)fitMapPlaces(places,12);else toast('还没有收藏的地点')};
-    $('chipList').onclick=openDrawer;$('navList').onclick=openDrawer;$('navMap').onclick=()=>{closeDrawer();closeMemory();closeSearchResults();setPicking(false)};$('navBackup').onclick=openDrawer;$('navAdd').onclick=confirmPicking;$('cancelPick').onclick=()=>setPicking(false);$('closeDrawer').onclick=closeDrawer;$('closeMemory').onclick=closeMemory;$('cover').onclick=closeDrawer;$('searchForm').onsubmit=performSearch;$('searchInput').addEventListener('focus',()=>{if($('searchResults').children.length)$('searchResults').classList.add('visible')});
+    $('chipList').onclick=openDrawer;$('navList').onclick=openDrawer;$('navMap').onclick=()=>{closeDrawer();closeMemory();closeSearchResults();setPicking(false)};$('navBackup').onclick=openDrawer;$('navAdd').onclick=confirmPicking;$('cancelPick').onclick=()=>setPicking(false);$('closeDrawer').onclick=closeDrawer;$('closeMemory').onclick=closeMemory;$('cover').onclick=closeDrawer;$('searchForm').onsubmit=performSearch;$('searchInput').addEventListener('input',()=>{invalidateSearch();closeSearchResults();if($('searchInput').value.trim().length>=2)searchDebounce=setTimeout(()=>performSearch(),650)});$('searchInput').addEventListener('focus',()=>{if($('searchResults').children.length)$('searchResults').classList.add('visible')});
     $('closeEditor').onclick=()=>commitEditor(false);$('editorForm').onsubmit=savePlace;
     $('editor').addEventListener('click',e=>{if(e.target===$('editor'))commitEditor(false)});
     $('editor').addEventListener('cancel',e=>{e.preventDefault();commitEditor(false)});

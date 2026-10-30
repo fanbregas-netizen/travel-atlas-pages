@@ -295,3 +295,15 @@ body.atlas-orbit-active #memorySheet.memory-atlas{opacity:0!important;visibility
 
 /* Only one visible focal star while the four-way orbit is open. */
 body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:none!important}
+
+
+/* Keep the selected point anchored while scaling the star; the raster fallback
+   uses absolute pixel coordinates, unlike the vector marker's positioned button. */
+.map-local-marker.star-pin{transform:translate(-50%,-50%) scale(var(--atlas-marker-scale,1))!important}
+.map-local-marker.star-pin[data-rank="1"]{--atlas-marker-scale:.8}
+.map-local-marker.star-pin[data-rank="3"]{--atlas-marker-scale:1.2}
+.map-local-marker.star-pin.selected{--atlas-marker-scale:1.12}
+.map-local-marker.star-pin.atlas-photo-location-pin{width:54px!important;height:58px!important;padding:4px;background:#fff;border:2px solid #fff;border-radius:12px;box-shadow:0 4px 18px #0003;transform:translate(-50%,calc(-100% - 9px))!important}
+/* Increase compact-phone hit areas without changing the four-card composition. */
+#atlasOrbit .orbit-bubble .orbit-action{min-height:36px}
+#atlasOrbit .orbit-near-item{min-height:36px}

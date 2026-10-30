@@ -33,7 +33,7 @@ function pathFor(w,h,direction){
 function resizeShapes(){
  if(root.hidden)return;
  for(const [key,{card,svg,path}] of cards){
-  const rect=card.getBoundingClientRect(),w=Math.round(rect.width),h=Math.round(rect.height);
+  const w=card.offsetWidth,h=card.offsetHeight;
   if(w<20||h<20)continue;
   svg.setAttribute('viewBox',`${-12} ${-12} ${w+24} ${h+24}`);
   // Animate the four actual SVG silhouettes, not a scaled screenshot or a card layer.
@@ -65,7 +65,7 @@ function state(){try{return window.__atlasOrbitState?.()||null}catch(_){return n
 const clear=key=>{const el=cards.get(key).content;el.replaceChildren();return el};
 function drawBrief(p){
  const c=clear('tl');c.append(kicker('01 / BRIEF · 想去理由'),text('h3','orbit-title',p.title||'未命名地点'),text('p','orbit-note',p.note||'还没有写下想去的理由。'));
- c.append(action('编辑 Brief ↗',()=>{hide();sheet.querySelector('.memo-edit')?.click()}));
+ c.append(action('编辑 Brief ↗',()=>{sheet.querySelector('.memo-edit')?.click()}));
 }
 function drawMedia(p){
  const c=clear('tr');c.append(kicker('02 / PHOTO & VIDEO'));
@@ -75,8 +75,8 @@ function drawMedia(p){
  if(img?.src){const cover=document.createElement('img');cover.src=img.src;cover.alt=(p.title||'地点')+' · 旅行照片';button.append(cover)}
  else button.append(text('span','orbit-media-placeholder',p.videoCount?'▶ 旅行视频':'Add memories\n照片 · 视频'));
  if((p.photoCount||0)+(p.videoCount||0)>0)button.append(text('span','orbit-media-count',`${p.photoCount||0} 照片 · ${p.videoCount||0} 视频`));
- button.addEventListener('click',()=>{hide();if(source)source.click();else document.getElementById('memoryUpload')?.click()});c.append(button);
- c.append(action('＋ 添加影像',()=>{hide();document.getElementById('memoryUpload')?.click()}));
+ button.addEventListener('click',()=>{if(source)source.click();else document.getElementById('memoryUpload')?.click()});c.append(button);
+ c.append(action('＋ 添加影像',()=>{document.getElementById('memoryUpload')?.click()}));
 }
 function drawGuides(p){
  const c=clear('bl');c.append(kicker('03 / GUIDES · 攻略'),text('h3','orbit-title','发现更多灵感'));
@@ -91,7 +91,7 @@ function drawGuides(p){
   const a=document.createElement('a');a.className='orbit-link';a.href=entry.url;a.target='_blank';a.rel='noopener noreferrer';
   a.append(text('span','',entry.label),text('span','','↗'));links.append(a);
  }
- c.append(links);c.append(action('记录攻略 ↗',()=>{hide();sheet.querySelector('.memo-edit')?.click()}));
+ c.append(links);c.append(action('记录攻略 ↗',()=>{sheet.querySelector('.memo-edit')?.click()}));
 }
 function drawNearby(p){
  const c=clear('br');c.append(kicker('04 / NEARBY · 附近'),text('h3','orbit-title','周边值得看看'));
@@ -101,8 +101,7 @@ function drawNearby(p){
  if(requestController)requestController.abort();requestController=new AbortController();
  const controller=requestController,originId=p.id;
  const params=new URLSearchParams({lat:String(m),lng:String(n),radius:'1800',limit:'5'});
- fetch('/api/nearby?'+params,{signal:controller.signal,headers:{Accept:'application/json'}})
-  .then(r=>{if(!r.ok)throw Error(String(r.status));return r.json()})
+ window.AtlasServices.nearby(m,n,{signal:controller.signal})
   .then(data=>{
    if(controller.signal.aborted||shownId!==originId)return;
    list.replaceChildren();const places=Array.isArray(data.places)?data.places:[];
@@ -115,7 +114,7 @@ function drawNearby(p){
      hide(true);if(Number.isFinite(Number(place.lat))&&Number.isFinite(Number(place.lng)))window.__atlasDemo?.select?.(String(place.name||'景点'),Number(place.lat),Number(place.lng));
     });list.append(b);
    }
-  }).catch(()=>{if(!controller.signal.aborted&&shownId===originId)list.replaceChildren(text('p','orbit-small','附近查询暂时不可用，可稍后重试。'))});
+  }).catch(()=>{if(!controller.signal.aborted&&shownId===originId)list.replaceChildren(text('p','orbit-small','附近查询暂时不可用。'),action('重新查询',()=>drawNearby(p)))});
 }
 function show(p){
  if(closeTimer){clearTimeout(closeTimer);closeTimer=null}
@@ -148,13 +147,12 @@ function sync(){
  scheduled=false;
  if(!sheet.classList.contains('visible')){dismissedId='';if(!root.hidden&&!root.classList.contains('is-closing'))hide();return}
  const p=state();if(!p){if(!root.hidden)hide();return}
- if(root.hidden&&dismissedId===p.id)return;
  if(root.hidden||shownId!==p.id||root.classList.contains('is-closing')){show(p);return}
  drawBrief(p);drawMedia(p);drawGuides(p);resizeShapes();
 }
 function scheduleSync(){if(scheduled)return;scheduled=true;requestAnimationFrame(sync)}
 new MutationObserver(scheduleSync).observe(sheet,{attributes:true,attributeFilter:['class'],childList:false,subtree:false});
-document.addEventListener('atlas:memory-open',()=>{dismissedId='';if(!root.hidden){shownId='';}scheduleSync()});
+document.addEventListener('atlas:memory-open',()=>{dismissedId='';scheduleSync()});
 backdrop.addEventListener('click',()=>hide(true));star.addEventListener('click',()=>hide(true));
 // Touch outside the cards should dismiss with the same spring return as tapping the star.
 root.addEventListener('pointerdown',event=>{if(event.target===root)hide(true)});
