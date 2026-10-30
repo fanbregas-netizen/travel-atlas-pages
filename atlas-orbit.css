@@ -460,8 +460,16 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  content:"";position:absolute;left:50%;bottom:-8px;width:12px;height:12px;
  background:#fff;transform:translateX(-50%) rotate(45deg);
  border-right:2px solid #fff;border-bottom:2px solid #fff;
- border-radius:0 0 2px 0;z-index:-1;
+ border-radius:0 0 2px 0;z-index:0;pointer-events:none;
 }
 .map-local-marker.star-pin.atlas-photo-location-pin img{
  display:block;width:100%;height:100%;object-fit:cover;border-radius:8px;
+}
+
+/* Ensure the photograph paints above the white locator-tail diamond. */
+.map-local-marker.star-pin.atlas-photo-location-pin img{
+ position:relative;z-index:1;
+}
+@media(prefers-reduced-motion:reduce){
+ .map-local-marker.star-pin.atlas-photo-location-pin img{transition:none!important}
 }
