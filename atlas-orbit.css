@@ -34,7 +34,7 @@
 #atlasOrbit .orbit-near-name{font-size:clamp(10px,1.05vw,12px);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:calc(100% - 35px)}
 #atlasOrbit .orbit-near-dist{font-size:9px;color:#989288;flex:none;white-space:nowrap}
 body.atlas-orbit-active #memorySheet.memory-atlas{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
-@keyframes orbitGrow{0%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.57);filter:blur(5px)}57%{opacity:1;transform:translate(-1px,-1px) scale(1.018);filter:blur(0)}100%{opacity:1;transform:translate(0,0) scale(1)}}
+@keyframes orbitGrow{0%{opacity:0;transform:translate(var(--dx),var(--dy));filter:blur(4px)}57%{opacity:1;transform:translate(-1px,-1px);filter:blur(0)}100%{opacity:1;transform:translate(0,0);filter:blur(0)}}
 @keyframes orbitContent{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 @keyframes orbitStar{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}65%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 @media(max-width:700px){#atlasOrbit{--orbit-gap:96px;--orbit-w:calc((100vw - 26px - var(--orbit-gap))/2);--orbit-h:clamp(145px,21dvh,190px)}#atlasOrbit .orbit-bubble{max-width:none}#atlasOrbit .orbit-content{padding:11px;gap:6px}#atlasOrbit .orbit-kicker{font-size:8px}#atlasOrbit .orbit-title{font-size:13px}#atlasOrbit .orbit-center{width:44px;height:44px;font-size:23px}}
@@ -60,7 +60,7 @@ body.atlas-orbit-active #memorySheet.memory-atlas{opacity:0!important;visibility
 #atlasOrbit.is-closing .orbit-content{animation:orbitContentOut .13s ease-in both}
 #atlasOrbit.is-closing .orbit-center{animation:orbitStarOut .2s ease-in both;pointer-events:none}
 #atlasOrbit.is-closing .orbit-backdrop{pointer-events:none}
-@keyframes orbitCollapse{from{opacity:1;transform:translate(0,0) scale(1);filter:blur(0)}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.7);filter:blur(3px)}}
+@keyframes orbitCollapse{from{opacity:1;transform:translate(0,0);filter:blur(0)}to{opacity:0;transform:translate(var(--dx),var(--dy));filter:blur(3px)}}
 @keyframes orbitContentOut{from{opacity:1}to{opacity:0}}
 @keyframes orbitStarOut{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-50%) scale(.7)}}
 @media(prefers-reduced-motion:reduce){#atlasOrbit.is-closing .orbit-bubble,#atlasOrbit.is-closing .orbit-content,#atlasOrbit.is-closing .orbit-center{animation-duration:.01ms!important}}
