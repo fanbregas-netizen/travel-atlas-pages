@@ -473,3 +473,28 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
 @media(prefers-reduced-motion:reduce){
  .map-local-marker.star-pin.atlas-photo-location-pin img{transition:none!important}
 }
+
+/* Final V4 interaction safeguards: preserve the established visual proportions. */
+#atlasOrbit .orbit-bubble{contain:layout style}
+#atlasOrbit .orbit-center:focus-visible,
+#atlasOrbit .orbit-media-hero:focus-visible,
+#atlasOrbit .orbit-action:focus-visible{
+ outline:2px solid #a47b26;
+ outline-offset:3px;
+}
+#atlasOrbit .orbit-content{touch-action:pan-y}
+#atlasOrbit .orbit-center,
+#atlasOrbit .orbit-media-hero,
+#atlasOrbit .orbit-action{touch-action:manipulation}
+@media(prefers-reduced-motion:reduce){
+ #atlasOrbit.is-open .orbit-content,
+ #atlasOrbit.is-open .orbit-content > *,
+ #atlasOrbit.is-open .orbit-bubble,
+ #atlasOrbit.is-closing .orbit-content,
+ #atlasOrbit.is-closing .orbit-bubble{
+  animation:none!important;filter:none!important;transition:none!important;
+ }
+ #atlasOrbit.is-open .orbit-content,
+ #atlasOrbit.is-open .orbit-content > *,
+ #atlasOrbit.is-open .orbit-bubble{opacity:1!important}
+}
