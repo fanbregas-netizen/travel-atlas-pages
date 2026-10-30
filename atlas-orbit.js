@@ -96,11 +96,13 @@ function drawGuides(p){
 function drawNearby(p){
  const c=clear('br');c.append(kicker('04 / NEARBY · 附近'),text('h3','orbit-title','周边值得看看'));
  const list=text('div','orbit-near-list','');list.append(text('p','orbit-small','正在查找附近真实地点…'));c.append(list);
+ // Cancel any previous place's lookup before validating this destination.
+ if(requestController){requestController.abort();requestController=null}
  const m=Number(p.lat),n=Number(p.lng);
  if(!Number.isFinite(m)||!Number.isFinite(n)){list.replaceChildren(text('p','orbit-small','位置暂不可用'));return}
- if(requestController)requestController.abort();requestController=new AbortController();
+ if(typeof window.AtlasServices?.nearby!=='function'){list.replaceChildren(text('p','orbit-small','附近查询暂时不可用。'));return}
+ requestController=new AbortController();
  const controller=requestController,originId=p.id;
- const params=new URLSearchParams({lat:String(m),lng:String(n),radius:'1800',limit:'5'});
  window.AtlasServices.nearby(m,n,{signal:controller.signal})
   .then(data=>{
    if(controller.signal.aborted||shownId!==originId)return;
