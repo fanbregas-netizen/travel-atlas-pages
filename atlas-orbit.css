@@ -321,3 +321,16 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  #atlasOrbit .orbit-links{gap:2px}
  #atlasOrbit .orbit-link{min-height:22px}
 }
+
+/* iPhone portrait: preserve safe-area clearance and readable two-column cards. */
+@media (max-width:700px) and (orientation:portrait){
+ #atlasOrbit{--orbit-w:min(288px,calc((100vw - 24px - var(--orbit-gap))/2));--orbit-h:min(190px,max(112px,calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 48px - var(--orbit-gap))/2)))}
+ #atlasOrbit .orbit-content{min-height:0}
+ #atlasOrbit .orbit-links,#atlasOrbit .orbit-near-list{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+}
+@media (max-width:350px) and (orientation:portrait){
+ #atlasOrbit{--orbit-gap:82px}
+ #atlasOrbit .orbit-content{padding:7px;gap:3px}
+ #atlasOrbit .orbit-kicker{font-size:7px;letter-spacing:.04em}
+ #atlasOrbit .orbit-center{width:40px;height:40px}
+}
