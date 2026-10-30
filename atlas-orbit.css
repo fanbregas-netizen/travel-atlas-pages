@@ -11,7 +11,7 @@
 #atlasOrbit .orbit-bubble.bl{left:calc(50% - var(--orbit-gap)/2 - var(--orbit-w));top:calc(50% + var(--orbit-gap)/2);--dx:30px;--dy:-30px;transform-origin:top right}
 #atlasOrbit .orbit-bubble.br{left:calc(50% + var(--orbit-gap)/2);top:calc(50% + var(--orbit-gap)/2);--dx:-30px;--dy:-30px;transform-origin:top left}
 #atlasOrbit.is-open .orbit-bubble{animation:orbitGrow .63s cubic-bezier(.18,1.16,.28,1) both}
-#atlasOrbit .orbit-svg{position:absolute;left:-12px;top:-12px;width:calc(100% + 24px);height:calc(100% + 24px);overflow:visible;pointer-events:none;filter:drop-shadow(0 10px 19px rgba(35,32,27,.14))}
+#atlasOrbit .orbit-svg{position:absolute;left:-24px;top:-24px;width:calc(100% + 48px);height:calc(100% + 48px);overflow:visible;pointer-events:none;filter:drop-shadow(0 10px 19px rgba(35,32,27,.14))}
 #atlasOrbit .orbit-svg path{fill:rgba(250,249,245,.98);stroke:#fff;stroke-width:1.8;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 #atlasOrbit .orbit-content{position:absolute;inset:0;padding:clamp(11px,1.7vw,19px);display:flex;flex-direction:column;min-width:0;gap:8px;opacity:0;overflow:hidden}
 #atlasOrbit.is-open .orbit-content{animation:orbitContent .36s .19s ease-out both}
