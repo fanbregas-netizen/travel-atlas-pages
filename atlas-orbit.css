@@ -425,3 +425,23 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  #atlasOrbit .orbit-bubble .orbit-link{min-height:32px;align-items:center}
  #atlasOrbit .orbit-bubble .orbit-near-item{min-height:34px}
 }
+
+/* Radial motion: the four actual SVG silhouettes grow; card shells stay still.
+   Remove the old content blur to avoid iOS Safari double-compositing flicker. */
+#atlasOrbit.is-open .orbit-content > *{
+ animation:atlasDetailEnterClean .38s cubic-bezier(.2,.75,.25,1) both;
+}
+#atlasOrbit.is-open .orbit-kicker{animation-delay:.10s}
+#atlasOrbit.is-open .orbit-title,
+#atlasOrbit.is-open .orbit-media-hero{animation-delay:.15s}
+#atlasOrbit.is-open .orbit-note,
+#atlasOrbit.is-open .orbit-links,
+#atlasOrbit.is-open .orbit-near-list{animation-delay:.19s}
+#atlasOrbit.is-open .orbit-action{animation-delay:.24s}
+@keyframes atlasDetailEnterClean{
+ from{opacity:0;transform:translateY(7px)}
+ to{opacity:1;transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce){
+ #atlasOrbit.is-open .orbit-content > *{animation:none!important;opacity:1!important;transform:none!important}
+}
