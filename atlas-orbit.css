@@ -114,11 +114,11 @@ body.atlas-orbit-active #memorySheet.memory-atlas{opacity:0!important;visibility
  --orbit-card-w:var(--orbit-w);--orbit-card-h:var(--orbit-h);
 }
 #atlasOrbit .orbit-bubble.bl{
- --orbit-card-w:calc(var(--orbit-w) * .94);--orbit-card-h:calc(var(--orbit-h) * .94);
+ --orbit-card-w:calc(var(--orbit-w) * .89);--orbit-card-h:calc(var(--orbit-h) * .86);
  left:calc(50% - var(--orbit-gap)/2 - var(--orbit-card-w));
 }
 #atlasOrbit .orbit-bubble.br{
- --orbit-card-w:calc(var(--orbit-w) * .94);--orbit-card-h:calc(var(--orbit-h) * .94);
+ --orbit-card-w:calc(var(--orbit-w) * .89);--orbit-card-h:calc(var(--orbit-h) * .86);
 }
 
 
@@ -338,19 +338,19 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
 /* Restored approved V4 hierarchy: small Brief, dominant Media, balanced lower pair.
    Every card remains an independent SVG silhouette with its own inward tail. */
 #atlasOrbit{
- --orbit-brief-w:clamp(116px,calc(var(--orbit-w) * .84),245px);
- --orbit-brief-h:clamp(118px,calc(var(--orbit-h) * .79),175px);
+ --orbit-brief-w:clamp(116px,calc(var(--orbit-w) * .72),245px);
+ --orbit-brief-h:clamp(118px,calc(var(--orbit-h) * .68),175px);
  --orbit-media-w:var(--orbit-w);
- --orbit-media-h:clamp(150px,calc(var(--orbit-h) * 1.13),235px);
- --orbit-lower-w:clamp(120px,calc(var(--orbit-w) * .94),275px);
- --orbit-lower-h:clamp(135px,calc(var(--orbit-h) * .94),200px);
+ --orbit-media-h:clamp(150px,calc(var(--orbit-h) * 1.2),235px);
+ --orbit-lower-w:clamp(120px,calc(var(--orbit-w) * .89),275px);
+ --orbit-lower-h:clamp(135px,calc(var(--orbit-h) * .86),200px);
 }
 #atlasOrbit .orbit-bubble.tl{width:var(--orbit-brief-w);height:var(--orbit-brief-h);left:calc(50% - var(--orbit-gap)/2 - var(--orbit-brief-w));top:calc(50% - var(--orbit-gap)/2 - var(--orbit-brief-h))}
 #atlasOrbit .orbit-bubble.tr{width:var(--orbit-media-w);height:var(--orbit-media-h);left:calc(50% + var(--orbit-gap)/2);top:calc(50% - var(--orbit-gap)/2 - var(--orbit-media-h))}
 #atlasOrbit .orbit-bubble.bl{width:var(--orbit-lower-w);height:var(--orbit-lower-h);left:calc(50% - var(--orbit-gap)/2 - var(--orbit-lower-w));top:calc(50% + var(--orbit-gap)/2)}
 #atlasOrbit .orbit-bubble.br{width:var(--orbit-lower-w);height:var(--orbit-lower-h);left:calc(50% + var(--orbit-gap)/2);top:calc(50% + var(--orbit-gap)/2)}
 @media(max-width:700px){
- #atlasOrbit{--orbit-brief-w:calc(var(--orbit-w) * .87);--orbit-brief-h:calc(var(--orbit-h) * .78);--orbit-media-h:min(220px,calc(var(--orbit-h) * 1.13));--orbit-lower-w:calc(var(--orbit-w) * .96);--orbit-lower-h:calc(var(--orbit-h) * .92)}
+ #atlasOrbit{--orbit-brief-w:calc(var(--orbit-w) * .73);--orbit-brief-h:calc(var(--orbit-h) * .68);--orbit-media-h:min(220px,calc(var(--orbit-h) * 1.2));--orbit-lower-w:calc(var(--orbit-w) * .89);--orbit-lower-h:calc(var(--orbit-h) * .86)}
  #atlasOrbit .orbit-bubble{max-width:none}
  #atlasOrbit .orbit-content{padding:9px;gap:5px}
  #atlasOrbit .orbit-bubble.tl .orbit-note{-webkit-line-clamp:3}
@@ -364,7 +364,7 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
 @media(max-width:700px) and (orientation:portrait){
  #atlasOrbit{
   --orbit-brief-h:min(calc(var(--orbit-h) * .78),calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--orbit-gap) - 56px)/2));
-  --orbit-media-h:min(calc(var(--orbit-h) * 1.13),calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--orbit-gap) - 56px)/2));
+  --orbit-media-h:min(calc(var(--orbit-h) * 1.2),calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--orbit-gap) - 56px)/2));
   --orbit-lower-h:min(calc(var(--orbit-h) * .92),calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--orbit-gap) - 56px)/2));
  }
  #atlasOrbit .orbit-bubble .orbit-content{min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
