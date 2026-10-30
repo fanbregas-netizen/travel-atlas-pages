@@ -2053,7 +2053,7 @@ class Map{
     const q=$('searchInput').value.trim();if(!q)return;
     const rId=++searchRequest;
     // A saved destination should be immediately discoverable, even without network access.
-    const savedMatches=(Array.isArray(places)?places:[]).filter(p=>String(p.title||p.name||'').toLocaleLowerCase().includes(q.toLocaleLowerCase())).slice(0,8);
+    const savedMatches=(Array.isArray(places)?places:[]).filter(p=>!p.demo&&String(p.title||p.name||'').toLocaleLowerCase().includes(q.toLocaleLowerCase())).slice(0,8);
     if(savedMatches.length){
       const panel=$('searchResults');panel.replaceChildren();
       const heading=document.createElement('div');heading.className='search-state';heading.textContent='★ 我的收藏 · '+savedMatches.length+' 个匹配地点';panel.append(heading);
