@@ -2,7 +2,7 @@
 'use strict';
 const sheet=document.getElementById('memorySheet');
 if(!sheet||document.getElementById('atlasOrbit'))return;
-const root=document.createElement('section');root.id='atlasOrbit';root.hidden=true;root.setAttribute('role','dialog');root.setAttribute('aria-label','星标旅行记忆：四向展开');
+const root=document.createElement('section');root.id='atlasOrbit';root.hidden=true;root.setAttribute('role','dialog');root.setAttribute('aria-label','星标旅行记忆：四向展开');root.setAttribute('aria-modal','true');
 const backdrop=document.createElement('div');backdrop.className='orbit-backdrop';root.append(backdrop);
 const regions=[['tl','为什么想去 · BRIEF'],['tr','照片与视频 · MEDIA'],['bl','相关攻略 · GUIDES'],['br','附近景点 · NEARBY']];
 const cards=new Map();
@@ -131,6 +131,7 @@ function show(p){
  openFrame=requestAnimationFrame(()=>{openFrame=null;if(!root.hidden&&shownId===p.id){root.classList.add('is-open');animateShapes(true)}});
 }
 function hide(closeOriginal=false){
+ if(root.hidden||root.classList.contains('is-closing'))return;
  if(requestController){requestController.abort();requestController=null}
  if(openFrame){cancelAnimationFrame(openFrame);openFrame=null}
  if(!closeOriginal&&shownId)dismissedId=shownId;
