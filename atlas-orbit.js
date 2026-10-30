@@ -152,6 +152,9 @@ function sync(){
  scheduled=false;
  if(!sheet.classList.contains('visible')){dismissedId='';if(!root.hidden&&!root.classList.contains('is-closing'))hide();return}
  const p=state();if(!p){if(!root.hidden)hide();return}
+ // Do not reopen a dismissed location just because the underlying memory
+ // panel emits an unrelated update; a new star tap resets dismissedId.
+ if(dismissedId===p.id)return;
  if(root.hidden||shownId!==p.id||root.classList.contains('is-closing')){show(p);return}
  drawBrief(p);drawMedia(p);drawGuides(p);resizeShapes();
 }
