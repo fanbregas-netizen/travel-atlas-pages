@@ -98,7 +98,7 @@ function drawNearby(p){
  const list=text('div','orbit-near-list','');list.append(text('p','orbit-small','正在查找附近真实地点…'));c.append(list);
  // Cancel any previous place's lookup before validating this destination.
  if(requestController){requestController.abort();requestController=null}
- const m=Number(p.lat),n=Number(p.lng);
+ const m=p.lat==null||p.lat===''?NaN:Number(p.lat),n=p.lng==null||p.lng===''?NaN:Number(p.lng);
  if(!Number.isFinite(m)||!Number.isFinite(n)){list.replaceChildren(text('p','orbit-small','位置暂不可用'));return}
  if(typeof window.AtlasServices?.nearby!=='function'){list.replaceChildren(text('p','orbit-small','附近查询暂时不可用。'));return}
  requestController=new AbortController();
