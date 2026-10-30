@@ -445,3 +445,23 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
 @media(prefers-reduced-motion:reduce){
  #atlasOrbit.is-open .orbit-content > *{animation:none!important;opacity:1!important;transform:none!important}
 }
+
+/* Photo-location marker: preserve the same geographic anchor whether its
+   thumbnail loads, fails or is absent. Rounded white frame + locator tail. */
+.map-local-marker.star-pin.atlas-photo-location-pin{
+ position:absolute;
+ box-sizing:border-box;
+ transform:translate(-50%,calc(-100% - 9px))!important;
+ transform-origin:50% 100%;
+ overflow:visible;
+ border-radius:12px;
+}
+.map-local-marker.star-pin.atlas-photo-location-pin::after{
+ content:"";position:absolute;left:50%;bottom:-8px;width:12px;height:12px;
+ background:#fff;transform:translateX(-50%) rotate(45deg);
+ border-right:2px solid #fff;border-bottom:2px solid #fff;
+ border-radius:0 0 2px 0;z-index:-1;
+}
+.map-local-marker.star-pin.atlas-photo-location-pin img{
+ display:block;width:100%;height:100%;object-fit:cover;border-radius:8px;
+}
