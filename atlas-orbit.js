@@ -13,7 +13,7 @@ for(const [key,title] of regions){
  const content=document.createElement('div');content.className='orbit-content';card.append(svg,content);root.append(card);
  cards.set(key,{card,svg,path,content});
 }
-const star=document.createElement('button');star.type='button';star.className='orbit-center';star.innerHTML='<svg viewBox="0 0 32 32" width="25" height="25" aria-hidden="true"><path d="M16 3 L20.02 11.16 L29.02 12.47 L22.51 18.81 L24.05 27.77 L16 23.54 L7.95 27.77 L9.49 18.81 L2.98 12.47 L11.98 11.16 Z" fill="currentColor" stroke="currentColor" stroke-linejoin="round" stroke-width="1.4"/></svg>';star.setAttribute('aria-label','收起四向气泡');root.append(star);
+const star=document.createElement('button');star.type='button';star.className='orbit-center';star.innerHTML='<svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><path d="M 24.000 5.000 L 29.584 18.314 L 43.972 19.511 L 33.035 28.936 L 36.343 42.989 L 24.000 35.500 L 11.657 42.989 L 14.965 28.936 L 4.028 19.511 L 18.416 18.314 Z" fill="#ffc53e" stroke="#fffdf5" stroke-linejoin="round" stroke-width="2"/></svg>';star.setAttribute('aria-label','收起四向气泡');root.append(star);
 document.body.append(root);window.__atlasOrbitEnabled=true;
 let shownId='',dismissedId='',requestController=null,scheduled=false,closeTimer=null,openFrame=null;
 let shapeFrame=null,shapeProgress=1;
@@ -21,38 +21,26 @@ const reduceMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').m
 const text=(tag,cls,value)=>{const el=document.createElement(tag);if(cls)el.className=cls;el.textContent=value||'';return el};
 const kicker=(label)=>text('div','orbit-kicker',label);
 const action=(label,fn)=>{const b=text('button','orbit-action',label);b.type='button';b.addEventListener('click',fn);return b};
+// One shared module for all four cards: corner radius 2u, tail reach 1.4u,
+// shoulder 3u. Reflect a single closed contour, so the lower-right tail cannot
+// diverge from the other three. Module size is independent of each card's area.
+let shapeUnit=10;
 function pathFor(w,h,direction){
- // One continuous closed silhouette per card. Each tail is part of the
- // perimeter (not a separate triangle), with symmetric inward corner geometry.
- // All four shapes share one dimensionless geometry system. Different
- // card sizes preserve identical relative corner/tail proportions.
- const unit=Math.min(w,h);
- const r=unit*.12;
- const t=unit*.09;
- const base=unit*.28;
- const tip=t;
- if(direction==='tl')return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-base}
- C ${w} ${h-base*.42} ${w+tip*.62} ${h+tip*.5} ${w+tip} ${h+tip}
- C ${w+tip*.5} ${h+tip*.62} ${w-base*.42} ${h} ${w-base} ${h}
- H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
- if(direction==='tr')return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r}
- Q ${w} ${h} ${w-r} ${h} H ${base}
- C ${base*.42} ${h} ${-tip*.5} ${h+tip*.62} ${-tip} ${h+tip}
- C ${-tip*.62} ${h+tip*.5} 0 ${h-base*.42} 0 ${h-base}
- V ${r} Q 0 0 ${r} 0 Z`;
- if(direction==='bl')return `M ${r} 0 H ${w-base}
- C ${w-base*.42} 0 ${w+tip*.5} ${-tip*.62} ${w+tip} ${-tip}
- C ${w+tip*.62} ${-tip*.5} ${w} ${base*.42} ${w} ${base}
- V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r}
- Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
- return `M ${base} 0 H ${w-r} Q ${w} 0 ${w} ${r}
- V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r}
- Q 0 ${h} 0 ${h-r} V ${base}
- C 0 ${base*.42} ${-tip*.62} ${-tip*.5} ${-tip} ${-tip}
- C ${-tip*.5} ${-tip*.62} ${base*.42} 0 ${base} 0 Z`;
+ const u=Math.min(shapeUnit,Math.min(w,h)/6);
+ const r=2*u,t=1.4*u,b=3*u;
+ const flipX=direction==='tr'||direction==='br';
+ const flipY=direction==='bl'||direction==='br';
+ const point=(x,y)=>`${flipX?w-x:x} ${flipY?h-y:y}`;
+ return `M ${point(r,0)} L ${point(w-r,0)} Q ${point(w,0)} ${point(w,r)}
+ L ${point(w,h-b)} C ${point(w,h-b*.46)} ${point(w+t*.36,h+t*.15)} ${point(w+t*.93,h+t*.88)}
+ Q ${point(w+t,h+t)} ${point(w+t*.88,h+t*.93)}
+ C ${point(w+t*.15,h+t*.36)} ${point(w-b*.46,h)} ${point(w-b,h)}
+ L ${point(r,h)} Q ${point(0,h)} ${point(0,h-r)}
+ L ${point(0,r)} Q ${point(0,0)} ${point(r,0)} Z`;
 }
 function resizeShapes(){
  if(root.hidden)return;
+ shapeUnit=parseFloat(getComputedStyle(root).getPropertyValue('--orbit-unit'))||10;
  for(const [key,{card,svg,path}] of cards){
   const w=card.offsetWidth,h=card.offsetHeight;
   if(w<20||h<20)continue;
