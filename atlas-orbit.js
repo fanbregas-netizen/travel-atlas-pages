@@ -135,7 +135,7 @@ function hide(closeOriginal=false){
  shownId='';root.classList.remove('is-open');root.classList.add('is-closing');animateShapes(false);
  // Keep the vector shapes visible for the short collapse instead of hiding instantly.
  if(closeTimer)clearTimeout(closeTimer);
- closeTimer=setTimeout(()=>{closeTimer=null;if(!shownId){root.hidden=true;root.classList.remove('is-closing');document.body.classList.remove('atlas-orbit-active')}},320);
+ closeTimer=setTimeout(()=>{closeTimer=null;if(!shownId){root.hidden=true;root.classList.remove('is-closing');document.body.classList.remove('atlas-orbit-active');if(shapeFrame){cancelAnimationFrame(shapeFrame);shapeFrame=null}shapeProgress=0}},reduceMotion()?0:330);
  if(closeOriginal){
   // Close the underlying memory panel synchronously. The legacy navMap click can
   // defer its class mutation and race a subsequent iOS reopen gesture.
