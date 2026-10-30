@@ -753,6 +753,21 @@ body.memory-open.atlas-orbit-active #atlasBookmarkOverlay{
  filter:none!important;
  -webkit-filter:none!important;
 }
+/* The legacy memory-atlas pseudo overlay also blurs and greys the entire map.
+   It must be disabled while the V4 radial constellation owns the presentation. */
+body.atlas-orbit-active .memory-atlas:before,
+body.atlas-orbit-active .memory-atlas.visible:before,
+body.atlas-orbit-active .memory-atlas.journal-open:before{
+ opacity:0!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+ background:transparent!important;
+}
+body.atlas-orbit-active #atlasOrbit .orbit-backdrop{
+ background:rgba(29,31,28,.035)!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+}
 </style>
   <link rel="stylesheet" href="/travel-atlas-pages/atlas-orbit.css">
 <style id="atlas-iphone-stability-20261029">
