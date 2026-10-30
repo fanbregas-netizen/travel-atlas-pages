@@ -13,7 +13,7 @@ for(const [key,title] of regions){
  const content=document.createElement('div');content.className='orbit-content';card.append(svg,content);root.append(card);
  cards.set(key,{card,svg,path,content});
 }
-const star=document.createElement('button');star.type='button';star.className='orbit-center';star.innerHTML='<svg viewBox="0 0 32 32" width="25" height="25" aria-hidden="true"><path d="M16 2.8 20.15 11.3 29.5 12.65 22.75 19.25 24.35 28.55 16 24.15 7.65 28.55 9.25 19.25 2.5 12.65 11.85 11.3Z" fill="currentColor" stroke="currentColor" stroke-linejoin="round" stroke-width="1.4"/></svg>';star.setAttribute('aria-label','收起四向气泡');root.append(star);
+const star=document.createElement('button');star.type='button';star.className='orbit-center';star.innerHTML='<svg viewBox="0 0 32 32" width="25" height="25" aria-hidden="true"><path d="M16 3 L20.02 11.16 L29.02 12.47 L22.51 18.81 L24.05 27.77 L16 23.54 L7.95 27.77 L9.49 18.81 L2.98 12.47 L11.98 11.16 Z" fill="currentColor" stroke="currentColor" stroke-linejoin="round" stroke-width="1.4"/></svg>';star.setAttribute('aria-label','收起四向气泡');root.append(star);
 document.body.append(root);window.__atlasOrbitEnabled=true;
 let shownId='',dismissedId='',requestController=null,scheduled=false,closeTimer=null,openFrame=null;
 let shapeFrame=null,shapeProgress=1;
