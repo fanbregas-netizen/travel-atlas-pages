@@ -22,13 +22,13 @@ const text=(tag,cls,value)=>{const el=document.createElement(tag);if(cls)el.clas
 const kicker=(label)=>text('div','orbit-kicker',label);
 const action=(label,fn)=>{const b=text('button','orbit-action',label);b.type='button';b.addEventListener('click',fn);return b};
 function pathFor(w,h,direction){
- // Each bubble has an independent inward-pointing vector tail.
- // Tail tips remain inside the dedicated center gap, clear of the star.
- const r=Math.min(18,w/7,h/7),tail=10,shoulder=23;
- if(direction==='tl')return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${w-shoulder} L ${w+tail} ${h+tail} L ${w-shoulder-18} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
- if(direction==='tr')return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${shoulder+18} L ${-tail} ${h+tail} L ${shoulder} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
- if(direction==='bl')return `M ${r} 0 H ${w-shoulder-18} L ${w+tail} ${-tail} L ${w-shoulder} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
- return `M ${r} 0 H ${shoulder} L ${-tail} ${-tail} L ${shoulder+18} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
+ // Rounded organic inward tails are part of each independent SVG path.
+ // Their tips stop short of the center star; no detached triangular strokes.
+ const r=Math.min(19,w/7,h/7), reach=18, inset=17, base=39;
+ if(direction==='tl')return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h-5} ${w-8} ${h-3} C ${w-3} ${h+1} ${w+reach-5} ${h+reach-7} ${w+reach} ${h+reach} C ${w+3} ${h+reach-5} ${w-base+13} ${h+3} ${w-base} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
+ if(direction==='tr')return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${base} C ${base-13} ${h+3} ${-reach-3} ${h+reach-5} ${-reach} ${h+reach} C ${-reach+5} ${h+reach-7} 3 ${h+1} 8 ${h-3} Q 0 ${h-5} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
+ if(direction==='bl')return `M ${r} 0 H ${w-base} C ${w-base+13} -3 ${w+3} ${-reach+5} ${w+reach} ${-reach} C ${w+reach-5} ${-reach+7} ${w-3} -1 ${w-8} 3 Q ${w} 5 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
+ return `M ${r} 0 Q 0 0 0 ${r} Q 0 5 8 3 C 3 -1 ${-reach+5} ${-reach+7} ${-reach} ${-reach} C ${-reach-3} ${-reach+5} ${base-13} -3 ${base} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Z`;
 }
 function resizeShapes(){
  if(root.hidden)return;
