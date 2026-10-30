@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta name="atlas-hosting" content="static">
-<meta name="atlas-release" content="V4.20261030.1">
+<meta name="atlas-release" content="V4.20261030.2">
 <script src="/travel-atlas-pages/atlas-services.js"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -2486,6 +2486,10 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
   window.addEventListener('load',()=>navigator.serviceWorker.register('/travel-atlas-pages/sw.js',{updateViaCache:'none'}).catch(error=>console.warn('Travel Atlas offline shell unavailable:',error)));
 }
 </script>
+  <script>
+  // Visible build marker for distinguishing a stale offline shell from the live release.
+  window.__atlasBuild='V4.20261030.2';
+  </script>
   <script src="/travel-atlas-pages/atlas-orbit.js"></script>
   <script defer src="/travel-atlas-pages/atlas-stage5.js"></script>
 </body>
