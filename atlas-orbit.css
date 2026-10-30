@@ -403,3 +403,25 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  #atlasOrbit .orbit-bubble .orbit-action{min-height:32px}
  #atlasOrbit .orbit-bubble.tl .orbit-action{min-height:28px}
 }
+
+/* Consistent V4 icon language across all four independent radial panels. */
+#atlasOrbit .orbit-kicker{font-weight:650;letter-spacing:.065em}
+#atlasOrbit .orbit-bubble .orbit-action,
+#atlasOrbit .orbit-bubble .orbit-link,
+#atlasOrbit .orbit-bubble .orbit-near-item{
+ -webkit-tap-highlight-color:transparent;
+ transition:background-color .18s ease,border-color .18s ease,transform .18s ease;
+}
+#atlasOrbit .orbit-bubble .orbit-action:focus-visible,
+#atlasOrbit .orbit-bubble .orbit-link:focus-visible,
+#atlasOrbit .orbit-bubble .orbit-near-item:focus-visible{
+ outline:2px solid #b78d35;outline-offset:2px;
+}
+@media(hover:hover){
+ #atlasOrbit .orbit-bubble .orbit-action:hover{background:#e9e5db;border-color:#d3c8b4}
+ #atlasOrbit .orbit-bubble .orbit-link:hover{background:#f1eee7}
+}
+@media(max-width:700px) and (orientation:portrait){
+ #atlasOrbit .orbit-bubble .orbit-link{min-height:32px;align-items:center}
+ #atlasOrbit .orbit-bubble .orbit-near-item{min-height:34px}
+}
