@@ -386,3 +386,20 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  #atlasOrbit .orbit-bubble .orbit-link{overflow-wrap:anywhere}
  #atlasOrbit .orbit-bubble.tr .orbit-media-hero{min-height:36px}
 }
+
+/* Real-device review: keep the geographical context legible behind the orbit. */
+#atlasOrbit .orbit-backdrop{
+ background:rgba(32,34,31,.055);
+ backdrop-filter:blur(.65px);
+ -webkit-backdrop-filter:blur(.65px);
+}
+/* Keep the photo as the strongest panel, while ensuring tappable controls and
+   scrollable lists are not clipped by short iPhone viewport heights. */
+@media(max-width:700px) and (orientation:portrait){
+ #atlasOrbit .orbit-bubble.tr .orbit-content{display:flex;flex-direction:column}
+ #atlasOrbit .orbit-bubble.tr .orbit-media-hero{flex:1 1 36px;min-height:36px}
+ #atlasOrbit .orbit-bubble .orbit-content{scrollbar-width:none}
+ #atlasOrbit .orbit-bubble .orbit-content::-webkit-scrollbar{display:none}
+ #atlasOrbit .orbit-bubble .orbit-action{min-height:32px}
+ #atlasOrbit .orbit-bubble.tl .orbit-action{min-height:28px}
+}
