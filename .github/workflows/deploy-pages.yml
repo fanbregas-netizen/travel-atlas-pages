@@ -38,7 +38,7 @@ jobs:
           }
           const manifest = JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
           if (manifest.start_url !== prefix || manifest.scope !== prefix) throw Error('PWA scope mismatch');
-          if (!html.includes('Array.isArray(data)&&data.length')) throw Error('Geocoding response parser mismatch');
+          if (!html.includes('https://nominatim.openstreetmap.org/search?') || !html.includes('Array.isArray(data)||!data.length')) throw Error('Geocoding integration missing');
           console.log('Pages static asset checks passed');
           NODE
       - uses: actions/configure-pages@v5
