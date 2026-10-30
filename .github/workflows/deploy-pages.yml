@@ -27,6 +27,7 @@ jobs:
         run: |
           node --check atlas-orbit.js
           node --check atlas-stage5.js
+          node --check atlas-services.js
           node --check sw.js
           node - <<'NODE'
           const fs = require('fs');
@@ -39,6 +40,9 @@ jobs:
           const manifest = JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
           if (manifest.start_url !== prefix || manifest.scope !== prefix) throw Error('PWA scope mismatch');
           if (!html.includes('window.AtlasServices.search')) throw Error('Static geocoding integration missing');
+          if (!html.includes('window.AtlasServices.search(q,')) throw Error('Search action not wired to static service');
+          const services=fs.readFileSync('atlas-services.js','utf8');
+          if (!services.includes('window.AtlasServices={staticHost,search,nearby}')) throw Error('Static services API not exported');
           console.log('Pages static asset checks passed');
           NODE
       - uses: actions/configure-pages@v5
