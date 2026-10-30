@@ -124,6 +124,8 @@ function show(p){
  if(closeTimer){clearTimeout(closeTimer);closeTimer=null}
  if(openFrame)cancelAnimationFrame(openFrame);
  const reopeningDuringCollapse=root.classList.contains('is-closing')&&!root.hidden;
+ // Release the prior destination's network lookup before switching cards.
+ if(requestController){requestController.abort();requestController=null}
  root.classList.remove('is-closing','is-open');
  dismissedId='';shownId=p.id;root.hidden=false;document.body.classList.add('atlas-orbit-active');
  drawBrief(p);drawMedia(p);drawGuides(p);drawNearby(p);
