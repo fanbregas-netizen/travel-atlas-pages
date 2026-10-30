@@ -37,7 +37,7 @@ function resizeShapes(){
   if(w<20||h<20)continue;
   svg.setAttribute('viewBox',`${-24} ${-24} ${w+48} ${h+48}`);
   // Animate the four actual SVG silhouettes, not a scaled screenshot or a card layer.
-  const progress=Math.max(0,Math.min(1.035,shapeProgress));
+  const progress=Math.max(0,Math.min(1,shapeProgress));
   const pw=Math.max(26,w*(.115+.885*progress));
   const ph=Math.max(26,h*(.115+.885*progress));
   const x=(key==='tl'||key==='bl')?w-pw:0;
@@ -53,7 +53,9 @@ function animateShapes(open){
  function frame(now){
   const t=Math.min(1,(now-started)/duration);
   // Critically damped travel with a restrained spring overshoot on expansion.
-  const eased=open?1-Math.exp(-7.5*t)*Math.cos(11*t):1-Math.pow(1-t,2.25);
+  // A monotonic spring-like ease avoids the overshoot folding SVG corners
+  // into themselves on narrow phones.
+  const eased=open?1-Math.pow(1-t,3)*(1+2.2*t):1-Math.pow(1-t,2.25);
   shapeProgress=from+((open?1:0)-from)*eased;
   if(t===1)shapeProgress=open?1:0;
   resizeShapes();
