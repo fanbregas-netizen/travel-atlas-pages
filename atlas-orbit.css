@@ -52,7 +52,7 @@ body.atlas-orbit-active #memorySheet.memory-atlas{opacity:0!important;visibility
 #atlasOrbit .orbit-action{border-color:#dedbd3;background:#f4f2ed;border-radius:9px;min-height:30px}
 #atlasOrbit .orbit-media-hero{border-radius:12px;background:#ebe9e2}
 #atlasOrbit .orbit-link{min-height:32px}
-@keyframes orbitGrowPolished{0%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.48);filter:blur(3px)}62%{opacity:1;transform:translate(-1px,-1px) scale(1.024);filter:blur(0)}82%{transform:translate(1px,1px) scale(.994)}100%{opacity:1;transform:translate(0,0) scale(1);filter:none}}
+@keyframes orbitGrowPolished{0%{opacity:0;transform:translate(var(--dx),var(--dy));filter:blur(3px)}62%{opacity:1;transform:translate(-1px,-1px);filter:blur(0)}82%{transform:translate(1px,1px)}100%{opacity:1;transform:translate(0,0);filter:none}}
 @media(prefers-reduced-motion:reduce){#atlasOrbit.is-open .orbit-bubble{animation:none;opacity:1;transform:none;filter:none}}
 
 /* A real inward collapse, rather than an instantaneous disappearance. */
