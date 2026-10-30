@@ -387,11 +387,11 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  #atlasOrbit .orbit-bubble.tr .orbit-media-hero{min-height:36px}
 }
 
-/* Real-device review: keep the geographical context legible behind the orbit. */
+/* Keep the map crisp and readable while the four bubbles are expanded. */
 #atlasOrbit .orbit-backdrop{
- background:rgba(32,34,31,.055);
- backdrop-filter:blur(.65px);
- -webkit-backdrop-filter:blur(.65px);
+ background:rgba(32,34,31,.035);
+ backdrop-filter:none;
+ -webkit-backdrop-filter:none;
 }
 /* Keep the photo as the strongest panel, while ensuring tappable controls and
    scrollable lists are not clipped by short iPhone viewport heights. */
