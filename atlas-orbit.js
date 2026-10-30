@@ -35,7 +35,7 @@ function resizeShapes(){
  for(const [key,{card,svg,path}] of cards){
   const w=card.offsetWidth,h=card.offsetHeight;
   if(w<20||h<20)continue;
-  svg.setAttribute('viewBox',`${-12} ${-12} ${w+24} ${h+24}`);
+  svg.setAttribute('viewBox',`${-24} ${-24} ${w+48} ${h+48}`);
   // Animate the four actual SVG silhouettes, not a scaled screenshot or a card layer.
   const progress=Math.max(0,Math.min(1.035,shapeProgress));
   const pw=Math.max(26,w*(.115+.885*progress));
