@@ -19,7 +19,7 @@ function cached(key){const value=cache.get(key);return value&&Date.now()-value.t
 async function search(q,{signal,center,allowFallback=false}={}){
  q=String(q).trim().slice(0,120);if(q.length<2)return [];
  const centerKey=valid(center?.lat,-90,90)&&valid(center?.lng,-180,180)?Number(center.lat).toFixed(2)+','+Number(center.lng).toFixed(2):'global';
- const key='search:'+q+':'+centerKey,hit=cached(key);if(hit)return hit;
+ const key='search:'+q+':'+centerKey+':'+(allowFallback?'submitted':'suggest'),hit=cached(key);if(hit)return hit;
  const u=new URL('https://photon.komoot.io/api/');u.searchParams.set('q',term(q));u.searchParams.set('limit','16');
  if(valid(center?.lat,-90,90)&&valid(center?.lng,-180,180)){u.searchParams.set('lat',center.lat);u.searchParams.set('lon',center.lng)}
  try{
