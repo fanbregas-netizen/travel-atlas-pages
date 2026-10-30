@@ -156,7 +156,11 @@ document.addEventListener('atlas:memory-open',()=>{dismissedId='';scheduleSync()
 backdrop.addEventListener('click',()=>hide(true));star.addEventListener('click',()=>hide(true));
 // Touch outside the cards should dismiss with the same spring return as tapping the star.
 root.addEventListener('pointerdown',event=>{if(event.target===root)hide(true)});
+// iOS Safari changes the visual viewport when browser chrome collapses or orientation changes.
+// Recompute the four real SVG silhouettes after CSS viewport dimensions settle.
 window.addEventListener('resize',resizeShapes,{passive:true});
+window.visualViewport?.addEventListener('resize',resizeShapes,{passive:true});
+window.addEventListener('orientationchange',()=>requestAnimationFrame(resizeShapes),{passive:true});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!root.hidden&&!document.getElementById('editor')?.open){event.preventDefault();hide(true)}});
 scheduleSync();
 })();
