@@ -742,6 +742,18 @@ body.atlas-remote-ready #mapConnectionNote{display:none!important}
   #atlasPoiOverlay .atlas-poi-hit{min-width:44px;min-height:44px}
   @media (prefers-reduced-motion:reduce){#amapSurface,.memory-atlas{transition:none!important}}
 </style>
+  <style>
+/* Orbit presentation must not inherit the legacy memory-sheet map blur.
+   Keep the map readable while the four independent SVG bubbles are visible. */
+body.memory-open.atlas-orbit-active #amapSurface,
+body.memory-open.atlas-orbit-active #atlasVectorMap,
+body.memory-open.atlas-orbit-active #offlineScene,
+body.memory-open.atlas-orbit-active #atlasPoiOverlay,
+body.memory-open.atlas-orbit-active #atlasBookmarkOverlay{
+ filter:none!important;
+ -webkit-filter:none!important;
+}
+</style>
   <link rel="stylesheet" href="/travel-atlas-pages/atlas-orbit.css">
 <style id="atlas-iphone-stability-20261029">
 /* One non-WebGL, grayscale cartographic surface on iPhone: no color flash. */
