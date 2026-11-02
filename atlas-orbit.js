@@ -103,7 +103,7 @@ function drawGuides(p){
   const a=document.createElement('a');a.className='orbit-link';a.href=entry.url;a.target='_blank';a.rel='noopener noreferrer';
   a.append(text('span','',entry.label),text('span','','↗'));links.append(a);
  }
- c.append(links);c.append(action('记录攻略 ↗',()=>{sheet.querySelector('.memo-edit')?.click()}));
+ c.append(links);c.append(action('＋ 收集社交资料',()=>{if(window.__footprintFlow?.open)window.__footprintFlow.open('sources',p.id);else sheet.querySelector('.memo-edit')?.click()}));
 }
 function drawNearby(p){
  const c=clear('br');c.append(kicker('04 / NEARBY · 附近'),text('h3','orbit-title','周边值得看看'));
