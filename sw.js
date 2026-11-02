@@ -1,6 +1,6 @@
 // Travel Atlas V4. Only cache our public application shell, never APIs, media or map tiles.
-const CACHE='atlas-v4-shell-pages-fullflow-20261102-v8';
-const SHELL=['/travel-atlas-pages/','/travel-atlas-pages/manifest.webmanifest','/travel-atlas-pages/icon.svg','/travel-atlas-pages/atlas-orbit.css','/travel-atlas-pages/atlas-orbit.js','/travel-atlas-pages/atlas-stage5.js','/travel-atlas-pages/atlas-services.js','/travel-atlas-pages/journey.html','/travel-atlas-pages/journey.css','/travel-atlas-pages/journey.js','/travel-atlas-pages/footprint-flow.css','/travel-atlas-pages/footprint-flow.js'];
+const CACHE='atlas-v4-shell-pages-plan-a-20261102-v9';
+const SHELL=['/travel-atlas-pages/','/travel-atlas-pages/manifest.webmanifest','/travel-atlas-pages/icon.svg','/travel-atlas-pages/atlas-orbit.css','/travel-atlas-pages/atlas-orbit.js','/travel-atlas-pages/atlas-stage5.js','/travel-atlas-pages/atlas-services.js','/travel-atlas-pages/journey.html','/travel-atlas-pages/journey.css','/travel-atlas-pages/journey.js','/travel-atlas-pages/footprint-flow.css','/travel-atlas-pages/footprint-flow.js','/travel-atlas-pages/trip-picker.css','/travel-atlas-pages/trip-picker.js'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));
 });
@@ -11,7 +11,7 @@ self.addEventListener('fetch',event=>{
   const request=event.request;
   if(request.method!=='GET')return;
   const asset=new URL(request.url);
-  if(asset.origin===self.location.origin&&['/travel-atlas-pages/manifest.webmanifest','/travel-atlas-pages/icon.svg','/travel-atlas-pages/atlas-orbit.css','/travel-atlas-pages/atlas-orbit.js','/travel-atlas-pages/atlas-stage5.js','/travel-atlas-pages/atlas-services.js','/travel-atlas-pages/journey.css','/travel-atlas-pages/journey.js','/travel-atlas-pages/footprint-flow.css','/travel-atlas-pages/footprint-flow.js'].includes(asset.pathname)){
+  if(asset.origin===self.location.origin&&['/travel-atlas-pages/manifest.webmanifest','/travel-atlas-pages/icon.svg','/travel-atlas-pages/atlas-orbit.css','/travel-atlas-pages/atlas-orbit.js','/travel-atlas-pages/atlas-stage5.js','/travel-atlas-pages/atlas-services.js','/travel-atlas-pages/journey.css','/travel-atlas-pages/journey.js','/travel-atlas-pages/footprint-flow.css','/travel-atlas-pages/footprint-flow.js','/travel-atlas-pages/trip-picker.css','/travel-atlas-pages/trip-picker.js'].includes(asset.pathname)){
     event.respondWith(fetch(request).then(response=>{if(response.ok){const copy=response.clone();event.waitUntil(caches.open(CACHE).then(c=>c.put(request,copy)).catch(()=>{}));}return response}).catch(()=>caches.match(request)));
     return;
   }
