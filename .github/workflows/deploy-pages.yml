@@ -21,7 +21,7 @@ jobs:
       - name: Prepare public static site
         run: |
           mkdir -p _site
-          cp index.html atlas-orbit.css atlas-orbit.js atlas-stage5.js atlas-services.js sw.js manifest.webmanifest icon.svg _site/
+          cp index.html amap-import.html atlas-orbit.css atlas-orbit.js atlas-stage5.js atlas-services.js sw.js manifest.webmanifest icon.svg _site/
           touch _site/.nojekyll
       - name: Validate static deployment assets
         run: |
@@ -29,6 +29,12 @@ jobs:
           node --check atlas-stage5.js
           node --check atlas-services.js
           node --check sw.js
+          node - <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('amap-import.html','utf8');
+          if (!html.includes('private-travel-footprints-v1') || !html.includes('gcjToWgs')) throw Error('AMap import tool wiring failed');
+          console.log('AMap import page checks passed');
+          NODE
           node - <<'NODE'
           const fs = require('fs');
           const html = fs.readFileSync('index.html','utf8');
