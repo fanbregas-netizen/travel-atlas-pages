@@ -786,6 +786,7 @@ html.atlas-stable-map body.memory-open #atlasBookmarkOverlay{filter:none!importa
 </style>
 <style id="atlas-journey-entry-style">#atlasJourneyEntry{font-size:12px!important;font-weight:800!important;text-decoration:none!important;letter-spacing:-.04em;color:#544b32!important;background:#fff7dd!important;border:1px solid #eecf78!important;box-shadow:0 5px 20px #d8b24c31!important}#atlasJourneyEntry:focus-visible{outline:3px solid #cfaa42;outline-offset:3px}@media(max-width:550px){#atlasJourneyEntry{font-size:10.5px!important}}</style>
 <link rel="stylesheet" href="/travel-atlas-pages/footprint-flow.css">
+<link rel="stylesheet" href="/travel-atlas-pages/trip-picker.css">
 </head>
 <body>
 <div id="map" aria-label="私人旅行收藏地图"></div><div id="amapSurface" aria-label="高德地点地图" hidden></div><div id="figureCaption"><em>Fig. 01</em> · CITY IN BLACK &amp; WHITE · 放大看建筑肌理</div><div class="map-status" id="mapStatus">建筑肌理 © OpenStreetMap</div><div class="map-shade" aria-hidden="true"></div>
@@ -2495,6 +2496,7 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
   <script src="/travel-atlas-pages/atlas-orbit.js"></script>
   <script defer src="/travel-atlas-pages/atlas-stage5.js"></script>
 <script defer src="/travel-atlas-pages/footprint-flow.js"></script>
+<script defer src="/travel-atlas-pages/trip-picker.js"></script>
 <script id="atlas-journey-deep-link">
 (function(){
  const placeId=new URLSearchParams(location.search).get('openPlace');
