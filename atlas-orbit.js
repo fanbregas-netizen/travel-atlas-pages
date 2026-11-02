@@ -95,7 +95,7 @@ function drawGuides(p){
  for(const match of String(p.note||'').matchAll(/https?:\/\/[^\s，。；<>"']+/g)){
   try{const url=new URL(match[0]);if(['https:','http:'].includes(url.protocol)){list.push({label:'已保存 · '+url.hostname,url:url.href});if(list.length>=2)break}}catch(_){}
  }
- const name=p.title||'旅行目的地';
+ const stored=[...(Array.isArray(p.references)?p.references:[]),...(Array.isArray(p.guides)?p.guides:[])]; for(const r of stored){const src=typeof r==='string'?r:r?.url||r?.link||'';try{const u=new URL(src);if(['https:','http:'].includes(u.protocol)&&!list.some(a=>a.url===u.href))list.push({label:'已收藏 · '+(typeof r==='object'&&r?.title?String(r.title).slice(0,45):u.hostname),url:u.href})}catch(_){}}\n const name=p.title||'旅行目的地';
  list.push({label:'小红书 · 相关旅行笔记',url:'https://www.xiaohongshu.com/search_result?keyword='+encodeURIComponent(name)});
  list.push({label:'搜索 · '+name+' 攻略',url:'https://www.bing.com/search?q='+encodeURIComponent(name+' 旅行攻略')});
  for(const entry of list.slice(0,3)){
