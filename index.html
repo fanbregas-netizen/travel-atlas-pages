@@ -784,6 +784,7 @@ html.atlas-stable-map body.memory-open #map{filter:none!important}
 html.atlas-stable-map body.memory-open #atlasBookmarkOverlay{filter:none!important}
 @media (max-width:700px){html.atlas-stable-map #map{touch-action:none}}
 </style>
+<style id="atlas-journey-entry-style">#atlasJourneyEntry{font-size:12px!important;font-weight:800!important;text-decoration:none!important;letter-spacing:-.04em;color:#544b32!important;background:#fff7dd!important;border:1px solid #eecf78!important;box-shadow:0 5px 20px #d8b24c31!important}#atlasJourneyEntry:focus-visible{outline:3px solid #cfaa42;outline-offset:3px}@media(max-width:550px){#atlasJourneyEntry{font-size:10.5px!important}}</style>
 </head>
 <body>
 <div id="map" aria-label="私人旅行收藏地图"></div><div id="amapSurface" aria-label="高德地点地图" hidden></div><div id="figureCaption"><em>Fig. 01</em> · CITY IN BLACK &amp; WHITE · 放大看建筑肌理</div><div class="map-status" id="mapStatus">建筑肌理 © OpenStreetMap</div><div class="map-shade" aria-hidden="true"></div>
@@ -808,7 +809,7 @@ html.atlas-stable-map body.memory-open #atlasBookmarkOverlay{filter:none!importa
   <button id="chipStreet" class="layer-option" type="button" hidden>⌖ 旧地点地图</button>
   <button id="chipSatellite" class="layer-option" type="button" hidden>▧ 旧卫星图</button>
   <button id="chipAmap" class="layer-option amap-select" type="button" hidden>⌖ 旧高德入口</button>
-</div><button class="circlebtn" id="btnStars" title="我的旅行足迹" aria-label="查看全部星标">☆</button><button class="circlebtn" id="btnLocate" title="定位到当前位置">◎</button><button class="circlebtn" id="btnZoomIn" title="放大">＋</button><button class="circlebtn" id="btnZoomOut" title="缩小">－</button></div>
+</div><button class="circlebtn" id="btnStars" title="我的旅行足迹" aria-label="查看全部星标">☆</button><a id="atlasJourneyEntry" class="circlebtn" href="/travel-atlas-pages/journey.html" title="规划旅行路线" aria-label="规划旅行路线">路线</a><button class="circlebtn" id="btnLocate" title="定位到当前位置">◎</button><button class="circlebtn" id="btnZoomIn" title="放大">＋</button><button class="circlebtn" id="btnZoomOut" title="缩小">－</button></div>
 <div class="map-error" id="mapError"><span>地图加载暂时不完整。请检查网络后重试；收藏数据不受影响。</span><button type="button" id="retryMap">重试</button></div>
 <div class="helptext" id="helptext">点击地点出现图钉反馈 → 标星写 Brief → 旅行后上传影像</div><div class="pick-target" id="pickTarget" aria-hidden="true"><span>📍</span></div>
 <div class="maphint" id="maphint">📍 拖动地图，把目标地点移到中心标记；点击下方「确认此处」 <button id="cancelPick" style="border:0;background:none;color:#ffdd79;font-weight:750;margin-left:8px">取消</button></div>
@@ -2492,5 +2493,21 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
   </script>
   <script src="/travel-atlas-pages/atlas-orbit.js"></script>
   <script defer src="/travel-atlas-pages/atlas-stage5.js"></script>
+<script id="atlas-journey-deep-link">
+(function(){
+ const placeId=new URLSearchParams(location.search).get('openPlace');
+ if(!placeId)return;
+ let tries=0;
+ const timer=setInterval(()=>{
+   tries++;
+   const api=window.__atlasDemo;
+   if(api&&typeof api.getSaved==='function'&&typeof api.openSaved==='function'){
+     const match=api.getSaved().some(p=>p.id===placeId);
+     if(match){clearInterval(timer);api.openSaved(placeId);history.replaceState(null,'',location.pathname);return;}
+   }
+   if(tries>=40)clearInterval(timer);
+ },250);
+})();
+</script>
 </body>
 </html>
