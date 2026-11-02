@@ -32,14 +32,14 @@
    </section>
    <section class="block"><div class="section-head"><h2>03 · 路线顺序</h2><span id="selectedCount" class="count">0 站</span></div>
      <div id="chosen" class="chosen-list" aria-live="polite"></div>
-     <div class="hint">可调整站点先后、指定 D1 / D2… 。实际驾驶路线请使用高德导航。</div>
+     <div class="hint">可调整站点先后、指定 D1 / D2… 与到达时间；真实路况请用高德确认。</div><button type="button" id="autoArrange" class="outline full">按地理邻近关系智能分天（可手动调整）</button>
      <button id="generate" type="button" class="accent full">生成 Travel Atlas 旅程图 <span aria-hidden="true">↗</span></button>
    </section>
    <section class="block tools"><h2>04 · 继续完善</h2>
     <button id="copyPrompt" type="button" class="outline full">复制 AI 行程规划素材</button>
-    <button id="exportPlan" type="button" class="outline full">导出本条路线 JSON</button>
+    <button id="exportPlan" type="button" class="outline full">导出本条路线 JSON</button><button id="exportMarkdown" type="button" class="outline full">导出详细图文路书（Markdown）</button>
     <label for="importPlan" class="outline full filelabel">导入路线 JSON</label><input id="importPlan" type="file" accept="application/json,.json" hidden/>
-    <p class="hint">原收藏的 Brief、来源链接可整理给 AI；自动读取外部平台文章与真正 AI 排程尚未连接。你的私人照片默认留在本机。</p>
+    <p class="hint">原收藏的 Brief、来源链接可整理给 AI；外部社交平台的完整内容解析与真实模型 AI 排程仍需服务端连接；按地理邻近的智能编排是本机算法，不冒充 AI。你的私人照片默认留在本机。</p>
    </section>
  </aside>
  <section class="atlas-view" aria-labelledby="atlasTitle">
