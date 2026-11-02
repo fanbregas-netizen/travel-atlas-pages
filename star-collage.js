@@ -25,7 +25,7 @@
  function clearVideos(){for(const u of videoUrls)try{URL.revokeObjectURL(u)}catch{}videoUrls=[]}
  function close(){if(!root||root.hidden)return;root.hidden=true;root.classList.remove('fp-visible');document.body.classList.remove('atlas-collage-active');currentId='';clearVideos();const b=$('closeMemory');if(b&&$('memorySheet')?.classList.contains('visible'))b.click();else document.dispatchEvent(new CustomEvent('atlas:collage-closed'))}
  function setMode(m){legacy=m==='four';window.__atlasPreferCollage=!legacy;try{sessionStorage.setItem('atlas-popover-view',legacy?'four':'collage')}catch{};if(root&&!root.hidden){root.hidden=true;document.body.classList.remove('atlas-collage-active');currentId='';clearVideos()}
-  const back=$('fpReturnCollage');if(back)back.hidden=!legacy;
+  const back=$('fpReturnCollage');if(back)back.hidden=!legacy||!$('memorySheet')?.classList.contains('visible');
   if(legacy){document.dispatchEvent(new CustomEvent('atlas:memory-open'))}else{const p=window.__atlasOrbitState?.();if(p?.id)show(p.id)}
  }
  function action(text,cb,cls=''){const b=el('button','fp-collage-action '+cls,text);b.type='button';b.onclick=cb;return b}
@@ -51,9 +51,9 @@
   panel.append(foot)
  }
  async function show(id){if(window.__atlasPreferCollage!==true)return;decorate();const place=await loadPlace(id);if(!place||!place.starred&&place.starred===false||window.__atlasPreferCollage!==true||!$('memorySheet')?.classList.contains('visible'))return;const firstOpen=root.hidden||currentId!==id;currentId=id;render(place);root.hidden=false;document.body.classList.add('atlas-collage-active');requestAnimationFrame(()=>{if(!root.hidden){root.classList.add('fp-visible');panel.focus({preventScroll:true});if(firstOpen)window.__atlasReframeForCollage?.(id)}})}
- function handleEvent(e){if(window.__atlasPreferCollage!==true)return;const id=e?.detail?.id||window.__atlasOrbitState?.()?.id;if(id)show(id)}
- function init(){decorate();$('fpReturnCollage').hidden=!legacy;document.addEventListener('atlas:memory-open',handleEvent);window.addEventListener('atlas:source-updated',()=>{if(currentId)show(currentId)});
- const memory=$('memorySheet');if(memory)new MutationObserver(()=>{if(!memory.classList.contains('visible')&&root&&!root.hidden){root.hidden=true;root.classList.remove('fp-visible');document.body.classList.remove('atlas-collage-active');currentId='';clearVideos()}}).observe(memory,{attributes:true,attributeFilter:['class']});
+ function handleEvent(e){if(window.__atlasPreferCollage!==true){const back=$('fpReturnCollage');if(back)back.hidden=false;return}const id=e?.detail?.id||window.__atlasOrbitState?.()?.id;if(id)show(id)}
+ function init(){decorate();$('fpReturnCollage').hidden=true;document.addEventListener('atlas:memory-open',handleEvent);window.addEventListener('atlas:source-updated',()=>{if(currentId)show(currentId)});
+ const memory=$('memorySheet');if(memory)new MutationObserver(()=>{if(!memory.classList.contains('visible')){const back=$('fpReturnCollage');if(back)back.hidden=true}if(!memory.classList.contains('visible')&&root&&!root.hidden){root.hidden=true;root.classList.remove('fp-visible');document.body.classList.remove('atlas-collage-active');currentId='';clearVideos()}}).observe(memory,{attributes:true,attributeFilter:['class']});
  window.addEventListener('keydown',e=>{if(e.key==='Escape'&&root&&!root.hidden){e.preventDefault();close()}});
  window.__footprintCollage={open:show,close,setMode};
  }
