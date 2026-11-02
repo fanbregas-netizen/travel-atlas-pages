@@ -1,0 +1,27 @@
+/* Footprint Map supplementary workflow. Existing map, star and orbit styles remain unchanged. */
+.fp-flow-launch{position:fixed;left:16px;bottom:calc(107px + env(safe-area-inset-bottom));z-index:1100;background:#fffdf5;color:#473a20;border:1px solid #e5cc81;border-radius:18px;padding:12px 16px;font:750 13px/1.2 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;box-shadow:0 7px 26px #181a1d20;cursor:pointer;min-height:44px}
+.fp-flow-launch:focus-visible,.fp-workspace button:focus-visible,.fp-workspace input:focus-visible,.fp-workspace select:focus-visible,.fp-workspace textarea:focus-visible{outline:3px solid #bd9d41;outline-offset:3px}
+.fp-flow-shade{position:fixed;inset:0;z-index:2800;background:#10182070;display:none}.fp-flow-shade.open{display:block}
+.fp-workspace{position:fixed;z-index:2801;inset:auto 0 0 auto;display:none;width:min(530px,100%);height:min(93dvh,830px);max-height:100dvh;background:#faf9f5;border-radius:25px 25px 0 0;box-shadow:0 0 60px #121e2f38;color:#252a30;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+.fp-workspace.open{display:flex;flex-direction:column}
+.fp-workspace *{box-sizing:border-box}
+.fp-workspace header{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 14px;border-bottom:1px solid #e9e8e3;background:#fff;flex-shrink:0}
+.fp-workspace header strong{font-size:19px;letter-spacing:-.03em}.fp-workspace header span{font-size:10px;letter-spacing:.13em;color:#a07e35;display:block;margin-bottom:4px;font-weight:800}
+.fp-workspace button{cursor:pointer;font-family:inherit}.fp-workspace .fp-close{border:0;background:#f0f0ee;border-radius:50%;width:36px;height:36px;font-size:22px}
+.fp-workspace nav{display:flex;gap:8px;background:#fff;padding:10px 22px 13px;border-bottom:1px solid #eee}
+.fp-workspace .fp-tab{border:1px solid #e1e1df;background:#fff;border-radius:30px;font-size:13px;padding:9px 14px;color:#747877}
+.fp-workspace .fp-tab.active{background:#f2e4b4;color:#473c20;border-color:#e9d58c;font-weight:750}
+.fp-workspace .fp-content{overflow-y:auto;flex:1;padding:19px 22px 36px;overscroll-behavior:contain}
+.fp-workspace .fp-view{display:none}.fp-workspace .fp-view.active{display:block}
+.fp-workspace .fp-note{font-size:12px;line-height:1.65;color:#6d7379;margin:0 0 15px}
+.fp-workspace label{display:block;font-size:12px;font-weight:760;margin:15px 0 6px;color:#454b4e}
+.fp-workspace input:not([type=file]),.fp-workspace textarea,.fp-workspace select{display:block;width:100%;font:14px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;min-height:44px;padding:11px 12px;border:1px solid #d9dcda;border-radius:12px;background:#fff;color:#252a30}
+.fp-workspace textarea{resize:vertical;min-height:96px;line-height:1.65}.fp-workspace input[type=file]{max-width:100%;padding:12px;background:#fff;border:1px dashed #d5c7a4;border-radius:12px}
+.fp-workspace .fp-primary{min-height:46px;border:0;border-radius:12px;background:#ecc65c;color:#30291b;font-size:13px;font-weight:850;padding:11px 17px;margin-top:14px;width:100%}
+.fp-workspace .fp-secondary{min-height:40px;border:1px solid #d9d9d4;border-radius:11px;background:#fff;color:#31383c;font-size:12px;padding:9px 12px}
+.fp-workspace .fp-links{margin:8px 0 12px;padding:0;list-style:none}.fp-workspace .fp-links li{display:flex;gap:9px;align-items:center;border-bottom:1px solid #eee;padding:9px 0;font-size:12px}.fp-workspace .fp-links a{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#365579}.fp-workspace .fp-links button{border:0;background:#f3eeee;border-radius:8px;padding:8px;color:#854a4a}
+.fp-workspace .fp-subheading{font-size:15px;margin:22px 0 7px}.fp-workspace .fp-status{margin:12px 0 0;padding:11px;background:#f3f3ed;border-radius:11px;color:#5e635f;line-height:1.5;font-size:12px;white-space:pre-wrap}
+.fp-workspace .fp-assignment{border:1px solid #e5e5e1;border-radius:12px;padding:10px 12px;background:#fff;margin:8px 0}.fp-workspace .fp-assignment strong{display:block;font-size:13px;word-break:break-word}.fp-workspace .fp-assignment em{font-size:11px;color:#7b827c;display:block;font-style:normal;margin-top:4px}.fp-workspace .fp-assignment select{margin-top:7px;min-height:38px;font-size:12px}.fp-workspace .fp-tip{background:#f6f1df;border-left:3px solid #dfbd62;padding:12px;font-size:12px;color:#6e613d;line-height:1.55;margin-top:16px}
+@media(min-width:720px){.fp-workspace{right:20px;bottom:20px;border-radius:24px;height:min(86dvh,790px)}.fp-flow-launch{bottom:24px}}
+@media(max-width:550px){.fp-flow-launch{left:12px;bottom:calc(112px + env(safe-area-inset-bottom));padding:10px 12px;font-size:11px}.fp-workspace{height:min(87dvh,850px)}.fp-workspace .fp-content{padding:16px 17px 35px}}
+@media(prefers-reduced-motion:no-preference){.fp-workspace.open{animation:fp-rise .23s ease-out}@keyframes fp-rise{from{transform:translateY(20px);opacity:.6}to{transform:translateY(0);opacity:1}}}
