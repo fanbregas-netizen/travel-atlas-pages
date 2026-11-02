@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#f6f6f2"/>
+<title>Travel Atlas · 旅行路线</title>
+<meta name="description" content="由 Footprint Map 的私人星标构成属于你的旅行路线与图文路书。"/>
+<link rel="icon" href="./icon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="./journey.css"/>
+<script defer src="./journey.js"></script>
+</head><body>
+<header class="topbar">
+  <a class="back-link" href="./index.html" aria-label="返回 Footprint Map"><span class="back-arrow" aria-hidden="true">←</span> <span>Footprint Map</span></a>
+  <div class="brand"><span class="brand-mark">✦</span> Travel Atlas <small>路线叙事</small></div>
+  <div class="top-actions"><button type="button" id="newPlan" class="quiet topaction">新路线</button><button type="button" id="savePlan" class="dark topaction">保存路线</button></div>
+</header>
+<main class="layout">
+ <aside class="builder" aria-label="旅行路线规划">
+   <div class="eyebrow">YOUR JOURNEY / 01</div>
+   <h1>让收藏的地点，<br/>成为一段旅程。</h1>
+   <p class="intro">从 Footprint Map 的星标中选地点，安排日期与顺序，生成你手绘构想中的 D1、D2… 线路叙事。</p>
+   <section class="block"><div class="section-head"><h2>01 · 旅程信息</h2><label for="savedPlans" class="mini-label">已保存路线</label></div>
+     <select id="savedPlans" aria-label="选择已保存路线"><option value="">创建新路线</option></select>
+     <label for="planTitle">旅行名称</label><input id="planTitle" maxlength="80" placeholder="例如：沿海的五天" value="我的新旅程"/>
+     <div class="form-row"><div><label for="startDate">出发日期</label><input id="startDate" type="date"/></div><div><label for="endDate">结束日期</label><input id="endDate" type="date"/></div></div>
+     <div class="form-row"><div><label for="origin">出发地</label><input id="origin" maxlength="70" placeholder="上海"/></div><div><label for="destination">目的地/范围</label><input id="destination" maxlength="70" placeholder="浙南沿海"/></div></div>
+   </section>
+   <section class="block"><div class="section-head"><h2>02 · 从 🌟 中选地点</h2><span id="starTotal" class="count">0 个收藏</span></div>
+     <input id="placeFilter" type="search" placeholder="搜索你保存的地点…" aria-label="搜索星标收藏"/>
+     <div id="places" class="place-list" aria-live="polite"></div>
+     <div class="hint">收藏不会搬走；这里只引用已有地点。<a href="./amap-import.html">导入高德星标</a></div>
+   </section>
+   <section class="block"><div class="section-head"><h2>03 · 路线顺序</h2><span id="selectedCount" class="count">0 站</span></div>
+     <div id="chosen" class="chosen-list" aria-live="polite"></div>
+     <div class="hint">可调整站点先后、指定 D1 / D2… 。实际驾驶路线请使用高德导航。</div>
+     <button id="generate" type="button" class="accent full">生成 Travel Atlas 旅程图 <span aria-hidden="true">↗</span></button>
+   </section>
+   <section class="block tools"><h2>04 · 继续完善</h2>
+    <button id="copyPrompt" type="button" class="outline full">复制 AI 行程规划素材</button>
+    <button id="exportPlan" type="button" class="outline full">导出本条路线 JSON</button>
+    <label for="importPlan" class="outline full filelabel">导入路线 JSON</label><input id="importPlan" type="file" accept="application/json,.json" hidden/>
+    <p class="hint">原收藏的 Brief、来源链接可整理给 AI；自动读取外部平台文章与真正 AI 排程尚未连接。你的私人照片默认留在本机。</p>
+   </section>
+ </aside>
+ <section class="atlas-view" aria-labelledby="atlasTitle">
+  <div class="atlas-heading"><div><div class="eyebrow">TRAVEL ATLAS / 02</div><h2 id="atlasTitle">你的旅行路线</h2><p id="atlasSubtitle">从星标到路线，从计划到记忆。</p></div><button id="printPlan" type="button" class="outline print">打印路书</button></div>
+  <div id="status" class="notice" role="status">正在读取你的收藏地点…</div>
+  <div id="journey" class="journey" aria-label="旅程路线与每日站点">
+    <div class="route-empty"><div class="route-empty-icon">✦</div><h3>从一颗星开始</h3><p>先从左侧选择你收藏的地点，再生成旅程。</p><button id="demo" type="button" class="outline">看看手绘路线的交互示例</button></div>
+  </div>
+  <div class="atlas-foot"><span>✦ 地图上的记忆，成为旅途上的章节。</span><a href="./index.html">返回 Footprint Map ↗</a></div>
+ </section>
+</main>
+</body></html>
