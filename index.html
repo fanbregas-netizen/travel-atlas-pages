@@ -787,6 +787,7 @@ html.atlas-stable-map body.memory-open #atlasBookmarkOverlay{filter:none!importa
 <style id="atlas-journey-entry-style">#atlasJourneyEntry{font-size:12px!important;font-weight:800!important;text-decoration:none!important;letter-spacing:-.04em;color:#544b32!important;background:#fff7dd!important;border:1px solid #eecf78!important;box-shadow:0 5px 20px #d8b24c31!important}#atlasJourneyEntry:focus-visible{outline:3px solid #cfaa42;outline-offset:3px}@media(max-width:550px){#atlasJourneyEntry{font-size:10.5px!important}}</style>
 <link rel="stylesheet" href="/travel-atlas-pages/footprint-flow.css">
 <link rel="stylesheet" href="/travel-atlas-pages/trip-picker.css">
+<link rel="stylesheet" href="/travel-atlas-pages/star-collage.css">
 </head>
 <body>
 <div id="map" aria-label="私人旅行收藏地图"></div><div id="amapSurface" aria-label="高德地点地图" hidden></div><div id="figureCaption"><em>Fig. 01</em> · CITY IN BLACK &amp; WHITE · 放大看建筑肌理</div><div class="map-status" id="mapStatus">建筑肌理 © OpenStreetMap</div><div class="map-shade" aria-hidden="true"></div>
@@ -1171,14 +1172,14 @@ class Map{
       $('destinationStar').onclick=()=>{hideDestination();showPlace(existing.id,true)};
       $('destinationUnstar').onclick=()=>cancelBookmark(existing.id);
     }else if(existing){
-      $('destinationStar').onclick=async()=>{try{await upsert({...existing,starred:true});await refresh();hideDestination();showPlace(existing.id);toast('★ 星标已恢复，原有影像均保留')}catch(e){toast('恢复星标失败')}};
+      $('destinationStar').onclick=async()=>{try{await upsert({...existing,starred:true});await refresh();hideDestination();toast('★ 星标已恢复。点击黄色星标查看拼贴，原有影像保持不变。')}catch(e){toast('恢复星标失败')}};
       $('destinationUnstar').onclick=null;
     }else{
       $('destinationStar').onclick=async()=>{
         const item=selectedDestination;
         if(!item)return;
         const saved={id:uid(),title:item.name,lat:item.lat,lng:item.lng,poiId:item.id||'',note:'',photos:[],videos:[],rank:2,date:today(),demo:false,starred:true,stage:'plan'};
-        try{await upsert(saved);await refresh();hideDestination();beginEdit(saved);toast('★ 已标记目的地，点击空白可以保存 Brief')}
+        try{await upsert(saved);await refresh();hideDestination();toast('★ 已收藏。点击地图上的黄色星标，再展开 Brief 和照片拼贴。')}
         catch(err){console.error(err);toast('收藏失败，请检查本机存储')}
       };
       $('destinationUnstar').onclick=null;
@@ -2449,6 +2450,7 @@ class Map{
   }
   window.__atlasRealPOIQA=()=>({mode:mapMode,shown:isOfficial()?$('atlasPoiOverlay')?.querySelectorAll('.atlas-poi-hit').length:Number($('atlasPoiOverlay')?.dataset.realPoiCount||0),backend:officialPoiBackendAvailable,officialReady:isOfficial()&&document.body.classList.contains('atlas-remote-ready'),vectorReady:isVector()&&vectorMap.loaded(),offline:!document.body.classList.contains('atlas-remote-ready')});
   window.__atlasQA=()=>({mode:mapMode,zoom:currentZoom(),pitch:isVector()?vectorMap.getPitch():isOfficial()?officialMap.getPitch():0,poiButtons:$('atlasPoiOverlay')?.querySelectorAll('button')?.length||0,selected:selectedDestination?.name||null,popup:$('destinationCard').classList.contains('visible'),has3D:isVector()?!!vectorMap.getLayer('atlas-3d-buildings'):!!officialBuildings});
+  window.__atlasReframeForCollage=(id)=>{if(window.innerWidth>=740)return;const p=places.find(x=>x.id===id);if(!p)return;const dy=Math.min(245,Math.round(window.innerHeight*.255));try{if(isOfficial()&&officialMap?.panBy)officialMap.panBy(0,-dy);else {const active=isVector()?vectorMap:map;active?.panBy?.([0,-dy],{duration:460});}}catch(e){console.warn('地图重定位暂不可用',e)}};
   window.__atlasOrbitState=()=>{const p=places.find(x=>x.id===selectedId);return p?{id:p.id,title:p.title,note:p.note,date:p.date,lat:Number(p.lat),lng:Number(p.lng),photoCount:p.photos?.length||0,videoCount:p.videos?.length||0,references:p.references||[],guides:p.guides||[],url:p.url||'',link:p.link||''}:null};
   window.__atlasFlowRefresh=async()=>{const keep=selectedId;await refresh();if(keep&&places.some(p=>p.id===keep))showPlace(keep)}; window.__atlasDemo={select:(name,lat,lng)=>showDestination({name,lat,lng,category:'地点'}),close:hideDestination,openSaved:(id)=>showPlace(id),getSaved:()=>places.map(x=>({id:x.id,title:x.title,starred:x.starred})),zoom:(n)=>zoomMap(n),vector:()=>activateVectorMap()};
   init().catch(err=>{console.error('初始化失败:',err);showMapWarning('旅行地图启动异常：'+(err?.message||'未知原因')+'。请点击重试。');});
@@ -2493,10 +2495,12 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
   // Visible build marker for distinguishing a stale offline shell from the live release.
   window.__atlasBuild='V4.20261030.2';
   </script>
+  <script>try{window.__atlasPreferCollage=sessionStorage.getItem('atlas-popover-view')!=='four'}catch(_){window.__atlasPreferCollage=true}</script>
   <script src="/travel-atlas-pages/atlas-orbit.js"></script>
   <script defer src="/travel-atlas-pages/atlas-stage5.js"></script>
 <script defer src="/travel-atlas-pages/footprint-flow.js"></script>
 <script defer src="/travel-atlas-pages/trip-picker.js"></script>
+<script defer src="/travel-atlas-pages/star-collage.js"></script>
 <script id="atlas-journey-deep-link">
 (function(){
  const placeId=new URLSearchParams(location.search).get('openPlace');
