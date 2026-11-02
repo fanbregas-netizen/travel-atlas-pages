@@ -162,6 +162,7 @@ function hide(closeOriginal=false){
 }
 function sync(){
  scheduled=false;
+ if(window.__atlasPreferCollage===true){if(!root.hidden&&!root.classList.contains('is-closing'))hide();return;}
  if(!sheet.classList.contains('visible')){dismissedId='';if(!root.hidden&&!root.classList.contains('is-closing'))hide();return}
  const p=state();if(!p){if(!root.hidden)hide();return}
  // Do not reopen a dismissed location just because the underlying memory
