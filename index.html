@@ -1090,6 +1090,7 @@ class Map{
 
   // Real, clickable map destinations come from OpenFreeMap OSM vector tiles.
   // Discovery fetch is explicit to the user's action; never invent map POIs.
+  let stableSelectionMarker=null;
   let discoveredPlaces=[],selectedDestination=null,lastPoiRender=0,poiRenderTimer=null,poiCategoryFilter='all',poiLastQuery=null,poiLastAt=0;
   const poiGroup=cat=>/museum|historic|attraction|viewpoint|park|garden|zoo|theme_park|artwork|gallery|beach|peak|monument|castle|tourism|nature_reserve|temple/.test(cat)?'attraction':/restaurant|cafe|food|bar|pub|fast_food/.test(cat)?'food':/hotel|lodging|guest_house|hostel|motel/.test(cat)?'stay':'other';
   function setPoiFilter(cat){poiCategoryFilter=cat;document.querySelectorAll('[data-poi-category]').forEach(el=>el.classList.toggle('active',el.dataset.poiCategory===cat));renderDestinations()}
@@ -1144,7 +1145,7 @@ class Map{
       }
     },95)
   }
-  function hideDestination(){if(!selectedDestination&&!$('destinationCard').classList.contains('visible')&&$('selectionFeedback').hidden)return;selectedDestination=null;if(isOfficial())updateOfficialSelectionPin(null);if(vectorSelectionMarker){vectorSelectionMarker.remove();vectorSelectionMarker=null;}$('destinationCard').classList.remove('visible');$('selectionFeedback').hidden=true;document.body.classList.remove('destination-selected')}
+  function hideDestination(){if(!selectedDestination&&!$('destinationCard').classList.contains('visible')&&$('selectionFeedback').hidden)return;stableSelectionMarker?.remove();stableSelectionMarker=null;selectedDestination=null;if(isOfficial())updateOfficialSelectionPin(null);if(vectorSelectionMarker){vectorSelectionMarker.remove();vectorSelectionMarker=null;}$('destinationCard').classList.remove('visible');$('selectionFeedback').hidden=true;document.body.classList.remove('destination-selected')}
 
   async function cancelBookmark(id){
     const p=places.find(item=>item.id===id);
@@ -1170,6 +1171,10 @@ class Map{
     $('selectionFeedback').hidden=true;
     $('selectionCaption').textContent=selectedDestination.name;
     if(isVector())showVectorSelection(selectedDestination);
+    if(!isVector()&&!isOfficial()&&map){
+      stableSelectionMarker?.remove();const el=document.createElement('div');el.className='atlas-light-selection-pin';el.setAttribute('aria-hidden','true');el.innerHTML='<span class="atlas-light-selection-hole"></span>';
+      stableSelectionMarker=new maplibregl.Marker({element:el}).setLngLat([+d.lng,+d.lat]).addTo(map);
+    }
 
     if(existing&&existing.starred!==false){
       $('destinationStar').onclick=()=>{hideDestination();showPlace(existing.id,true)};
