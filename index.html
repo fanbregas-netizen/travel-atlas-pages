@@ -2420,7 +2420,14 @@ class Map{
   window.__atlasQA=()=>({mode:mapMode,zoom:currentZoom(),pitch:isVector()?vectorMap.getPitch():isOfficial()?officialMap.getPitch():0,poiButtons:$('atlasPoiOverlay')?.querySelectorAll('button')?.length||0,selected:selectedDestination?.name||null,popup:$('destinationCard').classList.contains('visible'),has3D:isVector()?!!vectorMap.getLayer('atlas-3d-buildings'):!!officialBuildings});
   window.__atlasReframeForCollage=(id)=>{if(window.innerWidth>=740)return;const p=places.find(x=>x.id===id),card=document.getElementById('fpPlaceCard');if(!p||!card||card.hidden)return;const mark=[...document.querySelectorAll('.atlas-bookmark-hit')].find(e=>e.dataset.placeId===id)||document.querySelector('.star-pin.selected');if(!mark)return;const rect=mark.getBoundingClientRect(),top=card.getBoundingClientRect().top;const dy=Math.max(0,Math.min(245,Math.round(rect.bottom-top+64)));if(dy<12)return;try{if(isOfficial()&&officialMap?.panBy)officialMap.panBy(0,-dy);else{const active=isVector()?vectorMap:map;active?.panBy?.([0,-dy],{duration:450})}}catch(e){console.warn('地图避让暂不可用',e)}};
   window.__atlasOrbitState=()=>{const p=places.find(x=>x.id===selectedId);return p?{id:p.id,title:p.title,note:p.note,date:p.date,lat:Number(p.lat),lng:Number(p.lng),photoCount:p.photos?.length||0,videoCount:p.videos?.length||0,references:p.references||[],guides:p.guides||[],url:p.url||'',link:p.link||''}:null};
-  window.__atlasFlowRefresh=async()=>{await refresh()}; window.__fpSearchCenter=()=>currentCenter(); window.__fpSearchSelect=(d)=>{const lat=Number(d.lat),lng=Number(d.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;closeSearchResults();setPicking(false);closeMemory();setMapView(lat,lng,Math.max(Number(d.zoom)||0,14));addSearchMarker(lat,lng,d.name||'地点');showDestination({name:d.name||'地点',lat,lng,address:d.address||'',id:d.id||'',category:d.category||'地点'})}; window.__atlasPickMapAPI={
+  window.__atlasFlowRefresh=async()=>{await refresh()}; window.__fpSearchCenter=()=>currentCenter(); window.__fpSearchSelect=(d)=>{const lat=Number(d.lat),lng=Number(d.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;closeSearchResults();setPicking(false);closeMemory();setMapView(lat,lng,Math.max(Number(d.zoom)||0,14));addSearchMarker(lat,lng,d.name||'地点');showDestination({name:d.name||'地点',lat,lng,address:d.address||'',id:d.id||'',category:d.category||'地点'})}; window.__atlasMobilePoiAPI={
+ get map(){return map;},
+ center:()=>currentCenter(),
+ zoom:()=>currentZoom(),
+ project:(lng,lat)=>{try{const p=map?._pixel?.(lng,lat),r=$('map').getBoundingClientRect();return p&&Number.isFinite(+p.x)&&Number.isFinite(+p.y)?{x:+p.x+r.left,y:+p.y+r.top}:null}catch(_){return null}},
+ select:(p)=>{if(p&&Number.isFinite(+p.lat)&&Number.isFinite(+p.lng)&&!window.__atlasTripPicking)showDestination({...p,name:p.name||'地点'})}
+};
+window.__atlasPickMapAPI={
   project:(lng,lat)=>{
     if(!Number.isFinite(lng)||!Number.isFinite(lat))return null;
     try{
@@ -2489,6 +2496,7 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
 <script defer src="/travel-atlas-pages/trip-picker.js"></script>
 <script defer src="/travel-atlas-pages/footprint-home.js"></script>
 <script defer src="/travel-atlas-pages/atlas-phase1.js"></script>
+<script defer src="/travel-atlas-pages/atlas-mobile-poi.js"></script>
 <script id="atlas-journey-deep-link">
 (function(){
  const placeId=new URLSearchParams(location.search).get('openPlace');
