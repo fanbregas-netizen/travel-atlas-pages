@@ -1019,8 +1019,15 @@ class Map{
   const cx=lngToX(this.center.lng,tileZ),cy=latToY(this.center.lat,tileZ),tx=cx/256,ty=cy/256;
   const left=Math.floor(tx-w/(512*scale)),right=Math.ceil(tx+w/(512*scale));
   const top=clamp(Math.floor(ty-h/(512*scale)),0,count-1),bottom=clamp(Math.ceil(ty+h/(512*scale)),0,count-1);
-  const defs=[{id:'base',pane:this.tilePane,template:this.style.sources?.base?.tiles?.[0]}];
-  if(this.style.sources?.labels)defs.push({id:'labels',pane:this.labelPane,template:this.style.sources.labels.tiles?.[0]});
+  // No legacy raster fetches at architectural zoom. This is one geographic
+  // renderer, not two maps composited with different zoom/loading cadence.
+  const vectorCanvasOnly=document.body.classList.contains('atlas-canvas-primary')&&this.zoom>=12;
+  const defs=vectorCanvasOnly?[]:[{id:'base',pane:this.tilePane,template:this.style.sources?.base?.tiles?.[0]}];
+  if(!vectorCanvasOnly&&this.style.sources?.labels)defs.push({id:'labels',pane:this.labelPane,template:this.style.sources.labels.tiles?.[0]});
+  if(vectorCanvasOnly){
+    if(this.tilePane.childElementCount)this.tilePane.replaceChildren();
+    if(this.labelPane.childElementCount)this.labelPane.replaceChildren();
+  }
   for(const def of defs){if(!def.template)continue;const keep=new Set();
    for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++){
     const nx=modulo(x,count),key=`${tileZ}:${x}:${y}`,px=(x*256-cx)*scale+w/2,py=(y*256-cy)*scale+h/2;
@@ -2831,7 +2838,9 @@ function mapVectorStatus(message,state='loading'){
     // road and water polygons on the existing 2D Canvas map instead.
     if(mobileStableMap){
       document.body.classList.add('atlas-canvas-primary');
-      mapMode='figure';updateLayerLabel();scheduleFigure();
+      mapMode='figure';updateLayerLabel();
+      map?._render?.(); // discard any raster tiles created during the initial bootstrap
+      scheduleFigure();
     }else Promise.resolve().then(()=>activateVectorMap());
     $('quickNear').onclick=()=>{discoverNear();closeSearchResults()};$('quickStars').onclick=openDrawer;$('quickPin').onclick=()=>{$('navAdd').click()};
     $('chipDiscover').onclick=discoverNear;
@@ -2856,7 +2865,7 @@ function mapVectorStatus(message,state='loading'){
     if(location.protocol==='file:')toast('本地网页用于源码检查，完整地图请访问已部署网站');
     else { /* V22: distant black/white figure-ground, near plan-view building model. */ }
   }
-  window.__atlasArchitectQA=()=>({version:'architectural-b-v46',mode:mapMode,primary:document.body.classList.contains('atlas-canvas-primary'),pitch:0,architectureScale:document.body.classList.contains('atlas-architecture-scale'),roofTone:atlasRoofColor(map?.getZoom()||0),coverage:figureCurrentCoverage,zoom:map?.getZoom()||0,loaded:figureReadyTiles,failed:figureFailedTiles,visible:document.body.classList.contains('atlas-architect-current'),tiles:figCache.size,buildings:[...figCache.values()].reduce((n,x)=>n+(x.buildings?.length||0),0),roads:[...figCache.values()].reduce((n,x)=>n+(x.roads?.length||0),0),hasVectorRoads:true,backupBuildings:recoveryBuildings.length,backupRequested:recoveryRequested});
+  window.__atlasArchitectQA=()=>({version:'architectural-b-v46',mode:mapMode,legacyRasterDisabled:document.body.classList.contains('atlas-canvas-primary')&&(map?.getZoom()||0)>=12,primary:document.body.classList.contains('atlas-canvas-primary'),pitch:0,architectureScale:document.body.classList.contains('atlas-architecture-scale'),roofTone:atlasRoofColor(map?.getZoom()||0),coverage:figureCurrentCoverage,zoom:map?.getZoom()||0,loaded:figureReadyTiles,failed:figureFailedTiles,visible:document.body.classList.contains('atlas-architect-current'),tiles:figCache.size,buildings:[...figCache.values()].reduce((n,x)=>n+(x.buildings?.length||0),0),roads:[...figCache.values()].reduce((n,x)=>n+(x.roads?.length||0),0),hasVectorRoads:true,backupBuildings:recoveryBuildings.length,backupRequested:recoveryRequested});
   window.__atlasRealPOIQA=()=>({mode:mapMode,shown:isOfficial()?$('atlasPoiOverlay')?.querySelectorAll('.atlas-poi-hit').length:Number($('atlasPoiOverlay')?.dataset.realPoiCount||0),backend:officialPoiBackendAvailable,officialReady:isOfficial()&&document.body.classList.contains('atlas-remote-ready'),vectorReady:isVector()&&vectorMap.loaded(),offline:!document.body.classList.contains('atlas-remote-ready')});
   window.__atlasQA=()=>({mode:mapMode,zoom:currentZoom(),pitch:isVector()?vectorMap.getPitch():isOfficial()?officialMap.getPitch():0,poiButtons:$('atlasPoiOverlay')?.querySelectorAll('button')?.length||0,selected:selectedDestination?.name||null,popup:$('destinationCard').classList.contains('visible'),has3D:isVector()?!!vectorMap.getLayer('atlas-3d-buildings'):!!officialBuildings});
   window.__atlasReframeForCollage=(id)=>{if(window.innerWidth>=740)return;const p=places.find(x=>x.id===id),card=document.getElementById('fpPlaceCard');if(!p||!card||card.hidden)return;const mark=[...document.querySelectorAll('.atlas-bookmark-hit')].find(e=>e.dataset.placeId===id)||document.querySelector('.star-pin.selected');if(!mark)return;const rect=mark.getBoundingClientRect(),top=card.getBoundingClientRect().top;const dy=Math.max(0,Math.min(245,Math.round(rect.bottom-top+64)));if(dy<12)return;try{if(isOfficial()&&officialMap?.panBy)officialMap.panBy(0,-dy);else{const active=isVector()?vectorMap:map;active?.panBy?.([0,-dy],{duration:450})}}catch(e){console.warn('地图避让暂不可用',e)}};
