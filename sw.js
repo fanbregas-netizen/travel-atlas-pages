@@ -1,5 +1,5 @@
 // Travel Atlas V4. Only cache our public application shell, never APIs, media or map tiles.
-const CACHE='atlas-v4-shell-real-vector-20261103-v44';
+const CACHE='atlas-v4-shell-canvas-first-20261103-v45';
 const SHELL=['/travel-atlas-pages/','/travel-atlas-pages/manifest.webmanifest','/travel-atlas-pages/icon.svg','/travel-atlas-pages/atlas-orbit.css','/travel-atlas-pages/atlas-orbit.js','/travel-atlas-pages/atlas-stage5.js','/travel-atlas-pages/atlas-services.js','/travel-atlas-pages/journey.html','/travel-atlas-pages/route-view.html','/travel-atlas-pages/atlas-map-preview.html','/travel-atlas-pages/journey.css','/travel-atlas-pages/journey.js','/travel-atlas-pages/footprint-flow.css','/travel-atlas-pages/footprint-flow.js','/travel-atlas-pages/trip-picker.css','/travel-atlas-pages/trip-picker.js','/travel-atlas-pages/route-picking.css','/travel-atlas-pages/star-collage.css','/travel-atlas-pages/star-collage.js','/travel-atlas-pages/footprint-home.css','/travel-atlas-pages/footprint-home.js','/travel-atlas-pages/atlas-map-design.js','/travel-atlas-pages/atlas-route-buildings.js','/travel-atlas-pages/atlas-phase1.js','/travel-atlas-pages/atlas-phase1.css','/travel-atlas-pages/atlas-mobile-poi.js'];
 self.addEventListener('install',event=>{
   // One missing optional page must not prevent the new iPhone release from activating.
