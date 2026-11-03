@@ -1276,7 +1276,7 @@ class Map{
   
   // One-time OSM geometry recovery when the vector-tile CDN is inaccessible.
   // A constrained query avoids rendering a second live map or using invented footprints.
-  let recoveryBuildings=[],recoveryRequested=false,recoveryRequestAt=0,architectFailureTimer=null;
+  let recoveryBuildings=[],recoveryRequested=false,recoveryRequestAt=0,architectFailureTimer=null,architectLoadNoticeTimer=null;
   function drawRecoveryBuildings(ctx,streetMass,w,h){
     if(!recoveryBuildings.length||document.body.classList.contains('atlas-architect-ready'))return;
     ctx.lineJoin='round';
@@ -1297,7 +1297,7 @@ class Map{
     }
   }
   async function recoverArchitecturalFootprints(){
-    if(recoveryRequested||figureReadyTiles>0||document.body.classList.contains('atlas-architect-ready'))return;
+    if(recoveryRequested||document.body.classList.contains('atlas-architect-ready'))return;
     if(!map||map.getZoom()<12.6||document.visibilityState==='hidden')return;
     recoveryRequested=true;recoveryRequestAt=Date.now();
     const center=map.getCenter(),lat=Number(center.lat),lng=Number(center.lng);
@@ -1349,7 +1349,7 @@ class Map{
       const url=FIG_TILE.replace('{z}',t.z).replace('{x}',t.x).replace('{y}',t.y);
       fetch(url).then(r=>{if(!r.ok)throw Error('建筑数据 '+r.status);return r.arrayBuffer()}).then(b=>{const data=decodeBuildings(b);figCache.set(t.key,data);figureReadyTiles++;figureRetries.delete(t.key);if(data.buildings.length+data.roads.length+data.water.length){document.body.classList.add('atlas-architect-ready');document.body.classList.remove('atlas-architect-recovery');const st=$('atlasArchitectStatus');if(st)st.hidden=true;}if(figCache.size>(mobileStableMap?24:56))figCache.delete(figCache.keys().next().value);paintBuildings();if(!mobileStableMap)renderDestinations()}).catch(err=>{figureFailedTiles++;console.warn('建筑矢量瓦片不可用：',err);const count=(figureRetries.get(t.key)||0)+1;figureRetries.set(t.key,count);if(count>=2)figCache.set(t.key,{buildings:[],roads:[],water:[],parks:[],poi:[],extent:4096});if(!figureNoticeShown&&figureFailedTiles>=3&&figureReadyTiles===0){figureNoticeShown=true;toast('建筑地图数据暂未加载成功，当前显示的是基础地图，请检查网络后刷新')}}).finally(()=>{figPending.delete(t.key);if(!satelliteOn&&figPending.size<(mobileStableMap?2:3))setTimeout(requestFigure,mobileStableMap?180:100);});
     }}
-  function scheduleFigure(){paintBuildings();if(!mobileStableMap)renderDestinations();clearTimeout(figRequestTimer);figRequestTimer=setTimeout(requestFigure,mobileStableMap?390:260);if(!architectFailureTimer&&map?.getZoom()>=12.6&&!document.body.classList.contains('atlas-architect-ready'))architectFailureTimer=setTimeout(()=>{architectFailureTimer=null;if(!document.body.classList.contains('atlas-architect-ready'))recoverArchitecturalFootprints()},10500)}
+  function scheduleFigure(){paintBuildings();if(!mobileStableMap)renderDestinations();clearTimeout(figRequestTimer);figRequestTimer=setTimeout(requestFigure,mobileStableMap?390:260);if(!architectLoadNoticeTimer&&map?.getZoom()>=12.6&&!document.body.classList.contains('atlas-architect-ready'))architectLoadNoticeTimer=setTimeout(()=>{architectLoadNoticeTimer=null;if(!document.body.classList.contains('atlas-architect-ready')&&!recoveryBuildings.length)showArchitectStatus('真实建筑地图正在载入…')},2600);if(!architectFailureTimer&&map?.getZoom()>=12.6&&!document.body.classList.contains('atlas-architect-ready'))architectFailureTimer=setTimeout(()=>{architectFailureTimer=null;if(!document.body.classList.contains('atlas-architect-ready'))recoverArchitecturalFootprints()},10500)}
 
   // Real, clickable map destinations come from OpenFreeMap OSM vector tiles.
   // Discovery fetch is explicit to the user's action; never invent map POIs.
