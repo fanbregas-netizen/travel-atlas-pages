@@ -1,0 +1,25 @@
+/* Stage 4 | Same V4 card geometry, new local visit/archive controls only. */
+.fp-visit-panel{border:1px solid #e7e4dc;background:#f8f7f1;border-radius:13px;padding:11px 12px;margin:9px 0 14px}
+.fp-visit-info{display:flex;flex-direction:column;gap:3px}.fp-visit-info strong{font-size:12px;color:#414640}.fp-visit-info small{font-size:10px;color:#858880;line-height:1.4}
+.fp-visit-controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.fp-visit-button{border:1px solid #d2a853;background:#f4dc9f;color:#604e26;border-radius:9px;padding:8px 9px;min-height:34px;font:760 10px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+.fp-visit-button.secondary{border-color:#e7e1d5;background:#fffdf8;color:#676960}.fp-visit-button.accent{border-color:#d8c186;background:#fff6d9;color:#765d26}
+#fpPlaceCard .fp-card-footer{justify-content:flex-start;gap:6px}#fpPlaceCard .fp-card-chip{flex:0 0 auto;min-width:auto;padding:10px 9px;font-size:11px}
+.fp-archive-entry{width:100%;border:1px solid #e0c17a;background:#fff1c8;color:#6a521e;border-radius:11px;padding:10px;font-size:12px;font-weight:820}
+.fp-album-dialog{position:fixed;inset:auto 0 0 0;margin:0 auto;padding:0;width:min(640px,100%);max-width:100%;max-height:min(87dvh,790px);border:1px solid #e9e1d4;border-bottom:0;border-radius:25px 25px 0 0;background:#fffefa;color:#333b35;box-shadow:0 -12px 45px #1b262438;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;overflow:hidden}
+.fp-album-dialog[open]{display:flex;flex-direction:column}.fp-album-dialog::backdrop{background:#1f292776;backdrop-filter:blur(3px)}
+.fp-album-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 17px 11px;border-bottom:1px solid #eee8df;flex:none}
+.fp-album-head small{font-size:9px;letter-spacing:.14em;color:#a48447;font-weight:800}.fp-album-head h2{font-size:20px;margin:4px 0 0;font-weight:800}
+.fp-album-close{width:37px;height:37px;min-width:37px;border:0;border-radius:50%;background:#f2f0e8;color:#60665d;font-size:23px}
+.fp-album-note{font-size:11px;line-height:1.6;color:#777e75;padding:11px 17px 4px;margin:0}
+.fp-album-pick{padding:7px 17px;flex:none}#fpAlbumChoose{border:1px solid #d9bc75;border-radius:11px;min-height:40px;padding:9px 13px;background:#f9eac2;color:#624d21;font-weight:780;font-size:12px}
+.fp-album-rows{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:7px 17px 4px;min-height:30px;flex:1}
+.fp-album-row{display:flex;align-items:center;gap:10px;padding:9px 10px;margin-bottom:8px;border:1px solid #e7e5dc;border-radius:12px;background:#faf9f5}
+.fp-album-file{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}.fp-album-file strong{font-size:11px;color:#3d453d;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.fp-album-file small{font-size:10px;line-height:1.4;color:#868981}
+.fp-album-target{flex:none;max-width:42%;width:42%;min-height:34px;border-radius:9px;padding:6px 9px;font-size:11px;color:#545b52;background:#fff;border:1px solid #d8d8d0}
+.fp-album-status{font-size:10px;line-height:1.55;color:#727a70;margin:0;padding:10px 17px;min-height:35px}
+.fp-album-actions{padding:10px 17px calc(12px + env(safe-area-inset-bottom));border-top:1px solid #eee8de;background:#fffefa}
+#fpAlbumSave{width:100%;min-height:43px;border:1px solid #dcbe72;border-radius:12px;background:#e9ca7b;color:#4c3e24;font-weight:820;font-size:13px}#fpAlbumSave:disabled{opacity:.46}
+#fpAlbumChoose:focus-visible,#fpAlbumSave:focus-visible,.fp-album-target:focus-visible,.fp-visit-button:focus-visible{outline:2px solid #bd9431;outline-offset:2px}
+@media(max-width:390px){.fp-album-row{flex-direction:column;align-items:stretch}.fp-album-target{width:100%;max-width:100%}}
+@media(prefers-reduced-motion:reduce){.fp-album-dialog *{transition:none!important;animation:none!important}}
