@@ -52,9 +52,9 @@ async function run(){
  assert(homepage.includes('store.add(p)'),'IDB restoring must use add() not put()');
  assert(homepage.includes("tx=db.transaction('places','readwrite')"),'Places import must be one transaction');
  assert(homepage.includes('atlas-stage5-archive.js?v=stage5-v50'),'Backup engine not loaded');
- assert(homepage.includes('atlas-stage5-backup-ui.js?v=stage5-v50'),'Restore UI not loaded');
+ assert(homepage.includes('atlas-stage5-backup-ui.js?v=stage5-v50')||homepage.includes('atlas-stage5-backup-ui.js?v=stage6-v51'),'Restore UI not loaded');
  assert(homepage.includes('V4.Review.20261103.architectural-b-v46'),'Do not change approved map style');
- assert(worker.includes('atlas-v4-shell-stage5-archive-v50'),'Safari cache stale');
+ assert(worker.includes('atlas-v4-shell-stage5-archive-v50')||worker.includes('atlas-v4-shell-stage6-integrated-v51'),'Safari cache stale');
  const uiWindow={};new Function('window',ui)(uiWindow);
  const preview=uiWindow.AtlasBackupV5.previewText(parsed,[{id:'p1'}],[{id:'trip-1'}]);
  assert.equal(preview.fresh.length,1,'Existing bookmarks skipped');
