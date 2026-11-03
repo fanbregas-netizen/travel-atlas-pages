@@ -1103,17 +1103,8 @@ class Map{
     const lat=Number(point?.lat),lng=Number(point?.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;
     const name='地图选点';
     const cache=discoveredPlaces.filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lng)).map(x=>({place:x,d:Math.hypot(map._pixel(x.lng,x.lat).x-map._pixel(lng,lat).x,map._pixel(x.lng,x.lat).y-map._pixel(lng,lat).y)})).sort((a,b)=>a.d-b.d);
-    const nearest=cache[0]?.d<20?cache[0].place:{name,lat,lng,category:'位置'};
-    showDestination(nearest);
-    if(nearest===cache[0]?.place)return;
-    const saved=selectedDestination;
-    // Reverse lookup is best-effort. No API response is interpreted as a verified POI unless it includes a name.
-    fetch('https://nominatim.openstreetmap.org/reverse?format=json&zoom=18&accept-language=zh-CN&lat='+lat+'&lon='+lng).then(r=>r.ok?r.json():null).then(j=>{
-      if(!j||selectedDestination!==saved)return;
-      const n=j.name||j.address?.attraction||j.address?.tourism||j.address?.amenity||j.address?.road;
-      if(!n)return;
-      saved.name=n;$('destinationTitle').textContent=n;
-    }).catch(()=>{});
+    const nearest=cache[0]?.d<24?cache[0].place:null;
+    if(nearest)showDestination(nearest); // no extra panel on empty map space
   }
   function renderDestinations(){
     if(mobileStableMap||!map?.destinationPane)return;
@@ -1354,7 +1345,7 @@ class Map{
     pane.replaceChildren();
     if(!isOfficial()||!officialSDK||!officialMap)return;
     const zoom=officialMap.getZoom();
-    if(zoom<11.5)return;
+    if(zoom<11.5&&!window.__atlasTripPicking)return;
     for(const p of places.filter(x=>x.starred!==false)){
       const xy=wgsToGcj(+p.lng,+p.lat);
       let point;try{point=officialMap.lngLatToContainer(new officialSDK.LngLat(xy[0],xy[1]))}catch(e){continue}
@@ -1387,7 +1378,7 @@ class Map{
     if(!isOfficial()||!officialSDK||!officialMap||document.body.classList.contains('memory-open'))return;
     const z=officialMap.getZoom();if(z<13)return;
     const vw=innerWidth,vh=innerHeight,occupied=new Set(),seen=new Set();
-    const max=z>=17.0?70:z>=16.2?54:z>=15.0?36:z>=14.1?18:7;
+    const max=z>=17.0?90:z>=16.2?68:z>=15.0?46:z>=14.1?24:10;
     let shown=0;
     for(const p of officialNearbyPlaces){
       if(shown>=max)break;
@@ -1395,7 +1386,7 @@ class Map{
       const lat=Number(p.lat),lng=Number(p.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))continue;
       let pt;try{const gc=wgsToGcj(lng,lat);pt=officialMap.lngLatToContainer(new officialSDK.LngLat(gc[0],gc[1]));}catch(e){continue}
       const x=Number(pt?.getX?.()??pt?.x),y=Number(pt?.getY?.()??pt?.y);
-      if(!Number.isFinite(x)||!Number.isFinite(y)||x<25||x>vw-25||y<170||y>vh-175)continue;
+      if(!Number.isFinite(x)||!Number.isFinite(y)||x<25||x>vw-25||y<100||y>vh-155)continue;
       const named=z>=14.5||(z>=14.0&&shown<5);
       const cell=Math.floor(x/(named?92:54))+':'+Math.floor(y/(named?43:52));if(occupied.has(cell))continue;
       occupied.add(cell);seen.add(name);
@@ -1449,7 +1440,7 @@ class Map{
       };
       if(nearby){const c=officialMap.getCenter(),z=officialMap.getZoom();
         const radius=z>=15?2500:z>=13?6000:z>=11?12000:25000;
-        placeSearch.searchNearBy(({food:'餐厅',hotel:'酒店',transit:'地铁站',culture:'博物馆'})[category]||'景点',[c.getLng(),c.getLat()],radius,cb);
+        placeSearch.searchNearBy(({food:'餐厅',hotel:'酒店',transit:'地铁站',culture:'博物馆',park:'公园',shopping:'商场',arts:'艺术中心'})[category]||'景点',[c.getLng(),c.getLat()],radius,cb);
       }else placeSearch.search(query,cb);
     });
   }
@@ -1460,7 +1451,7 @@ class Map{
     const c=officialCenter(),cell=(z>=15?.008:.025),cacheKey=[Math.round(c.lng/cell),Math.round(c.lat/cell),Math.floor(z/2)].join(':');
     if(cacheKey===officialNearbyCache&&Date.now()-officialNearbyFetchTime<60000){requestPoiOverlayRender();return}
     const req=++nearbyRequestId;
-    const categories=[['scenic','景点'],['food','餐饮'],['hotel','酒店'],['transit','地铁站'],['culture','博物馆']];
+    const categories=[['scenic','景点'],['food','餐饮'],['hotel','酒店'],['transit','地铁站'],['culture','博物馆'],['park','公园'],['shopping','购物'],['arts','艺术中心']];
     const results=await Promise.allSettled(categories.map(([cat,q])=>officialSearchPlaces(q,true,cat)));
     if(req!==nearbyRequestId)return;
     const merged=[];
@@ -1584,9 +1575,8 @@ class Map{
           const [lng,lat]=gcjToWgs(e.lnglat.getLng(),e.lnglat.getLat());
           if(selectedId){closeMemory();return;}
           if(selectedDestination)hideDestination();
-          // Always respond to a map tap. Enrich selection with the closest real POI.
-          showDestination({name:'所选位置',lng,lat,category:'地图位置'});
-          pickNearestOfficialPlace(e);
+          // Blank map space only dismisses details. Named AMap hotspots remain tappable.
+          // Do not invent a coordinate card on every incidental pan or tap.
         });
         officialMap.on('mapmove',()=>{if(isOfficial()){renderBookmarkOverlay();requestPoiOverlayRender()}});
         officialMap.on('moveend',()=>{if(!isOfficial())return;lockOfficialNorthUp();renderBookmarkOverlay();const c=officialCenter();map.jumpTo({center:[c.lng,c.lat],zoom:officialMap.getZoom()});if(selectedId)relayoutMemoryOpen();queueOfficialNearby();requestPoiOverlayRender();});
@@ -2218,7 +2208,7 @@ class Map{
   function renderVectorBookmarks(){
     if(!isVector())return;
     const pane=$('atlasBookmarkOverlay');pane.replaceChildren();
-    const z=vectorMap.getZoom();if(z<10)return;
+    const z=vectorMap.getZoom();if(z<10&&!window.__atlasTripPicking)return;
     const rect=$('atlasVectorMap').getBoundingClientRect();
     for(const p of places.filter(x=>x.starred!==false)){
       let xy;try{xy=vectorMap.project([+p.lng,+p.lat])}catch(e){continue}
@@ -2315,19 +2305,8 @@ class Map{
     if(selectedId){closeMemory();return;}
     const point=getPoiFromFeatures(e);
     if(point){showDestination(point);return;}
-    const d={name:'地图选点',lng:e.lngLat.lng,lat:e.lngLat.lat,category:'地图位置'};
-    showDestination(d);
-    const req=++reverseReq;
-    try{
-      const u='https://nominatim.openstreetmap.org/reverse?format=json&zoom=18&accept-language=zh-CN&lat='+d.lat+'&lon='+d.lng;
-      const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),6500);
-      const r=await fetch(u,{signal:ctl.signal,headers:{Accept:'application/json'}});clearTimeout(timer);
-      if(!r.ok)return;
-      const data=await r.json(),n=data.name||data.address?.tourism||data.address?.amenity||data.address?.road||'';
-      if(req!==reverseReq||!selectedDestination||selectedDestination.lat!==d.lat||!n)return;
-      selectedDestination.name=String(n);$('destinationTitle').textContent=String(n);$('selectionCaption').textContent=String(n);
-      $('destinationCategory').textContent=(data.display_name||'').slice(0,100)+' · 点击星标才会收藏';
-    }catch(_){}
+    // iPhone Maps behavior: blank map tap returns to the map, not a fabricated place card.
+    hideDestination();
   }
   let fallbackScriptRequest=null;
   function injectMapLibre(){
@@ -2432,7 +2411,8 @@ class Map{
  project:(lng,lat)=>{try{const p=map?._pixel?.(lng,lat),r=$('map').getBoundingClientRect();return p&&Number.isFinite(+p.x)&&Number.isFinite(+p.y)?{x:+p.x+r.left,y:+p.y+r.top}:null}catch(_){return null}},
  select:(p)=>{if(p&&Number.isFinite(+p.lat)&&Number.isFinite(+p.lng)&&!window.__atlasTripPicking)showDestination({...p,name:p.name||'地点'})}
 };
-window.__atlasPickMapAPI={
+window.__atlasRefreshPins=()=>{if(isOfficial())renderBookmarkOverlay();else if(isVector())renderVectorBookmarks();else renderMarkers()};
+  window.__atlasPickMapAPI={
   project:(lng,lat)=>{
     if(!Number.isFinite(lng)||!Number.isFinite(lat))return null;
     try{
