@@ -790,6 +790,7 @@ html.atlas-stable-map body.memory-open #atlasBookmarkOverlay{filter:none!importa
 <link rel="stylesheet" href="/travel-atlas-pages/route-picking.css?v=stage2-v47">
 <link rel="stylesheet" href="/travel-atlas-pages/footprint-home.css">
 <link rel="stylesheet" href="/travel-atlas-pages/atlas-stage4-media.css?v=stage4-v49">
+<link rel="stylesheet" href="/travel-atlas-pages/atlas-stage5-backup.css?v=stage5-v50">
 <link rel="stylesheet" href="/travel-atlas-pages/atlas-phase1.css">
 <style id="atlas-map-geo-plan-review-20261103">
 /* Preserve approved V4 controls; make architectural raster fallback visible when AMap is unavailable. */
@@ -2864,7 +2865,8 @@ function mapVectorStatus(message,state='loading'){
     document.addEventListener('click',e=>{const btn=e.target.closest('[data-action]');if(!btn)return;const {action,id,idx}=btn.dataset;if(action==='photo')openViewer(id,Number(idx));if(action==='edit'){const p=places.find(x=>x.id===id);if(p)beginEdit(p)}if(action==='upload'){const p=places.find(x=>x.id===id);if(p){$('directUpload').dataset.target=p.id;$('directUpload').click()}}});
     document.addEventListener('pointerdown',e=>{if(!$('layerMenu').hidden&&!e.target.closest('#layerMenu')&&!e.target.closest('#btnLayers'))toggleLayerMenu(false)},{passive:true});
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();setPicking(false);closeViewer();hideDestination()}if($('viewer').classList.contains('visible')){if(e.key==='ArrowLeft'){$('viewerPrev').click()}if(e.key==='ArrowRight'){$('viewerNext').click()}}});
-    $('exportBtn').onclick=downloadBackup;$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=e=>{if(e.target.files[0])importBackup(e.target.files[0]);e.target.value=''};
+    if(window.AtlasBackupV5?.install)window.AtlasBackupV5.install();
+    else{$('exportBtn').onclick=downloadBackup;$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=e=>{if(e.target.files[0])importBackup(e.target.files[0]);e.target.value=''}};
     if(location.protocol==='file:')toast('本地网页用于源码检查，完整地图请访问已部署网站');
     else { /* V22: distant black/white figure-ground, near plan-view building model. */ }
   }
@@ -2873,7 +2875,32 @@ function mapVectorStatus(message,state='loading'){
   window.__atlasQA=()=>({mode:mapMode,zoom:currentZoom(),pitch:isVector()?vectorMap.getPitch():isOfficial()?officialMap.getPitch():0,poiButtons:$('atlasPoiOverlay')?.querySelectorAll('button')?.length||0,selected:selectedDestination?.name||null,popup:$('destinationCard').classList.contains('visible'),has3D:isVector()?!!vectorMap.getLayer('atlas-3d-buildings'):!!officialBuildings});
   window.__atlasReframeForCollage=(id)=>{if(window.innerWidth>=740)return;const p=places.find(x=>x.id===id),card=document.getElementById('fpPlaceCard');if(!p||!card||card.hidden)return;const mark=[...document.querySelectorAll('.atlas-bookmark-hit')].find(e=>e.dataset.placeId===id)||document.querySelector('.star-pin.selected');if(!mark)return;const rect=mark.getBoundingClientRect(),top=card.getBoundingClientRect().top;const dy=Math.max(0,Math.min(245,Math.round(rect.bottom-top+64)));if(dy<12)return;try{if(isOfficial()&&officialMap?.panBy)officialMap.panBy(0,-dy);else{const active=isVector()?vectorMap:map;active?.panBy?.([0,-dy],{duration:450})}}catch(e){console.warn('地图避让暂不可用',e)}};
   window.__atlasOrbitState=()=>{const p=places.find(x=>x.id===selectedId);return p?{id:p.id,title:p.title,note:p.note,date:p.date,lat:Number(p.lat),lng:Number(p.lng),photoCount:p.photos?.length||0,videoCount:p.videos?.length||0,references:p.references||[],guides:p.guides||[],url:p.url||'',link:p.link||''}:null};
-  window.__atlasPlaceStore={readAll:()=>allStored(),save:async(place)=>{await upsert(place);await refresh()},isFallback:()=>fallback,isTransient:()=>storageIsTransient};
+  async function importOnlyNewPlaces(records){
+    if(!Array.isArray(records)||!records.length)return 0;
+    if(fallback||!db)throw Error('当前设备没有可用的持久数据库，不允许恢复以免丢失数据');
+    // Prepare media BEFORE the single IndexedDB transaction. add() deliberately
+    // aborts on an existing ID rather than updating or deleting any original star.
+    const prepared=await Promise.all(records.map(preparePlace));
+    const seen=new Set();
+    for(const p of prepared){
+      if(!p||typeof p.id!=='string'||seen.has(p.id))throw Error('导入包含重复或无效星标 ID');
+      seen.add(p.id);
+    }
+    await new Promise((resolve,reject)=>{
+      let tx;
+      try{
+        tx=db.transaction('places','readwrite');
+        tx.oncomplete=resolve;
+        tx.onabort=()=>reject(tx.error||Error('导入被取消：已有同 ID 星标或存储不足'));
+        tx.onerror=()=>reject(tx.error||Error('数据恢复失败'));
+        const store=tx.objectStore('places');
+        for(const p of prepared)store.add(p);
+      }catch(err){try{tx?.abort()}catch(_){}reject(err)}
+    });
+    await refresh();
+    return prepared.length;
+  }
+  window.__atlasPlaceStore={readAll:()=>allStored(),save:async(place)=>{await upsert(place);await refresh()},importNew:importOnlyNewPlaces,isFallback:()=>fallback,isTransient:()=>storageIsTransient};
   window.__atlasFlowRefresh=async()=>{await refresh()}; window.__fpSearchCenter=()=>currentCenter(); window.__fpSearchSelect=(d)=>{const lat=Number(d.lat),lng=Number(d.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;closeSearchResults();setPicking(false);closeMemory();setMapView(lat,lng,Math.max(Number(d.zoom)||0,14));addSearchMarker(lat,lng,d.name||'地点');showDestination({name:d.name||'地点',lat,lng,address:d.address||'',id:d.id||'',category:d.category||'地点'})}; window.__atlasMobilePoiAPI={
  get map(){return map;},
  center:()=>currentCenter(),
@@ -2951,6 +2978,8 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
 <script defer src="/travel-atlas-pages/trip-picker.js?v=stage2-v47"></script>
 <script defer src="/travel-atlas-pages/atlas-visit-media.js?v=stage4-v49"></script>
 <script defer src="/travel-atlas-pages/footprint-home.js?v=stage4-v49"></script>
+<script defer src="/travel-atlas-pages/atlas-stage5-archive.js?v=stage5-v50"></script>
+<script defer src="/travel-atlas-pages/atlas-stage5-backup-ui.js?v=stage5-v50"></script>
 <script defer src="/travel-atlas-pages/atlas-phase1.js"></script>
 <script defer src="/travel-atlas-pages/atlas-mobile-poi.js"></script>
 <script id="atlas-journey-deep-link">
