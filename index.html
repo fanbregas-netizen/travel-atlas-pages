@@ -1274,7 +1274,7 @@ class Map{
       const paths=builtPaths(data),unit=data.extent/tileSize;
       ctx.fillStyle='#e7eae2';ctx.fill(paths.park,'evenodd');
       ctx.fillStyle='#dce5e7';ctx.fill(paths.water,'evenodd');
-      ctx.strokeStyle='#c3d2d4';ctx.lineWidth=Math.max(.9,2.2*scale)*unit;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke(paths.waterway);
+      ctx.strokeStyle='#c3d2d4';ctx.lineWidth=(zoom>=16.2?2.5:1.6)*unit;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke(paths.waterway);
       // Stroke roads in order from the smallest to largest. White cores carve true streets
       // through dark city blocks, retaining an orthographic, north-up layout.
       const roadSpecs=[
