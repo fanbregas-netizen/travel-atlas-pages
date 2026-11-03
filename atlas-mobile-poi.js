@@ -8,15 +8,15 @@ function normalize(rows,lat,lng){return (rows.elements||[]).map(x=>({lat:Number(
 async function fetchPlaces(lat,lng,radius){
  const circle='(around:'+radius+','+lat+','+lng+')';
  const kinds=['amenity','tourism','shop','leisure','historic'];
- const query='[out:json][timeout:9];('+kinds.map(k=>'node'+circle+'["name"]["'+k+'"];').join('')+'way'+circle+'["name"]["tourism"];way'+circle+'["name"]["amenity"];);out center 65;';
+ const query='[out:json][timeout:9];('+kinds.map(k=>'node'+circle+'["name"]["'+k+'"];').join('')+'way'+circle+'["name"]["tourism"];way'+circle+'["name"]["amenity"];);out center 180;';
  controller?.abort();controller=new AbortController();const c=controller,t=setTimeout(()=>c.abort(),10500);
  try{const r=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(query),{signal:c.signal,headers:{Accept:'application/json'}});if(!r.ok)throw Error('OSM server '+r.status);return normalize(await r.json(),lat,lng)}
  finally{clearTimeout(t)}
 }
 function render(){if(!started)return;const p=$('atlasPoiOverlay'),api=window.__atlasMobilePoiAPI;if(!p||!api?.project)return;
- const width=innerWidth,height=innerHeight,z=api.zoom(),names=z>=15,cells=new Set(),max=z>=17?32:z>=15.5?23:16,frag=document.createDocumentFragment();let count=0;
+ const width=innerWidth,height=innerHeight,z=api.zoom(),names=z>=14.8,cells=new Set(),max=z>=17?48:z>=15.5?36:22,frag=document.createDocumentFragment();let count=0;
  for(const x of active){const xy=api.project(x.lng,x.lat);if(!xy||xy.x<26||xy.x>width-28||xy.y<85||xy.y>height-155)continue;
-  const cell=Math.floor(xy.x/(names?94:52))+':'+Math.floor(xy.y/(names?44:51));if(cells.has(cell))continue;cells.add(cell);
+  const cell=Math.floor(xy.x/(names?84:48))+':'+Math.floor(xy.y/(names?40:47));if(cells.has(cell))continue;cells.add(cell);
   const b=document.createElement('button');b.type='button';b.className='atlas-mobile-poi'+(names?' is-named':'');b.style.left=xy.x+'px';b.style.top=xy.y+'px';b.setAttribute('aria-label','查看真实地点 '+x.name);b.title=x.name;
   const dot=document.createElement('i');dot.setAttribute('aria-hidden','true');b.append(dot);
   if(names){const title=document.createElement('span');title.textContent=x.name;b.append(title)}
@@ -26,7 +26,7 @@ function render(){if(!started)return;const p=$('atlasPoiOverlay'),api=window.__a
  p.replaceChildren(frag);p.dataset.realPoiCount=String(count)}
 function schedule(){clearTimeout(timer);timer=setTimeout(update,450)}
 async function update(){if(!started)return;const api=window.__atlasMobilePoiAPI,z=api?.zoom?.(),c=api?.center?.();if(!finite(z)||!c||!finite(c.lat)||!finite(c.lng))return;
- if(z<13.3){active=[];render();return}
+ if(z<12.8){active=[];render();return}
  const lat=Number(c.lat).toFixed(3),lng=Number(c.lng).toFixed(3),rad=z>=16?650:z>=15?900:1350,key=lat+':'+lng+':'+rad,cached=cache.get(key);
  if(cached&&Date.now()-cached.time<420000){active=cached.places;render();return}
  if(Date.now()-lastFetch<11000){render();return}latest=key;lastFetch=Date.now();
