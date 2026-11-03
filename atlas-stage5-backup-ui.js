@@ -82,7 +82,8 @@ function previewText(archive,existing,plans){
   message:'备份版本：'+archive.format+'；ZIP：'+readableBytes(archive.bytes)+'。\n'+
    '文件包含：'+archive.places.length+' 处星标、'+archive.plans.length+' 条旅行路线。\n'+
    '本次将新增：'+fresh.length+' 处星标、'+routes.length+' 条路线，包含 '+photos+' 张照片、'+videos+' 条视频、'+visited+' 项到访记录。\n'+
-   '已存在或演示记录将跳过：'+(archive.places.length-fresh.length)+' 处星标、'+(archive.plans.length-routes.length)+' 条路线。',
+   '已存在或演示记录将跳过：'+(archive.places.length-fresh.length)+' 处星标、'+(archive.plans.length-routes.length)+' 条路线。'+
+   (archive.format==='travel-atlas-complete-v11'?'':'\n注意：这是历史格式；旧备份可能没有路线、到访数据或全部媒体，无法恢复未包含的内容。'),
   fresh, routes
  };
 }
@@ -114,7 +115,10 @@ async function prepareImport(file){
  working=true;progress.dataset.error='no';progress.textContent='正在本机读取并校验 ZIP 备份…';
  try{
   if(file.size>core.MAX_TOTAL)throw Error('文件超过 512MB 安全上限');
-  const buffer=await file.arrayBuffer(),archive=core.inspect(buffer);
+  const buffer=/\.json$/i.test(file.name)?
+   await core.zip([{name:'travel-places.json',data:new TextEncoder().encode(await file.text())}]).arrayBuffer():
+   await file.arrayBuffer();
+  const archive=core.inspect(buffer);
   const [existing,plans]=await Promise.all([store.readAll(),getPlans()]);
   const info=previewText(archive,existing,plans);
   candidate={archive,info};
@@ -160,7 +164,7 @@ function install(){
  oldExport.textContent='↓ 完整档案 ZIP';
  oldImport.textContent='↑ 安全恢复档案';
  oldImport.onclick=()=>fileInput.click();
- fileInput.accept='.zip,application/zip';
+ fileInput.accept='.zip,.json,application/zip,application/json';
  fileInput.onchange=e=>{const file=e.target.files?.[0];e.target.value='';if(file)prepareImport(file)};
  const description=document.querySelector('#drawer .footnote');
  if(description)description.textContent='完整备份包括地图星标、Brief、照片视频、到访记录和已保存旅行路线。全部保存在当前浏览器；换设备之前请导出 ZIP，恢复时默认不覆盖已有内容。';
