@@ -33,3 +33,16 @@
 .trip-map-selecting #searchDock{opacity:0;pointer-events:none}
 @media(max-width:600px){.trip-mode-options{padding:12px 14px}.trip-map-tray{bottom:calc(102px + env(safe-area-inset-bottom));padding:12px 14px}}
 @media(prefers-reduced-motion:reduce){.trip-map-selecting .atlas-bookmark-hit,.trip-map-selecting .star-pin{transition:none}}
+
+
+/* Compact two-option popover replaces the old full-screen mode chooser. */
+.trip-mode-menu{position:fixed;z-index:1800;width:218px;padding:10px;background:#fffef9f5;border:1px solid #e5dabc;border-radius:18px;box-shadow:0 13px 35px #1113;backdrop-filter:blur(16px);display:flex;flex-direction:column;gap:5px;color:#2d332f;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif}
+.trip-mode-menu[hidden]{display:none}.trip-menu-kicker{padding:3px 7px 5px;color:#a08a54;letter-spacing:.1em;font-size:10px;font-weight:850}
+.trip-mode-menu>button{display:flex;align-items:center;gap:9px;text-align:left;border:1px solid transparent;background:#f7f5ed;border-radius:12px;min-height:53px;width:100%;padding:8px 10px;color:#33372f}
+.trip-mode-menu>button:active{background:#f6eccd}.trip-mode-menu>button:disabled{opacity:.46}.trip-mode-menu>button>span:last-child{display:flex;flex-direction:column;gap:3px}.trip-mode-menu strong{font-size:12px}.trip-mode-menu small{font-size:10px;color:#89867e}.trip-menu-icon{display:grid;place-items:center;background:#ead19a;width:34px;height:34px;border-radius:11px;font-size:20px;color:#5d4b25;flex-shrink:0}.trip-menu-status{padding:4px 7px;font-size:10px;color:#918879;line-height:1.4}
+.trip-head-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}.trip-head-actions #tripSwitchMap{border:1px solid #e7d9ac;background:#fff9e4;color:#7f6527;border-radius:999px;padding:8px 9px;font-size:10px;font-weight:800;white-space:nowrap}
+.trip-picker-dates{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 18px 12px;background:#faf9f5;border-top:1px solid #e9e4da;border-bottom:1px solid #ece7dd;flex-shrink:0}
+.trip-picker-dates label{display:flex;flex-direction:column;gap:5px;color:#857b69;font-size:10px;font-weight:750;min-width:0}.trip-picker-dates input{min-height:38px;max-width:100%;width:100%;background:#fff;border-radius:10px;border:1px solid #e6e1d8;padding:7px 9px;color:#313732;font-size:13px;-webkit-text-size-adjust:100%}
+.trip-map-selecting .atlas-bookmark-hit.trip-chosen:after,.trip-map-selecting .star-pin.trip-chosen:after{content:attr(data-trip-order);width:22px;height:22px;border-radius:50%;font-size:12px;font-variant-numeric:tabular-nums;right:-9px;top:-12px}
+@media(max-width:600px){.trip-picker-dates{padding:9px 14px}.trip-picker-dates input{font-size:16px;min-height:40px}.trip-mode-menu{width:212px}.trip-head-actions #tripSwitchMap{padding:7px 8px}}
+
