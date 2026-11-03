@@ -2834,14 +2834,13 @@ function mapVectorStatus(message,state='loading'){
     $('retryMap').onclick=()=>{if(!map){location.reload();return}streetSource=0;installTileLayer('street',true)};
     $('btnZoomIn').onclick=()=>map?zoomMap(1):toast('地图尚未加载');$('btnZoomOut').onclick=()=>map?zoomMap(-1):toast('地图尚未加载');
     $('btnLocate').onclick=()=>{if(!map){toast('地图尚未加载');return}userHasMovedMap=false;requestCurrentLocation(true)};
-    // iPhone Safari may not create a WebGL context. Use real OpenMapTiles building,
-    // road and water polygons on the existing 2D Canvas map instead.
-    if(mobileStableMap){
-      document.body.classList.add('atlas-canvas-primary');
-      mapMode='figure';updateLayerLabel();
-      map?._render?.(); // discard any raster tiles created during the initial bootstrap
-      scheduleFigure();
-    }else Promise.resolve().then(()=>activateVectorMap());
+    // One geographic engine for the Footprint Map homepage on ALL devices.
+    // Keeping two map engines caused stale raster tiles and divergent zoom behavior.
+    // This is a real WGS84-coordinated Canvas figure-ground map (no WebGL required).
+    document.body.classList.add('atlas-canvas-primary');
+    mapMode='figure';updateLayerLabel();
+    map?._render?.(); // remove bootstrap street raster images in the same frame
+    scheduleFigure();
     $('quickNear').onclick=()=>{discoverNear();closeSearchResults()};$('quickStars').onclick=openDrawer;$('quickPin').onclick=()=>{$('navAdd').click()};
     $('chipDiscover').onclick=discoverNear;
     $('chipAll').onclick=()=>{closeMemory();setPicking(false);if(places.length)fitMapPlaces(places,12);else toast('还没有收藏的地点')};
