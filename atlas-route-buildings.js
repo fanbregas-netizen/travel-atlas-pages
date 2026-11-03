@@ -10,7 +10,8 @@
 (()=>{'use strict';
 const VERSION='travel-atlas-architectural-B-20261103';
 const LAYER='atlas-travel-white-block-massing';
-const LIMIT=17;
+const LIMIT=0;
+const SHADOW='atlas-travel-roof-relief';
 const roofColor=[
   'interpolate',['linear'],['zoom'],
   11,'#2d302e',14.2,'#303230',15.0,'#4a4d49',
@@ -48,13 +49,7 @@ const extrudedBase=[
   15.6,0,16.1,['*',.28,base],16.55,['*',.78,base],
   17.2,['*',1.22,base],19,['*',1.27,base]
 ];
-function pitchForZoom(z){
-  if(z<=15.4)return 0;
-  if(z<15.9)return (z-15.4)/.5*5.5;
-  if(z<16.6)return 5.5+(z-15.9)/.7*7;
-  if(z<17.3)return 12.5+(z-16.6)/.7*4.5;
-  return LIMIT;
-}
+function pitchForZoom(_z){return 0;} // Keep exact overhead camera; relief comes from roof shadow, not viewpoint tilt.
 function findBuildingLayer(map){
   const layers=map.getStyle?.()?.layers||[];
   const existing=layers.find(layer=>layer.type==='fill'&&layer.source&&layer['source-layer']&&
@@ -82,6 +77,18 @@ function setStyle(map){
   set('fill-color',roofColor);
   set('fill-opacity',roofOpacity);
   set('fill-outline-color',roofOutline);
+  // Near-overhead raised-block effect without altering map bearing/pitch.
+  // A shadow uses the original building polygons, offset in screen space.
+  if(!map.getLayer?.(SHADOW)){
+    try{map.addLayer({id:SHADOW,type:'fill',source:target.source,'source-layer':target['source-layer'],
+      minzoom:15.4,paint:{
+        'fill-color':'#878c85',
+        'fill-opacity':['interpolate',['linear'],['zoom'],15.4,0,15.85,.08,16.3,.17,17,.23,19,.25],
+        'fill-translate':['interpolate',['linear'],['zoom'],15.4,['literal',[0,0]],16.2,['literal',[1.1,1.6]],17.3,['literal',[2.4,3.2]],19,['literal',[3.1,4]]],
+        'fill-translate-anchor':'viewport'
+      }},target.id)}catch(e){console.debug('俯视建筑阴影不可用，保留屋顶的黑白过渡',e)}
+  }
+
   try{
     map.setLight?.({anchor:'viewport',color:'#ffffff',intensity:.55,position:[1.45,210,63]});
   }catch(e){console.debug('Map light customization skipped',e?.message)}
