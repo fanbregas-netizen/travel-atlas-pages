@@ -57,7 +57,7 @@ async function check(){
  assert(viewer.includes('AtlasStage3Itinerary?.roadPath?.(map)'),'Map must draw provider geometry only on success');
  assert(viewer.includes('AtlasStage3Itinerary?.attach?.('),'Itinerary has no route state bridge');
  assert(viewer.includes('toGCJ:wgsToGcj'),'AMap origin and destination require GCJ conversion');
- assert(sw.includes('atlas-v4-shell-stage3-roadbook-v48'),'Safari must invalidate stale route scripts');
+ assert(sw.includes('atlas-v4-shell-stage3-roadbook-v48')||sw.includes('atlas-v4-shell-stage4-visit-v49'),'Safari must invalidate stale route scripts');
  assert(sw.includes('atlas-road-routing.js')&&sw.includes('atlas-stage3-itinerary.css'),'Offline shell missing stage 3 assets');
  assert(home.includes('V4.Review.20261103.architectural-b-v46'),'Do not redesign the accepted V4.6 map');
  console.log('PASS: no fabricated roads, explicit opt-in, privacy, per-leg validation, full-screen itinerary, Safari cache, V4.6 preserved');
