@@ -789,6 +789,7 @@ html.atlas-stable-map body.memory-open #atlasBookmarkOverlay{filter:none!importa
 <link rel="stylesheet" href="/travel-atlas-pages/trip-picker.css">
 <link rel="stylesheet" href="/travel-atlas-pages/route-picking.css?v=stage2-v47">
 <link rel="stylesheet" href="/travel-atlas-pages/footprint-home.css">
+<link rel="stylesheet" href="/travel-atlas-pages/atlas-stage4-media.css?v=stage4-v49">
 <link rel="stylesheet" href="/travel-atlas-pages/atlas-phase1.css">
 <style id="atlas-map-geo-plan-review-20261103">
 /* Preserve approved V4 controls; make architectural raster fallback visible when AMap is unavailable. */
@@ -955,7 +956,7 @@ body.atlas-canvas-primary #map .simplemap-destinations{z-index:4!important}
 
   <div class="screen-cover" id="cover"></div>
 <section class="drawer" id="drawer" aria-label="我的收藏列表"><div class="drawer-head"><h2><span class="script-label">Collected Places</span><span class="drawer-cn"> · 旅行档案</span> <span id="sheetCount" style="font-size:13px;color:#8797a9"></span></h2><button class="iconclose" id="closeDrawer" aria-label="关闭">×</button></div><p class="list-desc">在地图上找目的地并标星，先写旅行 Brief；回来上传照片和视频，随时重温。</p><div id="spotList"></div><div class="backuprow"><button class="secondary-btn" id="exportBtn">↓ 导出照片与视频 ZIP</button><button class="secondary-btn" id="importBtn">↑ 导入备份</button><input id="importFile" type="file" accept="application/json,application/zip,.json,.zip" hidden></div><p class="footnote">隐私提醒：照片、视频和 Brief 保存在当前浏览器，不会自动上传云端。清除浏览器数据、换设备可能丢失；请使用 ZIP 完整备份。</p></section>
-<dialog id="editor" class="editor"><div class="editor-scroll"><div class="edit-head"><h2 id="editorTitle">收藏这个地方</h2><button class="iconclose" id="closeEditor" aria-label="关闭">×</button></div><p class="edit-sub" id="coordText"></p><form id="editorForm"><label class="field" for="placeName">地点名称 *</label><input class="input" id="placeName" maxlength="90" placeholder="例如：松兰山滨海栈道" required><label class="field" for="placeDate">旅行日期</label><input class="input" id="placeDate" type="date"><label class="field" for="placeNote">旅行手记 <span class="field-en">little notes</span></label><textarea class="area" id="placeNote" maxlength="1200" placeholder="那天的天气、路边的小店，或某个不想忘记的瞬间……"></textarea><label class="field">星标重要程度</label><div class="rank-choices" role="radiogroup" aria-label="星标重要程度"><label><input type="radio" name="starRank" value="1"> 小 ★</label><label><input type="radio" name="starRank" value="2" checked> 中 ★</label><label><input type="radio" name="starRank" value="3"> 大 ★</label></div><label class="field">旅行影像 <span style="color:#94a3b8;font-weight:500">照片最多 9 张 · 视频最多 6 条</span></label><div id="editPhotos" class="photos-editor"></div><input id="photoUpload" type="file" accept="image/*,video/*" multiple hidden><p class="footnote" style="margin:5px 0">照片会优化大小；视频以原格式存在本机浏览器中（单条≤80MB）。请选择 MP4/MOV 等手机支持的格式，注意存储空间。</p><div class="editor-actions"><button class="danger-btn" id="deletePlace" type="button" style="display:none">删除</button><button class="primary-btn" id="savePlace" type="submit">完成 · 保存星标 ★</button></div></form><p class="footnote" style="text-align:center;margin:12px 0 0">点击对话框外的空白区域，也会自动保存 Brief 并退出</p></div></dialog>
+<dialog id="editor" class="editor"><div class="editor-scroll"><div class="edit-head"><h2 id="editorTitle">收藏这个地方</h2><button class="iconclose" id="closeEditor" aria-label="关闭">×</button></div><p class="edit-sub" id="coordText"></p><form id="editorForm"><label class="field" for="placeName">地点名称 *</label><input class="input" id="placeName" maxlength="90" placeholder="例如：松兰山滨海栈道" required><label class="field" for="placeDate">旅行日期</label><input class="input" id="placeDate" type="date"><label class="field" for="placeNote">旅行手记 <span class="field-en">little notes</span></label><textarea class="area" id="placeNote" maxlength="1200" placeholder="那天的天气、路边的小店，或某个不想忘记的瞬间……"></textarea><label class="field">星标重要程度</label><div class="rank-choices" role="radiogroup" aria-label="星标重要程度"><label><input type="radio" name="starRank" value="1"> 小 ★</label><label><input type="radio" name="starRank" value="2" checked> 中 ★</label><label><input type="radio" name="starRank" value="3"> 大 ★</label></div><label class="field">旅行影像 <span style="color:#94a3b8;font-weight:500">照片最多 50 张 · 视频最多 6 条</span></label><div id="editPhotos" class="photos-editor"></div><input id="photoUpload" type="file" accept="image/*,video/*" multiple hidden><p class="footnote" style="margin:5px 0">照片会优化大小；视频以原格式存在本机浏览器中（单条≤40MB）。请选择 MP4/MOV 等手机支持的格式，注意存储空间。</p><div class="editor-actions"><button class="danger-btn" id="deletePlace" type="button" style="display:none">删除</button><button class="primary-btn" id="savePlace" type="submit">完成 · 保存星标 ★</button></div></form><p class="footnote" style="text-align:center;margin:12px 0 0">点击对话框外的空白区域，也会自动保存 Brief 并退出</p></div></dialog>
 <input id="directUpload" type="file" accept="image/*,video/*" multiple hidden>
 <div class="photo-viewer" id="viewer"><div class="viewer-top"><span id="viewerTitle">照片</span><button class="viewer-close" id="closeViewer" title="关闭">×</button></div><button class="viewer-arrow left" id="viewerPrev" aria-label="上一张">‹</button><img class="viewer-photo" id="viewerImage" alt="旅行精选照片"><video class="viewer-photo viewer-video" id="viewerVideo" controls playsinline preload="metadata" style="display:none"></video><button class="viewer-arrow right" id="viewerNext" aria-label="下一张">›</button><div class="viewer-bottom" id="viewerCaption"></div></div>
 <div id="shareNotice" role="dialog" aria-modal="true" aria-label="共享的旅行地点"><div class="share-card"><button type="button" class="share-x" id="closeShareNotice" aria-label="关闭分享页面">×</button><div class="share-kicker">COME EXPLORE WITH ME / 一起来 HI</div><h2 id="sharedTitle"></h2><div id="sharedDate" style="font-size:12px;color:#8a8175"></div><p id="sharedNote"></p><p style="font-size:12px;color:#817a70">这是对方分享的地点与旅行文字。原始本机相册不会通过链接自动上传。</p><button id="sharedNavigation" type="button">⌁ 去这里导航</button></div></div><div id="navigationChooser" role="dialog" aria-modal="true" aria-label="选择导航软件"><div class="nav-panel"><h2>选择导航软件</h2><div id="navLinks"></div><button type="button" id="closeNavigationChooser">关闭</button></div></div><div class="toast" id="toast" role="status"></div>
@@ -2021,7 +2022,7 @@ class Map{
   const makeVideoURL=video=>video?.blob instanceof Blob?URL.createObjectURL(video.blob):null;
   async function storeVideo(f){
     if(fallback){toast('此浏览器不支持永久保存视频，请用 Safari 打开');return null}
-    if(f.size>80*1024*1024){toast('单条视频超过 80MB，请先在相册压缩后再上传');return null}
+    if(f.size>40*1024*1024){toast('单条视频超过 40MB，请先在相册压缩后再上传');return null}
     if(!videoType(f.type)&&!/(?:(?:mp4)|(?:mov)|(?:webm))$/i.test(f.name))return null;
     return {id:uid(),name:f.name,type:f.type||'video/mp4',size:f.size,blob:new Blob([await f.arrayBuffer()],{type:f.type||'video/mp4'})};
   }
@@ -2364,7 +2365,7 @@ class Map{
     const el=$('editPhotos');el.innerHTML='';
     editorPhotos.forEach((pic,i)=>{const div=document.createElement('div');div.className='photo-thumb';div.innerHTML=`<img src="${photoSrc(pic.src)}" alt="选择的照片"><button class="photo-remove" type="button" aria-label="删除照片">×</button>`;div.querySelector('button').onclick=()=>{editorPhotos.splice(i,1);renderEditorPhotos()};el.append(div)});
     editorVideos.forEach((v,i)=>{const div=document.createElement('div');div.className='photo-thumb video-thumb';div.innerHTML='<span style="font-size:24px">▶</span><span class="video-filename">'+escape(v.name||'视频')+'</span><button class="photo-remove" type="button" aria-label="删除视频">×</button>';div.querySelector('button').onclick=()=>{editorVideos.splice(i,1);renderEditorPhotos()};el.append(div)});
-    if(editorPhotos.length<9||editorVideos.length<6){const b=document.createElement('button');b.type='button';b.className='add-photos';b.innerHTML='<span><b>＋</b>照片 / 视频</span>';b.onclick=()=>$('photoUpload').click();el.append(b)}
+    if(editorPhotos.length<50||editorVideos.length<6){const b=document.createElement('button');b.type='button';b.className='add-photos';b.innerHTML='<span><b>＋</b>照片 / 视频</span>';b.onclick=()=>$('photoUpload').click();el.append(b)}
   }
   async function shrink(file){return new Promise((resolve,reject)=>{const fr=new FileReader();fr.onerror=()=>reject(Error('图片无法读取'));fr.onload=()=>{const im=new Image();im.onerror=()=>reject(Error('图片格式不支持'));im.onload=()=>{const max=1600,scale=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);c.getContext('2d').drawImage(im,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.86))};im.src=fr.result};fr.readAsDataURL(file)})}
   let savingEditor=false,ingestingMedia=false;
@@ -2391,13 +2392,13 @@ class Map{
     let videos=dst?[...(dst.videos||[])]:editorVideos;
     let added=0;
     for(const f of files){try{
-      if(f.type.startsWith('image/')){if(photos.length>=9){toast('照片最多 9 张');continue}const src=await shrink(f);photos.push({src,name:f.name});added++}
+      if(f.type.startsWith('image/')){if(photos.length>=50){toast('照片最多 50 张');continue}const src=await shrink(f);photos.push({src,name:f.name});added++}
       else if(f.type.startsWith('video/')||/\.(mp4|mov|webm)$/i.test(f.name)){
         if(videos.length>=6){toast('视频最多 6 条');continue}
         const item=await storeVideo(f);if(item){videos.push(item);added++}
       }
     }catch(err){console.warn(err);toast('部分文件上传失败，请检查格式或存储空间')}}
-    if(dst && added){const next={...dst,photos,videos,stage:'visited'};
+    if(dst && added){const next={...dst,photos,videos};
       try{await upsert(next);await refresh();showPlace(next.id,false);toast('新增 '+added+' 项旅行影像'+(fallback?'（临时存储，请导出备份）':'，已保存到本机'))}catch(err){console.error(err);toast('视频保存失败，当前浏览器空间可能不足')}
     }else{editorPhotos=photos;editorVideos=videos;renderEditorPhotos();if(added)toast('已选择 '+added+' 项影像，退出时自动保存')}
   }
@@ -2872,6 +2873,7 @@ function mapVectorStatus(message,state='loading'){
   window.__atlasQA=()=>({mode:mapMode,zoom:currentZoom(),pitch:isVector()?vectorMap.getPitch():isOfficial()?officialMap.getPitch():0,poiButtons:$('atlasPoiOverlay')?.querySelectorAll('button')?.length||0,selected:selectedDestination?.name||null,popup:$('destinationCard').classList.contains('visible'),has3D:isVector()?!!vectorMap.getLayer('atlas-3d-buildings'):!!officialBuildings});
   window.__atlasReframeForCollage=(id)=>{if(window.innerWidth>=740)return;const p=places.find(x=>x.id===id),card=document.getElementById('fpPlaceCard');if(!p||!card||card.hidden)return;const mark=[...document.querySelectorAll('.atlas-bookmark-hit')].find(e=>e.dataset.placeId===id)||document.querySelector('.star-pin.selected');if(!mark)return;const rect=mark.getBoundingClientRect(),top=card.getBoundingClientRect().top;const dy=Math.max(0,Math.min(245,Math.round(rect.bottom-top+64)));if(dy<12)return;try{if(isOfficial()&&officialMap?.panBy)officialMap.panBy(0,-dy);else{const active=isVector()?vectorMap:map;active?.panBy?.([0,-dy],{duration:450})}}catch(e){console.warn('地图避让暂不可用',e)}};
   window.__atlasOrbitState=()=>{const p=places.find(x=>x.id===selectedId);return p?{id:p.id,title:p.title,note:p.note,date:p.date,lat:Number(p.lat),lng:Number(p.lng),photoCount:p.photos?.length||0,videoCount:p.videos?.length||0,references:p.references||[],guides:p.guides||[],url:p.url||'',link:p.link||''}:null};
+  window.__atlasPlaceStore={readAll:()=>allStored(),save:async(place)=>{await upsert(place);await refresh()},isFallback:()=>fallback,isTransient:()=>storageIsTransient};
   window.__atlasFlowRefresh=async()=>{await refresh()}; window.__fpSearchCenter=()=>currentCenter(); window.__fpSearchSelect=(d)=>{const lat=Number(d.lat),lng=Number(d.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;closeSearchResults();setPicking(false);closeMemory();setMapView(lat,lng,Math.max(Number(d.zoom)||0,14));addSearchMarker(lat,lng,d.name||'地点');showDestination({name:d.name||'地点',lat,lng,address:d.address||'',id:d.id||'',category:d.category||'地点'})}; window.__atlasMobilePoiAPI={
  get map(){return map;},
  center:()=>currentCenter(),
@@ -2947,7 +2949,8 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
 
 <script defer src="/travel-atlas-pages/atlas-map-design.js"></script>
 <script defer src="/travel-atlas-pages/trip-picker.js?v=stage2-v47"></script>
-<script defer src="/travel-atlas-pages/footprint-home.js"></script>
+<script defer src="/travel-atlas-pages/atlas-visit-media.js?v=stage4-v49"></script>
+<script defer src="/travel-atlas-pages/footprint-home.js?v=stage4-v49"></script>
 <script defer src="/travel-atlas-pages/atlas-phase1.js"></script>
 <script defer src="/travel-atlas-pages/atlas-mobile-poi.js"></script>
 <script id="atlas-journey-deep-link">
