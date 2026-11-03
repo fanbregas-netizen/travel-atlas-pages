@@ -21,7 +21,7 @@
 
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script defer>
+<script>
 /* Footprint Map → Travel Atlas: geographical, read-only route viewer.
  * Renders saved private places, not AI-generated or fetched social-media bodies.
  * The curved connecting line is a VISUAL ORDER GUIDE, not a road routing result. */
@@ -61,7 +61,7 @@ function activate(i,move){if(i<0||i>=places.length)return;active=i;selectVisual(
 function dismissBubble(){active=-1;$('stopBubble').hidden=true;selectVisual()}
 function initUI(){$('viewAll').onclick=fit;$('closeBubble').onclick=dismissBubble;document.addEventListener('keydown',e=>{if(e.key==='Escape')dismissBubble()});$('atlasMap').addEventListener('click',()=>{if(active>=0)dismissBubble()});}
 async function init(){routePayload=readSelection();initUI();if(!routePayload){empty('请在 Footprint Map 点击「路线」，通过地图选点或列表搜索选出收藏地点后进入。');return}const ids=[...new Set(routePayload.placeIds)];try{places=await loadPlaces(ids)}catch(e){empty('无法读取当前浏览器中的收藏地点：'+e.message);return}if(!places.length){empty('本次选中的地点没有可读取的真实坐标。请返回主页检查收藏是否存在。');return}routeCoords=places.map(p=>({lng:+p.lng,lat:+p.lat}));addPins();showStopRail();try{const lib=await getMaplibre();setupMap(lib)}catch(e){empty('真实地图未能启动：'+e.message);return}}
-init().catch(e=>empty('路线加载异常：'+e.message));
+const run=()=>init().catch(e=>empty('路线加载异常：'+e.message));if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
 })();
 
 </script>
