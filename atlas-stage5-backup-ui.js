@@ -176,6 +176,8 @@ root.AtlasBackupV5=api;
 function bindReady(){
  if($('exportBtn')&&$('importBtn')&&$('importFile'))install();
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindReady,{once:true});
-else bindReady();
+if(typeof document!=='undefined'){
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindReady,{once:true});
+ else bindReady();
+}
 })(typeof window!=='undefined'?window:globalThis);
