@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta name="atlas-hosting" content="static">
-<meta name="atlas-release" content="V4.Review.20261103.final">
+<meta name="atlas-release" content="V4.Review.20261103.map-location-r1">
 <script src="/travel-atlas-pages/atlas-services.js"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -790,6 +790,24 @@ html.atlas-stable-map body.memory-open #atlasBookmarkOverlay{filter:none!importa
 <link rel="stylesheet" href="/travel-atlas-pages/route-picking.css">
 <link rel="stylesheet" href="/travel-atlas-pages/footprint-home.css">
 <link rel="stylesheet" href="/travel-atlas-pages/atlas-phase1.css">
+<style id="atlas-map-geo-plan-review-20261103">
+/* Preserve approved V4 controls; make architectural raster fallback visible when AMap is unavailable. */
+body:not(.amap-active):not(.vector-active) #map{visibility:visible!important;background:#f3f2ef!important}
+body.amap-active #map,body.vector-active #map{visibility:hidden!important}
+/* All zoom levels remain north-up. Plan-view outlines use real OpenMapTiles building polygons. */
+html.atlas-stable-map body.fg-active #map .figure-canvas,
+body.fg-active #map .figure-canvas{display:block!important;pointer-events:none!important;opacity:1!important}
+html.atlas-stable-map body.fg-active #map .simplemap-tiles img{
+ filter:grayscale(1) saturate(0) contrast(.88) brightness(1.12)!important;opacity:.48!important
+}
+html.atlas-stable-map body.atlas-plan-street.fg-active #map .simplemap-tiles img{opacity:.68!important}
+body.fg-active #map .simplemap-labels img{opacity:.72!important;filter:grayscale(1)!important}
+#map .loc-dot{background:#367cf4!important;border:3px solid #fff!important;border-radius:50%;
+ width:20px!important;height:20px!important;box-shadow:0 0 0 5px #397cff2d,0 2px 8px #1d294b4d!important}
+#btnLocate{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#map .simplemap-markers{overflow:visible}
+@media(prefers-reduced-motion:reduce){#map .loc-dot{animation:none!important}}
+</style>
 </head>
 <body>
 <div id="map" aria-label="私人旅行收藏地图"></div><div id="amapSurface" aria-label="高德地点地图" hidden></div><div id="figureCaption"><em>Fig. 01</em> · CITY IN BLACK &amp; WHITE · 放大看建筑肌理</div><div class="map-status" id="mapStatus">建筑肌理 © OpenStreetMap</div><div class="map-shade" aria-hidden="true"></div>
@@ -938,8 +956,8 @@ class Map{
   this.markers.forEach(m=>this._placeMarker(m));this._fire('repaint');
  }
  _moveCenter(dx,dy){const z=this.zoom;this.center={lng:pixelToLng(lngToX(this.center.lng,z)-dx,z),lat:pixelToLat(clamp(latToY(this.center.lat,z)-dy,0,world(z)),z)};this._render()}
- _zoomAt(z,clientX,clientY){const goal=clamp(z,this.minZoom,this.maxZoom);const point=this._latlngAt(clientX,clientY);this.zoom=goal;const rect=this.el.getBoundingClientRect(),offsetX=clientX-rect.left-rect.width/2,offsetY=clientY-rect.top-rect.height/2;
-  const newCx=lngToX(point.lng,goal)-offsetX,newCy=latToY(point.lat,goal)-offsetY;this.center={lng:pixelToLng(newCx,goal),lat:pixelToLat(newCy,goal)};this._fire('zoomstart');this._render();this._fire('moveend')}
+ _zoomAt(z,clientX,clientY,continuous=false){const goal=clamp(z,this.minZoom,this.maxZoom);const point=this._latlngAt(clientX,clientY);this.zoom=goal;const rect=this.el.getBoundingClientRect(),offsetX=clientX-rect.left-rect.width/2,offsetY=clientY-rect.top-rect.height/2;
+  const newCx=lngToX(point.lng,goal)-offsetX,newCy=latToY(point.lat,goal)-offsetY;this.center={lng:pixelToLng(newCx,goal),lat:pixelToLat(newCy,goal)};this._fire('zoomstart');this._render();if(!continuous)this._fire('moveend')}
  _down(e){
   if(e.target.closest('.map-local-marker,.poi-marker'))return;
   if(e.button!==undefined&&e.button!==0)return;
@@ -958,7 +976,7 @@ class Map{
    const a=[...this.pointerStates.values()],dist=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),mid={x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};
    if(!this.pinch)this.pinch={dist:dist||1,zoom:this.zoom,mid};
    const next=this.pinch.zoom+Math.log2(Math.max(1,dist)/Math.max(1,this.pinch.dist));
-   this._zoomAt(next,mid.x,mid.y);this.oldP=mid;
+   this._zoomAt(next,mid.x,mid.y,true);this.oldP=mid;
   }else{
    if(!this.dragging){
     const start=this.tapStart||prev;
@@ -1072,21 +1090,63 @@ class Map{
   const fgClamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   function figPixel(lng,lat,z){const full=256*Math.pow(2,z),r=fgClamp(lat,-85.05112878,85.05112878)*Math.PI/180;return {x:(lng+180)/360*full,y:(1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*full}}
   function figureVisibleTiles(){if(!map)return [];const z=Math.min(14,Math.floor(map.getZoom()));if(z<12)return [];const scale=Math.pow(2,map.getZoom()-z),a=figPixel(map.getCenter().lng,map.getCenter().lat,z);const w=map.getContainer().clientWidth,h=map.getContainer().clientHeight,N=Math.pow(2,z);const x0=Math.floor((a.x-w/(2*scale))/256),x1=Math.ceil((a.x+w/(2*scale))/256),y0=fgClamp(Math.floor((a.y-h/(2*scale))/256),0,N-1),y1=fgClamp(Math.ceil((a.y+h/(2*scale))/256),0,N-1);const out=[];for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){out.push({z,x:((x%N)+N)%N,worldX:x,y,key:`${z}/${((x%N)+N)%N}/${y}`})}return out.slice(0,28)}
-  function paintBuildings(){if(mobileStableMap||!map?.figureCanvas)return;const canvas=map.figureCanvas,w=map.getContainer().clientWidth,h=map.getContainer().clientHeight;if(!w||!h)return;
-    const dpr=Math.min(devicePixelRatio||1,2),cw=Math.ceil(w*dpr),ch=Math.ceil(h*dpr);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;canvas.style.width=w+'px';canvas.style.height=h+'px'}
-    const ctx=canvas.getContext('2d');ctx.clearRect(0,0,cw,ch);if(satelliteOn||!document.body.classList.contains('fg-active'))return;
-    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#121212';const tiles=figureVisibleTiles();if(!tiles.length)return;const z=tiles[0].z,scale=Math.pow(2,map.getZoom()-z),center=figPixel(map.getCenter().lng,map.getCenter().lat,z);
-    for(const t of tiles){const data=figCache.get(t.key);if(!data?.buildings?.length)continue;const left=(t.worldX*256-center.x)*scale+w/2,top=(t.y*256-center.y)*scale+h/2,tileSize=256*scale;
-      ctx.save();ctx.beginPath();ctx.rect(left,top,tileSize,tileSize);ctx.clip();ctx.translate(left,top);ctx.scale(tileSize/data.extent,tileSize/data.extent);
-      for(const rings of data.buildings){ctx.beginPath();for(const ring of rings){for(let j=0;j<ring.length;j++){const v=ring[j];if(j===0)ctx.moveTo(v[0],v[1]);else ctx.lineTo(v[0],v[1])}ctx.closePath()}ctx.fill('evenodd')}
+  // Use the same plan-view building polygons on iPhone, throttled so dragging stays responsive.
+  let lastFigurePaint=0,mobileFigureTimer=null;
+  function paintBuildings(){
+    if(!map?.figureCanvas)return;
+    if(mobileStableMap){
+      const elapsed=performance.now()-lastFigurePaint;
+      if(elapsed<90){
+        if(!mobileFigureTimer)mobileFigureTimer=setTimeout(()=>{mobileFigureTimer=null;paintBuildings()},Math.ceil(90-elapsed));
+        return;
+      }
+      lastFigurePaint=performance.now();
+    }
+    const canvas=map.figureCanvas,w=map.getContainer().clientWidth,h=map.getContainer().clientHeight;
+    if(!w||!h)return;
+    const dpr=Math.min(devicePixelRatio||1,mobileStableMap?1.5:2),cw=Math.ceil(w*dpr),ch=Math.ceil(h*dpr);
+    if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;canvas.style.width=w+'px';canvas.style.height=h+'px'}
+    const ctx=canvas.getContext('2d');if(!ctx)return;
+    ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cw,ch);
+    if(satelliteOn||!document.body.classList.contains('fg-active'))return;
+    const streetMass=map.getZoom()>=16.15;
+    document.body.classList.toggle('atlas-plan-street',streetMass);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.fillStyle=streetMass?'#ffffff':'#242624';
+    const tiles=figureVisibleTiles();if(!tiles.length)return;
+    const z=tiles[0].z,scale=Math.pow(2,map.getZoom()-z),center=figPixel(map.getCenter().lng,map.getCenter().lat,z);
+    for(const t of tiles){
+      const data=figCache.get(t.key);if(!data?.buildings?.length)continue;
+      const left=(t.worldX*256-center.x)*scale+w/2,top=(t.y*256-center.y)*scale+h/2,tileSize=256*scale;
+      ctx.save();ctx.beginPath();ctx.rect(left,top,tileSize,tileSize);ctx.clip();
+      ctx.translate(left,top);ctx.scale(tileSize/data.extent,tileSize/data.extent);
+      if(streetMass){ctx.strokeStyle='#90938f';ctx.lineWidth=data.extent/tileSize*.85;ctx.lineJoin='round';}
+      // Decode the tile outlines only once into a cached Path2D; pan/zoom only reprojects it.
+      if(typeof Path2D==='function'){
+        if(!data.planPath){
+          const outline=new Path2D();
+          for(const rings of data.buildings)for(const ring of rings){
+            for(let j=0;j<ring.length;j++){const v=ring[j];if(j===0)outline.moveTo(v[0],v[1]);else outline.lineTo(v[0],v[1])}
+            outline.closePath();
+          }
+          data.planPath=outline;
+        }
+        ctx.fill(data.planPath,'evenodd');if(streetMass)ctx.stroke(data.planPath);
+      }else{
+        for(const rings of data.buildings){
+          ctx.beginPath();
+          for(const ring of rings){for(let j=0;j<ring.length;j++){const v=ring[j];if(j===0)ctx.moveTo(v[0],v[1]);else ctx.lineTo(v[0],v[1])}ctx.closePath()}
+          ctx.fill('evenodd');if(streetMass)ctx.stroke();
+        }
+      }
       ctx.restore();
     }
   }
-  function requestFigure(){if(mobileStableMap||!map||satelliteOn)return;const tiles=figureVisibleTiles();for(const t of tiles){if(figCache.has(t.key)||figPending.has(t.key))continue;if(figPending.size>=8)break;figPending.add(t.key);
+  function requestFigure(){if(!map||satelliteOn||!document.body.classList.contains('fg-active'))return;const tiles=figureVisibleTiles();for(const t of tiles){if(figCache.has(t.key)||figPending.has(t.key))continue;if(figPending.size>=(mobileStableMap?2:8))break;figPending.add(t.key);
       const url=FIG_TILE.replace('{z}',t.z).replace('{x}',t.x).replace('{y}',t.y);
-      fetch(url).then(r=>{if(!r.ok)throw Error('建筑数据 '+r.status);return r.arrayBuffer()}).then(b=>{figCache.set(t.key,decodeBuildings(b));if(figCache.size>75)figCache.delete(figCache.keys().next().value);paintBuildings();renderDestinations()}).catch(()=>{figCache.set(t.key,{buildings:[],poi:[],extent:4096})}).finally(()=>{figPending.delete(t.key);if(!satelliteOn&&figPending.size<4)setTimeout(requestFigure,110);});
+      fetch(url).then(r=>{if(!r.ok)throw Error('建筑数据 '+r.status);return r.arrayBuffer()}).then(b=>{figCache.set(t.key,decodeBuildings(b));if(figCache.size>75)figCache.delete(figCache.keys().next().value);paintBuildings();renderDestinations()}).catch(()=>{figCache.set(t.key,{buildings:[],poi:[],extent:4096})}).finally(()=>{figPending.delete(t.key);if(!satelliteOn&&figPending.size<(mobileStableMap?2:4))setTimeout(requestFigure,mobileStableMap?240:110);});
     }}
-  function scheduleFigure(){if(mobileStableMap)return;paintBuildings();renderDestinations();clearTimeout(figRequestTimer);figRequestTimer=setTimeout(requestFigure,260)}
+  function scheduleFigure(){paintBuildings();if(!mobileStableMap)renderDestinations();clearTimeout(figRequestTimer);figRequestTimer=setTimeout(requestFigure,mobileStableMap?390:260)}
 
   // Real, clickable map destinations come from OpenFreeMap OSM vector tiles.
   // Discovery fetch is explicit to the user's action; never invent map POIs.
@@ -1243,7 +1303,7 @@ class Map{
   const isOfficial=()=>mapMode==='amap'&&!!officialMap;
   const AUTO_MODEL_ZOOM=15.10,AUTO_FIGURE_ZOOM=14.35;
   let automaticScaleMode=false,autoModelStarting=false,autoMapSwitching=false,nonChinaNoticeShown=false;
-  let currentUserCoords=null,geoRequested=false;
+  let currentUserCoords=null,geoRequested=false,forceLocationCenter=false;
   const lastLocationStorage='travel-atlas-last-location-v19';
   const loadLastCoords=()=>{try{const v=JSON.parse(localStorage.getItem(lastLocationStorage)||'null');if(v&&Number.isFinite(v.lat)&&Number.isFinite(v.lng)&&Math.abs(v.lat)<=90&&Math.abs(v.lng)<=180)return v;}catch(e){}return null;};
   function saveLastCoords(lat,lng){try{localStorage.setItem(lastLocationStorage,JSON.stringify({lat,lng,t:Date.now()}))}catch(e){}}
@@ -1253,21 +1313,32 @@ class Map{
     currentUserCoords={lat,lng};saveLastCoords(lat,lng);addLocationMarker(lat,lng);
     if(isVector())updateVectorUserLocation();
     if(officialMap){const A=officialSDK;if(officialYouMarker)officialYouMarker.setMap(null);officialYouMarker=new A.Marker({map:officialMap,position:wgsToGcj(lng,lat),content:'<div class="amap-you-dot" title="当前位置"></div>',offset:new A.Pixel(-8,-8),zIndex:150});}
-    // Do not change the user's manually chosen location if a delayed GPS fix arrives.
-    if(!selectedId&&!selectedDestination&&!userHasMovedMap){
-      if(isOfficial())setMapView(lat,lng,13.8,true);
-      else setMapView(lat,lng,13.8,true);
-    }
+    // A delayed GPS fix must not override a deliberate pan, search result or saved place.
+    const shouldCenter=!userHasMovedMap&&(forceLocationCenter||(!selectedId&&!selectedDestination));
+    forceLocationCenter=false;
+    if(shouldCenter)setMapView(lat,lng,Math.max(14.2,Math.min(currentZoom(),16.2)),true);
+    document.body.classList.add('atlas-location-ready');
+    $('btnLocate')?.setAttribute('title','返回当前位置');
   }
   let userHasMovedMap=false;
   function requestCurrentLocation(force=false){
-    if(!navigator.geolocation){toast('当前浏览器不支持定位，已显示上次位置');return;}
+    if(!navigator.geolocation){toast('此浏览器不支持定位；当前不是实时位置');return;}
     if(geoRequested&&!force)return;
     geoRequested=true;
-    navigator.geolocation.getCurrentPosition(onUserLocated,err=>{
-      if(force)toast('定位不可用，请在浏览器设置中授权位置权限');
-      else if(!loadLastCoords()){ /* A permission dialog should be user-initiated, never interrupt the map preview. */ }
-    },{enableHighAccuracy:false,timeout:12500,maximumAge:60000});
+    if(force)forceLocationCenter=true;
+    const failed=(err,retry)=>{
+      if(err?.code!==1&&retry){
+        navigator.geolocation.getCurrentPosition(onUserLocated,e=>failed(e,false),
+          {enableHighAccuracy:false,timeout:7500,maximumAge:30000});
+        return;
+      }
+      forceLocationCenter=false;
+      const msg=err?.code===1?'请允许 Safari 使用当前位置，或点击 ◎ 重新定位':
+        '暂时无法取得当前位置；当前显示的是之前的地图视角。点击 ◎ 重试';
+      toast(msg);
+    };
+    navigator.geolocation.getCurrentPosition(onUserLocated,err=>failed(err,true),
+      {enableHighAccuracy:true,timeout:14000,maximumAge:0});
   }
   async function automaticCloseToModel(){
     if(!automaticScaleMode||autoModelStarting||!map||mapMode!=='figure'||map.getZoom()<AUTO_MODEL_ZOOM)return;
@@ -2029,7 +2100,7 @@ class Map{
   function loadMapView(){try{const v=JSON.parse(localStorage.getItem('atlas-map-view')||'null');return v&&Number.isFinite(v.lat)&&Math.abs(v.lat)<=85&&Number.isFinite(v.lng)&&Math.abs(v.lng)<=180&&Number.isFinite(v.zoom)?v:null}catch{return null}}
   function rememberMapView(){try{const c=currentCenter();localStorage.setItem('atlas-map-view',JSON.stringify({lat:c.lat,lng:c.lng,zoom:currentZoom()}))}catch{}}
   function initMap(){
-    map=new maplibregl.Map({container:'map',style:styleFor('standard'),center:(()=>{const c=loadMapView()||loadLastCoords();return c?[c.lng,c.lat]:[121.905,29.492]})(),zoom:loadMapView()?.zoom||13.35,
+    map=new maplibregl.Map({container:'map',style:styleFor('standard'),center:(()=>{const c=loadLastCoords()||loadMapView();return c?[c.lng,c.lat]:[0,24]})(),zoom:(loadLastCoords()?14.2:loadMapView()?.zoom)||3,
       minZoom:2,maxZoom:19,attributionControl:true,cooperativeGestures:false,
       dragRotate:false,pitchWithRotate:false,renderWorldCopies:true,fadeDuration:120});
     map.touchZoomRotate.disableRotation();
@@ -2360,7 +2431,10 @@ class Map{
     const initFlag=await getMeta('initialized');
     if(!initFlag){await setMeta('initialized',true)}
     try{initMap()}catch(err){console.error('地图组件启动失败:',err);showMapWarning('地图组件遇到问题，但不会影响你的收藏和照片，请在「足迹」中查看或导出备份。')}
-    await refresh();setTimeout(showIncomingShare,400); // iPhone: location permission is only requested when the user taps Locate
+    await refresh();setTimeout(showIncomingShare,400);
+    // Ask for actual device location on map entry. Deep links keep their explicitly chosen destination.
+    const deepLink=new URLSearchParams(location.search);
+    if(map&&!['atlas','openPlace','sourcePlace','mediaPlace'].some(key=>deepLink.has(key)))requestCurrentLocation(false);
     // Startup uses the authorized AMap credentials; any failure leaves the existing read-only fallback visible.
     officialView='white';automaticScaleMode=false;
     // Stay on architectural black/white map; initialize official AMap near building scale only.
@@ -2471,7 +2545,7 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
 </script>
   <script>
   // Visible build marker for distinguishing a stale offline shell from the live release.
-  window.__atlasBuild='V4.Review.20261103.final2';
+  window.__atlasBuild='V4.Review.20261103.map-location-r1';
   </script>
   <script>window.__atlasPreferCollage=true</script>
   <script src="/travel-atlas-pages/atlas-orbit.js"></script>
