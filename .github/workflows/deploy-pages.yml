@@ -52,7 +52,8 @@ jobs:
           for(const asset of ['journey.html','journey.js','journey.css','footprint-flow.js','footprint-flow.css','trip-picker.js','trip-picker.css','star-collage.js','star-collage.css','footprint-home.js','footprint-home.css'])if(!fs.existsSync(asset))throw Error('Missing Travel Atlas journey asset '+asset);
           if(!html.includes('trip-picker.js')||!html.includes('trip-picker.css')||!html.includes('atlasJourneyEntry'))throw Error('Plan A route picker missing');
           const picker=fs.readFileSync('trip-picker.js','utf8');
-          if(!picker.includes('footprint-to-travel-atlas-selection-v1')||!planner.includes('takePickerHandoff()')||!picker.includes('sessionStorage.setItem'))throw Error('Plan A multi-select handoff missing');
+          if(!picker.includes('footprint-to-travel-atlas-selection-v1')||!planner.includes('takePickerHandoff()')||!picker.includes('sessionStorage.setItem'))throw Error('Trip selection handoff missing');
+          if(!picker.includes('function enterMapMode()')||!picker.includes('function openList()')||!picker.includes('mapPicking')||!html.includes('pin.dataset.placeId=String(id)')||!html.includes('b.dataset.placeId=String(p.id)'))throw Error('Plan B shared map/list selection missing');
           if(html.includes('<script defer src="/travel-atlas-pages/footprint-flow.js"></script>'))throw Error('Rejected large workspace is still loaded');
           const collage=fs.readFileSync('star-collage.js','utf8');
           if(!html.includes('footprint-home.js')||!html.includes('footprint-home.css')||!html.includes('window.__fpSearchSelect'))throw Error('Home search and inline collage missing');
