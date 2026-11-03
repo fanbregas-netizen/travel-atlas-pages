@@ -2866,7 +2866,11 @@ function mapVectorStatus(message,state='loading'){
     document.addEventListener('pointerdown',e=>{if(!$('layerMenu').hidden&&!e.target.closest('#layerMenu')&&!e.target.closest('#btnLayers'))toggleLayerMenu(false)},{passive:true});
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();setPicking(false);closeViewer();hideDestination()}if($('viewer').classList.contains('visible')){if(e.key==='ArrowLeft'){$('viewerPrev').click()}if(e.key==='ArrowRight'){$('viewerNext').click()}}});
     if(window.AtlasBackupV5?.install)window.AtlasBackupV5.install();
-    else{$('exportBtn').onclick=downloadBackup;$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=e=>{if(e.target.files[0])importBackup(e.target.files[0]);e.target.value=''}};
+    else{
+      // Never fall back to incomplete legacy ZIP import when stage 5 is missing.
+      $('exportBtn').onclick=()=>toast('完整备份组件未载入，请联网刷新页面后再试');
+      $('importBtn').onclick=()=>toast('安全恢复组件未载入，请联网刷新页面后再试');
+    }
     if(location.protocol==='file:')toast('本地网页用于源码检查，完整地图请访问已部署网站');
     else { /* V22: distant black/white figure-ground, near plan-view building model. */ }
   }
