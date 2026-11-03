@@ -1,5 +1,5 @@
 // Travel Atlas V4. Only cache our public application shell, never APIs, media or map tiles.
-const CACHE='atlas-v4-shell-home-refined-20261103-v11';
+const CACHE='atlas-v4-shell-plan-b-20261103-v12';
 const SHELL=['/travel-atlas-pages/','/travel-atlas-pages/manifest.webmanifest','/travel-atlas-pages/icon.svg','/travel-atlas-pages/atlas-orbit.css','/travel-atlas-pages/atlas-orbit.js','/travel-atlas-pages/atlas-stage5.js','/travel-atlas-pages/atlas-services.js','/travel-atlas-pages/journey.html','/travel-atlas-pages/journey.css','/travel-atlas-pages/journey.js','/travel-atlas-pages/footprint-flow.css','/travel-atlas-pages/footprint-flow.js','/travel-atlas-pages/trip-picker.css','/travel-atlas-pages/trip-picker.js','/travel-atlas-pages/star-collage.css','/travel-atlas-pages/star-collage.js','/travel-atlas-pages/footprint-home.css','/travel-atlas-pages/footprint-home.js'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));
