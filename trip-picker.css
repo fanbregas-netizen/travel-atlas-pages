@@ -9,3 +9,27 @@
 .trip-picker-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 21px calc(15px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #e7e8e3;flex-shrink:0}.trip-picker-foot-meta{display:flex;flex-direction:column;gap:5px}.trip-picker-foot-meta strong{font-size:15px}.trip-picker-foot-meta span{color:#888f8e;font-size:10px;max-width:160px;line-height:1.2}.trip-picker-go{min-height:47px;border:0;border-radius:13px;padding:10px 18px;background:#f0ca5d;color:#45371a;font-size:13px;font-weight:850;white-space:nowrap}.trip-picker-go:disabled{opacity:.44}.trip-picker button{cursor:pointer}.trip-picker button:focus-visible,.trip-picker input:focus-visible{outline:2px solid #ad8329;outline-offset:2px}
 @media(max-width:600px){.trip-picker{border-radius:23px 23px 0 0;height:min(92dvh,900px);width:100vw}.trip-picker-head{padding:19px 18px 13px}.trip-picker-head h2{font-size:20px}.trip-picker-find{padding:13px 16px 9px}.trip-picker-selected{padding:9px 16px}.trip-picker-list{padding:7px 10px 15px}.trip-picker-foot{padding:13px 16px calc(12px + env(safe-area-inset-bottom))}.trip-picker-foot-meta span{max-width:115px}}
 @media(prefers-reduced-motion:reduce){.trip-picker::backdrop{backdrop-filter:none}}
+
+/* Option B · the Route icon offers either map selection or saved-place search. */
+.trip-picker.is-choice{height:auto;min-height:370px;max-height:85dvh}
+.trip-mode-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:13px 17px;background:#fff;flex-shrink:0}
+.trip-mode-options button{border:1px solid #ded9ce;border-radius:15px;background:#faf9f4;min-height:76px;padding:11px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;color:#343730}
+.trip-mode-options button b{font-size:13px}.trip-mode-options button small{font-size:10px;color:#87837b}.trip-mode-options button.active{background:#fff7da;border-color:#ddbe61}
+.trip-choice-hint{padding:17px 20px;color:#817b6b;font-size:12px;line-height:1.5;flex:1}
+.trip-picker.is-choice .trip-picker-selected{max-height:80px}
+.trip-picker [hidden],.trip-map-tray[hidden]{display:none!important}
+.trip-map-tray{position:fixed;z-index:1500;bottom:calc(104px + env(safe-area-inset-bottom));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));margin:0 auto;width:min(510px,calc(100vw - 24px));padding:14px 15px 12px;border:1px solid #e4d9bd;border-radius:21px;background:#fffdfa;box-shadow:0 12px 36px #2229;color:#343630;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif}
+.trip-map-tray *{box-sizing:border-box}.trip-map-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.trip-map-head small{display:block;color:#9f842e;font-weight:800;font-size:10px;letter-spacing:.075em}.trip-map-head strong{display:block;font-size:16px;margin:4px 0}.trip-map-head p{font-size:11px;line-height:1.5;color:#7b7a74;margin:4px 0}
+.trip-map-head #tripMapExit{flex-shrink:0;border:0;border-radius:50%;background:#efeee9;width:34px;height:34px;color:#555;font-size:23px;line-height:34px}
+.trip-map-chips{display:flex;gap:7px;max-width:100%;overflow-x:auto;white-space:nowrap;padding:10px 0;min-height:43px;scrollbar-width:thin}
+.trip-map-chip{flex-shrink:0;border:1px solid #d9bd6c;border-radius:999px;background:#fffae9;color:#5b4818;padding:7px 10px;font-size:11px;max-width:235px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trip-map-empty{font-size:11px;color:#9b968d;padding:6px 0}
+.trip-map-footer{display:grid;grid-template-columns:.8fr 1.2fr;gap:8px}.trip-map-footer button{border-radius:12px;min-height:44px;font-weight:750;font-size:12px}
+.trip-map-footer #tripMapList{border:1px solid #dfd9ca;background:#faf9f4;color:#55514a}.trip-map-footer .trip-picker-go{border:0}
+.trip-map-selecting .atlas-bookmark-hit,.trip-map-selecting .star-pin{cursor:pointer!important;filter:drop-shadow(0 0 5px rgba(255,204,61,.7)) drop-shadow(0 0 10px rgba(248,177,34,.4));transition:filter .12s}
+.trip-map-selecting .atlas-bookmark-hit.trip-chosen,.trip-map-selecting .star-pin.trip-chosen{filter:drop-shadow(0 0 3px #ffc63d) drop-shadow(0 0 11px #f8a42c);outline:3px solid #f2bc35;outline-offset:3px;border-radius:50%}
+.trip-map-selecting .atlas-bookmark-hit.trip-chosen:after,.trip-map-selecting .star-pin.trip-chosen:after{content:'✓';position:absolute;right:-7px;top:-12px;width:20px;height:20px;border:2px solid #fff;border-radius:50%;display:grid;place-items:center;background:#f0c455;color:#382e19;font-size:12px;font-weight:900}
+.trip-map-selecting #searchDock{opacity:0;pointer-events:none}
+@media(max-width:600px){.trip-mode-options{padding:12px 14px}.trip-map-tray{bottom:calc(102px + env(safe-area-inset-bottom));padding:12px 14px}}
+@media(prefers-reduced-motion:reduce){.trip-map-selecting .atlas-bookmark-hit,.trip-map-selecting .star-pin{transition:none}}
