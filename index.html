@@ -789,6 +789,7 @@ html.atlas-stable-map body.memory-open #atlasBookmarkOverlay{filter:none!importa
 <link rel="stylesheet" href="/travel-atlas-pages/trip-picker.css">
 <link rel="stylesheet" href="/travel-atlas-pages/route-picking.css">
 <link rel="stylesheet" href="/travel-atlas-pages/footprint-home.css">
+<link rel="stylesheet" href="/travel-atlas-pages/atlas-phase1.css">
 </head>
 <body>
 <div id="map" aria-label="私人旅行收藏地图"></div><div id="amapSurface" aria-label="高德地点地图" hidden></div><div id="figureCaption"><em>Fig. 01</em> · CITY IN BLACK &amp; WHITE · 放大看建筑肌理</div><div class="map-status" id="mapStatus">建筑肌理 © OpenStreetMap</div><div class="map-shade" aria-hidden="true"></div>
@@ -2188,62 +2189,25 @@ class Map{
   function mapConnection(message,active=true){const el=$('mapConnectionNote');el.textContent=message;el.hidden=!active;}
   function vectorSetStyle(){
     if(!vectorMap)return;
-    const style=vectorMap.getStyle();
-    const sourceId=Object.keys(style.sources||{}).find(k=>style.sources[k].type==='vector')||'openfreemap';
-    vectorMap.setLight({anchor:'viewport',color:'#ffffff',intensity:0.57,position:[1.4,175,76]});
-    for(const layer of style.layers||[]){
-      try{
-        const id=layer.id.toLowerCase(), srcLayer=String(layer['source-layer']||'').toLowerCase();
-        if(layer.type==='background')vectorMap.setPaintProperty(layer.id,'background-color','#f7f6f3');
-        if(layer.type==='fill'){
-          let color=null;
-          if(/water/.test(id+srcLayer))color='#e3e3df';
-          else if(/park|landcover|landuse|wood|grass|farmland|natural/.test(id+srcLayer))color='#f1f0eb';
-          else if(/building/.test(id+srcLayer))color='#323332';
-          else color='#f3f2ee';
-          vectorMap.setPaintProperty(layer.id,'fill-color',color);
-          if(/building/.test(id+srcLayer))vectorMap.setPaintProperty(layer.id,'fill-opacity',['interpolate',['linear'],['zoom'],10,0.9,14,0.91,15.3,0.18,16,0]);
-        }
-        if(layer.type==='line'){
-          let color=/road|street|highway|transportation|bridge/.test(id+srcLayer)?'#b5b5b0':'#dad8d1';
-          if(/water/.test(id+srcLayer))color='#c7c7c3';
-          vectorMap.setPaintProperty(layer.id,'line-color',color);
-          if(/road|highway|street/.test(id))vectorMap.setPaintProperty(layer.id,'line-opacity',['interpolate',['linear'],['zoom'],9,0.2,12,0.58,15,0.87]);
-        }
-        if(layer.type==='symbol'){
-          vectorMap.setPaintProperty(layer.id,'text-color','#393a38');
-          vectorMap.setPaintProperty(layer.id,'text-halo-color','#f9f9f6');
-          vectorMap.setPaintProperty(layer.id,'text-halo-width',1.1);
-          if(/poi|housenumber/.test(id+srcLayer))vectorMap.setLayerZoomRange(layer.id,15.1,24);
-          else if(/road|street|transportation/.test(id+srcLayer))vectorMap.setLayerZoomRange(layer.id,14,24);
-          else if(/place|city|town|village/.test(id+srcLayer))vectorMap.setLayerZoomRange(layer.id,Math.max(layer.minzoom||0,4),18);
-        }
-      }catch(e){console.debug('style property unavailable',layer.id,e.message)}
+    try{window.AtlasFigureGround?.apply?.(vectorMap)}catch(err){console.warn('建筑地图样式待加载',err)}
+    const layers=vectorMap.getStyle()?.layers||[];
+    for(const layer of layers){if(layer.type!=='symbol')continue;
+      try{const id=String(layer.id).toLowerCase(),src=String(layer['source-layer']||'').toLowerCase(),key=id+src;
+        if(/poi|housenumber/.test(key))vectorMap.setLayerZoomRange(layer.id,15.1,24);
+        else if(/road|street|transport/.test(key))vectorMap.setLayerZoomRange(layer.id,14,24);
+        else if(/place|city|town|village/.test(key))vectorMap.setLayerZoomRange(layer.id,Math.max(layer.minzoom||0,4),18);
+      }catch(_){}
     }
-    const old3d=(style.layers||[]).filter(l=>l.type==='fill-extrusion');
-    old3d.forEach(l=>{try{vectorMap.setLayoutProperty(l.id,'visibility','none')}catch(e){}});
-    if(vectorMap.getLayer('atlas-3d-buildings'))return;
-    try{
-      const l={id:'atlas-3d-buildings',type:'fill-extrusion',source:sourceId,'source-layer':'building',minzoom:15.15,
-        paint:{'fill-extrusion-color':'#e0ded8','fill-extrusion-opacity':0.96,
-        'fill-extrusion-height':['interpolate',['linear'],['zoom'],15.15,0,15.8,['coalesce',['to-number',['get','render_height']],12],19,['coalesce',['to-number',['get','render_height']],12]],
-        'fill-extrusion-base':['coalesce',['to-number',['get','render_min_height']],0]}};
-      const before=style.layers.find(x=>x.type==='symbol'&&/poi|label/i.test(x.id))?.id;
-      vectorMap.addLayer(l,before);
-    }catch(e){console.error('3D buildings unavailable',e)}
+    // Figure-ground is strictly overhead 2D: do not add 3D extrusion layers.
     updateVectorCamera(true);
   }
-  function updateVectorCamera(immediate=false){
+  function updateVectorCamera(){
     if(!isVector())return;
-    const z=vectorMap.getZoom(),p=desiredModelPitch(z);
-    if(Math.abs(vectorMap.getPitch()-p)>3){
-      if(immediate)vectorMap.setPitch(p);
-      else vectorMap.easeTo({pitch:p,duration:650,essential:true});
-    }
-    document.body.classList.toggle('atlas-3d',z>=15.1);
-    document.body.classList.toggle('atlas-distant',z<13.5);
-    $('btnZoomIn').setAttribute('aria-label','放大地图，逐渐进入3D建筑');
-    $('btnZoomOut').setAttribute('aria-label','缩小地图，返回黑白城市');
+    try{if(Math.abs(vectorMap.getPitch())>0.1)vectorMap.setPitch(0);if(Math.abs(vectorMap.getBearing())>0.1)vectorMap.setBearing(0)}catch(_){}
+    document.body.classList.remove('atlas-3d');
+    document.body.classList.toggle('atlas-distant',vectorMap.getZoom()<13.5);
+    $('btnZoomIn')?.setAttribute('aria-label','放大地图');
+    $('btnZoomOut')?.setAttribute('aria-label','缩小地图');
   }
   function renderVectorBookmarks(){
     if(!isVector())return;
@@ -2390,7 +2354,7 @@ class Map{
       await injectMapLibre();
       const c=currentCenter();
       $('atlasVectorMap').hidden=false;
-      vectorMap=new window.maplibregl.Map({container:'atlasVectorMap',style:'https://tiles.openfreemap.org/styles/bright',center:[c.lng,c.lat],zoom:Math.max(13,Math.min(16,currentZoom())),pitch:0,bearing:0,maxPitch:65,minZoom:2,maxZoom:19,attributionControl:true,dragRotate:false,renderWorldCopies:false});
+      vectorMap=new window.maplibregl.Map({container:'atlasVectorMap',style:'https://tiles.openfreemap.org/styles/bright',center:[c.lng,c.lat],zoom:Math.max(13,Math.min(16,currentZoom())),pitch:0,bearing:0,maxPitch:0,minZoom:2,maxZoom:19,attributionControl:true,dragRotate:false,renderWorldCopies:false});
       mapMode='vector';document.body.classList.add('vector-active');document.body.classList.remove('amap-active');
       vectorMap.touchZoomRotate.disableRotation();
       let loaded=false;
@@ -2455,7 +2419,25 @@ class Map{
   window.__atlasQA=()=>({mode:mapMode,zoom:currentZoom(),pitch:isVector()?vectorMap.getPitch():isOfficial()?officialMap.getPitch():0,poiButtons:$('atlasPoiOverlay')?.querySelectorAll('button')?.length||0,selected:selectedDestination?.name||null,popup:$('destinationCard').classList.contains('visible'),has3D:isVector()?!!vectorMap.getLayer('atlas-3d-buildings'):!!officialBuildings});
   window.__atlasReframeForCollage=(id)=>{if(window.innerWidth>=740)return;const p=places.find(x=>x.id===id),card=document.getElementById('fpPlaceCard');if(!p||!card||card.hidden)return;const mark=[...document.querySelectorAll('.atlas-bookmark-hit')].find(e=>e.dataset.placeId===id)||document.querySelector('.star-pin.selected');if(!mark)return;const rect=mark.getBoundingClientRect(),top=card.getBoundingClientRect().top;const dy=Math.max(0,Math.min(245,Math.round(rect.bottom-top+64)));if(dy<12)return;try{if(isOfficial()&&officialMap?.panBy)officialMap.panBy(0,-dy);else{const active=isVector()?vectorMap:map;active?.panBy?.([0,-dy],{duration:450})}}catch(e){console.warn('地图避让暂不可用',e)}};
   window.__atlasOrbitState=()=>{const p=places.find(x=>x.id===selectedId);return p?{id:p.id,title:p.title,note:p.note,date:p.date,lat:Number(p.lat),lng:Number(p.lng),photoCount:p.photos?.length||0,videoCount:p.videos?.length||0,references:p.references||[],guides:p.guides||[],url:p.url||'',link:p.link||''}:null};
-  window.__atlasFlowRefresh=async()=>{await refresh()}; window.__fpSearchCenter=()=>currentCenter(); window.__fpSearchSelect=(d)=>{const lat=Number(d.lat),lng=Number(d.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;closeSearchResults();setPicking(false);closeMemory();setMapView(lat,lng,Math.max(Number(d.zoom)||0,14));addSearchMarker(lat,lng,d.name||'地点');showDestination({name:d.name||'地点',lat,lng,address:d.address||'',id:d.id||'',category:d.category||'地点'})}; window.__atlasDemo={select:(name,lat,lng)=>showDestination({name,lat,lng,category:'地点'}),close:hideDestination,openSaved:(id)=>showPlace(id),getSaved:()=>places.map(x=>({id:x.id,title:x.title,starred:x.starred})),zoom:(n)=>zoomMap(n),vector:()=>activateVectorMap()};
+  window.__atlasFlowRefresh=async()=>{await refresh()}; window.__fpSearchCenter=()=>currentCenter(); window.__fpSearchSelect=(d)=>{const lat=Number(d.lat),lng=Number(d.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;closeSearchResults();setPicking(false);closeMemory();setMapView(lat,lng,Math.max(Number(d.zoom)||0,14));addSearchMarker(lat,lng,d.name||'地点');showDestination({name:d.name||'地点',lat,lng,address:d.address||'',id:d.id||'',category:d.category||'地点'})}; window.__atlasPickMapAPI={
+  project:(lng,lat)=>{
+    if(!Number.isFinite(lng)||!Number.isFinite(lat))return null;
+    try{
+      if(isOfficial()&&officialMap&&officialSDK){
+        const ll=wgsToGcj(lng,lat),p=officialMap.lngLatToContainer(new officialSDK.LngLat(ll[0],ll[1]));
+        const x=Number(p?.getX?.()??p?.x),y=Number(p?.getY?.()??p?.y);
+        return Number.isFinite(x)&&Number.isFinite(y)?{x,y}:null;
+      }
+      if(isVector()&&vectorMap){const p=vectorMap.project([lng,lat]);return {x:p.x,y:p.y}}
+      if(map?.project){const p=map.project([lng,lat]);return {x:p.x,y:p.y}}
+      if(map?._pixel){const p=map._pixel(lng,lat);return {x:p.x,y:p.y}}
+    }catch(e){console.debug('地点投影暂时不可用',e)}
+    return null;
+  },
+  zoom:()=>currentZoom(),
+  zoomTo:(lat,lng,z)=>setMapView(Number(lat),Number(lng),z,true)
+};
+window.__atlasDemo={select:(name,lat,lng)=>showDestination({name,lat,lng,category:'地点'}),close:hideDestination,openSaved:(id)=>showPlace(id),getSaved:()=>places.map(x=>({id:x.id,title:x.title,starred:x.starred})),zoom:(n)=>zoomMap(n),vector:()=>activateVectorMap()};
   init().catch(err=>{console.error('初始化失败:',err);showMapWarning('旅行地图启动异常：'+(err?.message||'未知原因')+'。请点击重试。');});
 })();
 </script>
@@ -2502,8 +2484,10 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
   <script src="/travel-atlas-pages/atlas-orbit.js"></script>
   <script defer src="/travel-atlas-pages/atlas-stage5.js"></script>
 
+<script defer src="/travel-atlas-pages/atlas-map-design.js"></script>
 <script defer src="/travel-atlas-pages/trip-picker.js"></script>
 <script defer src="/travel-atlas-pages/footprint-home.js"></script>
+<script defer src="/travel-atlas-pages/atlas-phase1.js"></script>
 <script id="atlas-journey-deep-link">
 (function(){
  const placeId=new URLSearchParams(location.search).get('openPlace');
