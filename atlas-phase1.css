@@ -1,71 +1,51 @@
-/* Footprint Map V4 · user-reviewed iPhone interactions, 2026-11-03.
-   The selected-order number belongs to the ORIGINAL starred marker.
-   No secondary map pin layer, no extra stars, no camera tilt. */
-:root{--atlas-safe-visual-height:100dvh;--atlas-keyboard-bottom:0px}
+/* V4: original star icons, original overhead map view, native-looking sheet motion. */
+:root{--atlas-visible-height:100dvh;--atlas-keyboard-bottom:0px}
 #atlasPhase1Pins,#atlasPhase1OrderLabels{display:none!important}
 #fpSearchSheet,#fpPlaceCard{
-  animation:none!important;
-  transition:height .53s cubic-bezier(.18,.84,.23,1),max-height .53s cubic-bezier(.18,.84,.23,1),
-  transform .48s cubic-bezier(.18,.84,.23,1),opacity .28s ease!important;
-  will-change:height,transform
+ --fp-drag-offset:0px;
+ transition:height .42s cubic-bezier(.22,1,.36,1),max-height .42s cubic-bezier(.22,1,.36,1),transform .4s cubic-bezier(.22,1,.36,1),opacity .23s ease!important;
+ will-change:height,transform;
 }
-#fpSearchSheet[data-dragging],#fpPlaceCard[data-dragging]{transition:none!important;will-change:height}
-#fpSearchSheet:not([hidden]){height:min(59dvh,calc(var(--atlas-safe-visual-height)*.59));max-height:calc(var(--atlas-safe-visual-height) - 16px)!important}
-#fpSearchSheet[data-atlas-snap=peek]:not([hidden]){height:min(32dvh,calc(var(--atlas-safe-visual-height)*.32))}
-#fpSearchSheet[data-atlas-snap=half]:not([hidden]){height:min(59dvh,calc(var(--atlas-safe-visual-height)*.59))}
-#fpSearchSheet[data-atlas-snap=full]:not([hidden]){height:calc(var(--atlas-safe-visual-height) - 18px)}
-#fpPlaceCard:not([hidden]){height:min(49dvh,calc(var(--atlas-safe-visual-height)*.49));max-height:calc(var(--atlas-safe-visual-height) - 18px)!important}
-#fpPlaceCard[data-has-media=yes]:not([hidden]){height:min(62dvh,calc(var(--atlas-safe-visual-height)*.62))}
-#fpPlaceCard[data-atlas-snap=peek]:not([hidden]){height:min(49dvh,calc(var(--atlas-safe-visual-height)*.49))}
-#fpPlaceCard[data-has-media=yes][data-atlas-snap=peek]:not([hidden]){height:min(62dvh,calc(var(--atlas-safe-visual-height)*.62))}
-#fpPlaceCard[data-atlas-snap=half]:not([hidden]){height:min(70dvh,calc(var(--atlas-safe-visual-height)*.70))}
-#fpPlaceCard[data-atlas-snap=full]:not([hidden]){height:calc(var(--atlas-safe-visual-height) - 22px)}
-#fpSearchSheet .fp-search-grip,.atlas-card-grip{touch-action:none;cursor:grab}
-#fpSearchSheet .fp-search-grip:active,.atlas-card-grip:active{cursor:grabbing}
-.atlas-card-grip{display:block;flex:0 0 auto;align-self:center;width:40px;height:5px;border-radius:10px;background:#d4d2cc;margin:11px auto 0}
-#fpSearchSheet .fp-search-body,#fpPlaceCard .fp-card-scroll{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-#fpSearchSheet .fp-search-grip:focus-visible,.atlas-card-grip:focus-visible{outline:3px solid #d4aa52;outline-offset:4px}
-#fpPlaceCard .fp-card-header{padding-top:14px}
-#fpPlaceCard .fp-card-kicker{display:none}
-#fpPlaceCard .fp-card-name{font-size:21px;line-height:1.3;font-weight:750;letter-spacing:-.03em}
-#fpPlaceCard .fp-brief-text{max-height:none;overflow:visible;line-height:1.62}
-#fpPlaceCard .fp-subheading strong{font-size:11px;letter-spacing:.12em}
-#fpPlaceCard .fp-media-empty{padding:10px 12px;margin:4px 0 9px;min-height:70px}
-#fpPlaceCard .fp-empty-icon{width:34px;height:34px;font-size:19px}
-#fpPlaceCard .fp-media-mosaic{grid-template-rows:repeat(2,minmax(90px,1fr));min-height:184px}
-#fpPlaceCard .fp-media-mosaic.one{min-height:185px}
-#fpPlaceCard .fp-media-mosaic.two{min-height:158px}
-#fpPlaceCard .fp-video-tile{position:relative}
-#fpPlaceCard .fp-video-tile video{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#6d6b65;pointer-events:none}
-#fpPlaceCard .fp-video-indicator{position:absolute;left:8px;bottom:8px;border-radius:999px;padding:3px 7px;background:#17171780;color:white;font-size:11px;pointer-events:none}
-#fpPlaceCard .fp-card-footer{padding-top:9px;padding-bottom:calc(9px + max(0px,env(safe-area-inset-bottom)*.3))}
-#fpPlaceCard .fp-card-chip{font-size:12px;padding:10px 6px;min-height:43px}
-#fpPlaceCard .fp-card-scroll{padding-top:2px}
-#fpPlaceCard .fp-card-close{min-width:42px;min-height:42px;touch-action:manipulation}
-#selectionFeedback,#selectionCaption{display:none!important}
-body.destination-selected #destinationCard{bottom:calc(99px + env(safe-area-inset-bottom))!important;max-width:520px!important;z-index:1050!important}
-#destinationCard .destination-category{max-height:2.8em;overflow:hidden}
-body.destination-selected .map-controls{z-index:960}
-.atlas-poi-touch-ripple{position:fixed;left:0;top:0;z-index:940;width:18px;height:18px;border:2px solid #e5b44a;border-radius:50%;background:#f5c34539;transform:translate(-50%,-50%) scale(.2);pointer-events:none;animation:atlasPoiRing .64s cubic-bezier(.18,.7,.24,1) forwards}
-@keyframes atlasPoiRing{0%{opacity:1;transform:translate(-50%,-50%) scale(.22)}45%{opacity:.85}100%{opacity:0;transform:translate(-50%,-50%) scale(4.4)}}
-#atlasBookmarkOverlay{overflow:visible!important}
-.route-pick-active .route-pick-candidate,.route-pick-active .route-pick-chosen{
-  position:relative!important;overflow:visible!important;isolation:auto!important
+#fpSearchSheet{bottom:var(--atlas-keyboard-bottom)!important;max-height:calc(var(--atlas-visible-height) - 12px)!important}
+#fpSearchSheet[data-atlas-snap=peek]:not([hidden]){height:min(32dvh,calc(var(--atlas-visible-height)*.32))}
+#fpSearchSheet[data-atlas-snap=half]:not([hidden]){height:min(59dvh,calc(var(--atlas-visible-height)*.59))}
+#fpSearchSheet[data-atlas-snap=full]:not([hidden]){height:calc(var(--atlas-visible-height) - 12px)}
+#fpPlaceCard:not([hidden]){max-height:calc(var(--atlas-visible-height) - 20px)!important}
+#fpPlaceCard[data-atlas-snap=peek]:not([hidden]){height:min(55dvh,470px)}
+#fpPlaceCard[data-atlas-snap=half]:not([hidden]){height:min(72dvh,640px)}
+#fpPlaceCard[data-atlas-snap=full]:not([hidden]){height:calc(var(--atlas-visible-height) - 20px)}
+#fpPlaceCard .atlas-card-grip{display:block;flex:0 0 auto;margin:10px auto 0;width:46px;height:6px;border:0;border-radius:99px;background:#d3d1ca;cursor:grab;touch-action:none;padding:0}
+#fpPlaceCard .atlas-card-grip:active,.fp-search-grip:active{cursor:grabbing}
+.fp-search-grip{touch-action:none;cursor:grab}
+#fpSearchSheet .fp-search-body,#fpPlaceCard .fp-card-scroll{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#fpPlaceCard .fp-card-header{padding-top:13px}
+.fp-card-name{font-weight:760}
+#fpPlaceCard .fp-card-scroll{padding-bottom:16px}
+#fpPlaceCard .fp-subheading{margin-top:10px}
+#fpPlaceCard .fp-media-empty{min-height:54px;padding:11px 13px}
+#fpPlaceCard .fp-card-footer{padding:9px 14px calc(10px + env(safe-area-inset-bottom)*.24);gap:8px}
+#fpPlaceCard .fp-card-chip{min-height:42px}
+#fpPlaceCard .fp-line{margin:11px 0}
+.fp-media-mosaic{grid-template-rows:repeat(2,minmax(68px,88px))}
+.fp-media-mosaic .fp-video-tile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.fp-media-mosaic .fp-video-tile::after{content:"▶";position:absolute;left:8px;bottom:8px;display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:#10100e66;color:#fff;font-size:11px;pointer-events:none}
+.fp-media-mosaic .fp-video-tile{background:#292a28}
+.fp-media-mosaic .fp-video-tile .fp-video-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fp-media-mosaic .fp-video-tile video[hidden]{display:none}
+.fp-card-kicker{font-size:10px}
+body.fp-place-open #btnZoomIn,body.fp-place-open #btnZoomOut{opacity:1!important;pointer-events:auto!important;height:auto!important;min-height:39px!important;margin:0!important;padding:0!important;border:initial!important;overflow:visible!important}
+body.fp-place-open .map-controls{top:calc(60px + env(safe-area-inset-top));bottom:auto!important;gap:7px;right:12px}
+body.fp-place-open .map-controls .circlebtn{min-height:39px}
+body.destination-selected .selection-feedback{display:none!important}
+body.destination-selected #destinationCard{left:14px;right:14px;bottom:calc(100px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;border-radius:23px;padding:17px 18px 16px;box-shadow:0 11px 40px #15161722}
+body.destination-selected .destination-title{font-size:18px;font-weight:790;line-height:1.32}
+body.destination-selected .destination-category{font-size:12px;line-height:1.5;margin:5px 0 11px;color:#89877e}
+body.destination-selected .destination-actions{display:flex;gap:8px}
+body.destination-selected #destinationStar,body.destination-selected #destinationNav{min-height:45px;border-radius:13px}
+@media(max-width:600px){
+ #fpPlaceCard{bottom:calc(12px + env(safe-area-inset-bottom));}
+ #fpPlaceCard[data-atlas-snap=full]:not([hidden]){bottom:max(env(safe-area-inset-bottom),5px)}
+ #fpPlaceCard .fp-card-header{padding-left:17px;padding-right:17px}
+ body.destination-selected .map-controls{opacity:.65;pointer-events:auto}
 }
-.route-pick-active .route-pick-chosen{z-index:4000!important;filter:drop-shadow(0 0 8px #efba42)}
-.route-pick-active .maplibregl-marker:has(.route-pick-chosen){z-index:4000!important;overflow:visible!important}
-.route-pick-active .route-pick-chosen[data-trip-order]::after{
-  content:attr(data-trip-order)!important;position:absolute!important;right:-10px!important;top:-11px!important;
-  transform:none!important;display:grid!important;place-items:center!important;
-  min-width:23px!important;width:auto!important;max-width:38px!important;height:23px!important;
-  padding:0 4px!important;border-radius:13px!important;box-sizing:border-box!important;
-  color:#fff!important;background:#25302c!important;border:2px solid #fff!important;
-  box-shadow:0 2px 8px #0005!important;z-index:100!important;font-size:11px!important;
-  font-weight:800!important;line-height:17px!important;pointer-events:none!important
-}
-@media(max-width:550px){
-  #fpPlaceCard{left:12px;right:12px}
-  #fpPlaceCard .fp-media-mosaic{min-height:170px}
-  #destinationCard{left:12px!important;right:12px!important;width:auto!important}
-}
-@media(prefers-reduced-motion:reduce){#fpSearchSheet,#fpPlaceCard{transition:none!important}.atlas-poi-touch-ripple{animation:none!important}}
+@media(prefers-reduced-motion:reduce){#fpSearchSheet,#fpPlaceCard{transition:none!important}}
