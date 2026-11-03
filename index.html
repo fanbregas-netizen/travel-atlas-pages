@@ -1121,10 +1121,23 @@ class Map{
       ctx.save();ctx.beginPath();ctx.rect(left,top,tileSize,tileSize);ctx.clip();
       ctx.translate(left,top);ctx.scale(tileSize/data.extent,tileSize/data.extent);
       if(streetMass){ctx.strokeStyle='#90938f';ctx.lineWidth=data.extent/tileSize*.85;ctx.lineJoin='round';}
-      for(const rings of data.buildings){
-        ctx.beginPath();
-        for(const ring of rings){for(let j=0;j<ring.length;j++){const v=ring[j];if(j===0)ctx.moveTo(v[0],v[1]);else ctx.lineTo(v[0],v[1])}ctx.closePath()}
-        ctx.fill('evenodd');if(streetMass)ctx.stroke();
+      // Decode the tile outlines only once into a cached Path2D; pan/zoom only reprojects it.
+      if(typeof Path2D==='function'){
+        if(!data.planPath){
+          const outline=new Path2D();
+          for(const rings of data.buildings)for(const ring of rings){
+            for(let j=0;j<ring.length;j++){const v=ring[j];if(j===0)outline.moveTo(v[0],v[1]);else outline.lineTo(v[0],v[1])}
+            outline.closePath();
+          }
+          data.planPath=outline;
+        }
+        ctx.fill(data.planPath,'evenodd');if(streetMass)ctx.stroke(data.planPath);
+      }else{
+        for(const rings of data.buildings){
+          ctx.beginPath();
+          for(const ring of rings){for(let j=0;j<ring.length;j++){const v=ring[j];if(j===0)ctx.moveTo(v[0],v[1]);else ctx.lineTo(v[0],v[1])}ctx.closePath()}
+          ctx.fill('evenodd');if(streetMass)ctx.stroke();
+        }
       }
       ctx.restore();
     }
