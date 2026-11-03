@@ -207,10 +207,10 @@ async function saveAlbumArchive(){
      if(core.knownPhoto(file)){
       if(photos.length>=core.PHOTO_LIMIT){failed++;errors.push('照片超过上限');continue}
       const photo=await shrinkPhoto(file);
-      photos.push({...photo,fingerprint,source:'local-album',capturedAt:Number.isFinite(file.lastModified)&&file.lastModified>0?new Date(file.lastModified).toISOString():null});
+      photos.push({...photo,fingerprint,source:'local-album',fileModifiedAt:Number.isFinite(file.lastModified)&&file.lastModified>0?new Date(file.lastModified).toISOString():null});
       groupAdded++;
      }else if(core.knownVideo(file)){
-      if(videos.length>=core.VIDEO_LIMIT||file.size>core.MAX_VIDEO_BYTES){failed++;errors.push('视频达到数量或大小上限');continue}
+      if(videos.length>=core.VIDEO_LIMIT||file.size>core.MAX_VIDEO_BYTES||window.__atlasPlaceStore?.isFallback?.()){failed++;errors.push('视频达到数量/大小上限，或备用存储不支持大视频');continue}
       videos.push({name:file.name,type:file.type||'video/mp4',bytes:await file.arrayBuffer(),fingerprint,source:'local-album',addedAt:new Date().toISOString()});
       groupAdded++;
      }
@@ -237,7 +237,7 @@ function mountAlbumEntry(){
 
 function mountPlace(){if(placeCard)return;placeCard=h('article');placeCard.id='fpPlaceCard';placeCard.hidden=true;placeCard.setAttribute('role','dialog');placeCard.setAttribute('aria-modal','false');placeCard.setAttribute('aria-label','收藏地点详情');document.body.append(placeCard);
  document.addEventListener('atlas:memory-open',e=>{if(window.__atlasPreferCollage!==false)showPlaceCard(e.detail?.id)});
- document.addEventListener('pointerdown',e=>{if(!activePlaceId)return;if(e.target.closest('#fpPlaceCard,#fpMediaViewer,.star-pin,.atlas-bookmark-hit,.atlas-photo-location-pin,.atlas-vector-photo-pin,.atlas-official-star'))return;closePlace();},true);
+ document.addEventListener('pointerdown',e=>{if(!activePlaceId)return;if(e.target.closest('#fpPlaceCard,#fpAlbumImport,#fpMediaViewer,.star-pin,.atlas-bookmark-hit,.atlas-photo-location-pin,.atlas-vector-photo-pin,.atlas-official-star'))return;closePlace();},true);
  document.addEventListener('atlas:source-updated',()=>{if(activePlaceId)showPlaceCard(activePlaceId,false)});
  const originalSheet=$('memorySheet');if(originalSheet)new MutationObserver(()=>{if(activePlaceId&&!originalSheet.classList.contains('visible'))closePlace()}).observe(originalSheet,{attributes:true,attributeFilter:['class']});
  const qs=new URLSearchParams(location.search);const source=qs.get('sourcePlace'),media=qs.get('mediaPlace');if(source||media){const target=source||media;let count=0;const t=setInterval(()=>{count++;if(typeof window.__atlasDemo?.openSaved==='function'){clearInterval(t);window.__atlasDemo.openSaved(target);editMode=source?'link':'media';setTimeout(()=>renderPlace(target),120);history.replaceState(null,'',location.pathname)}if(count>32)clearInterval(t)},250)}
