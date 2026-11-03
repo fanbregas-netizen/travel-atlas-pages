@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta name="atlas-hosting" content="static">
-<meta name="atlas-release" content="V4.Review.20261103.map-location-r1">
+<meta name="atlas-release" content="V4.Review.20261103.architectural-v2">
 <script src="/travel-atlas-pages/atlas-services.js"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -808,6 +808,17 @@ body.fg-active #map .simplemap-labels img{opacity:.72!important;filter:grayscale
 #map .simplemap-markers{overflow:visible}
 @media(prefers-reduced-motion:reduce){#map .loc-dot{animation:none!important}}
 </style>
+<style id="atlas-architectural-plan-v2">
+/* Real 2D vector figure-ground, never a translucent copy of a street map. */
+body.fg-active #map{background:#f9f8f5!important}
+body.fg-active #map .figure-canvas{display:block!important;opacity:1!important;pointer-events:none}
+body.fg-active #map .simplemap-tiles img{filter:grayscale(1) saturate(0) contrast(.73) brightness(1.2)!important;opacity:.27!important}
+html.atlas-stable-map body.fg-active #map .simplemap-tiles img{filter:grayscale(1) saturate(0) contrast(.73) brightness(1.2)!important;opacity:.27!important}
+body.fg-active #map .simplemap-labels{opacity:.22!important}
+body.fg-active #map .figure-canvas{z-index:3}
+body.fg-active .simplemap-destinations{z-index:4}
+body.fg-active #map .simplemap-markers{z-index:5}
+</style>
 </head>
 <body>
 <div id="map" aria-label="私人旅行收藏地图"></div><div id="amapSurface" aria-label="高德地点地图" hidden></div><div id="figureCaption"><em>Fig. 01</em> · CITY IN BLACK &amp; WHITE · 放大看建筑肌理</div><div class="map-status" id="mapStatus">建筑肌理 © OpenStreetMap</div><div class="map-shade" aria-hidden="true"></div>
@@ -1049,102 +1060,203 @@ class Map{
     bytes(){const len=this.varint();if(len<0||i+len>bytes.length)throw Error('PBF 大小错误');const b=bytes.subarray(i,i+len);i+=len;return b},
     skip(w){if(w===0)this.varint();else if(w===2)this.bytes();else if(w===5)i+=4;else if(w===1)i+=8;else throw Error('PBF 字段错误')}
   }}
-  function decodeShape(buf){const p=readProto(buf);let x=0,y=0,contours=[],line=null;while(p.pos<p.size){const c=p.varint(),cmd=c&7,num=c>>3;if(!num||num>500000)break;
-    if(cmd===1||cmd===2){for(let j=0;j<num;j++){const xx=p.varint(),yy=p.varint();x+=(xx>>>1)^-(xx&1);y+=(yy>>>1)^-(yy&1);if(cmd===1){line=[];contours.push(line)}if(line)line.push([x,y])}}
-    else if(cmd===7){for(let j=0;j<num;j++){/* closing the ring happens in canvas */}}
-    else break;
-  }return contours.filter(r=>r.length>=3)}
-  function decodeBuildings(buffer){
-    const p=readProto(new Uint8Array(buffer));let result=[],poi=[];
-    const dec=new TextDecoder();
-    while(p.pos<p.size){const tag=p.varint(),field=tag>>3,wire=tag&7;if(field!==3||wire!==2){p.skip(wire);continue}
-      const l=readProto(p.bytes());let name='',features=[],extent=4096,keys=[],values=[];
-      while(l.pos<l.size){const t=l.varint(),f=t>>3,w=t&7;
-        if(f===1&&w===2)name=dec.decode(l.bytes());
-        else if(f===2&&w===2)features.push(l.bytes());
-        else if(f===3&&w===2)keys.push(dec.decode(l.bytes()));
-        else if(f===4&&w===2){const val=readProto(l.bytes());let str='';while(val.pos<val.size){const t2=val.varint(),f2=t2>>3,w2=t2&7;if(f2===1&&w2===2)str=dec.decode(val.bytes());else val.skip(w2)}values.push(str)}
-        else if(f===5&&w===0)extent=l.varint();else l.skip(w)
-      }
-      if(!['building','poi','place'].includes(name))continue;
-      for(const bytes of features){const r=readProto(bytes);let kind=0,geom=null,tags=null;
-        while(r.pos<r.size){const t=r.varint(),f=t>>3,w=t&7;
-          if(f===3&&w===0)kind=r.varint();else if(f===4&&w===2)geom=r.bytes();else if(f===2&&w===2)tags=r.bytes();else r.skip(w)}
-        if(!geom)continue;
-        if(name==='building'&&kind===3){const contours=decodeShape(geom);if(contours.length)result.push(contours);continue}
-        if(name==='building'||!tags||!kind)continue;
-        const props={},tp=readProto(tags);
-        while(tp.pos<tp.size){const ki=tp.varint(),vi=tp.varint();if(keys[ki]&&values[vi])props[keys[ki]]=values[vi]}
-        const title=String(props['name:zh']||props.name||props['name:en']||'').trim();
-        if(!title||title.length>44)continue;
-        const gp=readProto(geom);let pt=null,x=0,y=0;
-        while(gp.pos<gp.size){const cmd=gp.varint(),id=cmd&7,n=cmd>>3;if(!n||n>8000)break;
-          if(id===1||id===2){for(let j=0;j<n;j++){const a=gp.varint(),b=gp.varint();x+=(a>>>1)^-(a&1);y+=(b>>>1)^-(b&1);if(!pt)pt={x,y}}}
-          else if(id===7)continue;else break;
+  function decodeShape(buf,minPoints=3){
+    const p=readProto(buf);let x=0,y=0,contours=[],line=null,seen=0;
+    while(p.pos<p.size&&seen<20000){
+      const c=p.varint(),cmd=c&7,num=c>>3;
+      if(!num||num>20000)break;
+      if(cmd===1||cmd===2){
+        for(let j=0;j<num;j++){
+          const xx=p.varint(),yy=p.varint();seen++;
+          x+=(xx>>>1)^-(xx&1);y+=(yy>>>1)^-(yy&1);
+          if(cmd===1){line=[];contours.push(line)}
+          if(line)line.push([x,y]);
         }
-        if(pt)poi.push({name:title,x:pt.x,y:pt.y,category:String(props.class||props.subclass||props.type||name),extent});
+      }else if(cmd===7){/* Canvas/Path2D closes polygons itself. */}
+      else break;
+    }
+    return contours.filter(r=>r.length>=minPoints);
+  }
+  // Decode only the OpenMapTiles geometry needed for an actual 2D architectural map.
+  // Roads, water and greenery are vector layers, not grayscale filters on street-map screenshots.
+  function decodeBuildings(buffer){
+    const p=readProto(new Uint8Array(buffer)),dec=new TextDecoder();
+    const result={buildings:[],roads:[],water:[],parks:[],waterways:[],poi:[],extent:4096};
+    const supported=new Set(['building','transportation','water','waterway','landcover','landuse','poi','place']);
+    while(p.pos<p.size){
+      const tag=p.varint(),field=tag>>3,wire=tag&7;
+      if(field!==3||wire!==2){p.skip(wire);continue}
+      const layer=readProto(p.bytes());
+      let name='',features=[],extent=4096,keys=[],values=[];
+      while(layer.pos<layer.size){
+        const t=layer.varint(),field=t>>3,w=t&7;
+        if(field===1&&w===2)name=dec.decode(layer.bytes());
+        else if(field===2&&w===2)features.push(layer.bytes());
+        else if(field===3&&w===2)keys.push(dec.decode(layer.bytes()));
+        else if(field===4&&w===2){
+          const v=readProto(layer.bytes());let str='';
+          while(v.pos<v.size){const t2=v.varint(),k=t2>>3,ww=t2&7;
+            if(k===1&&ww===2)str=dec.decode(v.bytes());else v.skip(ww)}
+          values.push(str);
+        }else if(field===5&&w===0)extent=layer.varint();
+        else layer.skip(w);
+      }
+      if(!supported.has(name))continue;
+      result.extent=extent||4096;
+      let accepted=0;
+      const cap=name==='building'?900:name==='transportation'?900:name==='poi'?90:400;
+      for(const bytes of features){
+        if(accepted>=cap)break;
+        const feature=readProto(bytes);let kind=0,geom=null,tags=null;
+        while(feature.pos<feature.size){
+          const t=feature.varint(),k=t>>3,w=t&7;
+          if(k===3&&w===0)kind=feature.varint();
+          else if(k===4&&w===2)geom=feature.bytes();
+          else if(k===2&&w===2)tags=feature.bytes();
+          else feature.skip(w);
+        }
+        if(!geom)continue;
+        let props=null;
+        const properties=()=>{
+          if(props!==null)return props;
+          props={};if(!tags)return props;
+          const tp=readProto(tags);
+          while(tp.pos<tp.size){const ki=tp.varint(),vi=tp.varint();if(keys[ki]!==undefined&&values[vi]!==undefined)props[keys[ki]]=values[vi]}
+          return props;
+        };
+        if(name==='building'&&kind===3){
+          const rings=decodeShape(geom);if(rings.length){result.buildings.push(rings);accepted++}
+        }else if(name==='transportation'&&kind===2){
+          const lines=decodeShape(geom,2);if(!lines.length)continue;
+          const cls=String(properties().class||properties().subclass||'street');
+          const importance=/motorway|trunk|primary/.test(cls)?'major':/secondary|tertiary|street|residential|living_street/.test(cls)?'street':'minor';
+          result.roads.push({lines,importance});accepted++;
+        }else if(name==='water'&&kind===3){
+          const rings=decodeShape(geom);if(rings.length){result.water.push(rings);accepted++}
+        }else if(name==='waterway'&&kind===2){
+          const lines=decodeShape(geom,2);if(lines.length){result.waterways.push(lines);accepted++}
+        }else if((name==='landcover'||name==='landuse')&&kind===3){
+          const cls=String(properties().class||properties().subclass||'');
+          if(!/park|grass|wood|forest|green|garden|meadow|recreation|nature|cemetery|scrub/.test(cls))continue;
+          const rings=decodeShape(geom);if(rings.length){result.parks.push(rings);accepted++}
+        }else if((name==='poi'||name==='place')&&kind===1){
+          const props=properties();
+          const title=String(props['name:zh']||props.name||props['name:en']||'').trim();
+          if(!title||title.length>28)continue;
+          const points=decodeShape(geom,1),pt=points[0]?.[0];
+          if(pt){result.poi.push({name:title,x:pt[0],y:pt[1],category:String(props.class||name),extent,kind:name});accepted++}
+        }
       }
     }
-    return {buildings:result,poi,extent:4096};
+    return result;
   }
   const fgClamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   function figPixel(lng,lat,z){const full=256*Math.pow(2,z),r=fgClamp(lat,-85.05112878,85.05112878)*Math.PI/180;return {x:(lng+180)/360*full,y:(1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*full}}
   function figureVisibleTiles(){if(!map)return [];const z=Math.min(14,Math.floor(map.getZoom()));if(z<12)return [];const scale=Math.pow(2,map.getZoom()-z),a=figPixel(map.getCenter().lng,map.getCenter().lat,z);const w=map.getContainer().clientWidth,h=map.getContainer().clientHeight,N=Math.pow(2,z);const x0=Math.floor((a.x-w/(2*scale))/256),x1=Math.ceil((a.x+w/(2*scale))/256),y0=fgClamp(Math.floor((a.y-h/(2*scale))/256),0,N-1),y1=fgClamp(Math.ceil((a.y+h/(2*scale))/256),0,N-1);const out=[];for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){out.push({z,x:((x%N)+N)%N,worldX:x,y,key:`${z}/${((x%N)+N)%N}/${y}`})}return out.slice(0,28)}
-  // Use the same plan-view building polygons on iPhone, throttled so dragging stays responsive.
-  let lastFigurePaint=0,mobileFigureTimer=null;
+// Architectural figure-ground canvas, driven by real OSM/OpenMapTiles vector geometry.
+  // No second interactive map layer is added: the existing markers and gestures remain untouched.
+  let lastFigurePaint=0,mobileFigureTimer=null,figureReadyTiles=0,figureFailedTiles=0;
+  function planPath(rings,close=true){
+    const p=new Path2D();
+    for(const ring of rings)if(ring.length){
+      p.moveTo(ring[0][0],ring[0][1]);
+      for(let j=1;j<ring.length;j++)p.lineTo(ring[j][0],ring[j][1]);
+      if(close)p.closePath();
+    }
+    return p;
+  }
+  function builtPaths(tile){
+    if(tile.paths)return tile.paths;
+    const combine=items=>planPath(items.flatMap(x=>x));
+    const roads={major:[],street:[],minor:[]};
+    for(const item of tile.roads||[])roads[item.importance]?.push(...item.lines);
+    tile.paths={
+      building:combine(tile.buildings||[]),
+      water:combine(tile.water||[]),
+      park:combine(tile.parks||[]),
+      waterway:combine(tile.waterways||[]),
+      major:planPath(roads.major,false),
+      street:planPath(roads.street,false),
+      minor:planPath(roads.minor,false)
+    };
+    return tile.paths;
+  }
   function paintBuildings(){
     if(!map?.figureCanvas)return;
     if(mobileStableMap){
       const elapsed=performance.now()-lastFigurePaint;
-      if(elapsed<90){
-        if(!mobileFigureTimer)mobileFigureTimer=setTimeout(()=>{mobileFigureTimer=null;paintBuildings()},Math.ceil(90-elapsed));
+      if(elapsed<75){
+        if(!mobileFigureTimer)mobileFigureTimer=setTimeout(()=>{mobileFigureTimer=null;paintBuildings()},Math.ceil(75-elapsed));
         return;
       }
       lastFigurePaint=performance.now();
     }
     const canvas=map.figureCanvas,w=map.getContainer().clientWidth,h=map.getContainer().clientHeight;
     if(!w||!h)return;
-    const dpr=Math.min(devicePixelRatio||1,mobileStableMap?1.5:2),cw=Math.ceil(w*dpr),ch=Math.ceil(h*dpr);
+    const dpr=Math.min(devicePixelRatio||1,mobileStableMap?1.4:2),cw=Math.ceil(w*dpr),ch=Math.ceil(h*dpr);
     if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;canvas.style.width=w+'px';canvas.style.height=h+'px'}
     const ctx=canvas.getContext('2d');if(!ctx)return;
     ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cw,ch);
     if(satelliteOn||!document.body.classList.contains('fg-active'))return;
-    const streetMass=map.getZoom()>=16.15;
+    const zoom=map.getZoom(),streetMass=zoom>=16.2;
     document.body.classList.toggle('atlas-plan-street',streetMass);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-    ctx.fillStyle=streetMass?'#ffffff':'#242624';
     const tiles=figureVisibleTiles();if(!tiles.length)return;
-    const z=tiles[0].z,scale=Math.pow(2,map.getZoom()-z),center=figPixel(map.getCenter().lng,map.getCenter().lat,z);
+    const z=tiles[0].z,scale=Math.pow(2,zoom-z),center=figPixel(map.getCenter().lng,map.getCenter().lat,z);
+    const labels=[],occupied=new Set();
+    ctx.setTransform(dpr,0,0,dpr,0,0);
     for(const t of tiles){
-      const data=figCache.get(t.key);if(!data?.buildings?.length)continue;
+      const data=figCache.get(t.key);
+      if(!data||!(data.buildings?.length||data.roads?.length||data.water?.length||data.parks?.length))continue;
       const left=(t.worldX*256-center.x)*scale+w/2,top=(t.y*256-center.y)*scale+h/2,tileSize=256*scale;
+      if(left>w||top>h||left+tileSize<0||top+tileSize<0)continue;
+      // A warm architectural paper surface replaces the raster instead of merely recoloring it.
       ctx.save();ctx.beginPath();ctx.rect(left,top,tileSize,tileSize);ctx.clip();
+      ctx.fillStyle='rgba(249,248,245,.97)';ctx.fillRect(left,top,tileSize,tileSize);
       ctx.translate(left,top);ctx.scale(tileSize/data.extent,tileSize/data.extent);
-      if(streetMass){ctx.strokeStyle='#90938f';ctx.lineWidth=data.extent/tileSize*.85;ctx.lineJoin='round';}
-      // Decode the tile outlines only once into a cached Path2D; pan/zoom only reprojects it.
-      if(typeof Path2D==='function'){
-        if(!data.planPath){
-          const outline=new Path2D();
-          for(const rings of data.buildings)for(const ring of rings){
-            for(let j=0;j<ring.length;j++){const v=ring[j];if(j===0)outline.moveTo(v[0],v[1]);else outline.lineTo(v[0],v[1])}
-            outline.closePath();
-          }
-          data.planPath=outline;
-        }
-        ctx.fill(data.planPath,'evenodd');if(streetMass)ctx.stroke(data.planPath);
+      const paths=builtPaths(data),unit=data.extent/tileSize;
+      ctx.fillStyle='#e7eae2';ctx.fill(paths.park,'evenodd');
+      ctx.fillStyle='#dce5e7';ctx.fill(paths.water,'evenodd');
+      ctx.strokeStyle='#c3d2d4';ctx.lineWidth=Math.max(.9,2.2*scale)*unit;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke(paths.waterway);
+      // Stroke roads in order from the smallest to largest. White cores carve true streets
+      // through dark city blocks, retaining an orthographic, north-up layout.
+      const roadSpecs=[
+        [paths.minor,1.15,'#d1d0ca'],
+        [paths.street,2.5,'#cac9c3'],
+        [paths.major,4.35,'#b9bbb5']
+      ];
+      for(const [path,width,color] of roadSpecs){
+        ctx.strokeStyle=color;ctx.lineWidth=Math.max(.65,width*scale+1)*unit;ctx.stroke(path);
+        ctx.strokeStyle='#ffffff';ctx.lineWidth=Math.max(.5,width*scale)*unit;ctx.stroke(path);
+      }
+      if(streetMass){
+        ctx.fillStyle='#ffffff';ctx.fill(paths.building,'evenodd');
+        ctx.lineWidth=Math.max(.75,1.05*scale)*unit;ctx.strokeStyle='#8a8c87';ctx.stroke(paths.building);
       }else{
-        for(const rings of data.buildings){
-          ctx.beginPath();
-          for(const ring of rings){for(let j=0;j<ring.length;j++){const v=ring[j];if(j===0)ctx.moveTo(v[0],v[1]);else ctx.lineTo(v[0],v[1])}ctx.closePath()}
-          ctx.fill('evenodd');if(streetMass)ctx.stroke();
-        }
+        ctx.fillStyle=zoom<13.2?'#363a37':'#262a27';ctx.fill(paths.building,'evenodd');
       }
       ctx.restore();
+      if(zoom>=13.8&&data.poi?.length){
+        const isUseful=x=>x.kind==='place'||/museum|park|garden|station|historic|attraction|hospital|school/.test(x.category);
+        for(const label of data.poi.filter(isUseful).slice(0,15)){
+          const px=left+label.x*tileSize/data.extent,py=top+label.y*tileSize/data.extent;
+          if(px<28||px>w-28||py<30||py>h-42)continue;
+          const key=Math.floor(px/115)+':'+Math.floor(py/27);
+          if(occupied.has(key))continue;occupied.add(key);
+          labels.push({name:label.name,x:px,y:py});
+          if(labels.length>=36)break;
+        }
+      }
+    }
+    if(zoom>=13.8&&labels.length){
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font='500 10.5px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif';
+      ctx.lineJoin='round';ctx.lineWidth=2.6;ctx.strokeStyle='rgba(249,248,245,.96)';ctx.fillStyle='#5c605b';
+      for(const label of labels){ctx.strokeText(label.name,label.x,label.y,118);ctx.fillText(label.name,label.x,label.y,118)}
     }
   }
-  function requestFigure(){if(!map||satelliteOn||!document.body.classList.contains('fg-active'))return;const tiles=figureVisibleTiles();for(const t of tiles){if(figCache.has(t.key)||figPending.has(t.key))continue;if(figPending.size>=(mobileStableMap?2:8))break;figPending.add(t.key);
+    function requestFigure(){if(!map||satelliteOn||!document.body.classList.contains('fg-active'))return;const tiles=figureVisibleTiles();for(const t of tiles){if(figCache.has(t.key)||figPending.has(t.key))continue;if(figPending.size>=(mobileStableMap?2:3))break;figPending.add(t.key);
       const url=FIG_TILE.replace('{z}',t.z).replace('{x}',t.x).replace('{y}',t.y);
-      fetch(url).then(r=>{if(!r.ok)throw Error('建筑数据 '+r.status);return r.arrayBuffer()}).then(b=>{figCache.set(t.key,decodeBuildings(b));if(figCache.size>75)figCache.delete(figCache.keys().next().value);paintBuildings();renderDestinations()}).catch(()=>{figCache.set(t.key,{buildings:[],poi:[],extent:4096})}).finally(()=>{figPending.delete(t.key);if(!satelliteOn&&figPending.size<(mobileStableMap?2:4))setTimeout(requestFigure,mobileStableMap?240:110);});
+      fetch(url).then(r=>{if(!r.ok)throw Error('建筑数据 '+r.status);return r.arrayBuffer()}).then(b=>{const data=decodeBuildings(b);figCache.set(t.key,data);figureReadyTiles++;if(figCache.size>68)figCache.delete(figCache.keys().next().value);paintBuildings();if(!mobileStableMap)renderDestinations()}).catch(err=>{figureFailedTiles++;console.warn('建筑矢量瓦片不可用：',err);figCache.set(t.key,{buildings:[],roads:[],water:[],parks:[],poi:[],extent:4096})}).finally(()=>{figPending.delete(t.key);if(!satelliteOn&&figPending.size<(mobileStableMap?2:3))setTimeout(requestFigure,mobileStableMap?180:100);});
     }}
   function scheduleFigure(){paintBuildings();if(!mobileStableMap)renderDestinations();clearTimeout(figRequestTimer);figRequestTimer=setTimeout(requestFigure,mobileStableMap?390:260)}
 
@@ -2474,6 +2586,7 @@ class Map{
     if(location.protocol==='file:')toast('本地网页用于源码检查，完整地图请访问已部署网站');
     else { /* V22: distant black/white figure-ground, near plan-view building model. */ }
   }
+  window.__atlasArchitectQA=()=>({version:'figure-ground-2.0',zoom:map?.getZoom()||0,loaded:figureReadyTiles,failed:figureFailedTiles,tiles:figCache.size,buildings:[...figCache.values()].reduce((n,x)=>n+(x.buildings?.length||0),0),roads:[...figCache.values()].reduce((n,x)=>n+(x.roads?.length||0),0),hasVectorRoads:true});
   window.__atlasRealPOIQA=()=>({mode:mapMode,shown:isOfficial()?$('atlasPoiOverlay')?.querySelectorAll('.atlas-poi-hit').length:Number($('atlasPoiOverlay')?.dataset.realPoiCount||0),backend:officialPoiBackendAvailable,officialReady:isOfficial()&&document.body.classList.contains('atlas-remote-ready'),vectorReady:isVector()&&vectorMap.loaded(),offline:!document.body.classList.contains('atlas-remote-ready')});
   window.__atlasQA=()=>({mode:mapMode,zoom:currentZoom(),pitch:isVector()?vectorMap.getPitch():isOfficial()?officialMap.getPitch():0,poiButtons:$('atlasPoiOverlay')?.querySelectorAll('button')?.length||0,selected:selectedDestination?.name||null,popup:$('destinationCard').classList.contains('visible'),has3D:isVector()?!!vectorMap.getLayer('atlas-3d-buildings'):!!officialBuildings});
   window.__atlasReframeForCollage=(id)=>{if(window.innerWidth>=740)return;const p=places.find(x=>x.id===id),card=document.getElementById('fpPlaceCard');if(!p||!card||card.hidden)return;const mark=[...document.querySelectorAll('.atlas-bookmark-hit')].find(e=>e.dataset.placeId===id)||document.querySelector('.star-pin.selected');if(!mark)return;const rect=mark.getBoundingClientRect(),top=card.getBoundingClientRect().top;const dy=Math.max(0,Math.min(245,Math.round(rect.bottom-top+64)));if(dy<12)return;try{if(isOfficial()&&officialMap?.panBy)officialMap.panBy(0,-dy);else{const active=isVector()?vectorMap:map;active?.panBy?.([0,-dy],{duration:450})}}catch(e){console.warn('地图避让暂不可用',e)}};
@@ -2545,7 +2658,7 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
 </script>
   <script>
   // Visible build marker for distinguishing a stale offline shell from the live release.
-  window.__atlasBuild='V4.Review.20261103.map-location-r1';
+  window.__atlasBuild='V4.Review.20261103.architectural-v2';
   </script>
   <script>window.__atlasPreferCollage=true</script>
   <script src="/travel-atlas-pages/atlas-orbit.js"></script>
