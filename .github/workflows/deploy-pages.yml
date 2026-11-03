@@ -21,7 +21,7 @@ jobs:
       - name: Prepare public static site
         run: |
           mkdir -p _site
-          cp index.html route-view.html atlas-map-preview.html amap-import.html journey.html journey.css journey.js trip-picker.js trip-picker.css route-picking.css footprint-flow.js footprint-flow.css star-collage.js star-collage.css footprint-home.js footprint-home.css atlas-map-design.js atlas-route-buildings.js atlas-phase1.js atlas-phase1.css atlas-mobile-poi.js atlas-orbit.css atlas-orbit.js atlas-stage5.js atlas-services.js sw.js manifest.webmanifest icon.svg _site/
+          cp index.html route-view.html atlas-map-preview.html amap-import.html journey.html journey.css journey.js trip-picker.js trip-picker.css route-picking.css footprint-flow.js footprint-flow.css star-collage.js star-collage.css footprint-home.js footprint-home.css atlas-map-design.js atlas-route-buildings.js atlas-route-fallback.js atlas-phase1.js atlas-phase1.css atlas-mobile-poi.js atlas-orbit.css atlas-orbit.js atlas-stage5.js atlas-services.js sw.js manifest.webmanifest icon.svg _site/
           mkdir -p _site/docs
           cp docs/TRAVEL_ARCHITECTURE_2026-11-02.md _site/docs/
           touch _site/.nojekyll
@@ -38,6 +38,9 @@ jobs:
           node --check footprint-home.js
           node --check atlas-map-design.js
           node --check atlas-route-buildings.js
+          node --check atlas-route-fallback.js
+          node --check tests/stage2-route-planner.test.cjs
+          node tests/stage2-route-planner.test.cjs
           node --check atlas-phase1.js
           node --check atlas-mobile-poi.js
           node --check tests/architectural-map-v46.test.cjs
