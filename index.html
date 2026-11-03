@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta name="atlas-hosting" content="static">
-<meta name="atlas-release" content="V4.Review.20261103.architectural-v2">
+<meta name="atlas-release" content="V4.Review.20261103.architectural-v2.1">
 <script src="/travel-atlas-pages/atlas-services.js"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -818,6 +818,7 @@ body.fg-active #map .simplemap-labels{opacity:.22!important}
 body.fg-active #map .figure-canvas{z-index:3}
 body.fg-active .simplemap-destinations{z-index:4}
 body.fg-active #map .simplemap-markers{z-index:5}
+body.fg-active #map .simplemap-attrib{display:block!important;z-index:7!important;bottom:calc(93px + env(safe-area-inset-bottom))!important;left:9px!important;background:rgba(251,250,247,.8)!important;color:#85867f!important;border:0!important;padding:3px 5px!important;border-radius:3px!important;font-size:8px!important;letter-spacing:0!important;pointer-events:none!important}
 </style>
 </head>
 <body>
@@ -963,7 +964,7 @@ class Map{
    Array.from(def.pane.children).forEach(im=>{if(!keep.has(im.dataset.key))im.remove()});
   }
   if(!this.style.sources?.labels)this.labelPane.innerHTML='';
-  this.attribution.textContent=this.style?.sources?.base?.attribution||'© OpenStreetMap contributors';
+  this.attribution.textContent=document.body.classList.contains('fg-active')?'OpenFreeMap · OpenMapTiles · © OpenStreetMap contributors':(this.style?.sources?.base?.attribution||'© OpenStreetMap contributors');
   this.markers.forEach(m=>this._placeMarker(m));this._fire('repaint');
  }
  _moveCenter(dx,dy){const z=this.zoom;this.center={lng:pixelToLng(lngToX(this.center.lng,z)-dx,z),lat:pixelToLat(clamp(latToY(this.center.lat,z)-dy,0,world(z)),z)};this._render()}
@@ -2659,7 +2660,7 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
 </script>
   <script>
   // Visible build marker for distinguishing a stale offline shell from the live release.
-  window.__atlasBuild='V4.Review.20261103.architectural-v2';
+  window.__atlasBuild='V4.Review.20261103.architectural-v2.1';
   </script>
   <script>window.__atlasPreferCollage=true</script>
   <script src="/travel-atlas-pages/atlas-orbit.js"></script>
