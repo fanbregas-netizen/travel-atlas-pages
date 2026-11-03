@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta name="atlas-hosting" content="static">
-<meta name="atlas-release" content="V4.Review.20261103.architectural-v3-recovery">
+<meta name="atlas-release" content="V4.Review.20261103.real-vector-v44">
 <script src="/travel-atlas-pages/atlas-services.js"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -835,6 +835,33 @@ body.atlas-architect-recovery.fg-active #map .simplemap-labels{opacity:.3!import
 }
 #atlasArchitectStatus[hidden]{display:none!important}
 #atlasArchitectStatus:disabled{pointer-events:none}
+</style>
+<style id="atlas-real-vector-map-v44">
+/* In previous releases the iPhone stability patch permanently hid the actual vector engine.
+   Override it only after MapLibre and the architectural layer have initialized successfully. */
+html.atlas-stable-map body #atlasVectorMap:not([hidden]){display:block!important}
+html.atlas-stable-map body:not(.vector-active) #map{visibility:visible!important}
+html.atlas-stable-map body.vector-active #map,
+body.vector-active #map{visibility:hidden!important}
+html.atlas-stable-map body.vector-active #atlasVectorMap,
+body.vector-active #atlasVectorMap{display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+html.atlas-stable-map body.atlas-vector-staging #atlasVectorMap,
+body.atlas-vector-staging #atlasVectorMap{opacity:0!important;pointer-events:none!important;visibility:hidden!important}
+body.atlas-vector-ready .maplibregl-map{touch-action:none!important}
+body.atlas-vector-ready #atlasBookmarkOverlay{pointer-events:none}
+body.atlas-vector-ready #atlasBookmarkOverlay .atlas-bookmark-hit{pointer-events:auto}
+body.atlas-vector-ready #atlasPoiOverlay{pointer-events:none}
+body.atlas-vector-ready #atlasPoiOverlay .atlas-poi-hit{pointer-events:auto}
+#atlasVectorReviewStatus{
+ position:fixed;left:12px;bottom:calc(155px + env(safe-area-inset-bottom));z-index:906;
+ padding:6px 10px;border:1px solid #ddd8cb;border-radius:9px;
+ background:rgba(250,249,245,.94);box-shadow:0 2px 13px #00000016;
+ color:#585c55;font:500 10px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;
+ letter-spacing:.015em;pointer-events:none
+}
+#atlasVectorReviewStatus[data-state='ready']{color:#343a33}
+#atlasVectorReviewStatus[data-state='failed']{color:#97431f;pointer-events:auto;cursor:pointer}
+#atlasVectorReviewStatus[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -2458,8 +2485,10 @@ class Map{
   const isVector=()=>mapMode==='vector'&&!!vectorMap;
   function mapConnection(message,active=true){const el=$('mapConnectionNote');el.textContent=message;el.hidden=!active;}
   function vectorSetStyle(){
-    if(!vectorMap)return;
-    try{window.AtlasFigureGround?.apply?.(vectorMap)}catch(err){console.warn('建筑地图样式待加载',err)}
+    if(!vectorMap)return {ok:false,reason:'no-vector-map'};
+    let styleStatus={ok:false,reason:'design-script-not-loaded'};
+    try{styleStatus=window.AtlasFigureGround?.apply?.(vectorMap)||styleStatus}catch(err){console.warn('建筑地图样式待加载',err);styleStatus={ok:false,reason:String(err)}}
+    window.__atlasVectorStyleQA=styleStatus;
     const layers=vectorMap.getStyle()?.layers||[];
     for(const layer of layers){if(layer.type!=='symbol')continue;
       try{const id=String(layer.id).toLowerCase(),src=String(layer['source-layer']||'').toLowerCase(),key=id+src;
@@ -2470,6 +2499,7 @@ class Map{
     }
     // Figure-ground is strictly overhead 2D: do not add 3D extrusion layers.
     updateVectorCamera(true);
+    return styleStatus;
   }
   function updateVectorCamera(){
     if(!isVector())return;
@@ -2583,53 +2613,119 @@ class Map{
     hideDestination();
   }
   let fallbackScriptRequest=null;
+function mapVectorStatus(message,state='loading'){
+    let el=$('atlasVectorReviewStatus');
+    if(!el){el=document.createElement('button');el.id='atlasVectorReviewStatus';el.type='button';el.setAttribute('aria-live','polite');document.body.appendChild(el)}
+    el.textContent=message;el.dataset.state=state;el.hidden=false;
+    el.onclick=state==='failed'?()=>{el.textContent='正在重新连接建筑地图…';el.dataset.state='loading';activateVectorMap()}:null;
+    return el;
+  }
   function injectMapLibre(){
     if(window.maplibregl)return Promise.resolve(window.maplibregl);
     if(fallbackScriptRequest)return fallbackScriptRequest;
     fallbackScriptRequest=new Promise((resolve,reject)=>{
-      const css=document.createElement('link');css.rel='stylesheet';css.href='https://cdn.jsdelivr.net/npm/maplibre-gl@5.12.0/dist/maplibre-gl.css';document.head.append(css);
-      const t=setTimeout(()=>reject(Error('矢量地图组件加载超时')),14500);
-      const finish=()=>{clearTimeout(t);window.maplibregl?resolve(window.maplibregl):reject(Error('矢量地图组件启动失败'))};
-      const load=(url,fallback)=>{const sc=document.createElement('script');sc.src=url;sc.async=true;sc.onload=finish;sc.onerror=()=>{if(fallback)load(fallback,null);else{clearTimeout(t);reject(Error('矢量地图脚本读取失败'))}};document.head.append(sc)};
-      load('https://cdn.jsdelivr.net/npm/maplibre-gl@5.12.0/dist/maplibre-gl.js','https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js');
-    });return fallbackScriptRequest;
+      const css=document.createElement('link');css.rel='stylesheet';
+      css.href='https://cdn.jsdelivr.net/npm/maplibre-gl@5.12.0/dist/maplibre-gl.css';document.head.append(css);
+      const urls=[
+        'https://cdn.jsdelivr.net/npm/maplibre-gl@5.12.0/dist/maplibre-gl.js',
+        'https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js'
+      ];
+      let index=0,finished=false;
+      const next=()=>{
+        if(finished)return;
+        const url=urls[index++];if(!url){finished=true;reject(Error('无法连接地图引擎 CDN'));return}
+        const sc=document.createElement('script');sc.src=url;sc.async=true;
+        const timeout=setTimeout(()=>{sc.remove();next()},10000);
+        sc.onload=()=>{clearTimeout(timeout);if(finished)return;
+          if(window.maplibregl){finished=true;resolve(window.maplibregl)}else next();
+        };
+        sc.onerror=()=>{clearTimeout(timeout);sc.remove();next()};
+        document.head.append(sc);
+      };
+      next();
+    }).catch(err=>{fallbackScriptRequest=null;throw err});
+    return fallbackScriptRequest;
   }
   function recoverFromVectorFailure(message){
-    // Preserve user bookmarks and recover the already initialized raster map.
-    document.body.classList.remove('vector-active');
+    document.body.classList.remove('vector-active','atlas-vector-ready','atlas-vector-staging','atlas-remote-ready');
     document.body.classList.add('legacy-recovery');
     $('atlasVectorMap').hidden=true;
     if(vectorMap){try{vectorMap.remove()}catch(_){}}
     vectorMap=null;vectorSelectionMarker=null;vectorYouMarker=null;
     mapMode='figure';
-    if(map){map.resize();renderDestinations();}
-    mapConnection(message||'矢量地图无法连接，已切换到基础地图。',true);
+    if(map){map.resize();updateLayerLabel();scheduleFigure();renderDestinations()}
+    mapVectorStatus('建筑地图连接失败 · 点击重试','failed');
+    mapConnection(message||'矢量地图暂时不可用，已返回可操作的备用地图。',true);
   }
   async function activateVectorMap(){
     if(vectorStarting||vectorMap)return;
     vectorStarting=true;
-    mapConnection('正在连接黑白城市建筑地图…');
+    mapVectorStatus('正在连接真实建筑地图…','loading');
     try{
-      await injectMapLibre();
+      const lib=await injectMapLibre();
+      if(!lib?.supported?.()){throw Error('此浏览器无法使用 WebGL 矢量地图')}
       const c=currentCenter();
       $('atlasVectorMap').hidden=false;
-      vectorMap=new window.maplibregl.Map({container:'atlasVectorMap',style:'https://tiles.openfreemap.org/styles/bright',center:[c.lng,c.lat],zoom:Math.max(13,Math.min(16,currentZoom())),pitch:0,bearing:0,maxPitch:0,minZoom:2,maxZoom:19,attributionControl:true,dragRotate:false,renderWorldCopies:false});
-      mapMode='vector';document.body.classList.add('vector-active');document.body.classList.remove('amap-active');
+      document.body.classList.add('atlas-vector-staging');
+      vectorMap=new lib.Map({
+        container:'atlasVectorMap',
+        style:'https://tiles.openfreemap.org/styles/bright',
+        center:[c.lng,c.lat],zoom:currentZoom(),
+        pitch:0,bearing:0,maxPitch:0,minZoom:2,maxZoom:19,
+        attributionControl:true,dragRotate:false,
+        pitchWithRotate:false,renderWorldCopies:false,
+        cooperativeGestures:false,fadeDuration:0
+      });
+      // Keep map mode in sync for GPS, saved locations, bookmarks and zoom buttons.
+      mapMode='vector';
       vectorMap.touchZoomRotate.disableRotation();
       let loaded=false;
-      vectorMap.once('load',()=>{loaded=true;document.body.classList.add('atlas-remote-ready');vectorSetStyle();renderVectorBookmarks();scheduleVectorPOIs();updateVectorUserLocation();if(selectedDestination)showVectorSelection(selectedDestination);mapConnection('',false)});
-      vectorMap.on('error',e=>{if(!loaded){console.warn('矢量图层加载中',e.error);mapConnection('矢量瓦片加载失败，请检查网络后刷新');}});
+      vectorMap.once('load',()=>{
+        if(!vectorMap)return;
+        loaded=true;
+        const styling=vectorSetStyle();
+        if(!styling?.ok){
+          recoverFromVectorFailure('矢量图已连接，但建筑图层没有正确加载：'+String(styling?.reason||'unknown'));
+          return;
+        }
+        document.body.classList.remove('atlas-vector-staging','legacy-recovery');
+        document.body.classList.add('vector-active','atlas-vector-ready','atlas-remote-ready');
+        updateLayerLabel();
+        vectorMap.resize();
+        renderVectorBookmarks();
+        scheduleVectorPOIs();
+        updateVectorUserLocation();
+        if(selectedDestination)showVectorSelection(selectedDestination);
+        mapConnection('',false);
+        mapVectorStatus('建筑地图 V4.4 · 真实矢量','ready');
+      });
+      vectorMap.on('error',e=>{
+        if(!loaded){console.warn('真实建筑地图瓦片加载失败',e.error);
+          mapVectorStatus('建筑地图连接中，正在检查数据…','loading')}
+      });
       vectorMap.on('click',selectVectorTap);
-      vectorMap.on('move',()=>{userHasMovedMap=true;renderVectorBookmarks();if(selectedId)relayoutMemoryOpen();const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='0'});
-      vectorMap.on('moveend',()=>{rememberMapView();renderVectorBookmarks();scheduleVectorPOIs();const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='1';const c=vectorMap.getCenter();map.jumpTo({center:[c.lng,c.lat],zoom:vectorMap.getZoom()});});
+      vectorMap.on('dragstart',()=>{userHasMovedMap=true});
+      vectorMap.on('move',()=>{
+        if(!document.body.classList.contains('atlas-vector-ready'))return;
+        renderVectorBookmarks();
+        if(selectedId)relayoutMemoryOpen();
+        const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='0';
+      });
+      vectorMap.on('moveend',()=>{
+        if(!vectorMap||!document.body.classList.contains('atlas-vector-ready'))return;
+        rememberMapView();
+        renderVectorBookmarks();scheduleVectorPOIs();
+        const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='1';
+        const c=vectorMap.getCenter();
+        map.jumpTo({center:[c.lng,c.lat],zoom:vectorMap.getZoom()});
+      });
       vectorMap.on('zoomend',()=>{updateVectorCamera();renderVectorBookmarks();scheduleVectorPOIs()});
       vectorMap.on('styledata',scheduleVectorPOIs);
-      setTimeout(()=>{if(!loaded&&mapMode==='vector')recoverFromVectorFailure('矢量瓦片连接超时，已切换到基础地图。')},13500);
-    }catch(e){console.error(e);recoverFromVectorFailure('无法加载矢量建筑图，已切换到基础地图。');}
+      setTimeout(()=>{if(!loaded&&vectorMap)recoverFromVectorFailure('建筑地图资源超时，已切换到备用地图。')},19500);
+    }catch(err){console.warn('建筑地图连接失败:',err);recoverFromVectorFailure(String(err?.message||err))}
     finally{vectorStarting=false}
   }
-
-  async function init(){
+    async function init(){
     await database();
     const initFlag=await getMeta('initialized');
     if(!initFlag){await setMeta('initialized',true)}
@@ -2652,8 +2748,9 @@ class Map{
     $('retryMap').onclick=()=>{if(!map){location.reload();return}streetSource=0;installTileLayer('street',true)};
     $('btnZoomIn').onclick=()=>map?zoomMap(1):toast('地图尚未加载');$('btnZoomOut').onclick=()=>map?zoomMap(-1):toast('地图尚未加载');
     $('btnLocate').onclick=()=>{if(!map){toast('地图尚未加载');return}userHasMovedMap=false;requestCurrentLocation(true)};
-    // AMap is the only displayed provider; initialize it automatically once controls are ready.
-    if(!mobileStableMap)Promise.resolve().then(()=>activateOfficial());
+    // Main display is a real 2D MapLibre vector map; the original lightweight engine is the safety fallback.
+    // Do not activate AMap automatically: static GitHub Pages has no AMap backend credentials.
+    Promise.resolve().then(()=>activateVectorMap());
     $('quickNear').onclick=()=>{discoverNear();closeSearchResults()};$('quickStars').onclick=openDrawer;$('quickPin').onclick=()=>{$('navAdd').click()};
     $('chipDiscover').onclick=discoverNear;
     $('chipAll').onclick=()=>{closeMemory();setPicking(false);if(places.length)fitMapPlaces(places,12);else toast('还没有收藏的地点')};
@@ -2749,7 +2846,7 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
 </script>
   <script>
   // Visible build marker for distinguishing a stale offline shell from the live release.
-  window.__atlasBuild='V4.Review.20261103.architectural-v3-recovery';
+  window.__atlasBuild='V4.Review.20261103.real-vector-v44';
   </script>
   <script>window.__atlasPreferCollage=true</script>
   <script src="/travel-atlas-pages/atlas-orbit.js"></script>
