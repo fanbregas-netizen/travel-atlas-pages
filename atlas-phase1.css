@@ -134,3 +134,6 @@ body.fp-place-open #atlasPoiOverlay .atlas-mobile-poi{pointer-events:none!import
 .atlas-light-selection-pin:before{content:"";position:absolute;left:5px;top:4px;width:30px;height:30px;background:#f5c44b;border:2px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg)}
 .atlas-light-selection-hole{position:absolute;left:16px;top:15px;width:10px;height:10px;background:#fffdf6;border-radius:50%;z-index:1}
 @media(prefers-reduced-motion:reduce){.atlas-light-selection-pin{animation:none}}
+
+/* Map marker wrapper must anchor its pointer to the exact coordinate, not its center. */
+.map-local-marker.atlas-light-selection-pin{transform:translate(-50%,-100%)!important;pointer-events:none!important}
