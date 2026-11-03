@@ -1,61 +1,34 @@
-/* V4 stage review: native-feeling, shared three-stop sheets. No synthetic map markers. */
+/* V4 mobile sheet motion · no duplicate markers or independent order layer. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
-const sheetConfigs={
- fpSearchSheet:{stops:[.32,.59,.91],initial:1,head:'.fp-search-grip',close:'.fp-search-close'},
- fpPlaceCard:{stops:[.49,.70,.91],initial:0,head:'.atlas-card-grip',close:'.fp-card-close'}
-};
-let queued=false;
-const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-function visibleHeight(){return Math.max(290,window.visualViewport?.height||window.innerHeight)}
-function snap(node,at,config,gesture=false){at=clamp(at,0,2);node.dataset.atlasSnap=['peek','half','full'][at];node.style.removeProperty('height');node.style.removeProperty('transition');delete node.dataset.dragging;node.dataset.snapIndex=String(at);
-  const head=node.querySelector(config.head);head?.setAttribute('aria-valuenow',String(at+1));
-  if(gesture){try{if(navigator.vibrate)navigator.vibrate(4)}catch(_){}}
+const states=['peek','half','full'];
+const handlers=new WeakSet();
+const current=node=>Math.max(0,states.indexOf(node.dataset.atlasSnap||'peek'));
+function setSnap(node,index){const next=Math.max(0,Math.min(2,index));node.dataset.atlasSnap=states[next];node.querySelector('[data-atlas-grip]')?.setAttribute('aria-valuenow',String(next+1));}
+function closeSheet(node){if(node.id==='fpSearchSheet')node.querySelector('.fp-search-close')?.click();else if(node.id==='fpPlaceCard')node.querySelector('.fp-card-close')?.click();}
+function install(node,selector,initial){
+ if(!node)return;let grip=node.querySelector(selector);
+ if(!grip&&node.id==='fpPlaceCard'){grip=document.createElement('button');grip.type='button';grip.className='atlas-card-grip';grip.setAttribute('aria-label','上下滑动地点卡片');node.insertBefore(grip,node.firstChild)}
+ if(!grip||handlers.has(grip))return;handlers.add(grip);
+ grip.setAttribute('data-atlas-grip','');grip.setAttribute('role','slider');grip.setAttribute('aria-label','上下滑动卡片');grip.setAttribute('aria-valuemin','1');grip.setAttribute('aria-valuemax','3');grip.tabIndex=0;
+ node.dataset.atlasSnap=initial;setSnap(node,states.indexOf(initial));
+ let start=null,dragging=false;
+ grip.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;start={y:e.clientY,x:e.clientX,id:e.pointerId,time:performance.now()};dragging=false;try{grip.setPointerCapture(e.pointerId)}catch(_){}});
+ grip.addEventListener('pointermove',e=>{if(!start||start.id!==e.pointerId)return;const dy=e.clientY-start.y;if(Math.abs(dy)>6)dragging=true;if(!dragging)return;node.style.setProperty('--fp-drag-offset',Math.max(-34,Math.min(90,dy*.55))+'px')});
+ grip.addEventListener('pointerup',e=>{if(!start)return;const dy=e.clientY-start.y,elapsed=Math.max(1,performance.now()-start.time);start=null;node.style.removeProperty('--fp-drag-offset');if(Math.abs(dy)<28)return;const direction=dy<0?1:-1;const jump=Math.abs(dy)>148||Math.abs(dy/elapsed)>1.55?2:1;const next=current(node)+direction*jump;if(next<0)closeSheet(node);else setSnap(node,next)});
+ grip.addEventListener('pointercancel',()=>{start=null;node.style.removeProperty('--fp-drag-offset')});
+ grip.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();const next=current(node)+(e.key==='ArrowUp'?1:-1);if(next<0)closeSheet(node);else setSnap(node,next)}else if(e.key==='Escape'){e.preventDefault();closeSheet(node)}});
+ // A gesture starting at the top of the scroll container can open the sheet,
+ // without stealing normal scroll, selection, media controls, or edit fields.
+ const sc=node.querySelector(node.id==='fpPlaceCard'?'.fp-card-scroll':'.fp-search-body');
+ if(sc&&!handlers.has(sc)){handlers.add(sc);let at=null;sc.addEventListener('touchstart',e=>{if(e.touches.length!==1||e.target.closest('button,a,input,textarea,select,video')){at=null;return}at={y:e.touches[0].clientY,scroll:sc.scrollTop}},{passive:true});
+ sc.addEventListener('touchend',e=>{if(!at||e.changedTouches.length!==1)return;const diff=e.changedTouches[0].clientY-at.y;const canCollapse=at.scroll<=3&&diff>75;const canExpand=diff< -80&&current(node)<2;if(canCollapse)setSnap(node,current(node)-1);else if(canExpand)setSnap(node,current(node)+1);at=null},{passive:true});
+ sc.addEventListener('touchcancel',()=>{at=null},{passive:true})}
+ new MutationObserver(()=>{if(node.hidden){setSnap(node,states.indexOf(initial));node.style.removeProperty('--fp-drag-offset')}}).observe(node,{attributes:true,attributeFilter:['hidden']});
 }
-function attach(node,handle,cfg){if(!handle||handle.dataset.atlasMotionAttached)return;
- handle.dataset.atlasMotionAttached='1';handle.setAttribute('role','slider');handle.tabIndex=0;
- handle.setAttribute('aria-label','向上展开或向下收起卡片');handle.setAttribute('aria-valuemin','1');handle.setAttribute('aria-valuemax','3');
- if(!node.dataset.atlasSnap)snap(node,cfg.initial,cfg);
- const size=i=>Math.min(visibleHeight()-18,Math.round(visibleHeight()*cfg.stops[i]));
- let touch=null,frame=0;
- handle.addEventListener('pointerdown',e=>{if(e.target.closest?.('button,a,input,textarea,select'))return;
-   const rect=node.getBoundingClientRect(),cur=['peek','half','full'].indexOf(node.dataset.atlasSnap);touch={id:e.pointerId,y:e.clientY,t:performance.now(),height:rect.height,index:Math.max(0,cur),lastY:e.clientY,lastT:performance.now()};
-   node.dataset.dragging='1';node.style.transition='none';try{handle.setPointerCapture(e.pointerId)}catch(_){}},{passive:true});
- handle.addEventListener('pointermove',e=>{if(!touch||touch.id!==e.pointerId)return;
-   const y=e.clientY;touch.lastY=y;touch.lastT=performance.now();
-   cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(!touch)return;const h=clamp(touch.height-(touch.lastY-touch.y),size(0)-55,size(2)+24);node.style.height=h+'px'});},{passive:true});
- const finish=e=>{if(!touch||touch.id!==e.pointerId)return;cancelAnimationFrame(frame);
-   const dt=Math.max(16,performance.now()-touch.t),distance=e.clientY-touch.y,velocity=distance/dt,initial=touch.index;touch=null;
-   let target=initial;
-   if(Math.abs(distance)>24){if(Math.abs(velocity)>.42||Math.abs(distance)>64)target=clamp(initial+(distance<0?1:-1),0,2);
-   else{const h=node.getBoundingClientRect().height;target=[0,1,2].reduce((best,i)=>Math.abs(h-size(i))<Math.abs(h-size(best))?i:best,initial);}}
-   if(initial===0&&distance>96&&velocity>.36){node.querySelector(cfg.close)?.click();return}
-   snap(node,target,cfg,true);
- };
- handle.addEventListener('pointerup',finish);
- handle.addEventListener('pointercancel',e=>{if(touch&&e.pointerId===touch.id){touch=null;cancelAnimationFrame(frame);snap(node,Number(node.dataset.snapIndex||cfg.initial),cfg)}});
- handle.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();snap(node,Number(node.dataset.snapIndex||cfg.initial)+(e.key==='ArrowUp'?1:-1),cfg,true)}else if(e.key==='Escape'){e.preventDefault();node.querySelector(cfg.close)?.click()}});
-}
-function resetOnHide(node,config){if(node.dataset.atlasResetObserved)return;node.dataset.atlasResetObserved='1';
- new MutationObserver(()=>{if(node.hidden)snap(node,config.initial,config)}).observe(node,{attributes:true,attributeFilter:['hidden']});
-}
-function ensureHandles(){for(const [id,cfg] of Object.entries(sheetConfigs)){const node=$(id);if(!node)continue;
-  if(id==='fpPlaceCard'&&!node.querySelector('.atlas-card-grip')&&node.querySelector('.fp-card-header')){const grip=document.createElement('div');grip.className='atlas-card-grip';node.insertBefore(grip,node.querySelector('.fp-card-header'))}
-  const grip=node.querySelector(cfg.head);if(grip)attach(node,grip,cfg);
-  resetOnHide(node,cfg);
-}}
-function setupViewport(){const v=window.visualViewport;
- const refresh=()=>{if(!v)return;const keyboard=Math.max(0,window.innerHeight-v.height-v.offsetTop);
- document.documentElement.style.setProperty('--atlas-safe-visual-height',Math.max(290,v.height)+'px');
- document.documentElement.style.setProperty('--atlas-keyboard-bottom',keyboard+'px');
- const search=$('fpSearchSheet');if(search&&!search.hidden&&keyboard>120&&search.dataset.dragging!=='1')snap(search,2,sheetConfigs.fpSearchSheet);
- };
- v?.addEventListener('resize',refresh,{passive:true});v?.addEventListener('scroll',refresh,{passive:true});
- window.addEventListener('orientationchange',refresh,{passive:true});refresh();
-}
-function init(){ensureHandles();new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;ensureHandles()})}).observe(document.body,{childList:true,subtree:true});
- setupViewport();
- window.AtlasPhase1={version:'native-sheets-no-extra-markers-20261103',attach,snap};
-}
+function viewPort(){const v=window.visualViewport;if(!v)return;const update=()=>{const height=Math.max(300,v.height),kb=Math.max(0,innerHeight-v.height-v.offsetTop);document.documentElement.style.setProperty('--atlas-visible-height',height+'px');document.documentElement.style.setProperty('--atlas-keyboard-bottom',kb+'px');const search=$('fpSearchSheet');if(search&&!search.hidden&&kb>100)setSnap(search,2)};
+ v.addEventListener('resize',update,{passive:true});v.addEventListener('scroll',update,{passive:true});update()}
+function setup(){install($('fpSearchSheet'),'.fp-search-grip','half');install($('fpPlaceCard'),'.atlas-card-grip','peek');}
+function init(){setup();new MutationObserver(()=>{setup()}).observe(document.body,{childList:true,subtree:true});viewPort();window.AtlasPhase1={version:'V4-mobile-sheets-final-20261103',setSnap}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
