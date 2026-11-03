@@ -69,6 +69,172 @@ const linksOf=p=>{const o=[...(Array.isArray(p.references)?p.references:[]),...(
 function sourceName(url){try{const host=new URL(url).hostname.replace(/^www\./,'');return /xiaohongshu/.test(host)?'小红书':/bilibili/.test(host)?'Bilibili':/youtube|youtu\.be/.test(host)?'YouTube':/weixin|qq\.com/.test(host)?'微信公众号':host}catch{return '社交链接'}}
 function sectionHeading(number,name,button){const bar=h('div','fp-subheading');bar.append(h('strong','',number+' / '+name));if(button)bar.append(button);return bar}
 function feedback(msg){const e=$('fpCardFeedback');if(e)e.textContent=msg}
+
+// Stage 4 | A local, opt-in visit and album archive. iOS Safari cannot read
+// the Photos library without the visitor selecting files, so never imply passive sync.
+let visitSaving=false,albumDialog=null,albumInput=null,albumRows=null,albumStatus=null,albumSave=null,albumClose=null,albumStaged=[],albumSaving=false;
+const visitCore=()=>window.AtlasVisitMedia;
+function visitTime(p){
+ if(!p?.visitedAt)return '';
+ const date=new Date(p.visitedAt);
+ return Number.isFinite(date.getTime())?date.toLocaleDateString('zh-CN',{year:'numeric',month:'short',day:'numeric'}):'';
+}
+async function updateVisited(id,source,meters=null){
+ if(visitSaving)return;
+ visitSaving=true;
+ try{
+  const fresh=await readPlace(id);if(!fresh)throw Error('星标不存在');
+  if(source==='undo'){
+   delete fresh.visitedAt;delete fresh.visitSource;delete fresh.checkinDistanceMeters;
+   if(fresh.stage==='visited')fresh.stage='planned';
+  }else{
+   fresh.visitedAt=fresh.visitedAt||new Date().toISOString();
+   fresh.visitSource=source;fresh.stage='visited';
+   if(Number.isFinite(meters))fresh.checkinDistanceMeters=Math.round(meters);
+  }
+  await writePlace(fresh);
+  if(activePlaceId===id)await renderPlace(id);
+  feedback(source==='undo'?'已撤销到访记录；影像和 Brief 未删除':'到访记录已保存到此星标。旅行照片可以继续整理到这里。');
+ }catch(err){feedback('保存到访记录失败：'+String(err?.message||err))}
+ finally{visitSaving=false}
+}
+function checkLocationForVisit(id){
+ if(!navigator.geolocation){feedback('当前浏览器不支持定位，可选择手动确认到访。');return}
+ feedback('正在使用当前位置核对星标距离…');
+ navigator.geolocation.getCurrentPosition(async position=>{
+  const place=await readPlace(id);
+  if(!place){feedback('该星标已不存在');return}
+  const core=visitCore();
+  if(!core){feedback('位置核对组件尚未加载');return}
+  const meters=core.distanceMeters({lat:position.coords.latitude,lng:position.coords.longitude},place);
+  const accuracy=Number(position.coords.accuracy);
+  if(!Number.isFinite(accuracy)||accuracy>2000){feedback('当前定位精度较低，无法可靠核对。可改用手动确认到访。');return}
+  if(!Number.isFinite(meters)||meters>2000){feedback('当前距该星标约 '+Math.round(meters/1000*10)/10+' 公里，未自动标记到访。');return}
+  await updateVisited(id,'gps-confirmed',meters);
+ },error=>feedback(error?.code===1?'未获得定位权限。可手动确认到访。':'定位不可用，请稍后重试或手动确认。'),
+ {enableHighAccuracy:true,timeout:13000,maximumAge:30000});
+}
+function visitWidget(p){
+ const box=h('div','fp-visit-panel'),info=h('div','fp-visit-info');
+ info.append(h('strong','',p.visitedAt?'✓ 已到访 · '+visitTime(p):'○ 尚未记录到访'));
+ info.append(h('small','',p.visitedAt?(p.visitSource==='gps-confirmed'?'通过当前位置核对 · 记录保存在本机':'手动到访记录 · 保存在本机'):'记录旅行足迹后，可把相册影像归档到这颗星标。'));
+ box.append(info);
+ const controls=h('div','fp-visit-controls');
+ if(!p.visitedAt){
+  controls.append(btn('✓ 我到过这里',()=>updateVisited(p.id,'manual'),'fp-visit-button'));
+  controls.append(btn('◎ 定位核对',()=>checkLocationForVisit(p.id),'fp-visit-button secondary'));
+ }else controls.append(btn('撤销到访',()=>{if(confirm('仅撤销到访标记？已有 Brief、照片和视频不会删除。'))updateVisited(p.id,'undo')},'fp-visit-button secondary'));
+ controls.append(btn('从相册归档',()=>openAlbumImport(p.id),'fp-visit-button accent'));
+ box.append(controls);
+ return box;
+}
+function createAlbumImport(){
+ if(albumDialog)return;
+ albumDialog=h('dialog','fp-album-dialog');albumDialog.id='fpAlbumImport';
+ albumDialog.setAttribute('aria-label','把相册影像整理到收藏星标');
+ albumDialog.innerHTML='<div class="fp-album-head"><div><small>LOCAL PHOTO ARCHIVE</small><h2>整理旅行相册</h2></div><button class="fp-album-close" id="fpAlbumClose" type="button" aria-label="关闭">×</button></div>'+
+ '<p class="fp-album-note">从 iPhone 相册主动选择照片或视频。JPEG 如含 GPS，可在本机建议最近的黄色星标；归属必须由你确认。没有 GPS 的照片请手动选择，不会自动读取整个相册或上传云端。</p>'+
+ '<div class="fp-album-pick"><button id="fpAlbumChoose" type="button">＋ 选择照片 / 视频</button><input id="fpAlbumFiles" type="file" accept="image/*,video/*" multiple hidden></div>'+
+ '<div id="fpAlbumRows" class="fp-album-rows"></div><p id="fpAlbumStatus" class="fp-album-status" role="status" aria-live="polite">每次最多 24 项，单个视频最多 40MB。</p>'+
+ '<div class="fp-album-actions"><button id="fpAlbumSave" type="button" disabled>确认归档到星标</button></div>';
+ document.body.append(albumDialog);
+ albumInput=$('fpAlbumFiles');albumRows=$('fpAlbumRows');albumStatus=$('fpAlbumStatus');
+ albumSave=$('fpAlbumSave');albumClose=$('fpAlbumClose');
+ $('fpAlbumChoose').onclick=()=>{if(!albumSaving)albumInput.click()};
+ albumInput.onchange=()=>stageAlbumFiles([...albumInput.files]);
+ albumSave.onclick=saveAlbumArchive;
+ albumClose.onclick=()=>{if(!albumSaving)albumDialog.close()};
+ albumDialog.addEventListener('cancel',e=>{if(albumSaving)e.preventDefault()});
+}
+async function openAlbumImport(defaultId=''){
+ createAlbumImport();albumDialog.dataset.defaultId=defaultId;
+ albumStaged=[];albumRows.replaceChildren();albumSave.disabled=true;
+ albumInput.value='';
+ albumStatus.textContent='选择照片/视频后，可逐项核对目标星标。所有处理只在本机进行。';
+ if(!albumDialog.open)albumDialog.showModal();
+}
+async function stageAlbumFiles(files){
+ const core=visitCore();
+ if(!core){albumStatus.textContent='相册整理组件尚未加载，请刷新后重试。';return}
+ if(albumSaving)return;
+ albumSave.disabled=true;albumRows.replaceChildren();albumStaged=[];
+ const candidates=(await readPlaces()).filter(p=>p?.id&&p.starred!==false&&!p.demo).sort((a,b)=>String(a.title||'').localeCompare(String(b.title||''),'zh-CN'));
+ if(!candidates.length){albumStatus.textContent='还没有可归档的黄色星标，请先在地图上收藏地点。';return}
+ const good=files.slice(0,core.MAX_FILES).filter(f=>core.knownPhoto(f)||core.knownVideo(f));
+ if(!good.length){albumStatus.textContent='没有可读取的照片或视频。';return}
+ albumStatus.textContent='正在本机检查已选择文件的地点信息…';
+ for(const file of good){
+  const gps=await core.readFileGps(file);
+  const closest=gps?core.nearestStar(gps,candidates):null;
+  const defaultId=albumDialog.dataset.defaultId||'';
+  const suggested=closest?.id||defaultId;
+  const row=h('div','fp-album-row'),left=h('div','fp-album-file');
+  left.append(h('strong','',String(file.name||'未命名影像').slice(0,100)));
+  left.append(h('small','',closest?
+   '📍 根据照片 GPS 推荐 · 距星标约 '+Math.round(closest.meters)+' m':
+   gps?'照片 GPS 附近没有已收藏星标，请手动指定':
+   '未发现可用 JPEG GPS · 请核对地点'));
+  const select=h('select','fp-album-target');select.setAttribute('aria-label','为 '+String(file.name||'影像')+' 选择星标');
+  select.add(new Option('请选择目标星标',''));
+  for(const place of candidates)select.add(new Option(String(place.title||place.name||'未命名地点').slice(0,90),String(place.id)));
+  select.value=suggested;select.onchange=validateAlbumSelection;
+  row.append(left,select);albumRows.append(row);
+  albumStaged.push({file,select,matchedByExif:!!closest&&closest.id===suggested});
+ }
+ albumStatus.textContent='已选择 '+albumStaged.length+' 项。请检查每个文件归属的星标，再点「确认归档」。'+(files.length>good.length?' 超出上限或不支持的文件已略过。':'');
+ validateAlbumSelection();
+}
+function validateAlbumSelection(){
+ if(!albumSave)return;
+ albumSave.disabled=albumSaving||!albumStaged.length||albumStaged.some(row=>!row.select.value);
+}
+async function saveAlbumArchive(){
+ if(albumSaving||!albumStaged.length||albumStaged.some(x=>!x.select.value))return;
+ const core=visitCore();if(!core)return;
+ albumSaving=true;albumSave.disabled=true;albumClose.disabled=true;
+ const groups=new Map();
+ for(const row of albumStaged){const id=row.select.value;if(!groups.has(id))groups.set(id,[]);groups.get(id).push(row)}
+ let added=0,duplicate=0,failed=0;const errors=[];
+ try{
+  for(const [id,rows] of groups){
+   const saved=await readPlace(id);if(!saved){failed+=rows.length;errors.push('星标不存在');continue}
+   const photos=[...(saved.photos||[])],videos=[...(saved.videos||[])];
+   let groupAdded=0;
+   for(const {file} of rows){
+    try{
+     const fingerprint=core.fingerprint(file);
+     if([...photos,...videos].some(v=>v.fingerprint===fingerprint)){duplicate++;continue}
+     if(core.knownPhoto(file)){
+      if(photos.length>=core.PHOTO_LIMIT){failed++;errors.push('照片超过上限');continue}
+      const photo=await shrinkPhoto(file);
+      photos.push({...photo,fingerprint,source:'local-album',capturedAt:Number.isFinite(file.lastModified)&&file.lastModified>0?new Date(file.lastModified).toISOString():null});
+      groupAdded++;
+     }else if(core.knownVideo(file)){
+      if(videos.length>=core.VIDEO_LIMIT||file.size>core.MAX_VIDEO_BYTES){failed++;errors.push('视频达到数量或大小上限');continue}
+      videos.push({name:file.name,type:file.type||'video/mp4',bytes:await file.arrayBuffer(),fingerprint,source:'local-album',addedAt:new Date().toISOString()});
+      groupAdded++;
+     }
+    }catch(err){failed++;errors.push(String(err?.message||err))}
+   }
+   if(groupAdded){
+    try{await writePlace({...saved,photos,videos});added+=groupAdded}
+    catch(err){failed+=groupAdded;errors.push('本机保存失败：'+String(err?.message||err))}
+   }
+  }
+  if(activePlaceId)await renderPlace(activePlaceId);
+  albumStatus.textContent='归档完成：'+added+' 项保存到对应星标；'+duplicate+' 项重复；'+failed+' 项未保存。'+(errors.length?' 请检查存储空间或文件格式。':' 建议定期导出 ZIP 备份。');
+  if(!failed&&added)albumStaged=[];
+ }finally{albumSaving=false;albumClose.disabled=false;validateAlbumSelection()}
+}
+function mountAlbumEntry(){
+ createAlbumImport();
+ const actions=document.querySelector('#drawer .backuprow');
+ if(actions&&!$('fpArchiveAlbum')){
+  const b=btn('＋ 整理相册到星标',()=>openAlbumImport(),'fp-archive-entry');b.id='fpArchiveAlbum';
+  actions.prepend(b);
+ }
+}
+
 function mountPlace(){if(placeCard)return;placeCard=h('article');placeCard.id='fpPlaceCard';placeCard.hidden=true;placeCard.setAttribute('role','dialog');placeCard.setAttribute('aria-modal','false');placeCard.setAttribute('aria-label','收藏地点详情');document.body.append(placeCard);
  document.addEventListener('atlas:memory-open',e=>{if(window.__atlasPreferCollage!==false)showPlaceCard(e.detail?.id)});
  document.addEventListener('pointerdown',e=>{if(!activePlaceId)return;if(e.target.closest('#fpPlaceCard,#fpMediaViewer,.star-pin,.atlas-bookmark-hit,.atlas-photo-location-pin,.atlas-vector-photo-pin,.atlas-official-star'))return;closePlace();},true);
