@@ -1,0 +1,34 @@
+
+/* Travel Atlas stage 3: read-only itinerary, transparent roads, iOS bottom sheet. */
+body.atlas-real-road #routeStroke{stroke:#23656a;stroke-width:3.9;stroke-dasharray:none}
+body.atlas-real-road #routeOutline{stroke:#fffefa;stroke-width:7.8}
+.dock-actions .atlas-day-entry{background:#fffefa;color:#434a43;border:1px solid #e5dfd3;border-radius:10px;min-height:36px;padding:7px 9px;font-size:11px;font-weight:790;white-space:nowrap}
+.atlas-day-dialog{position:fixed;inset:auto 0 0 0;margin:0 auto;width:min(600px,100%);max-width:100%;max-height:min(86dvh,770px);padding:0;border:1px solid #e6dfd1;border-bottom:0;border-radius:24px 24px 0 0;background:#fffefa;color:#303832;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;box-shadow:0 -12px 46px #16252039;overflow:hidden}
+.atlas-day-dialog[open]{display:flex;flex-direction:column}
+.atlas-day-dialog::backdrop{background:#101d1b78;backdrop-filter:blur(3px)}
+.atlas-day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 17px 11px;border-bottom:1px solid #ebe5d9;flex:0 0 auto}
+.atlas-day-head small{font-size:9px;letter-spacing:.14em;color:#9d823c;font-weight:850}
+.atlas-day-head h2{font-size:19px;margin:5px 0 0}
+.atlas-day-close{width:38px;height:38px;border:0;background:#f2f0e9;color:#505650;border-radius:50%;font-size:24px}
+.atlas-day-scroll{overflow-y:auto;overscroll-behavior:contain;padding:8px 14px 12px;-webkit-overflow-scrolling:touch}
+.atlas-day-card{margin:8px 0 13px;padding:12px;border:1px solid #e9e3d5;background:#f8f7f2;border-radius:16px}
+.atlas-day-card h3{margin:1px 0 10px;color:#a67c25;font-size:13px;font-weight:860}
+.atlas-day-empty{color:#8b8f87;font-size:11px}
+.atlas-day-stop{border-radius:12px;border:1px solid #e9e5dd;background:#fff;padding:10px 12px;margin-bottom:8px}
+.atlas-day-stop-head{display:flex;align-items:center;gap:9px}
+.atlas-day-stop-number{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;background:#f1cd69;color:#4d4024;font-weight:850;font-size:12px}
+.atlas-day-stop-title{min-width:0;font-size:13px;font-weight:780;color:#303a34}
+.atlas-day-note{font-size:11px;line-height:1.55;color:#66716a;margin:7px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.atlas-day-nav{display:inline-flex;align-items:center;min-height:32px;padding:8px 10px;margin-top:6px;border-radius:9px;background:#f6e6b5;color:#624e1e;text-decoration:none;font-size:11px;font-weight:770}
+.atlas-day-metric{display:block;font-size:10px;line-height:1.5;color:#737c75;margin-top:7px}
+.atlas-day-foot{border-top:1px solid #ebe5d9;background:#fffefa;padding:11px 15px calc(12px + env(safe-area-inset-bottom));flex-shrink:0}
+.atlas-day-summary{font-size:12px;color:#36433d;font-weight:840}
+.atlas-day-disclosure{font-size:10px;line-height:1.55;color:#767e75;margin:6px 0}
+.atlas-day-actions{display:flex;flex-wrap:wrap;gap:7px}
+.atlas-day-actions button{min-height:37px;padding:7px 10px;border:1px solid #e0d6c1;background:#f8f7f0;color:#4f584e;border-radius:11px;font:780 11px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif}
+.atlas-day-actions .atlas-road-run{background:#edcf77;border-color:#e0b64d;color:#574319}
+.atlas-day-actions button:disabled{opacity:.46}
+.atlas-day-status{min-height:15px;font-size:10px;color:#66756d;margin:7px 0 0;line-height:1.45}
+.atlas-day-attribution{display:block;color:#8c928b;font-size:9px;margin-top:5px}
+@media(max-width:420px){.dock-actions .atlas-day-entry{font-size:10px;padding:7px 6px}.atlas-day-dialog{max-height:88dvh}}
+@media(prefers-reduced-motion:reduce){.atlas-day-dialog,.atlas-day-dialog *{transition:none!important;animation:none!important}}
