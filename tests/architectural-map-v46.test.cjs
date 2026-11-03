@@ -1,0 +1,30 @@
+// Regression gate for the original zero-pitch Architectural B visual language.
+// This runs in GitHub Pages CI without WebGL, device permissions or network access.
+const fs=require('node:fs');
+const assert=require('node:assert/strict');
+const html=fs.readFileSync('index.html','utf8');
+const sw=fs.readFileSync('sw.js','utf8');
+const css=html.split('<style id="atlas-architectural-single-plane-v46">')[1]?.split('</style>')[0]||'';
+assert(css.includes('#map .simplemap-tiles')&&css.includes('#map .simplemap-labels'),'Old street-map tiles must be absent at architectural zoom');
+assert(css.includes('display:none!important'),'Raster ghost must be hidden, never merely dimmed');
+assert(html.includes("document.body.classList.toggle('atlas-architecture-scale',onArchitecturalMap)"),'Zoom scale must control exclusive map visibility');
+assert(html.includes("ctx.fillStyle='#f9f8f5';")&&html.includes('ctx.fillRect(0,0,w,h)'),'Architectural canvas must paint an opaque entire viewport');
+assert(html.includes('atlasRoofRelief(ctx,paths.building,zoom,unit)'),'Near building massing must include two true roof offsets');
+assert(html.includes('atlasRoofRelief(ctx,path,zoom,1)'),'OSM recovery must use the same roof shadow');
+assert(html.includes('requestCurrentLocation(false)'),'Do not regress automatic geolocation');
+assert(html.includes('atlas-canvas-primary'),'WebGL-free map must remain enabled');
+assert(html.includes("document.body.classList.add('atlas-canvas-primary');\n    mapMode='figure'"),'All home map devices must use the same engine');
+const start=html.slice(html.indexOf('async function init(){'));
+assert(start.indexOf("document.body.classList.add('atlas-canvas-primary')")<start.indexOf('try{initMap()}'),'Renderer must be selected before initial map construction');
+assert(html.includes("const vectorCanvasOnly=document.body.classList.contains('atlas-canvas-primary')&&this.zoom>=12"),'Architectural scale must stop all legacy raster tile requests');
+assert(html.includes('if(vectorCanvasOnly){')&&html.includes('this.tilePane.replaceChildren()'),'Previously loaded raster tiles must be discarded');
+assert(html.includes('V4.Review.20261103.architectural-b-v46'),'Release marker is not V4.6');
+assert(sw.includes('atlas-v4-shell-architectural-b-v46'),'Safari offline cache is stale');
+const a=html.indexOf('const atlasRoofStops='),b=html.indexOf('function paintBuildings()',a);
+assert(a>0&&b>a,'Roof transition implementation missing');
+const roof=Function('fgClamp',html.slice(a,b)+'; return atlasRoofColor;')((v,l,h)=>Math.max(l,Math.min(h,v)));
+assert.equal(roof(11),'#303230');
+assert.equal(roof(14.3),'#343633');
+assert.equal(roof(17.1),'#ffffff');
+assert.equal(roof(19),'#ffffff');
+console.log('PASS: one map plane, no raster ghost, zero-pitch Architectural B relief, GPS and PWA version');
