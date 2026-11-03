@@ -12,7 +12,10 @@ assert(html.includes("ctx.fillStyle='#f9f8f5';")&&html.includes('ctx.fillRect(0,
 assert(html.includes('atlasRoofRelief(ctx,paths.building,zoom,unit)'),'Near building massing must include two true roof offsets');
 assert(html.includes('atlasRoofRelief(ctx,path,zoom,1)'),'OSM recovery must use the same roof shadow');
 assert(html.includes('requestCurrentLocation(false)'),'Do not regress automatic geolocation');
-assert(html.includes('atlas-canvas-primary'),'WebGL-free iPhone map must remain enabled');
+assert(html.includes('atlas-canvas-primary'),'WebGL-free map must remain enabled');
+assert(html.includes("document.body.classList.add('atlas-canvas-primary');\n    mapMode='figure'"),'All home map devices must use the same engine');
+assert(html.includes("const vectorCanvasOnly=document.body.classList.contains('atlas-canvas-primary')&&this.zoom>=12"),'Architectural scale must stop all legacy raster tile requests');
+assert(html.includes('if(vectorCanvasOnly){')&&html.includes('this.tilePane.replaceChildren()'),'Previously loaded raster tiles must be discarded');
 assert(html.includes('V4.Review.20261103.architectural-b-v46'),'Release marker is not V4.6');
 assert(sw.includes('atlas-v4-shell-architectural-b-v46'),'Safari offline cache is stale');
 const a=html.indexOf('const atlasRoofStops='),b=html.indexOf('function paintBuildings()',a);
