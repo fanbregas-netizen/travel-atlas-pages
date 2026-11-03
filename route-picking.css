@@ -28,3 +28,17 @@
 .route-library{position:fixed;z-index:2100;inset:0;margin:auto;width:min(500px,calc(100vw - 22px));max-height:min(75dvh,710px);padding:0;border-radius:22px;border:1px solid #e8e2d3;box-shadow:0 12px 50px #2223;background:#fffdf8;color:#323733;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif}.route-library::backdrop{background:#1119}.route-library header{display:flex;align-items:center;justify-content:space-between;padding:20px;border-bottom:1px solid #eee7d9}.route-library header h2{font-size:20px;margin:5px 0 0}.route-library header small{font-size:10px;color:#a58843;letter-spacing:.12em;font-weight:850}.route-library-items{overflow:auto;max-height:48dvh;padding:12px}.route-library-item{display:flex;flex-direction:column;gap:5px;width:100%;text-align:left;border:1px solid #e7e2d8;background:white;border-radius:13px;margin-bottom:9px;padding:14px;color:#323833}.route-library-item strong{font-size:14px}.route-library-item span{color:#8a8c88;font-size:11px}.route-library footer{border-top:1px solid #eee7d9;font-size:11px;line-height:1.55;color:#86857e;padding:12px 16px}
 @media(max-width:550px){.route-search-sheet{max-width:100vw}.route-map-strip{bottom:calc(135px + env(safe-area-inset-bottom))}.route-mini-action>span{width:45px;height:45px}.route-map-strip #routeMapToList{padding:5px 8px}}
 @media(prefers-reduced-motion:reduce){.route-mini-actions *,.route-search-sheet *{animation:none!important;transition:none!important}}
+/* Stage 2: ordered D1–Dn stop planner, still within the approved iPhone search sheet. */
+.route-search-selected{display:flex;flex-direction:column;align-items:stretch;gap:5px;min-height:55px;max-height:min(26dvh,214px);overflow:hidden;padding:8px 12px}
+.route-search-selected>span{white-space:normal;font-size:11px}
+.route-selected-chips{display:flex;flex-direction:column;gap:5px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;max-height:169px;white-space:normal;-webkit-overflow-scrolling:touch}
+.route-selected-row{display:grid;grid-template-columns:22px minmax(65px,1fr) 31px 31px 58px 31px;align-items:center;gap:4px;min-height:36px;padding:3px 5px;border:1px solid #e6dabb;background:#fffef9;border-radius:11px}
+.route-selected-index{font-size:12px;color:#745717;text-align:center;font-weight:850;font-variant-numeric:tabular-nums}
+.route-selected-name{font-size:11px;font-weight:730;color:#393e39;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.route-order-button,.route-remove-button,.route-day-select{display:grid;place-items:center;min-width:0;width:100%;min-height:30px;border:1px solid #e9e3d5;border-radius:8px;background:#f8f6f0;color:#53574f;font:700 13px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;text-align:center}
+.route-day-select{font-size:12px;font-weight:760;background:#fff9e7;border-color:#e5cc84;color:#715921;appearance:none;padding:0 5px}
+.route-order-button:disabled{opacity:.25}
+.route-remove-button{font-size:18px;color:#8c7651}
+.route-even-days{align-self:flex-start;min-height:32px;border:1px solid #e2c16c;background:#fff3ce;border-radius:10px;color:#71551d;font-size:11px;font-weight:800;padding:7px 10px}
+.route-search-selected button:focus-visible,.route-search-selected select:focus-visible{outline:2px solid #d4a82b;outline-offset:2px}
+@media(max-width:360px){.route-selected-row{grid-template-columns:20px minmax(45px,1fr) 28px 28px 54px 28px;gap:3px}.route-selected-name{font-size:10px}}
