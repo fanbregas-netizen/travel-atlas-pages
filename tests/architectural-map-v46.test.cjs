@@ -19,7 +19,7 @@ assert(start.indexOf("document.body.classList.add('atlas-canvas-primary')")<star
 assert(html.includes("const vectorCanvasOnly=document.body.classList.contains('atlas-canvas-primary')&&this.zoom>=12"),'Architectural scale must stop all legacy raster tile requests');
 assert(html.includes('if(vectorCanvasOnly){')&&html.includes('this.tilePane.replaceChildren()'),'Previously loaded raster tiles must be discarded');
 assert(html.includes('V4.Review.20261103.architectural-b-v46'),'Release marker is not V4.6');
-assert(sw.includes('atlas-v4-shell-architectural-b-v46')||sw.includes('atlas-v4-shell-stage2-route-v47'),'Safari offline cache is stale');
+assert(sw.includes('atlas-v4-shell-architectural-b-v46')||sw.includes('atlas-v4-shell-stage2-route-v47')||sw.includes('atlas-v4-shell-stage3-roadbook-v48'),'Safari offline cache is stale');
 const a=html.indexOf('const atlasRoofStops='),b=html.indexOf('function paintBuildings()',a);
 assert(a>0&&b>a,'Roof transition implementation missing');
 const roof=Function('fgClamp',html.slice(a,b)+'; return atlasRoofColor;')((v,l,h)=>Math.max(l,Math.min(h,v)));
