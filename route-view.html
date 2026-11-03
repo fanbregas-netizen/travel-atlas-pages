@@ -33,8 +33,22 @@
 .route-pin .route-day-tag{position:absolute;right:-5px;bottom:-4px;z-index:2;min-width:23px;padding:3px 4px;border:1.5px solid white;border-radius:8px;background:#2e3836;color:#fff;font-size:9px;font-weight:850;letter-spacing:.015em;box-shadow:0 2px 7px #15211b30}
 @media(max-width:640px){.stop-chip{min-width:130px}.stop-chip .chip-day{font-size:9px}}
 </style>
+<style id="stage2-route-canvas-map">
+/* Real-coordinates, no-WebGL fallback; north-up city and street footprints. */
+#atlasMap.simplemap{position:fixed;overflow:hidden;touch-action:none;background:#f9f8f5}
+#atlasMap .simplemap-tiles,#atlasMap .simplemap-labels,#atlasMap .simplemap-markers,#atlasMap .simplemap-destinations{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#atlasMap .simplemap-tiles img,#atlasMap .simplemap-labels img{object-fit:fill;max-width:none;display:block;border:0}
+#atlasMap .simplemap-tiles{z-index:0}
+#atlasMap .simplemap-labels{z-index:1}
+#atlasMap .figure-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+#atlasMap .simplemap-markers{z-index:4;overflow:visible}
+#atlasMap .simplemap-attrib{position:absolute;z-index:5;bottom:7px;left:8px;font-size:9px;color:#7d827d;background:#fffef5ca;padding:3px 5px;border-radius:5px}
+body.route-canvas-fallback #atlasMap .simplemap-tiles img{filter:grayscale(1) contrast(.85) brightness(1.08)}
+body.route-canvas-fallback #atlasMap .simplemap-destinations{pointer-events:none}
+</style>
 <script defer src="./atlas-map-design.js"></script>
 <script defer src="./atlas-route-buildings.js"></script>
+<script defer src="./atlas-route-fallback.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 /* Footprint Map → Travel Atlas: geographical, read-only route viewer.
@@ -79,8 +93,22 @@ function scheduleOverlays(){if(redrawRaf)return;redrawRaf=requestAnimationFrame(
 function drawOverlays(){if(!map||!places.length)return;const coords=pointPositions();const points=coords.map(p=>({x:p.x,y:p.y}));const svg=$('routeLines');svg.setAttribute('viewBox',`0 0 ${innerWidth} ${innerHeight}`);const d=outlinePath(points);$('routeOutline').setAttribute('d',d);$('routeStroke').setAttribute('d',d);for(let i=0;i<pins.length;i++){pins[i].style.left=points[i].x+'px';pins[i].style.top=points[i].y+'px';pins[i].hidden=points[i].x < -50||points[i].x>innerWidth+50||points[i].y < -50||points[i].y>innerHeight+50}if(active>=0)positionBubble(active)}
 function fit(){if(!map||!places.length)return;active=-1;$('stopBubble').hidden=true;selectVisual();const lons=places.map(p=>+p.lng),lats=places.map(p=>+p.lat);if(places.length===1||Math.max(...lons)-Math.min(...lons)<.00008&&Math.max(...lats)-Math.min(...lats)<.00008){map.easeTo({center:[lons[0],lats[0]],zoom:13.8,bearing:0,pitch:0,duration:550});return}const pad={top:125,right:Math.min(75,innerWidth*.16),bottom:Math.min(255,innerHeight*.31),left:Math.min(75,innerWidth*.16)};map.fitBounds([[Math.min(...lons),Math.min(...lats)],[Math.max(...lons),Math.max(...lats)]],{padding:pad,maxZoom:13.8,duration:650,bearing:0,pitch:0})}
 function recolor(){if(!map)return;if(window.AtlasFigureGround?.apply?.(map))return;const style=map.getStyle();for(const layer of style?.layers||[]){try{const id=String(layer.id).toLowerCase(),sl=String(layer['source-layer']||'').toLowerCase(),key=id+' '+sl;if(layer.type==='fill'){const building=/building/.test(key),water=/water/.test(key),green=/park|grass|landcover|landuse|wood|forest/.test(key);if(building){map.setPaintProperty(layer.id,'fill-color',['interpolate',['linear'],['zoom'],14,'#313533',15.6,'#515552',16.1,'#fdfcf8',20,'#ffffff']);map.setPaintProperty(layer.id,'fill-opacity',.94)}else map.setPaintProperty(layer.id,'fill-color',water?'#e2e3df':green?'#eae9e3':'#efeee9');}else if(layer.type==='background')map.setPaintProperty(layer.id,'background-color','#f1f0ea');else if(layer.type==='line'){map.setPaintProperty(layer.id,'line-color',/road|street|highway|bridge|transport/.test(key)?'#bcbcb8':'#d6d5cf');}else if(layer.type==='symbol'){map.setPaintProperty(layer.id,'text-color','#505451');map.setPaintProperty(layer.id,'text-halo-color','#f5f4ef');map.setPaintProperty(layer.id,'text-halo-width',1.2)}else if(layer.type==='fill-extrusion')map.setLayoutProperty(layer.id,'visibility','none')}catch{}}}
-async function getMaplibre(){if(window.maplibregl)return window.maplibregl;for(const alt of ['https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js']){try{await new Promise((yes,no)=>{const el=document.createElement('script');el.src=alt;el.onload=yes;el.onerror=()=>no(Error('备用地图引擎也无法加载'));document.head.append(el)});if(window.maplibregl)return window.maplibregl}catch{}}throw Error('地图引擎加载失败，请检查网络或关闭内容拦截后刷新')}
-function setupMap(MapLibre){map=new MapLibre.Map({container:'atlasMap',style:'https://tiles.openfreemap.org/styles/bright',center:[+places[0].lng,+places[0].lat],zoom:10,minZoom:2,maxZoom:19,renderWorldCopies:false,pitch:0,bearing:0,maxPitch:0,dragRotate:false,touchPitch:false,antialias:true,attributionControl:true});try{map.touchZoomRotate?.disableRotation();map.keyboard?.disableRotation()}catch{}map.on('load',()=>{recolor();window.AtlasRouteBuildings?.attach?.(map);fit();drawOverlays();notice('路线已生成：点击编号查看地点内容');});map.on('move',scheduleOverlays);map.on('zoom',scheduleOverlays);map.on('resize',scheduleOverlays);window.addEventListener('resize',()=>{map.resize?.();scheduleOverlays()});map.on('error',e=>{console.warn('Travel Atlas 地图数据提示:',e?.error?.message||e);if(!map.loaded())notice('部分地图资源未加载；可以检查网络后刷新',true)});map.getCanvas?.().addEventListener('click',()=>dismissBubble());}
+async function getMaplibre(){
+ // A route must remain usable even on iPhone Safari without WebGL.
+ if(window.maplibregl?.supported?.())return window.maplibregl;
+ if(window.AtlasRouteFallback)return window.AtlasRouteFallback;
+ for(const alt of ['https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js']){
+  try{await new Promise((yes,no)=>{const el=document.createElement('script');el.src=alt;el.onload=yes;el.onerror=()=>no(Error('备用地图引擎也无法加载'));document.head.append(el)});
+   if(window.maplibregl?.supported?.())return window.maplibregl;
+  }catch(e){console.warn('Route external renderer not available',e?.message)}
+ }
+ if(window.AtlasRouteFallback)return window.AtlasRouteFallback;
+ throw Error('地图引擎无法启动');
+}
+function setupMap(MapLibre){const fallback=MapLibre===window.AtlasRouteFallback;
+ if(fallback)document.body.classList.add('atlas-canvas-primary','fg-active');
+ const style=fallback?{sources:{base:{tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],attribution:'© OpenStreetMap contributors · OpenMapTiles'}}}:'https://tiles.openfreemap.org/styles/bright';
+ map=new MapLibre.Map({container:'atlasMap',style,center:[+places[0].lng,+places[0].lat],zoom:10,minZoom:2,maxZoom:19,renderWorldCopies:false,pitch:0,bearing:0,maxPitch:0,dragRotate:false,touchPitch:false,antialias:true,attributionControl:true});try{map.touchZoomRotate?.disableRotation();map.keyboard?.disableRotation()}catch{}map.on('load',()=>{if(fallback){window.AtlasRouteFallback.enableArchitecture(map)}else{recolor();window.AtlasRouteBuildings?.attach?.(map)}fit();drawOverlays();notice(fallback?'已使用兼容地图打开路线 · 点击编号查看地点':'路线已生成：点击编号查看地点');});map.on('move',scheduleOverlays);map.on('zoom',scheduleOverlays);map.on('resize',scheduleOverlays);window.addEventListener('resize',()=>{map.resize?.();scheduleOverlays()});map.on('error',e=>{console.warn('Travel Atlas 地图数据提示:',e?.error?.message||e);if(!map.loaded())notice('部分地图资源未加载；可以检查网络后刷新',true)});map.getCanvas?.().addEventListener('click',()=>dismissBubble());}
 function showStopRail(){const rail=$('stopRail');rail.replaceChildren();for(let i=0;i<places.length;i++){const p=places[i],button=make('button','stop-chip');button.type='button';button.setAttribute('role','listitem');button.dataset.stop=String(i);const number=make('span','chip-number',String(i+1).padStart(2,'0'));const day=make('span','chip-day','D'+dayForStop(i));const name=make('span','chip-name',text(p.title||p.name||'收藏地点',35));button.append(number,day,name);button.onclick=()=>activate(i,true);rail.append(button)}const count=places.length;$('routeSummary').textContent=count+' 处收藏 · '+totalDays()+' 天 · 按选择顺序';const dateRange=[routePayload?.startDate,routePayload?.endDate].filter(Boolean).join(' — ');$('travelDates').textContent=dateRange;const title=text(routePayload?.title||'',60);if(title)$('tripName').textContent=title;$('routeLegend').hidden=false}
 function addPins(){const panel=$('pinLayer');panel.replaceChildren();pins=[];for(let i=0;i<places.length;i++){const p=places[i],b=make('button','route-pin');b.type='button';b.setAttribute('aria-label',`查看第 ${i+1} 站：${text(p.title||p.name,90)}`);b.dataset.stop=String(i);const body=make('span','pin-body');body.append(make('span','',String(i+1)));const day=make('span','route-day-tag','D'+dayForStop(i));b.append(body,day);b.onclick=e=>{e.stopPropagation();activate(i,false)};panel.append(b);pins.push(b)}}
 function selectVisual(){for(const b of pins)b.classList.toggle('active',Number(b.dataset.stop)===active);for(const b of $('stopRail').children)b.classList.toggle('active',Number(b.dataset.stop)===active)}
@@ -125,7 +153,11 @@ function setupCardGestures(){
  grip.addEventListener('keydown',e=>{if(e.key==='ArrowUp'){e.preventDefault();move(1)}else if(e.key==='ArrowDown'){e.preventDefault();move(-1)}else if(e.key==='Escape'){e.preventDefault();dismissBubble()}});
 }
 function initUI(){$('viewAll').onclick=fit;$('saveRoute').onclick=openSave;$('routeSaveCancel').onclick=()=>$('saveRouteDialog').close();$('routeSaveForm').addEventListener('submit',saveRoute);setupCardGestures();$('closeBubble').onclick=dismissBubble;document.addEventListener('keydown',e=>{if(e.key==='Escape')dismissBubble()});$('atlasMap').addEventListener('click',()=>{if(active>=0)dismissBubble()});}
-async function init(){initUI();routePayload=await resolveRoute();if(!routePayload){empty('请在 Footprint Map 点击「路线」，通过地图选点或列表搜索选出收藏地点后进入。');return}const ids=[...new Set(routePayload.placeIds)];try{places=await loadPlaces(ids)}catch(e){empty('无法读取当前浏览器中的收藏地点：'+e.message);return}if(!places.length){empty('本次选中的地点没有可读取的真实坐标。请返回主页检查收藏是否存在。');return}routeCoords=places.map(p=>({lng:+p.lng,lat:+p.lat}));addPins();showStopRail();try{const lib=await getMaplibre();setupMap(lib)}catch(e){empty('真实地图未能启动：'+e.message);return}}
+async function init(){initUI();routePayload=await resolveRoute();if(!routePayload){empty('请在 Footprint Map 点击「路线」，通过地图选点或列表搜索选出收藏地点后进入。');return}const ids=[...new Set(routePayload.placeIds)];try{places=await loadPlaces(ids)}catch(e){empty('无法读取当前浏览器中的收藏地点：'+e.message);return}if(!places.length){empty('本次选中的地点没有可读取的真实坐标。请返回主页检查收藏是否存在。');return}routeCoords=places.map(p=>({lng:+p.lng,lat:+p.lat}));addPins();showStopRail();try{const lib=await getMaplibre();try{setupMap(lib)}catch(err){
+ console.warn('WebGL route map could not start, switching to Canvas',err);
+ if(lib===window.AtlasRouteFallback)throw err;
+ setupMap(window.AtlasRouteFallback);
+ }}catch(e){empty('路线地图未能启动：'+e.message);return}}
 const run=()=>init().catch(e=>empty('路线加载异常：'+e.message));if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
 })();
 
