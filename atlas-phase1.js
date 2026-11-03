@@ -1,13 +1,14 @@
 /* Batch 1: high-reliability star selection and unified iPhone sheet gestures. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id),api=()=>window.__atlasPickMapAPI,picker=()=>window.__atlasTripPicker;
-let layer=null,numbers=null,interval=0,raf=0,active=false,queued=false;
+let layer=null,numbers=null,interval=0,raf=0,active=false,queued=false,lastSignature='';
 function mount(){if(layer)return;layer=document.createElement('div');layer.id='atlasPhase1Pins';layer.hidden=true;numbers=document.createElement('div');numbers.id='atlasPhase1OrderLabels';numbers.hidden=true;numbers.setAttribute('aria-hidden','true');document.body.append(layer,numbers)}
 function cluster(points,r){const map=new Map();for(const p of points){const k=Math.floor(p.x/r)+':'+Math.floor(p.y/r);if(!map.has(k))map.set(k,[]);map.get(k).push(p)}return [...map.values()]}
 function draw(){raf=0;if(!active||!document.body.classList.contains('route-pick-active'))return;const map=api(),trip=picker();if(!map?.project||!trip?.selected||!trip?.records)return;
 const data=trip.records(),chosen=trip.selected(),width=innerWidth,height=innerHeight,visible=[];
 for(const place of data){if(!Number.isFinite(+place.lat)||!Number.isFinite(+place.lng))continue;let p=null;try{p=map.project(+place.lng,+place.lat)}catch(_){}
 if(!p||!Number.isFinite(+p.x)||!Number.isFinite(+p.y)||p.x<-28||p.y<-28||p.x>width+28||p.y>height+28)continue;visible.push({place,id:String(place.id),x:+p.x,y:+p.y});}
+const signature=chosen.join('|')+'/'+visible.map(p=>p.id+':'+Math.round(p.x)+','+Math.round(p.y)).join(';');if(signature===lastSignature)return;lastSignature=signature;
 const plain=visible.filter(p=>!chosen.includes(p.id)),selected=visible.filter(p=>chosen.includes(p.id));
 const pins=document.createDocumentFragment(),badges=document.createDocumentFragment();
 const button=(x,y,caption,cls,callback,label)=>{const el=document.createElement('button');el.type='button';el.className='atlas-phase1-pickpin '+cls;el.style.left=x+'px';el.style.top=y+'px';el.textContent=caption;el.setAttribute('aria-label',label);el.onclick=e=>{e.preventDefault();e.stopPropagation();callback()};return el};
@@ -22,7 +23,7 @@ occupied.push({x,y});const badge=document.createElement('span');badge.className=
 layer.replaceChildren(pins);numbers.replaceChildren(badges)}
 function schedule(){if(!active||raf)return;raf=requestAnimationFrame(draw)}
 function enter(){if(active)return;active=true;mount();layer.hidden=false;numbers.hidden=false;document.body.classList.add('atlas-phase1-overlay-active');schedule();interval=setInterval(schedule,200)}
-function leave(){if(!active)return;active=false;clearInterval(interval);if(raf)cancelAnimationFrame(raf);raf=0;document.body.classList.remove('atlas-phase1-overlay-active');layer.hidden=true;numbers.hidden=true;layer.replaceChildren();numbers.replaceChildren()}
+function leave(){if(!active)return;active=false;lastSignature='';clearInterval(interval);interval=0;if(raf)cancelAnimationFrame(raf);raf=0;document.body.classList.remove('atlas-phase1-overlay-active');layer.hidden=true;numbers.hidden=true;layer.replaceChildren();numbers.replaceChildren()}
 function observePicker(){new MutationObserver(()=>{if(document.body.classList.contains('route-pick-active'))enter();else leave()}).observe(document.body,{attributes:true,attributeFilter:['class']});if(document.body.classList.contains('route-pick-active'))enter();window.addEventListener('resize',schedule,{passive:true});document.addEventListener('atlas:route-selection-changed',schedule)}
 function attach(node,handle,defaultSnap){if(!node||!handle||handle.dataset.atlasSnapAttached)return;handle.dataset.atlasSnapAttached='1';if(!node.dataset.atlasSnap)node.dataset.atlasSnap=defaultSnap;
 let press=null;const snaps=['peek','half','full'],switchSnap=by=>{const index=Math.max(0,snaps.indexOf(node.dataset.atlasSnap)),next=snaps[Math.max(0,Math.min(2,index+by))];node.dataset.atlasSnap=next;handle.setAttribute('aria-valuenow',String(snaps.indexOf(next)+1))};
