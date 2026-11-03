@@ -14,6 +14,9 @@ async function fetchPlaces(lat,lng,radius){
  finally{clearTimeout(t)}
 }
 function render(){if(!started)return;const p=$('atlasPoiOverlay'),api=window.__atlasMobilePoiAPI;if(!p||!api?.project)return;
+ // The active vector engine renders its own real POIs. Never overwrite that overlay
+ // using positions projected against the hidden legacy raster map.
+ if(document.body.classList.contains('vector-active')){p.querySelectorAll('.atlas-mobile-poi').forEach(el=>el.remove());return;}
  const width=innerWidth,height=innerHeight,z=api.zoom(),names=z>=14.8,cells=new Set(),max=z>=17?48:z>=15.5?36:22,frag=document.createDocumentFragment();let count=0;
  for(const x of active){const xy=api.project(x.lng,x.lat);if(!xy||xy.x<26||xy.x>width-28||xy.y<85||xy.y>height-155)continue;
   const cell=Math.floor(xy.x/(names?84:48))+':'+Math.floor(xy.y/(names?40:47));if(cells.has(cell))continue;cells.add(cell);
@@ -25,7 +28,7 @@ function render(){if(!started)return;const p=$('atlasPoiOverlay'),api=window.__a
  }
  p.replaceChildren(frag);p.dataset.realPoiCount=String(count)}
 function schedule(){clearTimeout(timer);timer=setTimeout(update,450)}
-async function update(){if(!started)return;const api=window.__atlasMobilePoiAPI,z=api?.zoom?.(),c=api?.center?.();if(!finite(z)||!c||!finite(c.lat)||!finite(c.lng))return;
+async function update(){if(!started||document.body.classList.contains('vector-active'))return;const api=window.__atlasMobilePoiAPI,z=api?.zoom?.(),c=api?.center?.();if(!finite(z)||!c||!finite(c.lat)||!finite(c.lng))return;
  if(z<12.8){active=[];render();return}
  const lat=Number(c.lat).toFixed(3),lng=Number(c.lng).toFixed(3),rad=z>=16?650:z>=15?900:1350,key=lat+':'+lng+':'+rad,cached=cache.get(key);
  if(cached&&Date.now()-cached.time<420000){active=cached.places;render();return}
