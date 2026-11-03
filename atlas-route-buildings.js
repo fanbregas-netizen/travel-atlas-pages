@@ -57,8 +57,22 @@ function pitchForZoom(z){
 }
 function findBuildingLayer(map){
   const layers=map.getStyle?.()?.layers||[];
-  return layers.find(layer=>layer.type==='fill'&&layer.source&&layer['source-layer']&&
-    /building/i.test(layer.id+' '+layer['source-layer']))||null;
+  const existing=layers.find(layer=>layer.type==='fill'&&layer.source&&layer['source-layer']&&
+    /building/i.test(layer.id+' '+layer['source-layer']));
+  if(existing)return existing;
+  // Some variants of the same basemap omit the building-fill style layer;
+  // use its real vector building footprints rather than synthetic blocks.
+  const sources=Object.entries(map.getStyle?.()?.sources||{});
+  const vector=sources.find(([_,source])=>source?.type==='vector');
+  if(!vector)return null;
+  const id='atlas-travel-building-footprints';
+  if(!map.getLayer?.(id)){
+    const firstText=layers.find(layer=>layer.type==='symbol'&&layer.layout?.['text-field'])?.id;
+    try{map.addLayer({id,type:'fill',source:vector[0],'source-layer':'building',
+      minzoom:10,paint:{'fill-color':'#343634','fill-opacity':.96}},firstText)}
+    catch(e){console.warn('真实建筑轮廓图层暂不可用',e);return null}
+  }
+  return map.getStyle?.()?.layers?.find(layer=>layer.id===id)||null;
 }
 function setStyle(map){
   const target=findBuildingLayer(map);
