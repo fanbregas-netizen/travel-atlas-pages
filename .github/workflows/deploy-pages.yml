@@ -67,12 +67,13 @@ jobs:
           if(!fg.includes('window.AtlasFigureGround')||!route.includes('atlas-map-design.js')||!route.includes('AtlasFigureGround?.apply?.(map)')||!html.includes('AtlasFigureGround?.apply?.(vectorMap)'))throw Error('Shared black-white vector map palette missing');
           const architectural=fs.readFileSync('atlas-route-buildings.js','utf8');
           const preview=fs.readFileSync('atlas-map-preview.html','utf8');
-          if(!route.includes('atlas-route-buildings.js')||!route.includes('AtlasRouteBuildings?.attach?.(map)')||!route.includes('maxPitch:17'))throw Error('Route B architectural layer is not attached');
-          if(!architectural.includes("fill-extrusion")||!architectural.includes('extrusionOpacity')||!architectural.includes('pitchForZoom')||!architectural.includes('15.45,.54')||!architectural.includes('16.72,.94'))throw Error('Black-to-transparent-to-white building expression missing');
+          if(!route.includes('atlas-route-buildings.js')||!route.includes('AtlasRouteBuildings?.attach?.(map)')||!route.includes('maxPitch:0'))throw Error('Overhead architectural B map is not attached');
+          if(!architectural.includes('atlas-route-building-relief-near')||!architectural.includes('fill-translate')||!architectural.includes('pitchMax:0')||!architectural.includes('15.5,.47')||!architectural.includes('16.82,.97'))throw Error('Plan-view black-to-translucent-to-white architectural massing missing');
           if(!preview.includes('atlas-route-buildings.js')||!preview.includes('id="zoomSlider"')||!preview.includes('AtlasRouteBuildings.attach(map)'))throw Error('Architectural B preview is not using real render module');
           for(const file of ['atlas-route-buildings.js','atlas-map-preview.html'])if(!fs.existsSync(file))throw Error('Missing architectural B release asset: '+file);
-          if(!phase.includes('atlasPhase1OrderLabels')||!phase.includes('atlas:route-selection-changed')||!picker.includes('records:()=>records.slice()')||!html.includes('__atlasPickMapAPI'))throw Error('Map picking clustering or continuous numbering missing');
-          if(!phase.includes('pointerdown')||!phase.includes('visualViewport')||!route.includes('aria-valuemin'))throw Error('Sheet gestures or iPhone viewport behavior missing');
+          if(phase.includes('atlasPhase1OrderLabels')||phase.includes('atlasPhase1Pins'))throw Error('Disallowed independent star-number overlay returned');
+          if(!picker.includes('pin.dataset.tripOrder=String(number+1)')||!picker.includes('records:()=>records.slice()')||!html.includes('__atlasPickMapAPI'))throw Error('Star-anchored numbering missing');
+          if(!phase.includes('pointerdown')||!phase.includes('visualViewport')||!phase.includes('fp-search-grip')||!route.includes('aria-valuemin'))throw Error('Smooth iPhone sheet gestures or viewport behavior missing');
           if(html.includes("id:'atlas-3d-buildings'"))throw Error('Legacy 3D building layer still active');
           if(!picker.includes('showLibrary()')||!picker.includes("recordsFrom(TRIPS,'plans')"))throw Error('My routes entry missing');
           if(!route.includes('id="saveRouteDialog"')||!route.includes('async function saveRoute(e)')||!route.includes('async function resolveRoute()')||!route.includes('video.autoplay=true')||!route.includes('function setupCardGestures()'))throw Error('Save and card playback missing');
@@ -81,6 +82,8 @@ jobs:
           if(!html.includes('footprint-home.js')||!html.includes('footprint-home.css')||!html.includes('window.__fpSearchSelect'))throw Error('Home search and inline collage missing');
           const home=fs.readFileSync('footprint-home.js','utf8');
           if(!home.includes('atlas:memory-open')||!home.includes('fp-media-mosaic')||!home.includes('openSearch()')||!home.includes('saveHistory('))throw Error('Footprint home interaction missing');
+          if(!home.includes('tileVideos.add(video)')||!home.includes('stopTileVideos()'))throw Error('Inline video preview is missing');
+          if(!html.includes('const max=zoom>=17?65')||!html.includes('The card handles its own safe area.')||!html.includes("$('selectionFeedback').hidden=true"))throw Error('POI richness or nonjumping iPhone selection response missing');
           if(!html.includes('★ 已收藏。点击地图上的黄色星标')||!html.includes('showDestination(d)'))throw Error('Option A two-step collection missing');
           const flow=fs.readFileSync('footprint-flow.js','utf8');
           if(!flow.includes('private-travel-footprints-v1')||!flow.includes('exifGps(')||!flow.includes('saveSource(')||!flow.includes('commitMedia('))throw Error('Footprint workflow wiring missing');
