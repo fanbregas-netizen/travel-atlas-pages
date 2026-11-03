@@ -171,4 +171,11 @@ function install(){
 }
 const api={install,download,prepareImport,previewText};
 root.AtlasBackupV5=api;
+// Deferred scripts load before DOMContentLoaded, but the inline map can call
+// init() earlier. Always (re)bind when this script actually becomes ready.
+function bindReady(){
+ if($('exportBtn')&&$('importBtn')&&$('importFile'))install();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindReady,{once:true});
+else bindReady();
 })(typeof window!=='undefined'?window:globalThis);
