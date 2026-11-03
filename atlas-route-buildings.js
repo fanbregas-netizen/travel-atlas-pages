@@ -1,146 +1,52 @@
-/**
- * Travel Atlas / architectural map B.
- * The main Footprint Map remains unchanged. This module adds a near-overhead
- * building-massing layer to the route map, using the SAME real OSM geometries.
- *
- * Distant: black figure-ground. Transitional: semitransparent charcoal.
- * Close: luminous white roof blocks, soft side faces and higher perceived depth.
- * North always up; pitch never exceeds 17 degrees.
- */
+/* Travel Atlas B · architectural figure-ground, strictly overhead (camera does not tilt).
+   Shared vector footprints, black → translucent → white block, 2D side relief at close zoom.
+   Does not alter any marker, route, photo, or POI behavior. */
 (()=>{'use strict';
-const VERSION='travel-atlas-architectural-B-20261103';
-const LAYER='atlas-travel-white-block-massing';
-const LIMIT=0;
-const SHADOW='atlas-travel-roof-relief';
-const roofColor=[
-  'interpolate',['linear'],['zoom'],
-  11,'#2d302e',14.2,'#303230',15.0,'#4a4d49',
-  15.48,'#7d807b',15.85,'#b3b6b0',16.2,'#e0e1dd',
-  16.55,'#f7f7f3',17.1,'#ffffff',19,'#ffffff'
-];
-const roofOpacity=[
-  'interpolate',['linear'],['zoom'],
-  10,.98,14.6,.96,15.1,.86,15.45,.54,
-  15.78,.40,16.04,.52,16.3,.76,16.72,.94,17.2,.99,19,1
-];
-const roofOutline=[
-  'interpolate',['linear'],['zoom'],
-  11,'#4a4d49',15.0,'#72756e',15.7,'#b5b7b0',
-  16.45,'#c2c6bf',17.2,'#babfb8',19,'#bec3bb'
-];
-const extrusionColor=[
-  'interpolate',['linear'],['zoom'],
-  15.6,'#797d77',16.02,'#c9cbc5',
-  16.48,'#f0f0ec',16.85,'#fdfdfa',17.35,'#ffffff',19,'#ffffff'
-];
-const extrusionOpacity=[
-  'interpolate',['linear'],['zoom'],
-  15.58,0,15.85,.12,16.12,.43,16.4,.76,16.75,.92,17.5,.97,19,.97
-];
-const height=['max',8,['to-number',['coalesce',['get','render_height'],['get','height'],12],12]];
-const base=['max',0,['to-number',['coalesce',['get','render_min_height'],['get','min_height'],0],0]];
-const extrudedHeight=[
-  'interpolate',['linear'],['zoom'],
-  15.6,0,16.1,['*',.28,height],16.55,['*',.78,height],
-  17.2,['*',1.22,height],19,['*',1.27,height]
-];
-const extrudedBase=[
-  'interpolate',['linear'],['zoom'],
-  15.6,0,16.1,['*',.28,base],16.55,['*',.78,base],
-  17.2,['*',1.22,base],19,['*',1.27,base]
-];
-function pitchForZoom(_z){return 0;} // Keep exact overhead camera; relief comes from roof shadow, not viewpoint tilt.
-function findBuildingLayer(map){
-  const layers=map.getStyle?.()?.layers||[];
-  const existing=layers.find(layer=>layer.type==='fill'&&layer.source&&layer['source-layer']&&
-    /building/i.test(layer.id+' '+layer['source-layer']));
-  if(existing)return existing;
-  // Some variants of the same basemap omit the building-fill style layer;
-  // use its real vector building footprints rather than synthetic blocks.
-  const sources=Object.entries(map.getStyle?.()?.sources||{});
-  const vector=sources.find(([_,source])=>source?.type==='vector');
-  if(!vector)return null;
-  const id='atlas-travel-building-footprints';
-  if(!map.getLayer?.(id)){
-    const firstText=layers.find(layer=>layer.type==='symbol'&&layer.layout?.['text-field'])?.id;
-    try{map.addLayer({id,type:'fill',source:vector[0],'source-layer':'building',
-      minzoom:10,paint:{'fill-color':'#343634','fill-opacity':.96}},firstText)}
-    catch(e){console.warn('真实建筑轮廓图层暂不可用',e);return null}
-  }
-  return map.getStyle?.()?.layers?.find(layer=>layer.id===id)||null;
+const VERSION='architectural-B-overhead-final-20261103';
+const NEAR='atlas-route-building-relief-near',FAR='atlas-route-building-relief-far';
+const roof=['interpolate',['linear'],['zoom'],11,'#303230',14.3,'#343633',15.08,'#5b5d59',15.48,'#969993',15.83,'#c7cac4',16.25,'#e8e9e5',16.65,'#f9f9f6',17.1,'#ffffff',19,'#ffffff'];
+const alpha=['interpolate',['linear'],['zoom'],10,1,14.5,.98,15.12,.86,15.5,.47,15.82,.41,16.08,.55,16.46,.84,16.82,.97,19,1];
+const outline=['interpolate',['linear'],['zoom'],12,'#3b3d39',15.45,'#7b7d77',16.32,'#c4c7c1',17,'#b7bcb5',19,'#b7bcb5'];
+const relief1=['interpolate',['linear'],['zoom'],15.1,0,15.7,.04,16.15,.13,16.6,.25,17.1,.32,19,.32];
+const relief2=['interpolate',['linear'],['zoom'],15.1,0,15.7,.02,16.15,.07,16.6,.15,17.1,.20,19,.2];
+function findBuildings(map){
+ const style=map.getStyle?.()||{};
+ let buildings=(style.layers||[]).filter(l=>l.type==='fill'&&l.source&&l['source-layer']&&/building/i.test(String(l.id)+' '+String(l['source-layer'])));
+ if(buildings.length)return buildings;
+ const vector=Object.entries(style.sources||{}).find(([_,v])=>v?.type==='vector');if(!vector)return [];
+ const id='atlas-route-fallback-real-buildings';
+ try{if(!map.getLayer?.(id)){const before=style.layers?.find(l=>l.type==='symbol'&&l.layout?.['text-field'])?.id;map.addLayer({id,type:'fill',source:vector[0],'source-layer':'building',minzoom:11,paint:{'fill-color':'#353735','fill-opacity':.98}},before)}}
+ catch(e){console.warn('无法载入建筑矢量轮廓',e);return []}
+ return (map.getStyle?.()?.layers||[]).filter(l=>l.id===id);
 }
-function setStyle(map){
-  const target=findBuildingLayer(map);
-  if(!target)return {ok:false,reason:'No building polygons in current map style'};
-  const buildingFills=(map.getStyle?.()?.layers||[]).filter(layer=>layer.type==='fill'&&/building/i.test(String(layer.id)+' '+String(layer['source-layer']||'')));
-  const set=(property,value)=>{for(const layer of buildingFills){try{map.setPaintProperty(layer.id,property,value)}catch(e){console.warn('Architectural property unavailable',property,e?.message)}}};
-  set('fill-color',roofColor);
-  set('fill-opacity',roofOpacity);
-  set('fill-outline-color',roofOutline);
-  // Near-overhead raised-block effect without altering map bearing/pitch.
-  // A shadow uses the original building polygons, offset in screen space.
-  if(!map.getLayer?.(SHADOW)){
-    try{map.addLayer({id:SHADOW,type:'fill',source:target.source,'source-layer':target['source-layer'],
-      minzoom:15.4,paint:{
-        'fill-color':'#878c85',
-        'fill-opacity':['interpolate',['linear'],['zoom'],15.4,0,15.85,.08,16.3,.17,17,.23,19,.25],
-        'fill-translate':['interpolate',['linear'],['zoom'],15.4,['literal',[0,0]],16.2,['literal',[1.1,1.6]],17.3,['literal',[2.4,3.2]],19,['literal',[3.1,4]]],
-        'fill-translate-anchor':'viewport'
-      }},target.id)}catch(e){console.debug('俯视建筑阴影不可用，保留屋顶的黑白过渡',e)}
-  }
-
-  try{
-    map.setLight?.({anchor:'viewport',color:'#ffffff',intensity:.55,position:[1.45,210,63]});
-  }catch(e){console.debug('Map light customization skipped',e?.message)}
-  if(map.getLayer?.(LAYER))return {ok:true,layer:LAYER,source:target.source};
-  const styles=map.getStyle()?.layers||[];
-  const firstSymbol=styles.find(l=>l.type==='symbol'&&l.layout?.['text-field'])?.id;
-  try{
-    map.addLayer({
-      id:LAYER,type:'fill-extrusion',source:target.source,
-      'source-layer':target['source-layer'],
-      minzoom:15.58,
-      filter:['!=',['get','hide_3d'],true],
-      paint:{
-        'fill-extrusion-color':extrusionColor,
-        'fill-extrusion-opacity':extrusionOpacity,
-        'fill-extrusion-height':extrudedHeight,
-        'fill-extrusion-base':extrudedBase
-      }
-    },firstSymbol);
-    return {ok:true,layer:LAYER,source:target.source};
-  }catch(err){
-    console.warn('建筑体块图层未启用，保留连续的二维黑白地图',err);
-    return {ok:false,reason:String(err?.message||err)};
-  }
+function paint(map,layer,key,value){try{map.setPaintProperty(layer.id,key,value)}catch(e){console.warn('建筑样式未支持',key,e?.message)}}
+function addShadow(map,id,building,shift,opacity,color){
+ if(map.getLayer?.(id))return;
+ try{map.addLayer({id,type:'fill',source:building.source,'source-layer':building['source-layer'],minzoom:15.1,paint:{
+  'fill-color':color,'fill-opacity':opacity,'fill-translate':shift,'fill-translate-anchor':'viewport'
+ }},building.id)}catch(e){console.warn('建筑俯视体块侧面暂不可用',e?.message)}
+}
+function apply(map){
+ const buildings=findBuildings(map);if(!buildings.length)return {ok:false,reason:'No OSM vector building footprint in the loaded map style'};
+ for(const l of buildings){
+  paint(map,l,'fill-color',roof);paint(map,l,'fill-opacity',alpha);paint(map,l,'fill-outline-color',outline);
+ }
+ const first=buildings[0];
+ addShadow(map,FAR,first,[5,6],relief2,'#424a43');
+ addShadow(map,NEAR,first,[2.5,3.4],relief1,'#70766f');
+ // Markers, labels, interactive POIs and map camera are not modified.
+ return {ok:true,footprints:buildings.length,relief:[NEAR,FAR]};
 }
 function attach(map){
-  if(!map||map.__atlasRouteBInstalled)return;
-  map.__atlasRouteBInstalled=true;
-  let raf=0;
-  const updatePitch=()=>{
-    if(raf)return;
-    raf=requestAnimationFrame(()=>{
-      raf=0;
-      const z=Number(map.getZoom?.());
-      if(!Number.isFinite(z))return;
-      const target=pitchForZoom(z);
-      try{
-        if(Math.abs((map.getPitch?.()||0)-target)>.15)map.setPitch(target);
-        if(Math.abs(map.getBearing?.()||0)>.2)map.setBearing(0);
-      }catch(e){console.debug('地图俯视角度调整失败',e?.message)}
-    });
-  };
-  const styled=setStyle(map);
-  map.on?.('zoom',updatePitch);
-  map.on?.('zoomend',updatePitch);
-  map.on?.('resize',updatePitch);
-  updatePitch();
-  window.__atlasRouteBStatus={version:VERSION,...styled,pitchMax:LIMIT};
+ if(!map||map.__atlasOverheadB)return;
+ map.__atlasOverheadB=true;
+ const result=apply(map);
+ try{if(Math.abs(map.getPitch?.()||0)>.05)map.setPitch?.(0)}catch(_){}
+ window.__atlasRouteBStatus={version:VERSION,...result,view:'fixed-overhead',pitchMax:0};
 }
-window.AtlasRouteBuildings={attach,pitchForZoom,version:VERSION,zoomStages:[
-  {zoom:12.5,name:'Black figure-ground',opacity:.98,pitch:0},
-  {zoom:15.6,name:'Semi-transparent transition',opacity:.47,pitch:pitchForZoom(15.6)},
-  {zoom:17.3,name:'White blocks + raised roofs',opacity:.99,pitch:pitchForZoom(17.3)}
+window.AtlasRouteBuildings={attach,apply,pitchForZoom:()=>0,version:VERSION,zoomStages:[
+ {zoom:12.8,name:'黑色建筑',opacity:.98,pitch:0},
+ {zoom:15.65,name:'半透明过渡',opacity:.44,pitch:0},
+ {zoom:17.3,name:'白色屋顶 + 俯视侧面',opacity:1,pitch:0}
 ]};
 })();
