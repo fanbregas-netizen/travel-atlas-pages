@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta name="atlas-hosting" content="static">
-<meta name="atlas-release" content="V4.Review.20261103.canvas-first-v45">
+<meta name="atlas-release" content="V4.Review.20261103.architectural-b-v46">
 <script src="/travel-atlas-pages/atlas-services.js"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -874,6 +874,22 @@ body.atlas-canvas-primary.fg-active:not(.atlas-architect-current) #map .simplema
 body.atlas-canvas-primary #map .simplemap-markers{overflow:visible}
 body.atlas-canvas-primary #map .map-local-marker{pointer-events:auto;touch-action:manipulation}
 </style>
+<style id="atlas-architectural-single-plane-v46">
+/* V4.6 — no double map, old raster can exist only at distant zoom < 12. */
+html.atlas-stable-map body.atlas-canvas-primary.fg-active.atlas-architecture-scale #map .simplemap-tiles,
+html.atlas-stable-map body.atlas-canvas-primary.fg-active.atlas-architecture-scale #map .simplemap-labels,
+body.atlas-canvas-primary.fg-active.atlas-architecture-scale #map .simplemap-tiles,
+body.atlas-canvas-primary.fg-active.atlas-architecture-scale #map .simplemap-labels{
+ display:none!important;opacity:0!important;visibility:hidden!important
+}
+html.atlas-stable-map body.atlas-canvas-primary.fg-active.atlas-architecture-scale #map .figure-canvas,
+body.atlas-canvas-primary.fg-active.atlas-architecture-scale #map .figure-canvas{
+ display:block!important;visibility:visible!important;opacity:1!important
+}
+body.atlas-canvas-primary.fg-active.atlas-architecture-scale #map{background:#f9f8f5!important}
+body.atlas-canvas-primary #map .simplemap-markers{z-index:5!important}
+body.atlas-canvas-primary #map .simplemap-destinations{z-index:4!important}
+</style>
 </head>
 <body>
 <div id="map" aria-label="私人旅行收藏地图"></div><div id="amapSurface" aria-label="高德地点地图" hidden></div><div id="figureCaption"><em>Fig. 01</em> · CITY IN BLACK &amp; WHITE · 放大看建筑肌理</div><div class="map-status" id="mapStatus">建筑肌理 © OpenStreetMap</div><div class="map-shade" aria-hidden="true"></div>
@@ -1237,6 +1253,36 @@ class Map{
     };
     return tile.paths;
   }
+
+  // Restored from historical Architectural B (Nov 3): north-up roof massing,
+  // dark->white transitions and two small offset side silhouettes.
+  const atlasRoofStops=[[11,'#303230'],[14.3,'#343633'],[15.08,'#5b5d59'],
+    [15.48,'#969993'],[15.83,'#c7cac4'],[16.25,'#e8e9e5'],
+    [16.65,'#f9f9f6'],[17.1,'#ffffff'],[19,'#ffffff']];
+  function atlasRoofColor(zoom){
+    const toRGB=h=>[1,3,5].map(k=>parseInt(h.slice(k,k+2),16));
+    for(let i=1;i<atlasRoofStops.length;i++){
+      if(zoom>atlasRoofStops[i][0])continue;
+      const lo=atlasRoofStops[i-1],hi=atlasRoofStops[i];
+      const t=fgClamp((zoom-lo[0])/(hi[0]-lo[0]),0,1);
+      const a=toRGB(lo[1]),b=toRGB(hi[1]);
+      return '#'+a.map((v,k)=>Math.round(v+(b[k]-v)*t).toString(16).padStart(2,'0')).join('');
+    }
+    return '#ffffff';
+  }
+  function atlasRoofRelief(ctx,path,zoom,unit){
+    const amount=fgClamp((zoom-15.65)/1.5,0,1);
+    if(!amount)return;
+    for(const shadow of [{dx:5,dy:6,color:'#424a43',opacity:.20},
+                         {dx:2.5,dy:3.4,color:'#70766f',opacity:.32}]){
+      ctx.save();
+      ctx.translate(shadow.dx*amount*unit,shadow.dy*amount*unit);
+      ctx.globalAlpha=shadow.opacity*amount;
+      ctx.fillStyle=shadow.color;
+      ctx.fill(path,'evenodd');
+      ctx.restore();
+    }
+  }
   function paintBuildings(){
     if(!map?.figureCanvas)return;
     if(mobileStableMap){
@@ -1256,7 +1302,17 @@ class Map{
     if(satelliteOn||!document.body.classList.contains('fg-active'))return;
     const zoom=map.getZoom(),streetMass=zoom>=16.2;
     document.body.classList.toggle('atlas-plan-street',streetMass);
-    const tiles=figureVisibleTiles();if(!tiles.length)return;
+    // Never show raster street tiles under a partially loaded architectural map.
+    // At zoom >= 12 this Canvas is the ONLY visual basemap.
+    const onArchitecturalMap=zoom>=12;
+    document.body.classList.toggle('atlas-architecture-scale',onArchitecturalMap);
+    const tiles=figureVisibleTiles();
+    if(onArchitecturalMap){
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.fillStyle='#f9f8f5';
+      ctx.fillRect(0,0,w,h);
+    }
+    if(!tiles.length)return;
     const z=tiles[0].z,scale=Math.pow(2,zoom-z),center=figPixel(map.getCenter().lng,map.getCenter().lat,z);
     const labels=[],occupied=new Set();
     let paintedTiles=0;
@@ -1288,12 +1344,15 @@ class Map{
         ctx.strokeStyle=color;ctx.lineWidth=(px+1.25)*unit;ctx.stroke(path);
         ctx.strokeStyle='#ffffff';ctx.lineWidth=px*unit;ctx.stroke(path);
       }
+      // Plan-view 2.5D: offset building silhouettes below the actual roof.
+      // No map pitch or perspective change, even at maximum street zoom.
+      atlasRoofRelief(ctx,paths.building,zoom,unit);
+      ctx.fillStyle=atlasRoofColor(zoom);
+      ctx.fill(paths.building,'evenodd');
       if(streetMass){
-        ctx.fillStyle='#fffefb';ctx.fill(paths.building,'evenodd');
-        ctx.lineWidth=(zoom>=17?1.15:.95)*unit;
-        ctx.strokeStyle='#8b918a';ctx.stroke(paths.building);
-      }else{
-        ctx.fillStyle=zoom<13.2?'#363a37':'#262a27';ctx.fill(paths.building,'evenodd');
+        ctx.lineWidth=(zoom>=17?1.05:.85)*unit;
+        ctx.strokeStyle='#858b84';
+        ctx.stroke(paths.building);
       }
       ctx.restore();
       if(zoom>=13.8&&data.poi?.length){
@@ -1323,22 +1382,24 @@ class Map{
   // A constrained query avoids rendering a second live map or using invented footprints.
   let recoveryBuildings=[],recoveryRequested=false,recoveryRequestAt=0,architectFailureTimer=null,architectLoadNoticeTimer=null;
   function drawRecoveryBuildings(ctx,streetMass,w,h){
-    if(!recoveryBuildings.length||document.body.classList.contains('atlas-architect-ready'))return;
+    if(!recoveryBuildings.length||document.body.classList.contains('atlas-architect-current'))return;
     ctx.lineJoin='round';
     for(const ring of recoveryBuildings){
       if(ring.length<3)continue;
-      ctx.beginPath();
+      const path=new Path2D();
       let visible=false;
       for(let j=0;j<ring.length;j++){
         const p=map._pixel(ring[j][0],ring[j][1]);
         if(p.x>=-100&&p.x<=w+100&&p.y>=-100&&p.y<=h+100)visible=true;
-        if(j===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);
+        if(j===0)path.moveTo(p.x,p.y);else path.lineTo(p.x,p.y);
       }
       if(!visible)continue;
-      ctx.closePath();
-      ctx.fillStyle=streetMass?'#ffffff':'#252925';
-      ctx.fill();
-      if(streetMass){ctx.lineWidth=1.15;ctx.strokeStyle='#898d86';ctx.stroke()}
+      path.closePath();
+      const zoom=map.getZoom();
+      atlasRoofRelief(ctx,path,zoom,1);
+      ctx.fillStyle=atlasRoofColor(zoom);
+      ctx.fill(path);
+      if(streetMass){ctx.lineWidth=1.05;ctx.strokeStyle='#858b84';ctx.stroke(path)}
     }
   }
   async function recoverArchitecturalFootprints(){
@@ -2795,7 +2856,7 @@ function mapVectorStatus(message,state='loading'){
     if(location.protocol==='file:')toast('本地网页用于源码检查，完整地图请访问已部署网站');
     else { /* V22: distant black/white figure-ground, near plan-view building model. */ }
   }
-  window.__atlasArchitectQA=()=>({version:'figure-ground-v4.5-canvas-first',mode:mapMode,primary:document.body.classList.contains('atlas-canvas-primary'),coverage:figureCurrentCoverage,zoom:map?.getZoom()||0,loaded:figureReadyTiles,failed:figureFailedTiles,visible:document.body.classList.contains('atlas-architect-current'),tiles:figCache.size,buildings:[...figCache.values()].reduce((n,x)=>n+(x.buildings?.length||0),0),roads:[...figCache.values()].reduce((n,x)=>n+(x.roads?.length||0),0),hasVectorRoads:true,backupBuildings:recoveryBuildings.length,backupRequested:recoveryRequested});
+  window.__atlasArchitectQA=()=>({version:'architectural-b-v46',mode:mapMode,primary:document.body.classList.contains('atlas-canvas-primary'),pitch:0,architectureScale:document.body.classList.contains('atlas-architecture-scale'),roofTone:atlasRoofColor(map?.getZoom()||0),coverage:figureCurrentCoverage,zoom:map?.getZoom()||0,loaded:figureReadyTiles,failed:figureFailedTiles,visible:document.body.classList.contains('atlas-architect-current'),tiles:figCache.size,buildings:[...figCache.values()].reduce((n,x)=>n+(x.buildings?.length||0),0),roads:[...figCache.values()].reduce((n,x)=>n+(x.roads?.length||0),0),hasVectorRoads:true,backupBuildings:recoveryBuildings.length,backupRequested:recoveryRequested});
   window.__atlasRealPOIQA=()=>({mode:mapMode,shown:isOfficial()?$('atlasPoiOverlay')?.querySelectorAll('.atlas-poi-hit').length:Number($('atlasPoiOverlay')?.dataset.realPoiCount||0),backend:officialPoiBackendAvailable,officialReady:isOfficial()&&document.body.classList.contains('atlas-remote-ready'),vectorReady:isVector()&&vectorMap.loaded(),offline:!document.body.classList.contains('atlas-remote-ready')});
   window.__atlasQA=()=>({mode:mapMode,zoom:currentZoom(),pitch:isVector()?vectorMap.getPitch():isOfficial()?officialMap.getPitch():0,poiButtons:$('atlasPoiOverlay')?.querySelectorAll('button')?.length||0,selected:selectedDestination?.name||null,popup:$('destinationCard').classList.contains('visible'),has3D:isVector()?!!vectorMap.getLayer('atlas-3d-buildings'):!!officialBuildings});
   window.__atlasReframeForCollage=(id)=>{if(window.innerWidth>=740)return;const p=places.find(x=>x.id===id),card=document.getElementById('fpPlaceCard');if(!p||!card||card.hidden)return;const mark=[...document.querySelectorAll('.atlas-bookmark-hit')].find(e=>e.dataset.placeId===id)||document.querySelector('.star-pin.selected');if(!mark)return;const rect=mark.getBoundingClientRect(),top=card.getBoundingClientRect().top;const dy=Math.max(0,Math.min(245,Math.round(rect.bottom-top+64)));if(dy<12)return;try{if(isOfficial()&&officialMap?.panBy)officialMap.panBy(0,-dy);else{const active=isVector()?vectorMap:map;active?.panBy?.([0,-dy],{duration:450})}}catch(e){console.warn('地图避让暂不可用',e)}};
@@ -2867,7 +2928,7 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
 </script>
   <script>
   // Visible build marker for distinguishing a stale offline shell from the live release.
-  window.__atlasBuild='V4.Review.20261103.canvas-first-v45';
+  window.__atlasBuild='V4.Review.20261103.architectural-b-v46';
   </script>
   <script>window.__atlasPreferCollage=true</script>
   <script src="/travel-atlas-pages/atlas-orbit.js"></script>
