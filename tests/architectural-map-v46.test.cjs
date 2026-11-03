@@ -14,6 +14,8 @@ assert(html.includes('atlasRoofRelief(ctx,path,zoom,1)'),'OSM recovery must use 
 assert(html.includes('requestCurrentLocation(false)'),'Do not regress automatic geolocation');
 assert(html.includes('atlas-canvas-primary'),'WebGL-free map must remain enabled');
 assert(html.includes("document.body.classList.add('atlas-canvas-primary');\n    mapMode='figure'"),'All home map devices must use the same engine');
+const start=html.slice(html.indexOf('async function init(){'));
+assert(start.indexOf("document.body.classList.add('atlas-canvas-primary')")<start.indexOf('try{initMap()}'),'Renderer must be selected before initial map construction');
 assert(html.includes("const vectorCanvasOnly=document.body.classList.contains('atlas-canvas-primary')&&this.zoom>=12"),'Architectural scale must stop all legacy raster tile requests');
 assert(html.includes('if(vectorCanvasOnly){')&&html.includes('this.tilePane.replaceChildren()'),'Previously loaded raster tiles must be discarded');
 assert(html.includes('V4.Review.20261103.architectural-b-v46'),'Release marker is not V4.6');
