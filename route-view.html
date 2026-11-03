@@ -48,7 +48,10 @@ body.route-canvas-fallback #atlasMap .simplemap-destinations{pointer-events:none
 </style>
 <script defer src="./atlas-map-design.js"></script>
 <script defer src="./atlas-route-buildings.js"></script>
+<link rel="stylesheet" href="./atlas-stage3-itinerary.css?v=stage3-v48">
 <script defer src="./atlas-route-fallback.js"></script>
+<script defer src="./atlas-road-routing.js?v=stage3-v48"></script>
+<script defer src="./atlas-stage3-itinerary.js?v=stage3-v48"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 /* Footprint Map → Travel Atlas: geographical, read-only route viewer.
@@ -90,7 +93,7 @@ function dayForStop(i){return dayForPlace(places[i]?.id)}
 function outlinePath(points){if(!points.length)return '';let d=`M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;const off=Math.min(25,len*.105)*(i%2?-1:1),midX=(a.x+b.x)/2+(-dy/len)*off,midY=(a.y+b.y)/2+(dx/len)*off;d+=` Q ${midX.toFixed(1)} ${midY.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`}return d}
 function pointPositions(){return routeCoords.map(x=>map.project([+x.lng,+x.lat]))}
 function scheduleOverlays(){if(redrawRaf)return;redrawRaf=requestAnimationFrame(()=>{redrawRaf=0;drawOverlays()})}
-function drawOverlays(){if(!map||!places.length)return;const coords=pointPositions();const points=coords.map(p=>({x:p.x,y:p.y}));const svg=$('routeLines');svg.setAttribute('viewBox',`0 0 ${innerWidth} ${innerHeight}`);const d=outlinePath(points);$('routeOutline').setAttribute('d',d);$('routeStroke').setAttribute('d',d);for(let i=0;i<pins.length;i++){pins[i].style.left=points[i].x+'px';pins[i].style.top=points[i].y+'px';pins[i].hidden=points[i].x < -50||points[i].x>innerWidth+50||points[i].y < -50||points[i].y>innerHeight+50}if(active>=0)positionBubble(active)}
+function drawOverlays(){if(!map||!places.length)return;const coords=pointPositions();const points=coords.map(p=>({x:p.x,y:p.y}));const svg=$('routeLines');svg.setAttribute('viewBox',`0 0 ${innerWidth} ${innerHeight}`);const d=window.AtlasStage3Itinerary?.roadPath?.(map)||outlinePath(points);$('routeOutline').setAttribute('d',d);$('routeStroke').setAttribute('d',d);for(let i=0;i<pins.length;i++){pins[i].style.left=points[i].x+'px';pins[i].style.top=points[i].y+'px';pins[i].hidden=points[i].x < -50||points[i].x>innerWidth+50||points[i].y < -50||points[i].y>innerHeight+50}if(active>=0)positionBubble(active)}
 function fit(){if(!map||!places.length)return;active=-1;$('stopBubble').hidden=true;selectVisual();const lons=places.map(p=>+p.lng),lats=places.map(p=>+p.lat);if(places.length===1||Math.max(...lons)-Math.min(...lons)<.00008&&Math.max(...lats)-Math.min(...lats)<.00008){map.easeTo({center:[lons[0],lats[0]],zoom:13.8,bearing:0,pitch:0,duration:550});return}const pad={top:125,right:Math.min(75,innerWidth*.16),bottom:Math.min(255,innerHeight*.31),left:Math.min(75,innerWidth*.16)};map.fitBounds([[Math.min(...lons),Math.min(...lats)],[Math.max(...lons),Math.max(...lats)]],{padding:pad,maxZoom:13.8,duration:650,bearing:0,pitch:0})}
 function recolor(){if(!map)return;if(window.AtlasFigureGround?.apply?.(map))return;const style=map.getStyle();for(const layer of style?.layers||[]){try{const id=String(layer.id).toLowerCase(),sl=String(layer['source-layer']||'').toLowerCase(),key=id+' '+sl;if(layer.type==='fill'){const building=/building/.test(key),water=/water/.test(key),green=/park|grass|landcover|landuse|wood|forest/.test(key);if(building){map.setPaintProperty(layer.id,'fill-color',['interpolate',['linear'],['zoom'],14,'#313533',15.6,'#515552',16.1,'#fdfcf8',20,'#ffffff']);map.setPaintProperty(layer.id,'fill-opacity',.94)}else map.setPaintProperty(layer.id,'fill-color',water?'#e2e3df':green?'#eae9e3':'#efeee9');}else if(layer.type==='background')map.setPaintProperty(layer.id,'background-color','#f1f0ea');else if(layer.type==='line'){map.setPaintProperty(layer.id,'line-color',/road|street|highway|bridge|transport/.test(key)?'#bcbcb8':'#d6d5cf');}else if(layer.type==='symbol'){map.setPaintProperty(layer.id,'text-color','#505451');map.setPaintProperty(layer.id,'text-halo-color','#f5f4ef');map.setPaintProperty(layer.id,'text-halo-width',1.2)}else if(layer.type==='fill-extrusion')map.setLayoutProperty(layer.id,'visibility','none')}catch{}}}
 async function getMaplibre(){
@@ -152,7 +155,13 @@ function setupCardGestures(){
  grip.addEventListener('click',()=>{if(Date.now()-lastSwipe<450||$('stopBubble').hidden)return;move(1)});
  grip.addEventListener('keydown',e=>{if(e.key==='ArrowUp'){e.preventDefault();move(1)}else if(e.key==='ArrowDown'){e.preventDefault();move(-1)}else if(e.key==='Escape'){e.preventDefault();dismissBubble()}});
 }
-function initUI(){$('viewAll').onclick=fit;$('saveRoute').onclick=openSave;$('routeSaveCancel').onclick=()=>$('saveRouteDialog').close();$('routeSaveForm').addEventListener('submit',saveRoute);setupCardGestures();$('closeBubble').onclick=dismissBubble;document.addEventListener('keydown',e=>{if(e.key==='Escape')dismissBubble()});$('atlasMap').addEventListener('click',()=>{if(active>=0)dismissBubble()});}
+function initUI(){
+ window.AtlasStage3Itinerary?.attach?.({
+  getPlaces:()=>places,getPayload:()=>routePayload,getMap:()=>map,
+  dayForStop,dateForDay,totalDays,dayCount:totalDays,navigationUrl:navigateUrl,
+  toGCJ:wgsToGcj,redraw:scheduleOverlays
+ });
+ $('viewAll').onclick=fit;$('saveRoute').onclick=openSave;$('routeSaveCancel').onclick=()=>$('saveRouteDialog').close();$('routeSaveForm').addEventListener('submit',saveRoute);setupCardGestures();$('closeBubble').onclick=dismissBubble;document.addEventListener('keydown',e=>{if(e.key==='Escape')dismissBubble()});$('atlasMap').addEventListener('click',()=>{if(active>=0)dismissBubble()});}
 async function init(){initUI();routePayload=await resolveRoute();if(!routePayload){empty('请在 Footprint Map 点击「路线」，通过地图选点或列表搜索选出收藏地点后进入。');return}const ids=[...new Set(routePayload.placeIds)];try{places=await loadPlaces(ids)}catch(e){empty('无法读取当前浏览器中的收藏地点：'+e.message);return}if(!places.length){empty('本次选中的地点没有可读取的真实坐标。请返回主页检查收藏是否存在。');return}routeCoords=places.map(p=>({lng:+p.lng,lat:+p.lat}));addPins();showStopRail();try{const lib=await getMaplibre();try{setupMap(lib)}catch(err){
  console.warn('WebGL route map could not start, switching to Canvas',err);
  if(lib===window.AtlasRouteFallback)throw err;
