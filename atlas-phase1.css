@@ -1,0 +1,26 @@
+/* V4 batch 1: I01/I02/I03/I04/I08, initial map layout stays unchanged. */
+:root{--atlas-safe-visual-height:100dvh;--atlas-keyboard-bottom:0px}
+#atlasPhase1Pins[hidden],#atlasPhase1OrderLabels[hidden]{display:none!important}
+#atlasPhase1Pins,#atlasPhase1OrderLabels{position:fixed;inset:0;pointer-events:none}
+#atlasPhase1Pins{z-index:1230}#atlasPhase1OrderLabels{z-index:1570}
+.atlas-phase1-pickpin{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;border:1.7px solid #fff;border-radius:50%;color:#765416;background:#f6c849;font-size:25px;display:grid;place-items:center;box-shadow:0 1px 0 #a98628,0 2px 9px #2225;cursor:pointer;pointer-events:auto;touch-action:manipulation;padding:0;line-height:1}
+.atlas-phase1-pickpin.is-cluster{width:36px;height:36px;background:#fff9dc;border:2px solid #ddb956;font-size:12px;font-weight:850;color:#584321}
+.atlas-phase1-pickpin.is-chosen{background:#ffe082;box-shadow:0 0 0 3px #e5ac35,0 1px 12px #4446;color:#634814}
+.atlas-phase1-number{position:absolute;transform:translate(-50%,-50%);width:23px;height:23px;border:2px solid #fff;border-radius:50%;background:#263230;display:grid;place-items:center;box-shadow:0 2px 10px #1117;color:#fff;font-size:12px;font-weight:850;pointer-events:none;line-height:1}
+.atlas-phase1-overlay-active .atlas-bookmark-hit,.atlas-phase1-overlay-active .star-pin,.atlas-phase1-overlay-active .atlas-official-star,.atlas-phase1-overlay-active .atlas-photo-location-pin,.atlas-phase1-overlay-active .atlas-vector-photo-pin{visibility:hidden!important;pointer-events:none!important}
+#fpSearchSheet,#fpPlaceCard{transition:height .32s cubic-bezier(.18,.88,.28,1),max-height .32s cubic-bezier(.18,.88,.28,1),transform .3s cubic-bezier(.18,.88,.28,1)!important}
+#fpSearchSheet:not([hidden]){height:min(58dvh,calc(var(--atlas-safe-visual-height)*.58));max-height:calc(var(--atlas-safe-visual-height) - 12px)!important}
+#fpSearchSheet[data-atlas-snap=peek]:not([hidden]){height:min(32dvh,calc(var(--atlas-safe-visual-height)*.32))}
+#fpSearchSheet[data-atlas-snap=half]:not([hidden]){height:min(58dvh,calc(var(--atlas-safe-visual-height)*.58))}
+#fpSearchSheet[data-atlas-snap=full]:not([hidden]){height:calc(var(--atlas-safe-visual-height) - 12px)}
+#fpPlaceCard:not([hidden]){height:min(39dvh,350px);max-height:calc(var(--atlas-safe-visual-height) - 20px)!important}
+#fpPlaceCard[data-atlas-snap=peek]:not([hidden]){height:min(39dvh,350px)}
+#fpPlaceCard[data-atlas-snap=half]:not([hidden]){height:min(63dvh,580px)}
+#fpPlaceCard[data-atlas-snap=full]:not([hidden]){height:calc(var(--atlas-safe-visual-height) - 25px)}
+#fpSearchSheet .fp-search-grip,.atlas-card-grip{touch-action:none;cursor:grab}
+#fpSearchSheet .fp-search-grip:active,.atlas-card-grip:active{cursor:grabbing}
+.atlas-card-grip{display:block;flex:0 0 auto;align-self:center;width:42px;height:5px;border-radius:9px;background:#d5d3cc;margin:9px auto -2px}
+#fpSearchSheet .fp-search-body,#fpPlaceCard .fp-card-scroll{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#fpSearchSheet .fp-search-grip:focus-visible,.atlas-card-grip:focus-visible{outline:3px solid #d4a945;outline-offset:3px}
+@media(max-width:600px){#fpPlaceCard[data-atlas-snap=full]:not([hidden]){bottom:max(env(safe-area-inset-bottom),8px)}#fpSearchSheet[data-atlas-snap=full]:not([hidden]){border-radius:18px 18px 0 0}}
+@media(prefers-reduced-motion:reduce){#fpSearchSheet,#fpPlaceCard{transition:none!important}}
