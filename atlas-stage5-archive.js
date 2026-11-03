@@ -4,6 +4,7 @@
 (function(root){
 'use strict';
 const encoder=new TextEncoder(),decoder=new TextDecoder('utf-8',{fatal:true});
+const dv=(buf)=>new DataView(buf.buffer,buf.byteOffset,buf.byteLength);
 const MAX_TOTAL=512*1024*1024,MAX_FILES=9000,MAX_JSON=64*1024*1024,MAX_PLACES=1000,MAX_PLANS=2000;
 const MAX_VIDEO=100*1024*1024;
 const crcTable=new Uint32Array(256);
@@ -24,7 +25,6 @@ function zip(files){
  if(!Array.isArray(files)||!files.length||files.length>MAX_FILES)throw Error('备份文件数量超出限制');
  const names=new Set(),pieces=[],central=[];
  let offset=0,total=22;
- const dv=(buf)=>new DataView(buf.buffer,buf.byteOffset,buf.byteLength);
  for(const f of files){
   const name=checkName(f.name);if(names.has(name))throw Error('备份中存在重复路径 '+name);names.add(name);
   const path=encoder.encode(name),data=bytesOf(f.data);
