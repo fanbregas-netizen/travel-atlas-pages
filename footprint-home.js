@@ -43,9 +43,25 @@ async function searchNow(q,submitted){q=String(q||'').trim();searchReset();if(!q
 }
 function chooseResult(place){closeSearch();const name=place.name||place.q||'地点';if(place.saved&&place.id){window.__atlasDemo?.openSaved?.(place.id);return}if(!safe(place.lat,-90,90)||!safe(place.lon??place.lng,-180,180)){openSearch();searchInput.value=name;searchNow(name,true);return}saveHistory({q:name,name,lat:place.lat,lon:place.lon,description:place.display_name||place.description||''});const data={name,lat:Number(place.lat),lng:Number(place.lon??place.lng),address:place.display_name||place.address||'',category:place.type||'地点',id:place.id||''};if(typeof window.__fpSearchSelect==='function')window.__fpSearchSelect(data);else window.__atlasDemo?.select?.(data.name,data.lat,data.lng)}
 function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open('private-travel-footprints-v1',1);req.onupgradeneeded=()=>{const d=req.result;if(!d.objectStoreNames.contains('places'))d.createObjectStore('places',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
-async function readPlaces(){try{if(!('indexedDB' in window))throw Error('not supported');const db=await openDb();try{return await new Promise((resolve,reject)=>{const tx=db.transaction('places','readonly');const r=tx.objectStore('places').getAll();r.onsuccess=()=>resolve(r.result||[]);r.onerror=()=>reject(r.error)})}finally{db.close()}}catch{try{const v=JSON.parse(localStorage.getItem('travel-places')||'[]');return Array.isArray(v)?v:[]}catch{return []}}}
+async function readPlaces(){
+ if(typeof window.__atlasPlaceStore?.readAll==='function')return window.__atlasPlaceStore.readAll();
+ try{if(!('indexedDB' in window))throw Error('not supported');const db=await openDb();try{return await new Promise((resolve,reject)=>{const tx=db.transaction('places','readonly');const r=tx.objectStore('places').getAll();r.onsuccess=()=>resolve(r.result||[]);r.onerror=()=>reject(r.error);tx.onabort=()=>reject(tx.error||Error('数据库读取中断'))})}finally{db.close()}}
+ catch{try{const v=JSON.parse(localStorage.getItem('travel-places')||'[]');return Array.isArray(v)?v:[]}catch{return []}}
+}
 async function readPlace(id){const ps=await readPlaces();return ps.find(x=>x.id===id)||null}
-async function writePlace(p){if(!p?.id)throw Error('地点没有 ID');try{const db=await openDb();try{await new Promise((resolve,reject)=>{const tx=db.transaction('places','readwrite');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('存储中断'));tx.objectStore('places').put(p)})}finally{db.close()}}catch(e){let saved;try{saved=JSON.parse(localStorage.getItem('travel-places')||'[]')}catch{saved=[]}if(!Array.isArray(saved))saved=[];const i=saved.findIndex(x=>x.id===p.id);if(i<0)saved.push(p);else saved[i]=p;try{localStorage.setItem('travel-places',JSON.stringify(saved))}catch{throw e}}
+async function writePlace(p){
+ if(!p?.id)throw Error('地点没有 ID');
+ // Prefer the EXACT store used by the original bookmark map. A quota error
+ // must never silently fall back to another copy of the user's collection.
+ if(typeof window.__atlasPlaceStore?.save==='function'){await window.__atlasPlaceStore.save(p);return}
+ if(!('indexedDB' in window))throw Error('此浏览器无法访问主要收藏数据库，请先导出备份');
+ const db=await openDb();
+ try{await new Promise((resolve,reject)=>{
+  const tx=db.transaction('places','readwrite');
+  tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||Error('数据库写入失败'));
+  tx.onabort=()=>reject(tx.error||Error('存储中断，未保存'));
+  tx.objectStore('places').put(p);
+ })}finally{db.close()}
  try{await window.__atlasFlowRefresh?.()}catch(e){console.warn('地图刷新延迟',e)}
 }
 const mediaOf=p=>[...(Array.isArray(p.photos)?p.photos:[]).filter(x=>typeof x.src==='string'&&/^data:image\/(jpeg|png|webp);base64,/i.test(x.src)).map(x=>({...x,kind:'photo'})),...(Array.isArray(p.videos)?p.videos:[]).filter(x=>x.bytes||x.blob).map(x=>({...x,kind:'video'}))];
