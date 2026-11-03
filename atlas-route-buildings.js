@@ -36,8 +36,8 @@ const extrusionOpacity=[
   'interpolate',['linear'],['zoom'],
   15.58,0,15.85,.12,16.12,.43,16.4,.76,16.75,.92,17.5,.97,19,.97
 ];
-const height=['max',8,['coalesce',['to-number',['get','render_height'],null],['to-number',['get','height'],null],12]];
-const base=['max',0,['coalesce',['to-number',['get','render_min_height'],null],['to-number',['get','min_height'],null],0]];
+const height=['max',8,['to-number',['coalesce',['get','render_height'],['get','height'],12],12]];
+const base=['max',0,['to-number',['coalesce',['get','render_min_height'],['get','min_height'],0],0]];
 const extrudedHeight=[
   'interpolate',['linear'],['zoom'],
   15.6,0,16.1,['*',.28,height],16.55,['*',.78,height],
@@ -63,7 +63,8 @@ function findBuildingLayer(map){
 function setStyle(map){
   const target=findBuildingLayer(map);
   if(!target)return {ok:false,reason:'No building polygons in current map style'};
-  const set=(property,value)=>{try{map.setPaintProperty(target.id,property,value)}catch(e){console.warn('Architectural property unavailable',property,e?.message)}};
+  const buildingFills=(map.getStyle?.()?.layers||[]).filter(layer=>layer.type==='fill'&&/building/i.test(String(layer.id)+' '+String(layer['source-layer']||'')));
+  const set=(property,value)=>{for(const layer of buildingFills){try{map.setPaintProperty(layer.id,property,value)}catch(e){console.warn('Architectural property unavailable',property,e?.message)}}};
   set('fill-color',roofColor);
   set('fill-opacity',roofOpacity);
   set('fill-outline-color',roofOutline);
