@@ -25,7 +25,7 @@ footer{font-size:10px;color:#808076;margin-top:11px;line-height:1.5}.maplibregl-
 const $=id=>document.getElementById(id),stages=[{id:'far',zoom:12.8,text:'远景 · 黑色建筑肌理'},{id:'mid',zoom:15.65,text:'过渡 · 半透明体块'},{id:'near',zoom:17.4,text:'近景 · 白色建筑与俯视立体感'}];let map=null;
 function setStage(z){const label=z<15?'远景 · 黑色建筑肌理':z<16.35?'过渡 · 半透明建筑':'近景 · 白色建筑体块 / 俯视立体感';$('currentStage').textContent=label;$('zoomText').textContent=z.toFixed(1);$('zoomSlider').value=z;for(const p of stages)$('mode-'+p.id).classList.toggle('active',Math.abs(p.zoom-z)<.35)}
 function run(){if(!window.maplibregl||!window.AtlasFigureGround||!window.AtlasRouteBuildings){$('info').textContent='地图资源没有完全加载，请刷新重试';return}
- map=new maplibregl.Map({container:'visualMap',style:'https://tiles.openfreemap.org/styles/bright',center:[121.49,31.225],zoom:12.8,minZoom:9,maxZoom:19,pitch:0,maxPitch:17,bearing:0,dragRotate:false,touchPitch:false,antialias:true,attributionControl:true});
+ map=new maplibregl.Map({container:'visualMap',style:'https://tiles.openfreemap.org/styles/bright',center:[121.49,31.225],zoom:12.8,minZoom:9,maxZoom:19,pitch:0,maxPitch:0,bearing:0,dragRotate:false,touchPitch:false,antialias:true,attributionControl:true});
  map.touchZoomRotate?.disableRotation();map.keyboard?.disableRotation();
  map.on('load',()=>{window.AtlasFigureGround.apply(map);window.AtlasRouteBuildings.attach(map);$('info').textContent='地图可拖动、放大，建筑坐标来自真实 OSM 地图数据';setStage(map.getZoom())});
  map.on('zoom',()=>setStage(map.getZoom()));
@@ -42,7 +42,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <div id="info" role="status">正在加载真实建筑地图…</div>
 <section class="controls" aria-label="地图视觉验收控制">
 <div class="row"><strong class="stage" id="currentStage">远景 · 黑色建筑肌理</strong><strong id="zoomText">12.8</strong></div>
-<p class="hint">真实地图底图 · 黑 → 半透明 → 白色 block。近景轻微俯视立体，不改变地点坐标、路线或收藏逻辑。</p>
+<p class="hint">真实地图底图 · 黑 → 半透明 → 白色 block。近景保持原有俯视视角，以建筑屋顶阴影显示轻微层次，不改变路线或收藏逻辑。</p>
 <input id="zoomSlider" aria-label="地图缩放级别" type="range" min="11" max="19" step=".1" value="12.8">
 <div class="ticks"><span>11</span><span>13</span><span>15</span><span>17</span><span>19</span></div>
 <div class="modes"><button id="mode-far" class="active" type="button">远景·黑</button><button id="mode-mid" type="button">半透明过渡</button><button id="mode-near" type="button">近景·白</button></div>
