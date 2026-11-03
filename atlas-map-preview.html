@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="theme-color" content="#f7f6f3"><title>Travel Atlas｜黑白建筑地图 B · 视觉验收</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#232823;background:#f7f6f3;font-size:14px}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100dvh;overflow:hidden}#visualMap{position:fixed;inset:0;background:#f7f6f3}
+header{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:12px;right:12px;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;pointer-events:none}
+header>*{pointer-events:auto}.back{display:flex;align-items:center;gap:6px;text-decoration:none;background:#fffef8ed;border-radius:22px;padding:11px 14px;color:#283130;border:1px solid #e9e5d8;font-weight:700;box-shadow:0 2px 12px #1111}
+.brand{text-align:right;display:flex;flex-direction:column;gap:2px;text-shadow:0 1px 3px white;max-width:64%}.brand small{font-size:10px;letter-spacing:.14em;font-weight:900;color:#a4853b}.brand strong{font-size:15px}
+#info{position:fixed;z-index:10;left:50%;transform:translateX(-50%);top:calc(72px + env(safe-area-inset-top));max-width:calc(100vw - 20px);background:#fffdfaed;border:1px solid #e5e4dd;border-radius:99px;padding:8px 13px;color:#4d514d;font-size:11px;box-shadow:0 3px 15px #1111;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.controls{position:fixed;z-index:10;bottom:calc(12px + env(safe-area-inset-bottom));left:12px;right:12px;background:#fffef9f0;backdrop-filter:blur(16px);border-radius:23px;padding:16px;box-shadow:0 14px 37px #14191422;border:1px solid #deddd3;max-width:520px;margin:auto}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.stage{font-weight:800;font-size:15px}.hint{color:#797b72;font-size:11px;line-height:1.6;margin:8px 0 13px}
+input[type=range]{width:100%;accent-color:#b89d54;height:32px;touch-action:none}.ticks{display:flex;justify-content:space-between;color:#777;font-size:11px;font-variant-numeric:tabular-nums}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.modes button{padding:11px 4px;background:#f6f5f0;border:1px solid #dddcd5;color:#38403b;border-radius:13px;font-weight:700;font-size:12px}.modes button.active{background:#ede4ca;border-color:#d3b974;color:#4e4022}
+footer{font-size:10px;color:#808076;margin-top:11px;line-height:1.5}.maplibregl-ctrl-bottom-right{bottom:250px}.maplibregl-ctrl-attrib{font-size:9px!important}
+@media(max-width:390px){.controls{padding:13px}.brand strong{font-size:13px}.modes button{font-size:11px}}
+</style>
+<script defer src="./atlas-map-design.js"></script>
+<script defer src="./atlas-route-buildings.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id),stages=[{id:'far',zoom:12.8,text:'远景 · 黑色建筑肌理'},{id:'mid',zoom:15.65,text:'过渡 · 半透明体块'},{id:'near',zoom:17.4,text:'近景 · 白色建筑与俯视立体感'}];let map=null;
+function setStage(z){const label=z<15?'远景 · 黑色建筑肌理':z<16.35?'过渡 · 半透明建筑':'近景 · 白色建筑体块 / 俯视立体感';$('currentStage').textContent=label;$('zoomText').textContent=z.toFixed(1);$('zoomSlider').value=z;for(const p of stages)$('mode-'+p.id).classList.toggle('active',Math.abs(p.zoom-z)<.35)}
+function run(){if(!window.maplibregl||!window.AtlasFigureGround||!window.AtlasRouteBuildings){$('info').textContent='地图资源没有完全加载，请刷新重试';return}
+ map=new maplibregl.Map({container:'visualMap',style:'https://tiles.openfreemap.org/styles/bright',center:[121.49,31.225],zoom:12.8,minZoom:9,maxZoom:19,pitch:0,maxPitch:17,bearing:0,dragRotate:false,touchPitch:false,antialias:true,attributionControl:true});
+ map.touchZoomRotate?.disableRotation();map.keyboard?.disableRotation();
+ map.on('load',()=>{window.AtlasFigureGround.apply(map);window.AtlasRouteBuildings.attach(map);$('info').textContent='地图可拖动、放大，建筑坐标来自真实 OSM 地图数据';setStage(map.getZoom())});
+ map.on('zoom',()=>setStage(map.getZoom()));
+ map.on('error',e=>{console.warn(e?.error||e);$('info').textContent='部分地图瓦片加载失败，可重新刷新页面'});
+ $('zoomSlider').addEventListener('input',e=>map.jumpTo({zoom:Number(e.target.value)}));
+ for(const item of stages)$('mode-'+item.id).onclick=()=>map.easeTo({zoom:item.zoom,duration:1100,essential:true});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+})();
+</script>
+</head><body>
+<div id="visualMap" aria-label="黑白建筑地图实时缩放预览"></div>
+<header><a class="back" href="./" aria-label="返回 Footprint Map">← 返回主页</a><div class="brand"><small>TRAVEL ATLAS / VISUAL REVIEW B</small><strong>建筑地图缩放过渡</strong></div></header>
+<div id="info" role="status">正在加载真实建筑地图…</div>
+<section class="controls" aria-label="地图视觉验收控制">
+<div class="row"><strong class="stage" id="currentStage">远景 · 黑色建筑肌理</strong><strong id="zoomText">12.8</strong></div>
+<p class="hint">真实地图底图 · 黑 → 半透明 → 白色 block。近景轻微俯视立体，不改变地点坐标、路线或收藏逻辑。</p>
+<input id="zoomSlider" aria-label="地图缩放级别" type="range" min="11" max="19" step=".1" value="12.8">
+<div class="ticks"><span>11</span><span>13</span><span>15</span><span>17</span><span>19</span></div>
+<div class="modes"><button id="mode-far" class="active" type="button">远景·黑</button><button id="mode-mid" type="button">半透明过渡</button><button id="mode-near" type="button">近景·白</button></div>
+<footer>这是专门用于视觉审核的地图预览，地点坐标与建筑轮廓来自真实地图数据，不读取或修改你的收藏地点。</footer>
+</section>
+</body></html>
