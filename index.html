@@ -2815,6 +2815,9 @@ function mapVectorStatus(message,state='loading'){
     await database();
     const initFlag=await getMeta('initialized');
     if(!initFlag){await setMeta('initialized',true)}
+    // Set the exclusive map renderer before the first tile request, so even
+    // the initial iPhone frame cannot flash the previous street-map layer.
+    document.body.classList.add('atlas-canvas-primary');
     try{initMap()}catch(err){console.error('地图组件启动失败:',err);showMapWarning('地图组件遇到问题，但不会影响你的收藏和照片，请在「足迹」中查看或导出备份。')}
     await refresh();setTimeout(showIncomingShare,400);
     // Ask for actual device location on map entry. Deep links keep their explicitly chosen destination.
