@@ -40,6 +40,8 @@ jobs:
           node --check atlas-route-buildings.js
           node --check atlas-phase1.js
           node --check atlas-mobile-poi.js
+          node --check tests/architectural-map-v46.test.cjs
+          node tests/architectural-map-v46.test.cjs
           node - <<'NODE'
           const fs = require('fs');
           const html = fs.readFileSync('amap-import.html','utf8');
