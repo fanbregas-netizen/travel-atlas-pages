@@ -1100,7 +1100,7 @@ class Map{
   function selectPlaceAtTap(point){
     if(!map||(!mobileStableMap&&mapMode!=='standard')||picking||selectedDestination||selectedId||Date.now()<mapTapSuppressionUntil)return;
     const lat=Number(point?.lat),lng=Number(point?.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;
-    const name='所选位置';
+    const name='地图选点';
     const cache=discoveredPlaces.filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lng)).map(x=>({place:x,d:Math.hypot(map._pixel(x.lng,x.lat).x-map._pixel(lng,lat).x,map._pixel(x.lng,x.lat).y-map._pixel(lng,lat).y)})).sort((a,b)=>a.d-b.d);
     const nearest=cache[0]?.d<20?cache[0].place:{name,lat,lng,category:'位置'};
     showDestination(nearest);
@@ -1118,7 +1118,7 @@ class Map{
     if(mobileStableMap||!map?.destinationPane)return;
     clearTimeout(poiRenderTimer);poiRenderTimer=setTimeout(()=>{
       if(!map?.destinationPane)return;
-      const pane=map.destinationPane;pane.innerHTML='';if(map.getZoom()<13.65)return;
+      const pane=map.destinationPane;pane.innerHTML='';if(map.getZoom()<12.9)return;
       const vw=map.getContainer().clientWidth,vh=map.getContainer().clientHeight,z=Math.min(14,Math.floor(map.getZoom()));
       document.body.classList.toggle('poi-detail',map.getZoom()>=14);
       const tlist=figureVisibleTiles(),center=figPixel(map.getCenter().lng,map.getCenter().lat,z),scale=Math.pow(2,map.getZoom()-z),seen=new Set(),occupied=new Set();
@@ -1140,7 +1140,7 @@ class Map{
         const b=document.createElement('button');b.type='button';b.className='poi-marker';b.title='查看 '+p.name;b.style.left=p.x+'px';b.style.top=p.y+'px';
         b.innerHTML='<span class="poi-icon">'+poiEmoji(p.category)+'</span><span class="poi-label">'+escape(p.name)+'</span>';
         b.onclick=e=>{e.stopPropagation();showDestination(p)};
-        pane.append(b);if(pane.children.length>=(map.getZoom()<14.5?2:map.getZoom()<15?4:8))break;
+        pane.append(b);if(pane.children.length>=(map.getZoom()<14.5?9:map.getZoom()<15?16:28))break;
       }
     },95)
   }
@@ -1156,13 +1156,13 @@ class Map{
   function showDestination(d){
     if(window.__atlasTripPicking)return;
     closeMemory();closeSearchResults();setPicking(false);
-    selectedDestination={name:String(d.name||'地图位置'),lat:+d.lat,lng:+d.lng,category:d.category||'地点',id:d.id||''};
+    selectedDestination={name:String(d.name||'地图选点'),lat:+d.lat,lng:+d.lng,category:d.category||'地点',address:d.address||'',id:d.id||''};
     const existing=places.find(p=>!p.demo&&(
        (d.id && p.poiId && p.poiId===d.id)||
        (Math.abs(p.lat-d.lat)<.00016&&Math.abs(p.lng-d.lng)<.00016)
     ));
     $('destinationTitle').textContent=selectedDestination.name;
-    $('destinationCategory').textContent=(d.address?String(d.address).slice(0,100)+' · ':'')+poiCategory(d.category)+' · 点击右侧星标才会收藏 · 可写 Brief';
+    $('destinationCategory').textContent=(d.address?String(d.address).slice(0,76)+' · ':'')+poiCategory(d.category);
     $('destinationStar').textContent=existing?.starred!==false&&existing?'★ 查看这段回忆':existing?'☆ 恢复收藏':'☆ 加入收藏 · 写 Brief';
     $('destinationUnstar').hidden=!(existing&&existing.starred!==false);
     $('destinationCard').classList.add('visible');
@@ -1936,7 +1936,7 @@ class Map{
     const p=places.find(x=>x.id===id);if(!p)return;window.__atlasPoiFeedback?.(p.lat,p.lng);stopInlineVideos(true);
     setPicking(false);hideDestination();closeSearchResults();closeMapPopup();selectedId=id;
     for(const [key,m] of markers.entries())updateMarkerIcon(m,key===id);if(isOfficial()){paintOfficialBookmarks();updateOfficialSelectionPin({lat:+p.lat,lng:+p.lng,name:p.title||p.name||'已收藏地点'})}
-    if((fly||window.__atlasOrbitEnabled)&&(map||vectorMap||officialMap))setMapView(p.lat,p.lng,Math.max(currentZoom(),14.8));
+    // Tapping a saved star must not suddenly pan or zoom the map. The card handles its own safe area.
     const items=mediaItems(p),rightCount=items.length>=5?3:Math.min(2,items.length),vertical=items.slice(0,rightCount),horizontal=items.slice(rightCount);
     const itemButton=(item,i,band)=>item.kind==='video'?`<button class="atlas-photo atlas-video ${band==='bottom'?'atlas-strip-photo':''}" type="button" data-action="photo" data-id="${escape(p.id)}" data-idx="${i}" aria-label="放大第 ${i+1} 项视频"><span class="video-face"><b class="video-play">▶</b><span>${escape(item.name||'旅行视频')}</span></span><video class="atlas-inline-video" muted playsinline autoplay loop preload="none" aria-label="旅行视频静音预览"></video><span class="photo-number">${String(i+1).padStart(2,'0')} · 视频 ↗</span></button>`:
     `<button class="atlas-photo ${band==='bottom'?'atlas-strip-photo':''}" type="button" data-action="photo" data-id="${escape(p.id)}" data-idx="${i}" aria-label="查看第 ${i+1} 张照片"><img src="${photoSrc(item.src)}" alt="${escape(p.title)} · 精选照片" loading="lazy"><span class="photo-number">${String(i+1).padStart(2,'0')}</span></button>`;
@@ -2235,16 +2235,16 @@ class Map{
     if(vectorSelectionMarker)vectorSelectionMarker.remove();
     const pin=document.createElement('div');pin.className='atlas-vector-selection';pin.innerHTML='<i></i>';
     vectorSelectionMarker=new window.maplibregl.Marker({element:pin,anchor:'bottom'}).setLngLat([+place.lng,+place.lat]).addTo(vectorMap);
-    if(!selectedId){vectorMap.easeTo({center:[+place.lng,+place.lat],offset:[0,Math.min(110,window.innerHeight*0.13)*-1],duration:430,essential:true});}
+    // Keep the current camera and map scale unchanged; only the selection pin appears.
   }
   function guessPoiCategory(props){return props.class||props.subclass||props.type||props.category||'地点'}
   function readPoiName(props){return props['name:zh']||props.name_zh||props.name||props['name:en']||props.name_en||props.ref||''}
   function getPoiFromFeatures(e){
     if(!isVector())return null;
     let feats=[];
-    const pad=22;
+    const pad=28;
     try{feats=vectorMap.queryRenderedFeatures([[e.point.x-pad,e.point.y-pad],[e.point.x+pad,e.point.y+pad]])}catch(err){return null}
-    const poi=feats.find(f=>/poi|place|transportation_name|mountain_peak/.test((f.layer?.id||'').toLowerCase()+' '+(f.sourceLayer||''))&&readPoiName(f.properties||{}));
+    const poi=feats.find(f=>/poi|place|station|shop|amenity|tourism|historic|museum|hotel|restaurant|cafe|railway|mountain_peak|attraction|park|garden/.test((f.layer?.id||'').toLowerCase()+' '+(f.sourceLayer||'')+' '+(f.properties?.class||'')+' '+(f.properties?.subclass||''))&&readPoiName(f.properties||{}));
     if(!poi)return null;
     const coords=poi.geometry?.type==='Point'&&Array.isArray(poi.geometry.coordinates)?poi.geometry.coordinates:[e.lngLat.lng,e.lngLat.lat];
     return {name:String(readPoiName(poi.properties)),lng:coords[0],lat:coords[1],category:guessPoiCategory(poi.properties),address:poi.properties?.address||'',id:String(poi.properties?.id||'')};
@@ -2286,12 +2286,12 @@ class Map{
     }
     // Limit label density by screen-space deconfliction rather than randomly hiding POIs.
     collected.sort((a,b)=>Math.hypot(a.x-width/2,a.y-height/2)-Math.hypot(b.x-width/2,b.y-height/2));
-    const max=zoom>=16.4?27:zoom>=15.3?21:zoom>=14.2?12:6;
+    const max=zoom>=17?65:zoom>=16?48:zoom>=15?34:zoom>=14?22:12;
     const cells=new Set(),named=zoom>=14.8;
     let count=0;
     for(const p of collected){
       if(count>=max)break;
-      const cell=Math.floor(p.x/(named?105:55))+':'+Math.floor(p.y/(named?42:52));
+      const cell=Math.floor(p.x/(named?95:51))+':'+Math.floor(p.y/(named?38:47));
       if(cells.has(cell))continue;cells.add(cell);
       const button=document.createElement('button');
       button.type='button';button.className='atlas-poi-hit'+(named?' atlas-poi-named':'');
@@ -2310,7 +2310,7 @@ class Map{
     if(selectedId){closeMemory();return;}
     const point=getPoiFromFeatures(e);
     if(point){showDestination(point);return;}
-    const d={name:'所选位置',lng:e.lngLat.lng,lat:e.lngLat.lat,category:'地图位置'};
+    const d={name:'地图选点',lng:e.lngLat.lng,lat:e.lngLat.lat,category:'地图位置'};
     showDestination(d);
     const req=++reverseReq;
     try{
