@@ -119,3 +119,18 @@ body.route-pick-active #atlasBookmarkOverlay{overflow:visible!important}
  #fpPlaceCard .fp-media-empty .fp-empty-text small{display:none}
  body.destination-selected #destinationCard.visible{padding:15px 14px!important}
 }
+
+
+/* iPhone stable map: nearby real OSM POIs with bounded density. */
+html.atlas-stable-map #atlasPoiOverlay{display:block!important;pointer-events:none!important;z-index:420!important}
+html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;touch-action:manipulation;display:flex;gap:5px;align-items:center;justify-content:center;min-width:36px;min-height:36px;border:0;background:transparent;color:#383a36;cursor:pointer;padding:0;max-width:160px}
+html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi i{display:block;flex:0 0 auto;width:10px;height:10px;border-radius:50%;border:2px solid #fff;background:#b89a4b;box-shadow:0 1px 5px #1114}
+html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi.is-named{background:rgba(255,254,251,.95);border:1px solid #e5e1d7;border-radius:11px;box-shadow:0 2px 9px #14171417;padding:5px 8px;min-height:33px}
+html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi span{font-size:11px;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi:active{transform:translate(-50%,-50%) scale(.96)}
+body.route-pick-active #atlasPoiOverlay .atlas-mobile-poi{pointer-events:none!important;opacity:.15}
+body.fp-place-open #atlasPoiOverlay .atlas-mobile-poi{pointer-events:none!important;opacity:.28}
+.atlas-light-selection-pin{position:absolute;width:39px;height:52px;transform:translate(-50%,-100%);pointer-events:none;z-index:7;filter:drop-shadow(0 3px 5px #2224);animation:atlasPinDrop .24s cubic-bezier(.22,.8,.31,1)}
+.atlas-light-selection-pin:before{content:"";position:absolute;left:5px;top:4px;width:30px;height:30px;background:#f5c44b;border:2px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg)}
+.atlas-light-selection-hole{position:absolute;left:16px;top:15px;width:10px;height:10px;background:#fffdf6;border-radius:50%;z-index:1}
+@media(prefers-reduced-motion:reduce){.atlas-light-selection-pin{animation:none}}
