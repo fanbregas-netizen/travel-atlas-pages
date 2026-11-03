@@ -1,6 +1,6 @@
 // Travel Atlas V4. Only cache our public application shell, never APIs, media or map tiles.
-const CACHE='atlas-v4-shell-plan-b-20261103-v12';
-const SHELL=['/travel-atlas-pages/','/travel-atlas-pages/manifest.webmanifest','/travel-atlas-pages/icon.svg','/travel-atlas-pages/atlas-orbit.css','/travel-atlas-pages/atlas-orbit.js','/travel-atlas-pages/atlas-stage5.js','/travel-atlas-pages/atlas-services.js','/travel-atlas-pages/journey.html','/travel-atlas-pages/journey.css','/travel-atlas-pages/journey.js','/travel-atlas-pages/footprint-flow.css','/travel-atlas-pages/footprint-flow.js','/travel-atlas-pages/trip-picker.css','/travel-atlas-pages/trip-picker.js','/travel-atlas-pages/star-collage.css','/travel-atlas-pages/star-collage.js','/travel-atlas-pages/footprint-home.css','/travel-atlas-pages/footprint-home.js'];
+const CACHE='atlas-v4-shell-readonly-route-20261103-v13';
+const SHELL=['/travel-atlas-pages/','/travel-atlas-pages/manifest.webmanifest','/travel-atlas-pages/icon.svg','/travel-atlas-pages/atlas-orbit.css','/travel-atlas-pages/atlas-orbit.js','/travel-atlas-pages/atlas-stage5.js','/travel-atlas-pages/atlas-services.js','/travel-atlas-pages/journey.html','/travel-atlas-pages/route-view.html','/travel-atlas-pages/journey.css','/travel-atlas-pages/journey.js','/travel-atlas-pages/footprint-flow.css','/travel-atlas-pages/footprint-flow.js','/travel-atlas-pages/trip-picker.css','/travel-atlas-pages/trip-picker.js','/travel-atlas-pages/star-collage.css','/travel-atlas-pages/star-collage.js','/travel-atlas-pages/footprint-home.css','/travel-atlas-pages/footprint-home.js'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));
 });
@@ -17,11 +17,11 @@ self.addEventListener('fetch',event=>{
   }
   if(request.mode!=='navigate')return;
   const url=new URL(request.url);
-  if(url.origin!==self.location.origin||!['/travel-atlas-pages/','/travel-atlas-pages/v4','/travel-atlas-pages/v4/','/travel-atlas-pages/journey.html'].includes(url.pathname))return;
+  if(url.origin!==self.location.origin||!['/travel-atlas-pages/','/travel-atlas-pages/v4','/travel-atlas-pages/v4/','/travel-atlas-pages/journey.html','/travel-atlas-pages/route-view.html'].includes(url.pathname))return;
   event.respondWith(fetch(request).then(response=>{
     // Cache failures must never hide an otherwise successful online response.
-    if(response.ok){const copy=response.clone();event.waitUntil(caches.open(CACHE).then(cache=>cache.put(url.pathname==='/travel-atlas-pages/journey.html'?url.pathname:'/travel-atlas-pages/',copy)).catch(()=>{}));}
+    if(response.ok){const copy=response.clone();event.waitUntil(caches.open(CACHE).then(cache=>cache.put(['/travel-atlas-pages/journey.html','/travel-atlas-pages/route-view.html'].includes(url.pathname)?url.pathname:'/travel-atlas-pages/',copy)).catch(()=>{}));}
     return response;
-  }).catch(async()=>await caches.match(url.pathname==='/travel-atlas-pages/journey.html'?url.pathname:'/travel-atlas-pages/')||new Response('Travel Atlas is temporarily offline.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})));
+  }).catch(async()=>await caches.match(['/travel-atlas-pages/journey.html','/travel-atlas-pages/route-view.html'].includes(url.pathname)?url.pathname:'/travel-atlas-pages/')||new Response('Travel Atlas is temporarily offline.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})));
 });
 
