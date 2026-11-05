@@ -31,7 +31,7 @@ const knownPhoto=file=>/^image\/(jpeg|png|webp|heic|heif)$/i.test(String(file?.t
 const knownVideo=file=>/^video\//i.test(String(file?.type||''))||/\.(mp4|mov|webm|m4v)$/i.test(String(file?.name||''));
 function parseExifGps(buffer){
  try{
-  const bytes=buffer instanceof ArrayBuffer?new Uint8Array(buffer):new Uint8Array(buffer?.buffer||[]);
+  const bytes=buffer instanceof ArrayBuffer?new Uint8Array(buffer):ArrayBuffer.isView(buffer)?new Uint8Array(buffer.buffer,buffer.byteOffset,buffer.byteLength):new Uint8Array(0);
   if(bytes.length<48||bytes[0]!==0xff||bytes[1]!==0xd8)return null;
   const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
   let offset=2;
