@@ -26,7 +26,7 @@ jobs:
           cp v18/index.html _site/v18/index.html
           # Isolated V4 Stage1 UX preview. Keep the current production homepage unchanged.
           mkdir -p _site/refined
-          cp refined/index.html _site/refined/index.html
+          cp refined/index.html refined/version.json _site/refined/
           # Existing journey/route shells remain navigable from the standalone preview.
           find _site -maxdepth 1 -type f ! -name index.html -exec cp -t _site/refined {} +
           mkdir -p _site/docs
