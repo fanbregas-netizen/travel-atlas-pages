@@ -1,0 +1,9 @@
+{
+  "version": "V4.Stage1.Refined.20261109.1",
+  "date": "2026-11-09",
+  "notes": [
+    "Refined Stage1 product flow and visual hierarchy",
+    "Non-destructive edit and backup integrity",
+    "Explicit visited state, privacy-safe sample import"
+  ]
+}
