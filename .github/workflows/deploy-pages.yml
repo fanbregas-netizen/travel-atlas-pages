@@ -34,6 +34,8 @@ jobs:
           cp -R stage1-24 _site/stage1-24
           # Isolated, screenshot-locked Stage1.28 bubble preview; production unchanged.
           cp -R stage1-28 _site/stage1-28
+          # Isolated Stage1.29 hand-drawn POI + adaptive orbit review
+          cp -R stage1-29 _site/stage1-29
           touch _site/.nojekyll
       - name: Validate static deployment assets
         run: |
