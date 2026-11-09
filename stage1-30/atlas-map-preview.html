@@ -1,0 +1,595 @@
+<!doctype html>
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head><script>window.__atlasInlineIconPaths={"./icons/36_photo_count.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJQaG90b3MiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iMTEiIHk9IjE4IiB3aWR0aD0iMzYiIGhlaWdodD0iMzAiIHJ4PSI0Ii8+PHBhdGggZD0iTTE3IDQyIEwyNyAzMSBMMzMgMzYgTDM5IDI5IEw0NSAzNiIvPjxjaXJjbGUgY3g9IjIyIiBjeT0iMjYiIHI9IjMiLz48cGF0aCBkPSJNMjMgMTIgSDUwIFE1NSAxMiA1NSAxNyBWNDEiIHN0cm9rZS13aWR0aD0iMS45Ii8+PC9nPjwvc3ZnPg==", "./icons/31_checkin.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJDaGVjayBJbiI+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMzIgNTMgQzI3IDQ2IDE1IDM1IDE1IDI1IEExNyAxNyAwIDAgMSA0OSAyNSBDNDkgMzUgMzcgNDYgMzIgNTMgWiIvPjxwYXRoIGQ9Ik0yNCAyNyBMMzAgMzMgTDQxIDIwIi8+PHBhdGggZD0iTTI2IDEwIEwzMCA5IiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvZz48L3N2Zz4=", "./icons/41_star_plan.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTdGFyIFBsYW4iPgogIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CiAgIDxwYXRoIGQ9Ik0yNyA2IEwzMyAxOC40IEw0Ni44IDIwLjQgTDM2LjIgMzAuMiBMMzguOCA0NC40IEwyNi44IDM3LjQgTDE0IDQ0LjQgTDE3IDMwLjQgTDcgMjAuMiBMMjAuOCAxOC4yWiIvPgogIDwvZz4KICA8Y2lyY2xlIGN4PSI0NyIgY3k9IjQ3IiByPSIxMi41IiBmaWxsPSIjZmZmZWY5Ii8+CiAgPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj4KICAgPGNpcmNsZSBjeD0iNDciIGN5PSI0NyIgcj0iMTIuNSIvPjxwYXRoIGQ9Ik00NyA0MC41IEw0NyA1My41IE00MC41IDQ3IEw1My41IDQ3Ii8+CiAgPC9nPgo8L3N2Zz4K", "./icons/43_food.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBhcmlhLWxhYmVsPSJGb29kIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xMyAxMVYzMCBNMjEgMTFWMzAgTTI5IDExVjMwIE0xMyAyMUgyOSBNMjEgMzBWNTMiLz48cGF0aCBkPSJNNDUgMTFRMzYgMjkgNDUgMzUgTDUxIDM1IFY1MyIvPjwvZz48L3N2Zz4=", "./icons/19_close.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJDbG9zZSI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0xNyAxNyBDMjYgMjUgMzkgMzkgNDcgNDcgTTQ2IDE3IEMzOSAyMyAyNSA0MSAxNyA0NyIgc3Ryb2tlLXdpZHRoPSI0LjEiLz4KIDwvZz4KPC9zdmc+", "./icons/02_search.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTZWFyY2giPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMjcgMTAgQzM2IDEwIDQzIDE2IDQ1IDI1IEM0OCAzNCA0MiA0MyAzMiA0NiBDMjIgNDkgMTMgNDQgMTEgMzQgQzggMjQgMTYgMTMgMjQgMTEiLz4KICA8cGF0aCBkPSJNNDIgNDMgUTUwIDUwIDU2IDU3IiBzdHJva2Utd2lkdGg9IjQuMyIvPgogIDxwYXRoIGQ9Ik0xOCAyMCBRMjIgMTYgMjcgMTYiIHN0cm9rZS13aWR0aD0iMS42Ii8+CiA8L2c+Cjwvc3ZnPg==", "./icons/06_profile.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJQcm9maWxlIj4KIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CiAgPHBhdGggZD0iTTMyIDEwIEMzOSA5IDQ1IDE1IDQ2IDIyIEM0NyAzMCA0MiAzNyAzNCAzOCBDMjYgMzkgMTkgMzQgMTggMjYgQzE3IDE3IDI0IDExIDMyIDEwWiIvPgogIDxwYXRoIGQ9Ik0xMyA1NSBDMTUgNDYgMjEgNDEgMzAgNDEgQzM5IDQwIDQ2IDQ0IDUxIDU0Ii8+CiAgPHBhdGggZD0iTTIyIDE3IEMyNyAxMiAzNSAxMyAzOSAxNyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KIDwvZz4KPC9zdmc+", "./icons/45_museum.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBhcmlhLWxhYmVsPSJNdXNldW0iPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTggMjNMMzIgMTFMNTYgMjMgTTEyIDI3SDUyIE0xNyAzMVY0OSBNMjggMzFWNDkgTTM5IDMxVjQ5IE01MCAzMVY0OSBNMTAgNTJINTQgTTE0IDU2SDUwIi8+PC9nPjwvc3ZnPg==", "./icons/04_star_saved.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTYXZlZCI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0zMiA4IEwzOS4yIDIzLjIgTDU2IDI1LjQgTDQzLjIgMzcuMiBMNDYuMSA1NC40IEwzMS43IDQ1LjggTDE2LjggNTQuNCBMMjAgMzcuNCBMOC4xIDI1LjMgTDI0LjggMjNaIiBmaWxsPSIjRjZDQzNCIi8+CiAgPHBhdGggZD0iTTI1IDI1IEwzMCAxNCIgc3Ryb2tlLXdpZHRoPSIxLjMiLz4KIDwvZz4KPC9zdmc+", "./icons/35_back.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJCYWNrIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yNyAxNyBMMTIgMzIgTDI3IDQ3IE0xNCAzMiBINTIiLz48cGF0aCBkPSJNMjEgMTIgTDE3IDE3IiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvZz48L3N2Zz4=", "./icons/23_forest.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJGb3Jlc3QiPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMTYgNDkgTDE2IDE3IE05IDI2IEwxNiAxMiBMMjMgMjYgTDE5IDI1IEwyNSAzOCBMNyAzOCBMMTMgMjVaIi8+CiAgPHBhdGggZD0iTTM4IDUzIEwzOCAxMSBNMjcgMjQgTDM4IDcgTDQ5IDI0IEw0NCAyMyBMNTMgMzkgTDIzIDM5IEwzMiAyM1oiLz4KIDwvZz4KPC9zdmc+", "./icons/active_04_star_saved.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTYXZlZCI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0zMiA4IEwzOS4yIDIzLjIgTDU2IDI1LjQgTDQzLjIgMzcuMiBMNDYuMSA1NC40IEwzMS43IDQ1LjggTDE2LjggNTQuNCBMMjAgMzcuNCBMOC4xIDI1LjMgTDI0LjggMjNaIiBmaWxsPSIjRjZDQzNCIi8+CiAgPHBhdGggZD0iTTI1IDI1IEwzMCAxNCIgc3Ryb2tlLXdpZHRoPSIxLjMiLz4KIDwvZz4KPC9zdmc+", "./icons/46_park.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBhcmlhLWxhYmVsPSJQYXJrIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xMCAzNkwxOSAyNUwxNiAyNUwyNyAxMkwzOCAyNUwzNSAyNUw0NSAzNlogTTI3IDM2VjUzIE00MiA0NlE0NiAzNSA1MyAzOVE2MiA0NyA1MyA1MSBNNDYgNTNINTciLz48L2c+PC9zdmc+", "./icons/11_camera.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJDYW1lcmEiPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMTEgMjAgTDIxIDE5IEwyNSAxNCBMNDAgMTQgTDQ0IDE5IEw1MiAyMCBMNTQgNDkgUTU0IDUzIDQ5IDUzIEwxNCA1MyBRMTAgNTIgMTAgNDggWiIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzYiIHI9IjkuNSIvPgogIDxwYXRoIGQ9Ik0xNyAyNSBMMjMgMjUiIHN0cm9rZS13aWR0aD0iMS44Ii8+CiA8L2c+Cjwvc3ZnPg==", "./icons/14_edit.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJFZGl0Ij4KIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CiAgPHBhdGggZD0iTTE1IDQ1IEwxNCA1NCBMMjQgNTIgTDUxIDI1IEw0MiAxNiBaIi8+CiAgPHBhdGggZD0iTTM5IDE4IEw0OSAyOCBNMTkgNDMgTDI2IDUwIE0xMiA1NiBMNTEgNTYiIHN0cm9rZS13aWR0aD0iMi4zIi8+CiA8L2c+Cjwvc3ZnPg==", "./icons/13_add_media.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJBZGQgTWVkaWEiPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMTAgMTYgTDQzIDE1IFE0NyAxNiA0NyAyMCBMNDcgNDMgTDEyIDQ1IFoiLz4KICA8cGF0aCBkPSJNMTYgMzYgTDI0IDI4IEwzMSAzNCBMMzcgMjYiLz4KICA8Y2lyY2xlIGN4PSIyMiIgY3k9IjIzIiByPSIyLjUiLz4KICA8Y2lyY2xlIGN4PSI0NyIgY3k9IjQ3IiByPSIxMS41IiBmaWxsPSJ3aGl0ZSIvPgogIDxwYXRoIGQ9Ik00NyA0MCBMNDcgNTQgTTQwIDQ3IEw1NCA0NyIgc3Ryb2tlLXdpZHRoPSIzLjQiLz4KIDwvZz4KPC9zdmc+", "./icons/21_mountain.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJNb3VudGFpbiI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik02IDUwIEwyMiAyNSBMMzEgMzcgTDQxIDE1IEw1OSA1MCIvPgogIDxwYXRoIGQ9Ik0xNSAzNiBMMjIgNDAgTDI4IDMzIE0zNSAyNyBMNDAgMzAgTDQ3IDI2IiBzdHJva2Utd2lkdGg9IjIuMSIvPgogPC9nPgo8L3N2Zz4=", "./icons/active_03_star.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTYXZlZCI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0zMiA4IEwzOS4yIDIzLjIgTDU2IDI1LjQgTDQzLjIgMzcuMiBMNDYuMSA1NC40IEwzMS43IDQ1LjggTDE2LjggNTQuNCBMMjAgMzcuNCBMOC4xIDI1LjMgTDI0LjggMjNaIiBmaWxsPSIjRjZDQzNCIi8+CiAgPHBhdGggZD0iTTI1IDI1IEwzMCAxNCIgc3Ryb2tlLXdpZHRoPSIxLjMiLz4KIDwvZz4KPC9zdmc+", "./icons/24_town.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJPbGQgVG93biI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik05IDI0IEwzMSAxMyBMNTUgMjUgTTE2IDI3IEwxNiA1MCBNNDggMjcgTDQ4IDUwIE0xMSA1MSBMNTMgNTEiLz4KICA8cGF0aCBkPSJNMjMgMzAgTDIzIDQ0IE0zMSAzMCBMMzEgNDQgTTM5IDMwIEwzOSA0NCIgc3Ryb2tlLXdpZHRoPSIyLjIiLz4KICA8cGF0aCBkPSJNNiAyMyBRMzEgMTggNTggMjQiIHN0cm9rZS13aWR0aD0iMS42Ii8+CiA8L2c+Cjwvc3ZnPg==", "./icons/37_pause.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJQYXVzZSI+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIyMyIvPjxwYXRoIGQ9Ik0yNSAyMyBWNDIgTTM5IDIzIFY0MiIgc3Ryb2tlLXdpZHRoPSI1Ii8+PC9nPjwvc3ZnPg==", "./icons/16_add_place.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJBZGQgUGxhY2UiPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMjkgNyBDNDAgNiA0NyAxNCA0NiAyNSBDNDUgMzYgMzcgNDEgMjkgNDkgQzIwIDM4IDEzIDMzIDEzIDIzIEMxMyAxNCAyMCA4IDI5IDdaIi8+CiAgPHBhdGggZD0iTTI5IDE4IEwyOSAzMSBNMjMgMjUgTDM1IDI1IiBzdHJva2Utd2lkdGg9IjMiLz4KICA8cGF0aCBkPSJNMzYgNTMgTDQ4IDUzIiBzdHJva2Utd2lkdGg9IjEuOCIvPgogPC9nPgo8L3N2Zz4=", "./icons/44_stay.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBhcmlhLWxhYmVsPSJTdGF5Ij48ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xMCAxOFY1MiBNMTAgMzhINTQgTTU0IDM4VjUyIE0xMCA0OEg1NCBNMTUgMjZRMTcgMTkgMjUgMjJRMzIgMjQgMzEgMzIgSDE0IFogTTM0IDI1SDUxVjM2SDM0WiIvPjwvZz48L3N2Zz4=", "./icons/25_creative.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJDcmVhdGl2ZSI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik05IDUxIEw5IDI2IEwyNSAzNCBMMjUgMjQgTDM5IDMxIEw0MCAxNiBMNTEgMTYgTDU0IDUxWiIvPgogIDxwYXRoIGQ9Ik0xNyA0MiBMMjIgNDIgTTI5IDQyIEwzNCA0MiBNNDQgNDIgTDQ5IDQyIiBzdHJva2Utd2lkdGg9IjIuMSIvPgogIDxwYXRoIGQ9Ik00MSAxMiBMNDcgOSIgc3Ryb2tlLXdpZHRoPSIxLjYiLz4KIDwvZz4KPC9zdmc+", "./icons/01_map.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJNYXAiPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMzIgNyBDNDQgNyA1NCAxNCA1NyAyNSBDNTkgMzcgNTQgNDkgNDMgNTUgQzMyIDYxIDE5IDU3IDEyIDQ3IEM0IDM1IDggMjEgMTcgMTMgQzIyIDkgMjcgNyAzMiA3WiIvPgogIDxwYXRoIGQ9Ik0xMCAzNiBDMjAgMzAgMzAgMzQgMzggMzAgQzQ2IDI2IDUyIDI4IDU2IDMxIiBzdHJva2Utd2lkdGg9IjEuNiIgb3BhY2l0eT0iLjU1Ii8+CiAgPHBhdGggZD0iTTMwIDkgQzI3IDIwIDI5IDM0IDI2IDQ2IEMyNSA1MSAyNiA1NSAyOCA1OCIgc3Ryb2tlLXdpZHRoPSIxLjYiIG9wYWNpdHk9Ii41NSIvPgogPC9nPgo8L3N2Zz4K", "./icons/32_add_guide.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJBZGQgR3VpZGUiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTkgMTYgUTIxIDEyIDMyIDE4IFE0MiAxMyA1NCAxNiBWNDYgUTQyIDQzIDMyIDQ4IFEyMiA0MiA5IDQ2IFoiLz48cGF0aCBkPSJNMzIgMTggVjQ4IE0xNSAyNCBMMjUgMjUgTTM5IDI0IEw0OCAyMyIgc3Ryb2tlLXdpZHRoPSIyLjIiLz48cGF0aCBkPSJNNDQgMzQgVjQ0IE0zOSAzOSBINDkiIHN0cm9rZS13aWR0aD0iMi42Ii8+PC9nPjwvc3ZnPg==", "./icons/49_shopping.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBhcmlhLWxhYmVsPSJTaG9wcGluZyI+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTUgMjVINDlMNDYgNTRIMThaIE0yMyAyN1YyMVEyMyAxMSAzMiAxMVE0MSAxMSA0MSAyMVYyNyBNMjMgMzZINDEiLz48L2c+PC9zdmc+", "./icons/29_open_link.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJPcGVuIExpbmsiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTM1IDE0IEg1MSBWMzAgTTUwIDE1IEwzMSAzNCIvPjxwYXRoIGQ9Ik00MyAzNSBWNDggUTQzIDUyIDM4IDUyIEgxNSBRMTEgNTIgMTEgNDcgVjI0IFExMSAyMCAxNiAyMCBIMjciLz48cGF0aCBkPSJNMTcgNDYgTDI3IDQ2IiBzdHJva2Utd2lkdGg9IjEuOSIvPjwvZz48L3N2Zz4=", "./icons/26_lake.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJMYWtlIj4KIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CiAgPHBhdGggZD0iTTEzIDMxIEMxNyAyMCAzNSAyMCA0MiAyNiBDNDkgMjMgNTcgMjcgNTQgMzYgQzQ4IDQ4IDIzIDQ1IDE1IDQwIEMxMCAzOCAxMCAzNSAxMyAzMVoiLz4KICA8cGF0aCBkPSJNMjMgMzAgQzI5IDI3IDM5IDMwIDQyIDMzIE05IDUxIEMxNyA0OCAyNSA1MyAzNCA1MCBDNDIgNDcgNDkgNTEgNTYgNDkiIHN0cm9rZS13aWR0aD0iMS43Ii8+CiA8L2c+Cjwvc3ZnPg==", "./icons/39_save_note.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTYXZlIE5vdGUiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTE3IDEwIEg0MyBMNTIgMTkgVjUxIEgxMiBWMTAgWiIvPjxwYXRoIGQ9Ik0yMiAxMCBWMjQgSDQzIFYxMCBNMjEgNTEgVjMzIEg0NCBWNTEiLz48cGF0aCBkPSJNMjcgNDEgTDMxIDQ1IEwzOSAzNyIgc3Ryb2tlLXdpZHRoPSIyLjgiLz48L2c+PC9zdmc+", "./icons/12_video.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJWaWRlbyI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0xMCAxNyBDMTkgMTYgMzMgMTcgNDMgMTcgTDQzIDQ3IFEzMSA0OSAxMCA0NyBaIi8+CiAgPHBhdGggZD0iTTQ0IDI1IEw1NCAxOSBMNTUgNDQgTDQ0IDM5WiIvPgogIDxwYXRoIGQ9Ik0yNiAyNSBMMjYgMzkgTDM2IDMyIFoiIHN0cm9rZS13aWR0aD0iMi4yIi8+CiA8L2c+Cjwvc3ZnPg==", "./icons/33_filter.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJGaWx0ZXIiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEwIDE4IEg1NCBNMTAgMzIgSDU0IE0xMCA0NiBINTQiLz48Y2lyY2xlIGN4PSIyNSIgY3k9IjE4IiByPSI1IiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjQzIiBjeT0iMzIiIHI9IjUiIGZpbGw9IndoaXRlIi8+PGNpcmNsZSBjeD0iMTkiIGN5PSI0NiIgcj0iNSIgZmlsbD0id2hpdGUiLz48L2c+PC9zdmc+", "./icons/48_transit.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBhcmlhLWxhYmVsPSJUcmFuc2l0Ij48ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xNiAxM0g0OFE1MyAxMyA1MyAxOVY0MlE1MyA0NyA0NyA0N0gxN1ExMSA0NyAxMSA0MlYxOVExMSAxMyAxNiAxM1ogTTE3IDI2SDQ3IE0xOSAzNEgyNCBNNDAgMzRINDUgTTE5IDQ3VjU0IE00NSA0N1Y1NCIvPjwvZz48L3N2Zz4=", "./icons/15_share.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTaGFyZSI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0xOSAzMSBMNDQgMTkgTTE5IDM0IEw0MyA0NyIvPgogIDxjaXJjbGUgY3g9IjE1IiBjeT0iMzIiIHI9IjciLz4KICA8Y2lyY2xlIGN4PSI0OCIgY3k9IjE3IiByPSI3Ii8+CiAgPGNpcmNsZSBjeD0iNDgiIGN5PSI0OSIgcj0iNyIvPgogPC9nPgo8L3N2Zz4=", "./icons/05_footprints.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJGb290cHJpbnRzIj4KIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CiAgPHBhdGggZD0iTTE3IDMxIEMxMiAyOCAxMSAzNiAxMyA0MiBDMTUgNDkgMjMgNTIgMjcgNDcgQzMwIDQzIDI1IDM1IDIyIDMyIEMyMCAzMCAxOSAzMCAxNyAzMVoiLz4KICA8cGF0aCBkPSJNMzkgMjcgQzM2IDI0IDM1IDMwIDM1IDM1IEMzNSA0MyA0MiA0OCA0NyA0NCBDNTEgMzkgNDYgMzEgNDQgMjggQzQzIDI3IDQxIDI2IDM5IDI3WiIvPgogIDxwYXRoIGQ9Ik0xMyAyNCBRMTAgMjEgMTIgMTggTTE5IDIzIFExNyAyMCAxOSAxNiBNMjUgMjUgUTI1IDIxIDI4IDIwIE0zNSAyMCBRMzIgMTYgMzUgMTMgTTQyIDIwIFE0MCAxNSA0MyAxMyBNNDkgMjMgUTUwIDE4IDUyIDE3IiBzdHJva2Utd2lkdGg9IjIuOCIvPgogPC9nPgo8L3N2Zz4=", "./icons/17_route.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJSb3V0ZSI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxjaXJjbGUgY3g9IjE0IiBjeT0iNDciIHI9IjUuNSIvPgogIDxwYXRoIGQ9Ik0yMCA0NiBDMzAgNDQgMjAgMjYgMzMgMjYgQzQ0IDI2IDM5IDE2IDQ3IDE1IiBzdHJva2UtZGFzaGFycmF5PSIzIDYiIHN0cm9rZS13aWR0aD0iMyIvPgogIDxwYXRoIGQ9Ik00NSA5IEw1NCAxNCBMNDUgMjAiLz4KIDwvZz4KPC9zdmc+", "./icons/27_visited.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJWaXNpdGVkIj4KIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CiAgPHBhdGggZD0iTTMyIDggQzQzIDggNTEgMTcgNTEgMjkgQzUxIDQyIDQzIDUyIDMyIDU0IEMyMCA1NSAxMiA0NiAxMiAzMyBDMTEgMjAgMTkgOSAzMiA4WiIvPgogIDxwYXRoIGQ9Ik0yMCAzMSBMMjkgMzkgTDQ1IDIzIiBzdHJva2Utd2lkdGg9IjQuMiIvPgogPC9nPgo8L3N2Zz4=", "./icons/18_locate.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJMb2NhdGUiPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIxNSIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjQiIGZpbGw9IiMxNjE2MTYiLz4KICA8cGF0aCBkPSJNMzIgOCBMMzIgMTYgTTMyIDQ4IEwzMiA1NiBNOCAzMiBMMTYgMzIgTTQ4IDMyIEw1NiAzMiIvPgogPC9nPgo8L3N2Zz4=", "./icons/30_copy.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJDb3B5Ij48ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxyZWN0IHg9IjIyIiB5PSIxOSIgd2lkdGg9IjI5IiBoZWlnaHQ9IjM0IiByeD0iNSIvPjxwYXRoIGQ9Ik0xNyA0NCBIMTUgUTExIDQ0IDExIDM5IFYxNCBRMTEgMTAgMTYgMTAgSDM4IFE0MSAxMCA0MSAxNCIvPjxwYXRoIGQ9Ik0yOSAyNyBINDQgTTI5IDM1IEg0MyIgc3Ryb2tlLXdpZHRoPSIxLjgiLz48L2c+PC9zdmc+", "./icons/42_fit.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJGaXQgVmlldyI+CiAgPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgPHBhdGggZD0iTTEyIDIyIEMxMiAxNyAxNSAxMyAyMSAxMiBNNDMgMTIgQzQ5IDEzIDUyIDE3IDUyIDIyIE01MiA0MiBDNTIgNDcgNDkgNTEgNDMgNTIgTTIxIDUyIEMxNSA1MSAxMiA0NyAxMiA0MiIvPgogICA8cGF0aCBkPSJNMzIgMjQgTDMyIDQwIE0yNCAzMiBMNDAgMzIiIHN0cm9rZS13aWR0aD0iMS42IiBvcGFjaXR5PSIuNDUiLz4KICA8L2c+Cjwvc3ZnPgo=", "./icons/08_photo_video.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJQaG90byAmYW1wOyBWaWRlbyI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0xMyAxNCBMNDUgMTIgUTQ5IDEzIDQ5IDE3IEw0OSA0NSBMMTUgNDcgUTExIDQ2IDExIDQyIFoiLz4KICA8cGF0aCBkPSJNMTkgMzYgTDI2IDI4IEwzMyAzMyBMMzkgMjYgTDQ2IDM1Ii8+CiAgPGNpcmNsZSBjeD0iMjMiIGN5PSIyMiIgcj0iMy4xIi8+CiAgPHBhdGggZD0iTTUwIDIzIEw1NyAyMyBMNTcgNTMgTDI3IDU0IiBzdHJva2Utd2lkdGg9IjIuNSIvPgogIDxwYXRoIGQ9Ik0zMSA0MCBMMzEgNDkgTDM5IDQ0IFoiIGZpbGw9IiMxNjE2MTYiIHN0cm9rZT0ibm9uZSIvPgogPC9nPgo8L3N2Zz4=", "./icons/40_direction.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJEaXJlY3Rpb25zIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik04IDM0IEwzMSAxMCBMNTUgMzMgTDMxIDU1IFoiLz48cGF0aCBkPSJNMjEgMzQgSDM5IFYyNSBNMzIgMjUgTDM5IDI1Ii8+PC9nPjwvc3ZnPg==", "./icons/07_brief.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJCcmllZiI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0xNSAyNyBDMTggMjAgMjcgMTcgMzYgMTkgQzQzIDIwIDQ5IDI1IDQ3IDMyIEM0NSAzOCAzOCA0MiAyOSA0MSBDMjEgNDEgMTggMzYgMjMgMzMgQzI5IDI4IDM4IDI4IDM4IDMzIEMzNyAzNiAzMSAzNiAzMCAzNSIvPgogIDxwYXRoIGQ9Ik0xNiAyNSBDMjAgMTkgMjggMTYgMzUgMTcgTTIwIDQ0IEwxNyA0OSBNMjUgNDYgTDIzIDUzIiBzdHJva2Utd2lkdGg9IjEuNyIvPgogPC9nPgo8L3N2Zz4=", "./icons/34_details.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJEZXRhaWxzIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjIzIi8+PHBhdGggZD0iTTMyIDI4IFY0NCIvPjxwYXRoIGQ9Ik0zMiAxOCBMMzIuMiAxOCIgc3Ryb2tlLXdpZHRoPSI1LjUiLz48L2c+PC9zdmc+", "./icons/47_coffee.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBhcmlhLWxhYmVsPSJDb2ZmZWUiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTE0IDIzSDQ2VjM5UTQ2IDUwIDM0IDUxSDI2UTE0IDQ5IDE0IDM5WiBNNDYgMjZINTBRNTkgMjcgNTcgMzVRNTYgNDEgNDYgNDIgTTE4IDU3SDUwIE0yNiAxNlExOSAxMCAyNyA3IE0zOSAxNlEzMiAxMCA0MCA3Ii8+PC9nPjwvc3ZnPg==", "./icons/38_remove_media.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJSZW1vdmUgTWVkaWEiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iOSIgeT0iMTciIHdpZHRoPSI0MSIgaGVpZ2h0PSIzNCIgcng9IjQiLz48Y2lyY2xlIGN4PSIyMSIgY3k9IjI2IiByPSIzIi8+PHBhdGggZD0iTTE1IDQ1IEwyNiAzMyBMMzQgMzkiLz48Y2lyY2xlIGN4PSI0NyIgY3k9IjQ0IiByPSIxMSIgZmlsbD0id2hpdGUiLz48cGF0aCBkPSJNNDIgNDQgSDUyIi8+PC9nPjwvc3ZnPg==", "./icons/03_star.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTdGFyIj4KIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CiAgPHBhdGggZD0iTTMyIDggTDM5LjIgMjMuMiBMNTYgMjUuNCBMNDMuMiAzNy4yIEw0Ni4xIDU0LjQgTDMxLjcgNDUuOCBMMTYuOCA1NC40IEwyMCAzNy40IEw4LjEgMjUuMyBMMjQuOCAyM1oiLz4KICA8cGF0aCBkPSJNMjQgMjUgTDMwIDEzIiBzdHJva2Utd2lkdGg9IjEuMyIvPgogPC9nPgo8L3N2Zz4=", "./icons/28_upload.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJVcGxvYWQiPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNOSA0MiBMOSA1MSBDMTYgNTUgNDcgNTQgNTUgNTEgTDU1IDQyIi8+CiAgPHBhdGggZD0iTTMyIDQ2IEwzMiAxMSBNMTkgMjQgTDMyIDExIEw0NSAyNCIgc3Ryb2tlLXdpZHRoPSIzLjgiLz4KIDwvZz4KPC9zdmc+", "./icons/09_guides.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJHdWlkZXMiPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMzEgMTYgQzIzIDEyIDE1IDEyIDkgMTUgTDkgNDkgQzE3IDQ2IDI0IDQ3IDMxIDUyIFoiLz4KICA8cGF0aCBkPSJNMzIgMTYgQzM5IDEyIDQ4IDEzIDU1IDE2IEw1NSA0OSBDNDYgNDYgMzggNDcgMzIgNTIgWiIvPgogIDxwYXRoIGQ9Ik0zMS42IDE2IEwzMS42IDUyIE0xNSAyMyBMMjUgMjQgTTE1IDMwIEwyNSAzMCBNMzkgMjMgTDQ4IDI0IE0zOSAzMCBMNDkgMzAiIHN0cm9rZS13aWR0aD0iMS44Ii8+CiA8L2c+Cjwvc3ZnPg==", "./icons/22_sea.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTZWEiPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNNyAyMyBDMTQgMTggMTcgMjkgMjQgMjQgQzMxIDE4IDM1IDI4IDQyIDI0IEM0OCAyMCA1MyAyNiA1NyAyMyIvPgogIDxwYXRoIGQ9Ik03IDM1IEMxMyAzMSAxNyA0MSAyNCAzNiBDMzEgMzEgMzUgNDEgNDIgMzYgQzQ4IDMyIDUzIDM5IDU3IDM1Ii8+CiAgPHBhdGggZD0iTTEyIDQ3IEMxOCA0MyAyMiA1MiAyOSA0NyBDMzUgNDMgMzkgNTIgNDUgNDcgQzUwIDQ0IDUzIDQ5IDU2IDQ3Ii8+CiA8L2c+Cjwvc3ZnPg==", "./icons/20_more.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJNb3JlIj4KIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CiAgPGNpcmNsZSBjeD0iMTQiIGN5PSIzMiIgcj0iMy41IiBmaWxsPSIjMTYxNjE2Ii8+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMy41IiBmaWxsPSIjMTYxNjE2Ii8+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSIzMiIgcj0iMy41IiBmaWxsPSIjMTYxNjE2Ii8+CiA8L2c+Cjwvc3ZnPg==", "./icons/10_nearby.svg": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJOZWFyYnkiPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMzEgMTAgQzQxIDkgNDggMTcgNDcgMjcgQzQ2IDM2IDM5IDQxIDMxIDUxIEMyNCA0MiAxNiAzNCAxNiAyNiBDMTYgMTYgMjMgMTAgMzEgMTBaIi8+CiAgPGNpcmNsZSBjeD0iMzEiIGN5PSIyNiIgcj0iNi4xIi8+CiAgPHBhdGggZD0iTTE1IDQ3IEM5IDQ5IDggNTMgMTQgNTUgQzIyIDU5IDQxIDU5IDUwIDU1IEM1NSA1MyA1NCA0OSA0NyA0NyIgc3Ryb2tlLXdpZHRoPSIyLjQiLz4KIDwvZz4KPC9zdmc+"};</script><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1" name="viewport"/>
+<meta content="#f7f6f3" name="theme-color"/><title>Travel Atlas｜黑白建筑地图 B · 视觉验收</title>
+<link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet"/>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#232823;background:#f7f6f3;font-size:14px}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100dvh;overflow:hidden}#visualMap{position:fixed;inset:0;background:#f7f6f3}
+header{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:12px;right:12px;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;pointer-events:none}
+header>*{pointer-events:auto}.back{display:flex;align-items:center;gap:6px;text-decoration:none;background:#fffef8ed;border-radius:22px;padding:11px 14px;color:#283130;border:1px solid #e9e5d8;font-weight:700;box-shadow:0 2px 12px #1111}
+.brand{text-align:right;display:flex;flex-direction:column;gap:2px;text-shadow:0 1px 3px white;max-width:64%}.brand small{font-size:10px;letter-spacing:.14em;font-weight:900;color:#a4853b}.brand strong{font-size:15px}
+#info{position:fixed;z-index:10;left:50%;transform:translateX(-50%);top:calc(72px + env(safe-area-inset-top));max-width:calc(100vw - 20px);background:#fffdfaed;border:1px solid #e5e4dd;border-radius:99px;padding:8px 13px;color:#4d514d;font-size:11px;box-shadow:0 3px 15px #1111;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.controls{position:fixed;z-index:10;bottom:calc(12px + env(safe-area-inset-bottom));left:12px;right:12px;background:#fffef9f0;backdrop-filter:blur(16px);border-radius:23px;padding:16px;box-shadow:0 14px 37px #14191422;border:1px solid #deddd3;max-width:520px;margin:auto}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.stage{font-weight:800;font-size:15px}.hint{color:#797b72;font-size:11px;line-height:1.6;margin:8px 0 13px}
+input[type=range]{width:100%;accent-color:#b89d54;height:32px;touch-action:none}.ticks{display:flex;justify-content:space-between;color:#777;font-size:11px;font-variant-numeric:tabular-nums}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.modes button{padding:11px 4px;background:#f6f5f0;border:1px solid #dddcd5;color:#38403b;border-radius:13px;font-weight:700;font-size:12px}.modes button.active{background:#ede4ca;border-color:#d3b974;color:#4e4022}
+footer{font-size:10px;color:#808076;margin-top:11px;line-height:1.5}.maplibregl-ctrl-bottom-right{bottom:250px}.maplibregl-ctrl-attrib{font-size:9px!important}
+@media(max-width:390px){.controls{padding:13px}.brand strong{font-size:13px}.modes button{font-size:11px}}
+</style>
+<script>
+/* Footprint Map / Travel Atlas V4: shared 2D figure-ground visual palette. */
+(()=>{'use strict';
+const palette=Object.freeze({paper:'#f7f6f3',land:'#f3f2ee',park:'#f0efe9',water:'#e3e3df',road:'#b5b6b1',minor:'#d7d7d0',ink:'#393c39',stroke:'#e6e5df'});
+function apply(map){if(!map?.getStyle||!map?.setPaintProperty)return false;const style=map.getStyle();if(!Array.isArray(style?.layers))return false;
+for(const layer of style.layers){const id=String(layer.id||'').toLowerCase(),src=String(layer['source-layer']||'').toLowerCase(),name=id+' '+src;try{
+if(layer.type==='background')map.setPaintProperty(layer.id,'background-color',palette.paper);
+else if(layer.type==='fill'){const building=/building/.test(name),water=/water/.test(name),green=/park|landcover|landuse|wood|grass|forest|farmland|natural/.test(name);if(building){map.setPaintProperty(layer.id,'fill-color',['interpolate',['linear'],['zoom'],10,'#313331',14,'#323432',15.5,'#565956',15.9,'#ffffff',19,'#ffffff']);map.setPaintProperty(layer.id,'fill-opacity',['interpolate',['linear'],['zoom'],9,.8,13.5,.93,15.5,.83,16.2,.96,19,.98]);}else map.setPaintProperty(layer.id,'fill-color',water?palette.water:green?palette.park:palette.land);}
+else if(layer.type==='line'){const road=/road|street|highway|bridge|transport/.test(name),major=/motorway|trunk|primary/.test(name),water=/water/.test(name),building=/building/.test(name),trail=/path|track|footway|cycleway|pedestrian|steps|bridleway/.test(name);
+/* build .18 · 低缩放不再空白:道路从 z5 起可见,主干道更早更深;人行道/小径虚线改细实线,去掉"虚线疤"。 */
+if(trail){try{map.setPaintProperty(layer.id,'line-dasharray',['literal',[1,0]])}catch(_){}}
+map.setPaintProperty(layer.id,'line-color',water?'#cacbc5':building?palette.stroke:major?'#a9aaa3':road?palette.road:palette.minor);
+/* build .21 · 用户批注：放到最大后 block 边缘的描线辣眼睛——建筑描边随放大淡出，街区块纯白干净 */
+if(building)map.setPaintProperty(layer.id,'line-opacity',['interpolate',['linear'],['zoom'],13,.9,15.2,.45,15.9,0]);
+if(road)map.setPaintProperty(layer.id,'line-opacity',['interpolate',['linear'],['zoom'],5,major?.55:.32,12,major?.78:.6,15,.89,19,.96]);}
+else if(layer.type==='symbol'){map.setPaintProperty(layer.id,'text-color',palette.ink);map.setPaintProperty(layer.id,'text-halo-color','#faf9f5');map.setPaintProperty(layer.id,'text-halo-width',1.1);}
+else if(layer.type==='fill-extrusion')map.setLayoutProperty(layer.id,'visibility','none');
+}catch(_){}}
+try{map.setPitch?.(0)}catch(_){}return true;}
+window.AtlasFigureGround={palette,apply,version:'v4-figure-ground-20261103.18'};
+})();
+</script>
+<script>
+/* Travel Atlas B · architectural figure-ground, strictly overhead (camera does not tilt).
+   Shared vector footprints, black → translucent → white block, 2D side relief at close zoom.
+   Does not alter any marker, route, photo, or POI behavior. */
+(()=>{'use strict';
+const VERSION='architectural-B-overhead-final-20261103';
+const NEAR='atlas-route-building-relief-near',FAR='atlas-route-building-relief-far';
+const roof=['interpolate',['linear'],['zoom'],11,'#303230',14.3,'#343633',15.08,'#5b5d59',15.48,'#969993',15.83,'#c7cac4',16.25,'#e8e9e5',16.65,'#f9f9f6',17.1,'#ffffff',19,'#ffffff'];
+const alpha=['interpolate',['linear'],['zoom'],10,1,14.5,.98,15.12,.86,15.5,.47,15.82,.41,16.08,.55,16.46,.84,16.82,.97,19,1];
+const outline=['interpolate',['linear'],['zoom'],12,'#3b3d39',15.45,'#7b7d77',16.32,'#c4c7c1',17,'#b7bcb5',19,'#b7bcb5'];
+const relief1=['interpolate',['linear'],['zoom'],15.1,0,15.7,.04,16.15,.13,16.6,.25,17.1,.32,19,.32];
+const relief2=['interpolate',['linear'],['zoom'],15.1,0,15.7,.02,16.15,.07,16.6,.15,17.1,.20,19,.2];
+function findBuildings(map){
+ const style=map.getStyle?.()||{};
+ let buildings=(style.layers||[]).filter(l=>l.type==='fill'&&l.source&&l['source-layer']&&/building/i.test(String(l.id)+' '+String(l['source-layer'])));
+ if(buildings.length)return buildings;
+ const vector=Object.entries(style.sources||{}).find(([_,v])=>v?.type==='vector');if(!vector)return [];
+ const id='atlas-route-fallback-real-buildings';
+ try{if(!map.getLayer?.(id)){const before=style.layers?.find(l=>l.type==='symbol'&&l.layout?.['text-field'])?.id;map.addLayer({id,type:'fill',source:vector[0],'source-layer':'building',minzoom:11,paint:{'fill-color':'#353735','fill-opacity':.98}},before)}}
+ catch(e){console.warn('无法载入建筑矢量轮廓',e);return []}
+ return (map.getStyle?.()?.layers||[]).filter(l=>l.id===id);
+}
+function paint(map,layer,key,value){try{map.setPaintProperty(layer.id,key,value)}catch(e){console.warn('建筑样式未支持',key,e?.message)}}
+function addShadow(map,id,building,shift,opacity,color){
+ if(map.getLayer?.(id))return;
+ try{map.addLayer({id,type:'fill',source:building.source,'source-layer':building['source-layer'],minzoom:15.1,paint:{
+  'fill-color':color,'fill-opacity':opacity,'fill-translate':shift,'fill-translate-anchor':'viewport'
+ }},building.id)}catch(e){console.warn('建筑俯视体块侧面暂不可用',e?.message)}
+}
+function apply(map){
+ const buildings=findBuildings(map);if(!buildings.length)return {ok:false,reason:'No OSM vector building footprint in the loaded map style'};
+ for(const l of buildings){
+  paint(map,l,'fill-color',roof);paint(map,l,'fill-opacity',alpha);paint(map,l,'fill-outline-color',outline);
+ }
+ const first=buildings[0];
+ addShadow(map,FAR,first,[5,6],relief2,'#424a43');
+ addShadow(map,NEAR,first,[2.5,3.4],relief1,'#70766f');
+ // Markers, labels, interactive POIs and map camera are not modified.
+ return {ok:true,footprints:buildings.length,relief:[NEAR,FAR]};
+}
+function attach(map){
+ if(!map||map.__atlasOverheadB)return;
+ map.__atlasOverheadB=true;
+ const result=apply(map);
+ try{if(Math.abs(map.getPitch?.()||0)>.05)map.setPitch?.(0)}catch(_){}
+ window.__atlasRouteBStatus={version:VERSION,...result,view:'fixed-overhead',pitchMax:0};
+}
+window.AtlasRouteBuildings={attach,apply,pitchForZoom:()=>0,version:VERSION,zoomStages:[
+ {zoom:12.8,name:'黑色建筑',opacity:.98,pitch:0},
+ {zoom:15.65,name:'半透明过渡',opacity:.44,pitch:0},
+ {zoom:17.3,name:'白色屋顶 + 俯视侧面',opacity:1,pitch:0}
+]};
+})();
+</script>
+<script defer="" src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id),stages=[{id:'far',zoom:12.8,text:'远景 · 黑色建筑肌理'},{id:'mid',zoom:15.65,text:'过渡 · 半透明体块'},{id:'near',zoom:17.4,text:'近景 · 白色建筑与俯视立体感'}];let map=null;
+function setStage(z){const label=z<15?'远景 · 黑色建筑肌理':z<16.35?'过渡 · 半透明建筑':'近景 · 白色建筑体块 / 俯视立体感';$('currentStage').textContent=label;$('zoomText').textContent=z.toFixed(1);$('zoomSlider').value=z;for(const p of stages)$('mode-'+p.id).classList.toggle('active',Math.abs(p.zoom-z)<.35)}
+function run(){if(!window.maplibregl||!window.AtlasFigureGround||!window.AtlasRouteBuildings){$('info').textContent='地图资源没有完全加载，请刷新重试';return}
+ map=new maplibregl.Map({container:'visualMap',style:'https://tiles.openfreemap.org/styles/bright',center:[121.49,31.225],zoom:12.8,minZoom:9,maxZoom:19,pitch:0,maxPitch:0,bearing:0,dragRotate:false,touchPitch:false,antialias:true,attributionControl:true});
+ map.touchZoomRotate?.disableRotation();map.keyboard?.disableRotation();
+ map.on('load',()=>{window.AtlasFigureGround.apply(map);window.AtlasRouteBuildings.attach(map);$('info').textContent='地图可拖动、放大，建筑坐标来自真实 OSM 地图数据';setStage(map.getZoom())});
+ map.on('zoom',()=>setStage(map.getZoom()));
+ map.on('error',e=>{console.warn(e?.error||e);$('info').textContent='部分地图瓦片加载失败，可重新刷新页面'});
+ $('zoomSlider').addEventListener('input',e=>map.jumpTo({zoom:Number(e.target.value)}));
+ for(const item of stages)$('mode-'+item.id).onclick=()=>map.easeTo({zoom:item.zoom,duration:1100,essential:true});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+})();
+</script>
+<style>/* Footprint Map V4.Stage1.20261109.23 — source-preserving polish layer.
+   Works only on the November 8 Stage1.22 baseline. No older layouts or icons. */
+:root{--fp-paper:#faf9f5;--fp-surface:#fffdfa;--fp-ink:#292923;--fp-muted:#78766f;--fp-line:#e5e2da;--fp-gold:#f6cc3b;--fp-ease:cubic-bezier(.2,.85,.25,1);--fp-shadow:0 12px 42px rgba(35,32,25,.14)}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
+body{color:var(--fp-ink);background:var(--fp-paper)}
+button,a,input,textarea,select{touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid #b58117!important;outline-offset:3px!important}
+button:active:not(:disabled),a:active{filter:brightness(.97)}
+#map{background:var(--fp-paper)}
+body.legacy-recovery #map,body:not(.vector-active):not(.amap-active) #map{visibility:visible!important}
+body.vector-active #map,body.amap-active #map{visibility:hidden!important}
+body.vector-active #amapSurface{display:none!important}
+body:not(.vector-active) #atlasVectorMap{pointer-events:none}
+#atlasMapLoader{pointer-events:none}
+/* Search is a single high-priority entry, no nested little grey frame. */
+.search-dock{background:rgba(255,253,249,.97)!important;border:1px solid rgba(227,222,211,.95)!important;box-shadow:0 5px 22px rgba(24,24,19,.12)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.search-dock .searchbox input{font-size:16px!important;letter-spacing:0!important;line-height:1.4}
+.search-dock .dock-go{min-width:44px!important;min-height:44px!important;display:grid;place-items:center}
+.search-results{box-shadow:var(--fp-shadow);border:1px solid var(--fp-line)}
+.search-result{min-height:52px}
+/* Keep approved three-icon dock. Elevate hit targets and tone down motion. */
+#appDock{border:1px solid #e2ded4!important;background:rgba(253,252,248,.96)!important;box-shadow:0 9px 34px #17170d22!important;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+#appDock .dock-btn{min-height:56px;min-width:74px;transition:background .18s var(--fp-ease),transform .18s var(--fp-ease)}
+#appDock .dock-btn:active{transform:scale(.96)}
+#dockRoutePop{box-shadow:var(--fp-shadow)!important;animation-duration:.18s!important}
+#dockRoutePop .dock-pop-btn{min-height:50px}
+#atlasVersionBadge{opacity:.65}
+/* The bottom sheet should read as one surface, without clipped content or crowded header. */
+.drawer{background:var(--fp-paper)!important;overscroll-behavior:contain;scrollbar-gutter:stable;box-shadow:0 -18px 55px #2020182d!important}
+.drawer .drawer-head{background:var(--fp-paper)!important}
+.drawer .drawer-head h2{font-size:clamp(19px,5vw,23px)!important;line-height:1.28!important}
+.drawer .iconclose,.memory-atlas .atlas-close,.fp-card-close{min-height:44px;min-width:44px;display:grid;place-items:center}
+.spotrow{min-height:86px;background:var(--fp-surface)!important;border:1px solid var(--fp-line)!important;border-radius:17px!important;transition:background .18s,transform .18s}
+.spotrow:active{transform:scale(.992);background:#f8f3e8!important}
+.spotrow strong{font-size:14px;line-height:1.45}
+.spotrow small{line-height:1.6}
+.backuprow{margin-top:24px}
+.backuprow button{min-height:47px}
+.footnote{line-height:1.75}
+/* Intentional editor: brief-first, advanced information collapses naturally. */
+dialog.editor{width:min(540px,calc(100% - 20px));border-radius:24px!important;background:var(--fp-paper)!important;overflow:hidden!important}
+dialog.editor::backdrop{background:rgba(18,21,24,.5);backdrop-filter:blur(4px)}
+.editor .editor-scroll{max-height:min(90dvh,900px);padding:23px 23px max(24px,env(safe-area-inset-bottom));overscroll-behavior:contain}
+.editor .edit-head{align-items:flex-start;margin-bottom:15px}
+.editor .edit-head h2{margin-top:5px;font-size:23px;line-height:1.2;letter-spacing:-.03em}
+.editor-eyebrow{color:#8a806a;font-size:9px;font-weight:750;letter-spacing:.14em}
+.editor .edit-sub{font-size:11px;line-height:1.5;margin:0 0 20px;color:#89867d;overflow-wrap:anywhere}
+.editor .field{color:#4c4942;margin:18px 0 8px;font-weight:650;font-size:13px}
+.editor .field-hint{font-size:11px;font-weight:400;color:#96918a}
+.editor .input,.editor .area{font-size:16px!important;color:#292923;border:1px solid #e0ddd5!important;background:#fffefa!important;border-radius:14px!important;padding:13px 14px!important;box-shadow:none!important;outline-offset:0}
+.editor .area{min-height:118px;height:128px;resize:vertical;line-height:1.7}
+.editor .input:focus,.editor .area:focus{border-color:#d3ae4b!important;box-shadow:0 0 0 3px #f6cc3b30!important;outline:0!important}
+.atlas-stage-selector{border:0;padding:0;margin:19px 0 17px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.atlas-stage-selector legend{font-weight:650;font-size:13px;margin-bottom:9px;color:#4c4942}
+.atlas-stage-option{display:block;min-width:0;position:relative;cursor:pointer}
+.atlas-stage-option input{position:absolute;opacity:0;width:1px;height:1px}
+.atlas-stage-option span{display:flex;flex-direction:column;gap:3px;padding:11px 13px;border:1px solid #e1dfd8;background:#fffefa;border-radius:13px;min-height:69px;transition:background .18s,border-color .18s,box-shadow .18s}
+.atlas-stage-option b{font-size:14px;font-weight:750}
+.atlas-stage-option small{font-size:11px;color:#827c70}
+.atlas-stage-option input:checked+span{border-color:#e2bd53;background:#fff6d7;box-shadow:inset 0 0 0 1px #f6cc3b50}
+.atlas-stage-option input:focus-visible+span{outline:2px solid #b58117;outline-offset:2px}
+.atlas-editor-more{margin-top:18px;background:#f6f4ed;border:1px solid #e9e5d9;border-radius:15px;overflow:hidden}
+.atlas-editor-more summary{display:flex;align-items:center;gap:8px;padding:15px 15px;cursor:pointer;list-style:none;min-height:53px}
+.atlas-editor-more summary::-webkit-details-marker{display:none}
+.atlas-editor-more summary::after{content:'⌄';font-size:20px;margin-left:auto;color:#837b68;transition:transform .18s}
+.atlas-editor-more[open] summary::after{transform:rotate(180deg)}
+.atlas-editor-more summary span{font-size:13px;font-weight:750}
+.atlas-editor-more summary small{color:#8e8a81;font-size:11px}
+.atlas-editor-detail-content{padding:0 15px 16px;border-top:1px solid #e9e5d9}
+.atlas-rank-fieldset{padding:0;border:0;margin:0}
+.atlas-rank-fieldset legend{display:block;width:100%}
+.editor .rank-choices label{min-height:44px;display:flex;align-items:center}
+.editor .add-photos{min-height:72px;background:#fffefa;border-color:#d6cba5}
+.editor .photo-remove{width:30px;height:30px;border-radius:12px}
+.editor .editor-actions{margin-top:18px;gap:9px}
+.editor .primary-btn{min-height:52px;border-radius:14px!important;background:#292923!important;color:#fffefa!important;font-size:15px;box-shadow:0 6px 20px #1b1b1520}
+.editor .danger-btn{min-height:52px;background:#fff1ec!important;color:#ab4432!important}
+.editor-save-hint{text-align:center;font-size:11px;color:#8d8981;line-height:1.6;margin:10px 0 0}
+/* Make discard confirmation feel native to the product rather than a browser alert. */
+.atlas-discard-dialog{padding:0;border:1px solid #e9e5d8;border-radius:21px;max-width:min(340px,calc(100% - 38px));box-shadow:0 18px 60px #16160d4b;background:#fffefa;color:#302e28}
+.atlas-discard-dialog::backdrop{background:#1118;backdrop-filter:blur(3px)}
+.atlas-discard-inner{padding:25px 23px 23px;text-align:center}
+.discard-symbol{color:#dfb942;font-size:26px}
+.atlas-discard-inner h2{font-size:20px;margin:8px 0}
+.atlas-discard-inner p{font-size:13px;line-height:1.65;color:#827c70;margin:0 0 19px}
+.discard-actions{display:grid;gap:8px}
+.discard-actions button{min-height:47px;border-radius:13px;border:1px solid #e6e1d5;font-weight:700;background:#282821;color:#fff}
+#atlasDiscardChanges{background:#fff7f1;color:#a94c3b;border-color:#f3dfd6}
+.atlas-empty-places{text-align:center;padding:32px 12px 34px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.atlas-empty-places .empty-star{width:66px;height:66px;border:1px solid #e5d9b9;background:#fbf5e4;border-radius:22px;display:grid;place-items:center;color:var(--fp-gold);font-size:32px}
+.atlas-empty-places strong{font-size:17px;margin-top:3px}
+.atlas-empty-places p{color:#867e70;font-size:13px;line-height:1.6;max-width:265px;margin:0 0 6px}
+.atlas-empty-places button{width:min(270px,100%);min-height:47px;border:0;background:#282821;color:white;font-size:14px;font-weight:750;border-radius:14px}
+.atlas-empty-places button.quiet{background:#f4f1e7;color:#5d5546;border:1px solid #e3dfd2}
+/* Respect keyboard, reduced motion and safe areas on iPhone. */
+@media(max-width:550px){
+ .search-dock{top:calc(8px + env(safe-area-inset-top));width:calc(100% - 26px)!important;max-width:none!important}
+ .search-dock .searchbox input{font-size:16px!important}
+ .drawer{max-height:calc(92dvh - env(safe-area-inset-top));width:100%;padding-left:17px;padding-right:17px}
+ .drawer .drawer-head{margin-left:-17px;margin-right:-17px;padding-left:17px;padding-right:17px}
+ .editor .editor-scroll{padding:21px 17px calc(20px + env(safe-area-inset-bottom))}
+ .editor .edit-head h2{font-size:21px}
+ #appDock .dock-btn{min-width:0;min-height:58px}
+ .atlas-stage-option span{padding:11px 9px}
+ .atlas-editor-more summary{flex-wrap:wrap}
+ .map-controls button{min-height:44px;min-width:44px}
+}
+@media(max-height:650px){.editor .editor-scroll{max-height:85dvh}.atlas-stage-option span{min-height:59px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Travel Atlas is a supporting workspace: use the same paper, ink and gold, without changing its route layout. */
+body.journey-page{--paper:#faf9f5;--card:#fffdfa;--ink:#292923;--muted:#817b70;--line:#e5e2da;--gold:#f6cc3b;--forest:#5b5548;background:#faf9f5}
+.journey-page .topbar{border-bottom:1px solid #e5e2da;background:rgba(255,253,249,.96);box-shadow:0 4px 22px #1d1b170a}
+.journey-page .brand{font-size:18px;letter-spacing:-.035em}
+.journey-page .brand-mark{color:#cc9f28}
+.journey-page .builder{background:#faf9f5;border-color:#e7e4da}
+.journey-page .builder h1{font-size:clamp(25px,3.4vw,32px);letter-spacing:-.045em}
+.journey-page .intro{font-size:13px;line-height:1.7}
+.journey-page .block{border-color:#e7e4da}
+.journey-page .block h2,.journey-page .section-head h2{font-size:13px}
+.journey-page .block input:not([type=file]),.journey-page .block select{min-height:46px;font-size:16px;border-radius:13px;background:#fffefa;border-color:#e0ded5}
+.journey-page .place,.journey-page .choice{border-radius:15px;border-color:#e5e1d6;background:#fffdfa;min-height:52px}
+.journey-page .place:hover{border-color:#cfb46d}
+.journey-page .choice-controls button{min-height:34px;min-width:34px}
+.journey-page button.full,.journey-page .topaction{min-height:46px;border-radius:14px}
+.journey-page .accent{background:#f6cc3b;color:#302913;border-color:#e9bf4e;box-shadow:0 5px 16px #e9bf4e2e}
+.journey-page .dark{background:#292923;color:#fffdfa}
+.journey-page .atlas-view{background:radial-gradient(ellipse at 85% 15%,#f2eddd 0%,transparent 48%),#faf9f5}
+.journey-page .journey{background:#fffdfa99;border-color:#e5e1d8}
+.journey-page .stop-card{background:#fffdfa;box-shadow:0 9px 32px #20201514;border-color:#e5e1d8}
+.journey-page .journey-more{display:block;padding:0;margin-top:9px}
+.journey-page .journey-more>summary{list-style:none;display:flex;align-items:center;gap:9px;min-height:53px;padding:12px 0;font-size:13px;font-weight:750;cursor:pointer;color:#464239}
+.journey-page .journey-more>summary::-webkit-details-marker{display:none}
+.journey-page .journey-more>summary span{font-size:11px;font-weight:400;color:#979081}
+.journey-page .journey-more>summary::after{content:'⌄';margin-left:auto;font-size:19px;color:#9b906d}
+.journey-page .journey-more[open]>summary::after{transform:rotate(180deg)}
+.journey-page .journey-more-content{display:grid;gap:8px;padding:7px 0 23px}
+.journey-page .journey-more-content .accent{margin-top:0}
+.journey-page .route-empty h3{font-size:20px}
+.journey-page .route-empty p{line-height:1.7}
+body.route-page{--fp-paper:#faf9f5;--fp-ink:#292923}
+.route-page #stopsDock,.route-page #rvDetail,.route-page #addStopDialog{background:#faf9f5}
+.route-page #rvDetail .brief{background:#fffdfa;border-color:#e4e1d8}
+.route-page .rv-callout{border-color:#e5e1d7;box-shadow:0 6px 22px #201e162a}
+.route-page .stop-bubble{box-shadow:0 12px 37px #201e1633}
+.route-page .view-all:active,.route-page .atlas-back:active{transform:scale(.97)}
+.route-page dialog input,.route-page dialog select{font-size:16px}
+@media(max-width:720px){
+ .journey-page .topbar{padding:9px 12px;gap:6px}
+ .journey-page .brand small{display:none}
+ .journey-page .topaction{padding:8px 11px;min-height:44px}
+ .journey-page .builder{padding:23px 17px 24px}
+ .journey-page .atlas-view{padding:22px 12px 26px}
+ .journey-page .form-row{gap:8px}
+ .journey-page .form-row input{min-width:0}
+ .journey-page .tools{padding-bottom:14px}
+}
+
+#atlasConfirmDelete{background:#fff0e8;color:#a84231;border-color:#edd3c5}
+#atlasConfirmDelete:disabled{opacity:.5;cursor:wait}
+
+/* Stage1.24: only useful controls remain on the map; the map mode button had no action. */
+#btnLayers,#layerMenu{display:none!important}
+#helptext{display:none!important} /* first-star guidance is already handled by #atlasFirstStar */
+#drawer #atlasVersionBadge{position:static!important;display:inline-flex;align-items:center;margin:12px 0 20px;padding:8px 10px;border:1px solid #e6e0d3;background:#f4f0e6;border-radius:10px;opacity:1;transform:none!important;font-size:11px;box-shadow:none}
+#atlasUnstarDialog #atlasConfirmUnstar{color:#945225;background:#fff4e7;border-color:#ecdec8}
+#atlasUnstarDialog #atlasConfirmUnstar:disabled{opacity:.5;cursor:wait}
+#searchResults{overscroll-behavior:contain;max-height:min(48dvh,430px);overflow-y:auto}
+.search-results .search-state{font-size:13px;line-height:1.6;padding:15px 16px}
+#searchResults .search-result{display:flex;flex-direction:column;justify-content:center;gap:3px;width:100%;text-align:left;padding:11px 14px;min-height:60px}
+#searchResults .search-result:focus-visible{outline:2px solid #b78e38;outline-offset:-2px;background:#fff7df}
+#destinationStar{min-height:46px}
+#editor .editor-actions{position:sticky;bottom:-1px;padding:8px 0 calc(9px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#faf9f5d9,#faf9f5 32%);z-index:2}
+#editor .editor-save-hint{margin:0 0 5px}
+.photo-viewer{touch-action:pan-y}
+.photo-viewer .viewer-photo{touch-action:pan-y;max-height:calc(100dvh - 180px)}
+@media(max-width:550px){
+ #destinationCard .destination-actions{gap:8px}
+ #atlasFirstStar{max-width:calc(100vw - 24px)}
+ .editor .editor-scroll{max-height:calc(100dvh - 18px)}
+ #viewer .viewer-arrow{width:44px;height:44px}
+}
+
+/* Place detail clearly communicates intent without introducing another navigation level. */
+.fp-place-stage{display:inline-flex;align-items:center;min-height:30px;padding:5px 10px;border-radius:999px;border:1px solid #e6d7a9;background:#fff7dc;color:#795e28;font-size:11px;font-weight:650;white-space:nowrap;margin-top:4px}
+.fp-place-stage:before{content:'★';color:#e5b52d;margin-right:5px;font-size:12px}
+.fp-place-stage:active{transform:scale(.97)}
+</style>
+<style>/* Footprint Map V4 · Stage1.25 / visual & motion detail pass.
+   Additive layer on Stage1.24. Preserves V3 art, map, quadrant SVG geometry and data. */
+:root{
+  --fp25-type:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --fp25-ink:#282721;--fp25-secondary:#68665d;--fp25-tertiary:#868279;
+  --fp25-paper:#faf9f5;--fp25-surface:#fffefa;--fp25-divider:#e7e3d9;
+  --fp25-gold:#eac45b;--fp25-press:#f5f1e6;
+  --fp25-fast:150ms;--fp25-standard:270ms;--fp25-sheet:360ms;
+  --fp25-ease:cubic-bezier(.22,1,.36,1);
+  --fp25-shadow:0 14px 44px rgba(40,35,24,.14);
+}
+html,body,button,input,select,textarea{font-family:var(--fp25-type)}
+body{color:var(--fp25-ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,a{-webkit-tap-highlight-color:transparent}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.48}
+:where(button,a,input,textarea,select):focus-visible{outline:2px solid #a77d27!important;outline-offset:3px!important}
+/* 3 navigation actions, one V3 hand-drawn language, no additional controls. */
+#appDock{gap:7px!important;padding:7px!important;border-radius:23px!important;background:rgba(255,254,250,.965)!important;border:1px solid rgba(222,217,205,.92)!important;box-shadow:0 10px 34px #27241b23!important}
+#appDock .dock-btn{width:71px!important;height:65px!important;min-width:71px!important;min-height:65px!important;border-radius:16px!important;gap:5px!important;background:transparent!important;box-shadow:none!important;padding:9px 8px 8px!important;transition:background var(--fp25-fast) ease,transform var(--fp25-fast) var(--fp25-ease),box-shadow var(--fp25-fast) ease!important}
+#appDock .dock-btn img{height:25px!important;width:25px!important;object-fit:contain}
+#appDock .dock-btn span{font-size:12px!important;line-height:1.2!important;font-weight:600!important;letter-spacing:0!important;color:#514d44!important}
+#appDock .dock-btn:is(.active,[aria-pressed="true"]){background:#f8ecc7!important;box-shadow:inset 0 0 0 1px #e9d49d!important}
+#appDock .dock-btn:is(.active,[aria-pressed="true"]) span{color:#3b321f!important}
+#appDock .dock-btn:active{transform:scale(.965)!important;background:var(--fp25-press)!important}
+#dockRoutePop{gap:8px;padding:8px;border-radius:21px!important;background:rgba(255,254,250,.975)!important;box-shadow:var(--fp25-shadow)!important;animation:dockPop25 220ms var(--fp25-ease) both!important;transform-origin:70% 100%}
+#dockRoutePop .dock-pop-btn{min-width:96px;width:96px;height:72px;gap:6px;border-radius:15px;background:#fbf8ef;box-shadow:inset 0 0 0 1px #eae5d8}
+#dockRoutePop .dock-pop-btn img{height:24px;width:24px}
+#dockRoutePop .dock-pop-btn span{font-size:12px;line-height:1.2;font-weight:600;letter-spacing:0}
+#dockRoutePop .dock-pop-btn:active{transform:scale(.965);background:#f6eccb}
+@keyframes dockPop25{from{opacity:0;transform:translateY(9px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* Search is a single quiet surface with an explicit search affordance. */
+#searchDock{background:rgba(255,254,250,.975)!important;border:1px solid var(--fp25-divider)!important;border-radius:19px!important;box-shadow:0 7px 27px #28241c1a!important}
+#searchDock .searchbox{min-height:53px!important;border:0!important;box-shadow:none!important;border-radius:19px!important;padding-inline:14px 6px!important;background:transparent!important}
+#searchDock #searchInput{font-family:var(--fp25-type)!important;font-size:16px!important;line-height:1.45!important;letter-spacing:0!important;color:var(--fp25-ink)!important}
+#searchInput::placeholder{color:#918d83!important;opacity:1}
+#searchDock .dock-go{border-radius:13px!important;min-height:44px!important;min-width:44px!important;background:#f4f1e8;color:var(--fp25-ink)}
+#searchDock .dock-go:active{background:#efe4c5}
+#searchResults{border:0!important;border-top:1px solid var(--fp25-divider)!important;box-shadow:none!important;border-radius:0 0 18px 18px!important;overscroll-behavior:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#searchResults::-webkit-scrollbar{display:none}
+#searchResults .search-result{padding:12px 15px!important;min-height:60px!important;gap:4px!important;font-size:14px!important;line-height:1.45!important;border-bottom:1px solid #eeeae1}
+#searchResults .search-result:active{background:#f9f1dc}
+/* Same control proportions around the map. Position and map strategy untouched. */
+.map-controls{gap:9px!important}
+.map-controls .circlebtn{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;border-radius:16px!important;background:rgba(255,254,250,.97)!important;box-shadow:0 5px 18px #24221c17!important;border-color:#e7e3da!important;transition:transform var(--fp25-fast) var(--fp25-ease),background var(--fp25-fast) ease}
+.map-controls .circlebtn:active{transform:scale(.95);background:#f6eedb!important}
+/* Sheets: shorter read lines, sticky heading, no unexpected extra scrollbar gutter. */
+.drawer{border-radius:25px 25px 0 0!important;background:var(--fp25-paper)!important;scrollbar-gutter:auto!important;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;transition:transform var(--fp25-sheet) var(--fp25-ease)!important;box-shadow:0 -14px 54px #27241d2b!important}
+.drawer::-webkit-scrollbar{display:none}
+.drawer .drawer-head{background:var(--fp25-paper)!important;padding-top:10px!important;padding-bottom:13px!important;min-height:75px}
+.drawer .drawer-head .sheet-grab{height:9px;margin:0 0 9px!important;touch-action:pan-x}
+.drawer .drawer-head .sheet-grab::before{width:37px!important;height:5px!important;background:#d1cdc3!important}
+.drawer .drawer-head h2{font-family:var(--fp25-type)!important;font-size:21px!important;font-weight:650!important;letter-spacing:-.025em!important;color:var(--fp25-ink)!important}
+.drawer .drawer-cn{font-size:21px!important;color:var(--fp25-ink)!important;font-weight:650!important}
+#drawer .iconclose,#closeEditor,.fp-card-close{border-radius:14px!important;background:transparent!important;color:#69665e!important;min-width:44px;min-height:44px}
+#drawer .iconclose:active,#closeEditor:active,.fp-card-close:active{background:#ece9e0!important}
+#drawer .savebox-main{min-height:51px!important;border-radius:15px!important;background:#fffefa!important;border:1px solid var(--fp25-divider)!important;font-size:14px!important}
+#drawer .savebox-main span{font-weight:650!important;color:var(--fp25-ink)!important}
+#drawer .savebox-menu{border-radius:16px!important;box-shadow:var(--fp25-shadow)}
+#drawer .savebox-menu button{min-height:48px;font-size:14px!important}
+#spotList .spotrow{min-height:91px!important;padding:11px 12px!important;margin:10px 0!important;gap:13px!important;border-radius:18px!important;background:#fffefa!important;box-shadow:0 2px 12px #26221708;transition:background var(--fp25-fast) ease,transform var(--fp25-fast) var(--fp25-ease)}
+#spotList .spotrow:active{transform:scale(.99);background:#fcf5e6!important}
+#spotList .spotrow strong{font-size:15px!important;font-weight:650!important;letter-spacing:-.01em!important;line-height:1.35!important}
+#spotList .spotrow small{font-size:12px!important;line-height:1.5!important;color:#817b70!important}
+#spotList .spotrow>img,#spotList .spotrow .spotempty{width:65px;height:65px;border-radius:13px!important}
+#spotList .spotrow .arrow img{opacity:.6;width:19px;height:19px}
+#drawer .backuprow{gap:10px!important}
+#drawer .backuprow button{font-size:12px!important;line-height:1.35;padding:13px 10px;min-height:50px;border-radius:14px!important;font-weight:600}
+#drawer .footnote{font-size:12px!important;line-height:1.7!important;color:#817d73!important}
+#cover{transition:opacity var(--fp25-standard) ease!important}
+/* Editor: stable hierarchy, larger readable supporting type, no horizontal jolts. */
+dialog.editor{border-radius:25px!important;box-shadow:0 24px 76px #15140f4d!important;background:var(--fp25-paper)!important}
+.editor .editor-scroll{overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.editor .editor-scroll::-webkit-scrollbar{display:none}
+.editor .edit-head{margin-bottom:12px!important;gap:8px}
+.editor .edit-head::before{display:none!important} /* extra cursive ornament competes with action */
+.editor .edit-head h2{font-family:var(--fp25-type)!important;font-weight:690!important;font-size:23px!important;line-height:1.22!important;letter-spacing:-.035em!important;margin:5px 0 0!important}
+.editor .editor-eyebrow{font-size:10px!important;font-weight:650!important;letter-spacing:.11em!important;color:#938b77!important}
+.editor .edit-sub{font-size:12px!important;line-height:1.55!important;color:#777268!important;margin:0 0 18px!important}
+.editor .field,.editor .atlas-stage-selector legend{font-size:13px!important;letter-spacing:0!important;line-height:1.4;font-weight:660!important;color:#4c4840!important}
+.editor .input,.editor .area{font-family:var(--fp25-type)!important;font-size:16px!important;font-weight:400!important;line-height:1.5!important;border:1px solid #e2ded4!important;border-radius:14px!important;background:var(--fp25-surface)!important;padding:13px 14px!important}
+.editor .area{min-height:114px!important;resize:vertical;line-height:1.7!important}
+.editor .input:focus,.editor .area:focus{border-color:#c7a44c!important;box-shadow:0 0 0 3px #eed68c45!important}
+.editor .atlas-stage-option span{min-height:66px!important;gap:4px!important;border-radius:14px!important;transition:border-color var(--fp25-fast) ease,background var(--fp25-fast) ease}
+.editor .atlas-stage-option b{font-size:14px!important;letter-spacing:0!important}
+.editor .atlas-stage-option small{font-size:12px!important;line-height:1.3!important}
+.editor .atlas-stage-option input:checked+span{border-color:#d9b757!important;background:#fff4cf!important}
+.editor .atlas-editor-more{background:#f4f1e9!important;border:1px solid #e7e3d7!important;border-radius:16px!important}
+.editor .atlas-editor-more summary{min-height:51px!important;padding:14px 15px!important;gap:9px}
+.editor .atlas-editor-more summary span{font-size:14px!important;font-weight:650!important}
+.editor .atlas-editor-more summary small{font-size:12px!important;color:#797368!important}
+#editor .editor-actions{gap:9px!important;box-shadow:none!important;background:linear-gradient(180deg,#faf9f500,#faf9f5 22%)!important;padding:15px 0 calc(10px + env(safe-area-inset-bottom))!important}
+#editor .editor-actions button{min-height:52px!important;border-radius:15px!important;font-family:var(--fp25-type)!important;font-size:15px!important;font-weight:650!important}
+#editor .editor-save-hint{font-size:11px;line-height:1.55;color:#8a857a}
+/* Memory card and 4 SVG bubble *content only*; SVG shape, arrows and hierarchy untouched. */
+.memory-atlas .memo-name{font-family:var(--fp25-type)!important;letter-spacing:-.025em!important;font-weight:640!important;font-size:21px!important;line-height:1.36!important}
+.memory-atlas .memo-text{font-family:var(--fp25-type)!important;font-size:14px!important;line-height:1.8!important;letter-spacing:0!important;color:#4b4943!important}
+.memory-atlas .memo-foot small{font-size:12px!important;line-height:1.4!important}
+.memory-atlas .memo-edit{min-height:40px;border-radius:12px!important;font-size:12px!important;font-weight:600!important}
+.memory-atlas .memory-quickbar button{font-family:var(--fp25-type)!important;font-size:12px!important;line-height:1.3!important;min-height:43px;transition:transform var(--fp25-fast) var(--fp25-ease),background var(--fp25-fast) ease}
+.memory-atlas .memory-quickbar button:active{transform:scale(.97)}
+#atlasOrbit .orbit-content{font-family:var(--fp25-type)}
+#atlasOrbit .orbit-kicker{font-size:11px;letter-spacing:.02em;color:#80796e}
+#atlasOrbit .orbit-title{font-weight:650;letter-spacing:-.02em;line-height:1.28}
+#atlasOrbit .orbit-note{font-size:clamp(11px,1.15vw,13px);line-height:1.5;color:#625f57}
+#atlasOrbit .orbit-action{font-size:11px;font-weight:650;border-radius:10px;transition:background var(--fp25-fast) ease}
+#atlasOrbit .orbit-action:active{background:#f1e8cf}
+#atlasOrbit.is-open .orbit-bubble{animation-duration:.47s!important}
+#atlasOrbit.is-open .orbit-content{animation-duration:.32s!important}
+/* Fullscreen photo navigation stays above home indicator, with true 44px targets. */
+#viewer .viewer-top{top:calc(12px + env(safe-area-inset-top));left:18px;right:16px}
+#viewer .viewer-close,#viewer .viewer-arrow{min-width:44px;min-height:44px;display:grid;place-items:center}
+#viewer .viewer-bottom{font-size:13px;line-height:1.5;padding-inline:20px;text-align:center;color:#dcdad4}
+#viewer .viewer-photo{max-height:calc(100dvh - 178px);object-fit:contain}
+/* Secondary screens inherit the same typographic scale and responsive rhythm. */
+body.journey-page,body.route-page{font-family:var(--fp25-type)!important;color:var(--fp25-ink)}
+.journey-page .builder h1{letter-spacing:-.04em!important;line-height:1.15!important}
+.journey-page .intro,.journey-page .place small,.journey-page .choice small{font-size:13px!important;line-height:1.55!important}
+.journey-page .block h2,.journey-page .section-head h2{font-size:14px!important;font-weight:650!important}
+.journey-page .place,.journey-page .choice{min-height:53px;border-radius:15px;transition:background var(--fp25-fast) ease}
+.journey-page button:active{filter:brightness(.975)}
+.route-page .stop-bubble h2{letter-spacing:-.025em;font-weight:650}
+.route-page .bubble-brief{font-size:13px;line-height:1.7}
+.route-page .bubble-ops a{font-size:12px;min-height:40px;display:grid;place-items:center}
+.route-page .atlas-stops,.route-page .stop-bubble{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+@media(max-width:550px){
+ #searchDock{width:calc(100% - 28px)!important;max-width:none!important;top:calc(10px + env(safe-area-inset-top))!important}
+ #appDock{bottom:calc(10px + env(safe-area-inset-bottom));gap:4px!important;padding:6px!important}
+ #appDock .dock-btn{width:73px!important;min-width:73px!important;height:64px!important;min-height:64px!important}
+ #dockRoutePop{bottom:calc(88px + env(safe-area-inset-bottom));right:calc(50% - 104px)}
+ .drawer{max-height:calc(89dvh - env(safe-area-inset-top))!important;padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+ .editor .editor-scroll{max-height:calc(var(--atlas-visual-height,100dvh) - 18px)!important;padding:20px 18px calc(16px + env(safe-area-inset-bottom))!important}
+ #editor .editor-actions{bottom:0}
+ .memory-atlas .memory-quickbar button{font-size:11px!important}
+}
+@media(max-width:355px){
+ #appDock .dock-btn{width:68px!important;min-width:68px!important}
+ #dockRoutePop .dock-pop-btn{width:90px;min-width:90px}
+ .editor .atlas-stage-option small{font-size:11px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .drawer,#dockRoutePop,#appDock .dock-btn,.spotrow,.circlebtn{transition-duration:.01ms!important;animation-duration:.01ms!important}
+ #atlasOrbit.is-open .orbit-bubble,#atlasOrbit.is-open .orbit-content{animation-duration:.01ms!important}
+}
+/* Collage sheet, search sheet and archive share the same visual density. */
+#fpPlaceCard{border-radius:24px!important;background:var(--fp25-paper)!important;box-shadow:var(--fp25-shadow)!important;animation:fp25CardIn .3s var(--fp25-ease) both!important}
+@keyframes fp25CardIn{from{opacity:.65;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+#fpPlaceCard .fp-card-name{font:650 21px/1.35 var(--fp25-type)!important;letter-spacing:-.025em!important}
+#fpPlaceCard .fp-card-kicker,#fpPlaceCard .fp-subheading label,#fpPlaceCard .fp-subheading strong{font-size:11px!important;font-weight:650!important;letter-spacing:.055em!important;color:#88774f!important}
+#fpPlaceCard .fp-card-scroll{scrollbar-width:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#fpPlaceCard .fp-card-scroll::-webkit-scrollbar{display:none}
+#fpPlaceCard .fp-brief-text{font-size:14px!important;line-height:1.8!important;color:#4d4a43!important}
+#fpPlaceCard .fp-block{border-radius:17px!important;padding:14px 15px!important;box-shadow:none!important;border-color:#e8e4da!important}
+#fpPlaceCard .fp-card-chip{min-height:45px!important;font-size:12px!important;font-weight:650!important;border-radius:13px!important}
+#fpPlaceCard .fp-edit-toggle{min-height:42px!important;font-size:12px!important;padding:9px 13px!important}
+#fpPlaceCard .fp-unstar-btn{width:44px!important;height:44px!important;min-width:44px!important;border-radius:14px!important}
+#fpSearchSheet{background:var(--fp25-paper)!important;border-color:#e6e2d8!important;border-radius:25px 25px 0 0!important;transition:transform .35s var(--fp25-ease),opacity .18s ease!important}
+#fpSearchSheet .fp-search-head h2{font-size:21px!important;font-weight:670!important;letter-spacing:-.03em!important}
+#fpSearchSheet .fp-search-label{font-size:11px!important;letter-spacing:.05em!important;font-weight:650!important}
+#fpSearchSheet .fp-quick{min-height:83px!important;border-radius:16px!important;font-size:12px!important;font-weight:600!important}
+#fpSearchSheet .fp-search-row{min-height:69px!important}
+#fpSearchSheet .fp-row-main strong{font-size:15px!important;font-weight:650!important}
+#fpSearchSheet .fp-row-main small{font-size:12px!important}
+#fpSearchSheet .fp-search-body{scrollbar-width:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#fpSearchSheet .fp-search-body::-webkit-scrollbar{display:none}
+
+.drawer.fp25-dragging,.drawer.fp25-dragging.visible{transition:none!important;will-change:transform}
+
+/* At the narrowest iPhone widths the optional row stays one line. */
+.editor .atlas-editor-more summary{display:grid!important;grid-template-columns:max-content minmax(0,1fr) 20px;align-items:center;flex-wrap:nowrap!important;column-gap:8px}
+.editor .atlas-editor-more summary small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.editor .atlas-editor-more summary::after{grid-column:3;margin:0!important;justify-self:center}
+@media(max-height:740px){.editor .editor-save-hint{margin-top:2px;font-size:10px}}
+#drawer #sheetCount{color:#898174!important;font-size:12px!important;font-weight:500!important;margin-left:7px}
+</style>
+<style>/* Footprint Map V4 · Stage1.26 | tactile detail, orbit geometry and reading rhythm.
+   Intentional additive layer: no changes to V3 hand-drawn assets, storage schema,
+   map renderer, independent SVG path generator, or route engine. */
+:root{
+  --fp26-ease:cubic-bezier(.22,.79,.26,1);
+  --fp26-touch:150ms;
+  --fp26-panel:330ms;
+}
+/* Make every card and the upright star share the EXACT same geometric center.
+   Stage1.25 kept two left-side cards relative to 50vw while the star and right
+   side were positioned at --orbit-cx. This restores uniform arrow clearance. */
+#atlasOrbit .orbit-bubble.tl{
+  left:calc(var(--orbit-cx) - var(--orbit-gap)/2 - var(--orbit-w)*var(--scale-tl))!important;
+  top:calc(var(--orbit-cy) - var(--orbit-gap)/2 - var(--orbit-h)*var(--scale-tl))!important;
+}
+#atlasOrbit .orbit-bubble.tr{
+  left:calc(var(--orbit-cx) + var(--orbit-gap)/2)!important;
+  top:calc(var(--orbit-cy) - var(--orbit-gap)/2 - var(--orbit-h)*var(--scale-tr))!important;
+}
+#atlasOrbit .orbit-bubble.bl{
+  left:calc(var(--orbit-cx) - var(--orbit-gap)/2 - var(--orbit-w)*var(--scale-bl))!important;
+  top:calc(var(--orbit-cy) + var(--orbit-gap)/2)!important;
+}
+#atlasOrbit .orbit-bubble.br{
+  left:calc(var(--orbit-cx) + var(--orbit-gap)/2)!important;
+  top:calc(var(--orbit-cy) + var(--orbit-gap)/2)!important;
+}
+/* Four independent vectors retain the approved hierarchy and common tail module. */
+#atlasOrbit .orbit-svg{filter:drop-shadow(0 10px 18px rgba(30,28,22,.14))}
+#atlasOrbit .orbit-kicker{display:flex;align-items:center;gap:5px;font-size:11px!important;letter-spacing:0!important;line-height:1.25!important;font-weight:650!important;color:#827b6f!important}
+#atlasOrbit .orbit-kicker-icon{width:14px;height:14px;opacity:.76}
+#atlasOrbit .orbit-title{font-weight:680!important;line-height:1.3!important;letter-spacing:-.025em!important;color:#282721}
+#atlasOrbit .orbit-note{font-size:12px;line-height:1.52!important;color:#625d53}
+#atlasOrbit .orbit-small{font-size:11px;line-height:1.48;color:#777166}
+#atlasOrbit .orbit-media-hero{background:#eeece5;border-radius:13px;min-height:48px}
+#atlasOrbit .orbit-media-placeholder{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;font-size:12px;font-weight:550;line-height:1.5;letter-spacing:0;color:#999180}
+#atlasOrbit .orbit-media-count{font-size:10px;border-radius:7px;background:rgba(39,38,31,.79);padding:5px 7px}
+#atlasOrbit .orbit-action{display:inline-flex;align-items:center;justify-content:center;min-height:36px!important;padding:7px 10px!important;font-size:11px!important;line-height:1.25!important;letter-spacing:0!important;background:#f6f2e8;border:1px solid #e5dfd1;color:#3e3930;border-radius:11px;transition:background var(--fp26-touch) ease,transform var(--fp26-touch) var(--fp26-ease)}
+#atlasOrbit .orbit-action:active{transform:scale(.965);background:#f0e8d6}
+#atlasOrbit .orbit-link{font-size:11px;line-height:1.35;min-height:35px;gap:5px}
+#atlasOrbit .orbit-near-list{scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#atlasOrbit .orbit-near-list::-webkit-scrollbar{display:none}
+#atlasOrbit .orbit-near-item{min-height:37px;align-items:center;gap:5px;padding-block:6px}
+#atlasOrbit .orbit-near-name{font-size:11px;line-height:1.4}
+#atlasOrbit .orbit-near-dist{font-size:10px}
+#atlasOrbit.is-open .orbit-bubble{animation:orbit26Enter .51s var(--fp26-ease) both!important}
+#atlasOrbit.is-open .orbit-content{animation:orbit26Content .33s .15s ease-out both!important}
+#atlasOrbit.is-open .orbit-center{animation:orbit26Star .36s var(--fp26-ease) both!important}
+#atlasOrbit.is-closing .orbit-bubble{animation-duration:.24s!important}
+@keyframes orbit26Enter{0%{opacity:0;transform:translate(var(--dx),var(--dy));filter:blur(1.5px)}100%{opacity:1;transform:translate(0,0);filter:none}}
+@keyframes orbit26Content{0%{opacity:0;transform:translateY(5px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes orbit26Star{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+/* Small phones: protect an 8pt outer margin while retaining photo as dominant. */
+@media(max-width:700px) and (orientation:portrait){
+  #atlasOrbit{--orbit-cx:47%;--scale-tr:1.10;--scale-bl:.93;--scale-tl:.88;--scale-br:1.04}
+  #atlasOrbit .orbit-content{padding:10px;gap:5px}
+  #atlasOrbit .orbit-bubble.tl .orbit-content{padding:9px;gap:4px}
+  #atlasOrbit .orbit-bubble.tl .orbit-title{font-size:12px!important}
+  #atlasOrbit .orbit-bubble.tl .orbit-note{font-size:11px!important;line-height:1.42!important;-webkit-line-clamp:3}
+  #atlasOrbit .orbit-bubble.tl .orbit-action{min-height:30px!important;padding:5px 7px!important;font-size:10px!important}
+  #atlasOrbit .orbit-bubble .orbit-kicker{font-size:11px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #atlasOrbit .orbit-bubble .orbit-kicker-icon{width:13px;height:13px}
+  #atlasOrbit .orbit-bubble .orbit-title{font-size:13px!important}
+  #atlasOrbit .orbit-bubble.tr .orbit-media-hero{min-height:42px}
+}
+@media(max-width:350px) and (orientation:portrait){
+  #atlasOrbit .orbit-content{padding:8px;gap:4px}
+  #atlasOrbit .orbit-kicker{font-size:10px!important}
+  #atlasOrbit .orbit-bubble.tl .orbit-title{font-size:11px!important}
+  #atlasOrbit .orbit-bubble .orbit-note{font-size:11px;line-height:1.4!important}
+  #atlasOrbit .orbit-action{padding:6px 7px!important}
+}
+/* Reader panels: consistent line rhythm, subtle separators and honest touch cues. */
+#spotList .spotrow{border:1px solid #e9e4d8!important;box-shadow:0 3px 11px rgba(36,32,22,.035)!important}
+#spotList .spotrow:focus-visible{outline:2px solid #b18a3b;outline-offset:3px}
+#spotList .spotrow small{line-height:1.55!important}
+#drawer .backuprow{margin-top:22px}
+#drawer .footnote{max-width:44ch;line-height:1.65!important}
+#editor .edit-head h2{line-height:1.2!important}
+#editor .field,#editor .atlas-stage-selector legend{letter-spacing:0!important}
+#editor #placeNote{line-height:1.65!important;resize:vertical;min-height:116px}
+#editor .editor-save-hint{max-width:46ch;margin-inline:auto}
+#editor .atlas-editor-more summary{transition:background var(--fp26-touch) ease}
+#editor .atlas-editor-more summary:active{background:#f3eee3}
+/* Suppress 300ms iOS tap ambiguity only on controls, never scroll surfaces. */
+#atlasOrbit button,#appDock button,#drawer button,#editor button,#fpPlaceCard button{touch-action:manipulation}
+/* User preference beats all nonessential entry/collapse effects. */
+@media(prefers-reduced-motion:reduce){
+ #atlasOrbit.is-open .orbit-bubble,#atlasOrbit.is-open .orbit-content,#atlasOrbit.is-open .orbit-center,
+ #atlasOrbit.is-closing .orbit-bubble{animation-duration:.01ms!important;animation-delay:0ms!important;filter:none!important}
+ #atlasOrbit .orbit-action,#editor .atlas-editor-more summary{transition-duration:.01ms!important}
+}
+/* The orbital view is a focused moment. Keep the map itself as context but
+   retire its loading badge, zoom stack and technical labels until dismissal. */
+body.atlas-orbit-active #atlasMapLoader,
+body.atlas-orbit-active .map-status,
+body.atlas-orbit-active #figureCaption,
+body.atlas-orbit-active #mapConnectionNote,
+body.atlas-orbit-active .map-controls{
+  opacity:0!important;pointer-events:none!important;
+  transition:opacity .16s ease!important;
+}
+
+@media(hover:none) and (pointer:coarse){#editor #placeNote{resize:none}}
+</style>
+</head><body>
+<div aria-label="黑白建筑地图实时缩放预览" id="visualMap"></div>
+<header><a aria-label="返回 Footprint Map" class="back" href="./">← 返回主页</a><div class="brand"><small>TRAVEL ATLAS / VISUAL REVIEW B</small><strong>建筑地图缩放过渡</strong></div></header>
+<div id="info" role="status">正在加载真实建筑地图…</div>
+<section aria-label="地图视觉验收控制" class="controls">
+<div class="row"><strong class="stage" id="currentStage">远景 · 黑色建筑肌理</strong><strong id="zoomText">12.8</strong></div>
+<p class="hint">真实地图底图 · 黑 → 半透明 → 白色 block。近景保持原有俯视视角，以建筑屋顶阴影显示轻微层次，不改变路线或收藏逻辑。</p>
+<input aria-label="地图缩放级别" id="zoomSlider" max="19" min="11" step=".1" type="range" value="12.8"/>
+<div class="ticks"><span>11</span><span>13</span><span>15</span><span>17</span><span>19</span></div>
+<div class="modes"><button class="active" id="mode-far" type="button">远景·黑</button><button id="mode-mid" type="button">半透明过渡</button><button id="mode-near" type="button">近景·白</button></div>
+<footer>这是专门用于视觉审核的地图预览，地点坐标与建筑轮廓来自真实地图数据，不读取或修改你的收藏地点。</footer>
+</section>
+</body></html>
