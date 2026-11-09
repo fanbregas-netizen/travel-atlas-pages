@@ -40,6 +40,8 @@ jobs:
           cp -R stage1-30 _site/stage1-30
           # Isolated Stage1.31 fixed-map adaptive four-bubble review
           cp -R stage1-31 _site/stage1-31
+          # Interaction-only demo; never overwrites the approved live product
+          cp -R demo-two-bubbles _site/demo-two-bubbles
           touch _site/.nojekyll
       - name: Validate static deployment assets
         run: |
