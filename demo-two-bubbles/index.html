@@ -1,0 +1,198 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/><meta name="theme-color" content="#eef0ed"/><title>Footprint Map｜双气泡交互演示</title><style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;color:#253030;background:#e6e9e6;font-synthesis:none;text-rendering:optimizeLegibility}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;overflow:hidden}button,input{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent}button:focus-visible{outline:2px solid #6a8586;outline-offset:3px}
+.app{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;margin:0 auto;isolation:isolate;background:#eff0ec;user-select:none;-webkit-user-select:none;--glass:rgba(252,253,250,.94);--line:#dee5e1}
+@media(min-width:660px){body{display:grid;place-items:center;background:linear-gradient(130deg,#d6dfdb,#eef0ed 54%,#d6ddda)}.app{width:390px;height:min(850px,94vh);height:min(850px,94dvh);border-radius:34px;box-shadow:0 28px 78px #293b3938,0 0 0 7px #e6ebe8}}
+.map-area{position:absolute;inset:0;overflow:hidden;touch-action:manipulation}.city-map{position:absolute;width:100%;height:100%;inset:0;pointer-events:none;filter:saturate(.75)}.map-area:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(245,247,244,.4),transparent 14%,transparent 76%,rgba(233,235,231,.18))}
+.demo-tag{position:absolute;z-index:7;top:max(env(safe-area-inset-top,0px),14px);left:18px;display:flex;flex-direction:column;gap:5px;pointer-events:none}.demo-tag strong{font-size:13px;font-weight:700;letter-spacing:.025em;color:#415154}.demo-tag small{font-size:10px;letter-spacing:.005em;color:#86908d}
+.poi{position:absolute;width:33px;height:33px;border:0;background:#f9faf7d9;box-shadow:0 4px 13px #24302b15;border-radius:12px;display:grid;place-items:center;z-index:2;color:#303d3c;transform:translate(-50%,-50%);transition:transform .18s cubic-bezier(.2,.9,.3,1)}.poi:active{transform:translate(-50%,-50%) scale(1.13)}.poi svg{width:23px;height:23px;opacity:.75}.poi-one{left:19%;top:25%}.poi-two{left:80%;top:36%}.poi-three{left:23%;top:69%}.poi span{position:absolute;top:35px;white-space:nowrap;font-size:10px;color:#84918e;font-weight:550}
+.origin{position:absolute;z-index:14;width:53px;height:53px;display:grid;place-items:center;border:0;background:transparent;transform:translate(-50%,-50%);transition:left .22s cubic-bezier(.25,.85,.3,1),top .22s cubic-bezier(.25,.85,.3,1)}.origin:before{content:"";position:absolute;inset:2px;border-radius:50%;background:#ecf2e8b3;box-shadow:0 0 0 9px #e9f0eb85;opacity:0;transition:opacity .18s}.origin:active:before{opacity:1}.origin svg{width:38px;height:38px;filter:drop-shadow(0 2px 2px #21302b20)}.origin.is-active svg{animation:star-pop .36s ease both}@keyframes star-pop{0%{transform:scale(.88) rotate(-4deg)}55%{transform:scale(1.1) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+.bubble{position:absolute;z-index:11;isolation:isolate;filter:drop-shadow(0 16px 21px rgba(56,77,71,.10)) drop-shadow(0 2px 5px rgba(45,67,61,.06));transform-origin:center;will-change:transform,opacity;transition:transform .49s cubic-bezier(.20,.82,.22,1),opacity .27s ease,filter .3s;pointer-events:auto;transform:translate3d(0,0,0) scale(1);opacity:1}
+.bubble[data-hidden="true"]{transform:translate3d(var(--shift-x,0px),var(--shift-y,0px),0) scale(.20);opacity:0;filter:blur(3px);pointer-events:none}
+.bubble.media{transition-duration:.52s}.bubble-svg{position:absolute;inset:-64px;width:calc(100% + 128px);height:calc(100% + 128px);overflow:visible;pointer-events:none}.bubble-svg path{fill:var(--glass);stroke:none;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 0 #fff)}
+.bubble-body{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;padding:11px 13px 10px;gap:5px}.bubble:not([data-hidden="true"]) .bubble-body{animation:detail-in .38s .10s both}@keyframes detail-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.bubble-header{display:flex;align-items:center;gap:7px;min-height:22px}.ink-icon{display:grid;place-items:center;flex-shrink:0}.ink-icon svg{display:block;width:18px;height:18px}.bubble-header h2{font-weight:700;font-size:13px;letter-spacing:-.015em;margin:0}.bubble-brief{font-size:10.5px;color:#657370;line-height:1.45;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;letter-spacing:.012em}.brief-foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between}.tiny-edit{border:0;background:transparent;padding:0;color:#687b78;font-size:10px;display:flex;align-items:center;gap:3px}.tiny-edit svg{width:13px;height:13px}.brief-index{color:#a8b0aa;font-size:9px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.bubble.media .bubble-body{padding:13px 13px 11px;gap:7px}.bubble.media h2{font-size:13px}.media-caption{font-size:10px;color:#8a9691;margin:-4px 0 1px}.mosaic{display:grid;grid-template-columns:minmax(0,1fr) 57px;gap:5px;min-height:0;flex:1}.big-media,.thumb{position:relative;min-height:0;border-radius:11px;overflow:hidden;border:0;background:#cbd7d2;padding:0;display:block}.big-media svg,.thumb svg{width:100%;height:100%;display:block}.big-media:after{content:"示意影像";position:absolute;left:8px;bottom:8px;color:#fff;font-size:9px;text-shadow:0 1px 4px #1d2c2bab;letter-spacing:.03em}.media-thumbs{display:grid;grid-template-rows:1fr 1fr;gap:5px;min-height:0}.thumb:active,.big-media:active{transform:scale(.97)}
+.media-footer{display:flex;align-items:center;justify-content:space-between;gap:3px}.media-footer span{font-size:10px;color:#89938f;white-space:nowrap}.media-footer .more{display:flex;gap:4px}.mini-action{border:0;border-radius:20px;background:#ebefeb;min-height:24px;padding:2px 9px;color:#455958;font-size:10px;font-weight:580;white-space:nowrap}.mini-action:active{background:#dce6df}
+.dock{position:absolute;z-index:20;bottom:calc(15px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);width:calc(100% - 36px);max-width:390px;min-height:69px;background:rgba(251,253,250,.89);border-radius:25px;box-shadow:0 9px 30px #2c423a1a;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:grid;grid-template-columns:repeat(4,1fr);padding:6px;gap:1px;transition:height .25s ease,width .25s ease}.nav-btn{display:flex;align-items:center;justify-content:center;gap:4px;flex-direction:column;border:0;border-radius:20px;background:transparent;color:#566462;font-weight:570;font-size:10px;letter-spacing:.01em}.nav-btn.active{background:#e8efea;color:#273b39}.nav-btn svg{width:23px;height:23px}.dock[data-search="true"]{display:flex;align-items:center;gap:7px;padding:9px 13px}.dock input{flex:1;min-width:0;border:0;background:transparent;outline:0;font-size:15px;color:#2f3a37}.dock .cancel-search{border:0;background:none;color:#5d7772;font-size:13px;white-space:nowrap}.search-svg{width:20px;height:20px;opacity:.7}
+.demo-bottom-hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(98px + env(safe-area-inset-bottom,0px));font-size:10px;color:#98a4a0;z-index:4;white-space:nowrap;text-align:center;pointer-events:none}
+.toast{position:absolute;z-index:100;bottom:calc(100px + env(safe-area-inset-bottom,0px));left:50%;max-width:80%;padding:10px 15px;white-space:nowrap;border-radius:14px;color:#fff;background:#25322fe8;font-size:11px;box-shadow:0 8px 24px #25332b2b;transform:translateX(-50%) translateY(8px);opacity:0;pointer-events:none;transition:opacity .19s,transform .19s}.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.sheet-bg{position:absolute;inset:0;z-index:29;background:#1f312930;opacity:0;pointer-events:none;transition:opacity .24s ease}.sheet-bg.open{opacity:1;pointer-events:auto}.sheet{position:absolute;z-index:30;left:12px;right:12px;bottom:calc(100px + env(safe-area-inset-bottom,0px));min-height:155px;padding:20px;border-radius:25px;background:#F9FAF8F7;box-shadow:0 12px 40px #1e39312d;transform:translateY(40px);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .23s}.sheet.open{transform:translateY(0);opacity:1;pointer-events:auto}.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.sheet-title{font-size:16px;font-weight:720}.sheet-close{border:0;width:30px;height:30px;border-radius:50%;background:#ecf0eb;color:#59706e;display:grid;place-items:center}.sheet-close svg{width:16px;height:16px}.sheet p{font-size:12px;color:#71817b;line-height:1.6}.sheet-actions{display:flex;gap:9px}.sheet-actions button{flex:1;background:#eff3ef;border:none;border-radius:15px;padding:15px 5px;color:#384b48;font-size:12px}
+@media(max-width:352px){.bubble-header h2,.bubble.media h2{font-size:12px}.bubble-body{padding:10px 11px 9px}.bubble.media .bubble-body{padding:10px 10px 9px}.bubble-brief{font-size:10px}.mosaic{grid-template-columns:minmax(0,1fr) 50px}.dock{min-height:64px}.demo-bottom-hint{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+</style></head><body><main class="app" id="app"><div class="map-area" id="mapArea"><svg class="city-map" viewBox="0 0 430 940" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<defs><pattern id="map-grain" width="70" height="70" patternUnits="userSpaceOnUse"><circle cx="8" cy="14" r=".7" fill="#A7B4B2" opacity=".25"/><circle cx="49" cy="56" r=".5" fill="#A7B4B2" opacity=".28"/></pattern></defs>
+<rect width="430" height="940" fill="#F1F2EF"/>
+<path d="M-50 150 L480 80 M-45 520 L470 440 M-40 800 L460 715" stroke="#FFF" stroke-width="27" fill="none"/>
+<path d="M-20 108 L440 930 M-140 620 L470 190" stroke="#FFF" stroke-width="28" fill="none"/>
+<path d="M-50 150 L480 80 M-45 520 L470 440 M-40 800 L460 715" stroke="#C8D0CC" stroke-width="2.5" fill="none"/>
+<path d="M-20 108 L440 930 M-140 620 L470 190" stroke="#D1D8D4" stroke-width="2.5" fill="none"/>
+<path d="M0 270 L430 220 M0 350 L430 315 M0 660 L430 590 M0 870 L430 840 M90 0 L135 940 M280 0 L305 940" stroke="#FCFCFA" stroke-width="14" fill="none"/>
+<g opacity=".94"><rect x="83" y="-36" width="42" height="56" rx="1" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="163" y="-49" width="37" height="63" rx="1" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="246" y="-34" width="43" height="35" rx="3" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="310" y="-25" width="31" height="47" rx="3" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="395" y="-44" width="49" height="47" rx="2" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="473" y="-22" width="41" height="52" rx="2" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="1" y="66" width="45" height="45" rx="3" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="95" y="60" width="35" height="45" rx="3" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="170" y="66" width="46" height="46" rx="1" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="237" y="41" width="48" height="51" rx="2" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="309" y="43" width="41" height="52" rx="2" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="380" y="48" width="34" height="40" rx="1" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="474" y="66" width="45" height="49" rx="1" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="17" y="132" width="42" height="44" rx="1" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="94" y="142" width="42" height="35" rx="1" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="149" y="136" width="55" height="37" rx="2" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="226" y="140" width="30" height="58" rx="1" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="307" y="143" width="47" height="46" rx="2" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="380" y="131" width="33" height="44" rx="3" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="457" y="132" width="43" height="44" rx="2" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="20" y="231" width="56" height="44" rx="3" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="76" y="240" width="56" height="49" rx="2" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="158" y="242" width="57" height="37" rx="1" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="244" y="222" width="40" height="61" rx="3" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="309" y="235" width="52" height="41" rx="3" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="461" y="218" width="55" height="43" rx="2" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="24" y="328" width="30" height="45" rx="3" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="76" y="320" width="52" height="51" rx="3" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="172" y="324" width="35" height="53" rx="1" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="225" y="334" width="58" height="65" rx="1" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="313" y="326" width="43" height="52" rx="2" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="399" y="316" width="38" height="55" rx="1" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="470" y="322" width="54" height="50" rx="3" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="11" y="402" width="58" height="50" rx="1" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="85" y="399" width="49" height="63" rx="2" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="173" y="410" width="30" height="36" rx="1" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="324" y="398" width="38" height="46" rx="1" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="398" y="398" width="35" height="59" rx="2" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="2" y="508" width="35" height="35" rx="3" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="97" y="494" width="45" height="52" rx="1" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="301" y="490" width="57" height="47" rx="2" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="398" y="504" width="37" height="61" rx="3" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="456" y="508" width="47" height="53" rx="3" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="3" y="585" width="42" height="53" rx="1" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="86" y="585" width="53" height="47" rx="3" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="234" y="597" width="43" height="64" rx="3" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="310" y="581" width="40" height="36" rx="2" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="386" y="600" width="41" height="65" rx="3" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="469" y="587" width="56" height="45" rx="1" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="23" y="676" width="32" height="63" rx="2" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="86" y="671" width="31" height="36" rx="2" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="170" y="685" width="51" height="51" rx="1" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="226" y="687" width="48" height="63" rx="1" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="312" y="678" width="51" height="43" rx="2" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="393" y="663" width="54" height="47" rx="1" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="474" y="672" width="38" height="52" rx="3" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="8" y="762" width="53" height="35" rx="3" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="99" y="769" width="34" height="38" rx="1" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="152" y="774" width="59" height="53" rx="1" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="226" y="778" width="32" height="36" rx="3" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="315" y="760" width="38" height="60" rx="3" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="380" y="775" width="51" height="38" rx="1" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="455" y="767" width="31" height="43" rx="1" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="24" y="853" width="54" height="36" rx="3" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="99" y="842" width="50" height="35" rx="1" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="239" y="843" width="44" height="54" rx="3" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="300" y="867" width="35" height="47" rx="1" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="379" y="845" width="56" height="41" rx="2" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="455" y="866" width="35" height="47" rx="2" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="87" y="941" width="32" height="47" rx="2" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="173" y="955" width="33" height="49" rx="3" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/><rect x="238" y="936" width="35" height="49" rx="3" fill="#FAFAF8" stroke="#DEE2DF" stroke-width=".75"/><rect x="385" y="950" width="31" height="36" rx="1" fill="#FDFDFB" stroke="#DEE2DF" stroke-width=".75"/><rect x="457" y="941" width="53" height="47" rx="3" fill="#F5F6F3" stroke="#DEE2DF" stroke-width=".75"/></g>
+<rect width="430" height="940" fill="url(#map-grain)" opacity=".32"/>
+<g font-size="12" fill="#899794" font-weight="450"><text x="45" y="80">海岸路</text><text x="307" y="257">林间街</text><text x="53" y="625">风景大道</text><text x="238" y="887">旧城街</text></g>
+</svg></div>
+<div class="demo-tag"><strong>双气泡 · 交互演示</strong><small>点击地图空白处，试试不同位置</small></div>
+<button class="poi poi-one" data-position=".19,.25" aria-label="选择海岸地点"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M7 23 C14 18 17 29 24 24 C31 18 35 28 42 24 C48 20 53 26 57 23"/>
+  <path d="M7 35 C13 31 17 41 24 36 C31 31 35 41 42 36 C48 32 53 39 57 35"/>
+  <path d="M12 47 C18 43 22 52 29 47 C35 43 39 52 45 47 C50 44 53 49 56 47"/>
+ </g>
+</svg><span>海岸</span></button>
+<button class="poi poi-two" data-position=".80,.36" aria-label="选择咖啡地点"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 23H46V39Q46 50 34 51H26Q14 49 14 39Z M46 26H50Q59 27 57 35Q56 41 46 42 M18 57H50 M26 16Q19 10 27 7 M39 16Q32 10 40 7"/></g></svg><span>咖啡</span></button>
+<button class="poi poi-three" data-position=".23,.69" aria-label="选择古镇地点"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M9 24 L31 13 L55 25 M16 27 L16 50 M48 27 L48 50 M11 51 L53 51"/>
+  <path d="M23 30 L23 44 M31 30 L31 44 M39 30 L39 44" stroke-width="2.2"/>
+  <path d="M6 23 Q31 18 58 24" stroke-width="1.6"/>
+ </g>
+</svg><span>古镇</span></button>
+<button class="origin" id="origin" aria-label="收起或展开地点气泡"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M32 8 L39.2 23.2 L56 25.4 L43.2 37.2 L46.1 54.4 L31.7 45.8 L16.8 54.4 L20 37.4 L8.1 25.3 L24.8 23Z" fill="#DBC381"/>
+  <path d="M25 25 L30 14" stroke-width="1.3"/>
+ </g>
+</svg></button>
+<section id="brief" class="bubble brief" role="region" aria-label="为什么想去" data-hidden="false"><svg class="bubble-svg" aria-hidden="true"><path/></svg><div class="bubble-body"><div class="bubble-header"><span class="ink-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M15 27 C18 20 27 17 36 19 C43 20 49 25 47 32 C45 38 38 42 29 41 C21 41 18 36 23 33 C29 28 38 28 38 33 C37 36 31 36 30 35"/>
+  <path d="M16 25 C20 19 28 16 35 17 M20 44 L17 49 M25 46 L23 53" stroke-width="1.7"/>
+ </g>
+</svg></span><h2>为什么想去</h2></div><p class="bubble-brief" id="briefText">想沿着海岸慢慢走，看看落日，也记住这里的风。</p><div class="brief-foot"><button class="tiny-edit" id="editBrief"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M15 45 L14 54 L24 52 L51 25 L42 16 Z"/>
+  <path d="M39 18 L49 28 M19 43 L26 50 M12 56 L51 56" stroke-width="2.3"/>
+ </g>
+</svg> 编辑</button><span class="brief-index">01</span></div></div></section>
+<section id="media" class="bubble media" role="region" aria-label="照片与视频" data-hidden="false"><svg class="bubble-svg" aria-hidden="true"><path/></svg><div class="bubble-body"><div class="bubble-header"><span class="ink-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M13 14 L45 12 Q49 13 49 17 L49 45 L15 47 Q11 46 11 42 Z"/>
+  <path d="M19 36 L26 28 L33 33 L39 26 L46 35"/>
+  <circle cx="23" cy="22" r="3.1"/>
+  <path d="M50 23 L57 23 L57 53 L27 54" stroke-width="2.5"/>
+  <path d="M31 40 L31 49 L39 44 Z" fill="#161616" stroke="none"/>
+ </g>
+</svg></span><h2>照片与视频</h2></div><div class="media-caption">收藏这座城市的光影</div><div class="mosaic"><button class="big-media" aria-label="查看照片示意" id="previewMedia"><svg viewBox="0 0 220 138" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sky1" x2="0" y2="1"><stop stop-color="#B9C9CF"/><stop offset=".57" stop-color="#E4DED2"/><stop offset="1" stop-color="#D8C8AE"/></linearGradient><linearGradient id="sea1" x2="0" y2="1"><stop stop-color="#849C9D"/><stop offset="1" stop-color="#556C70"/></linearGradient></defs><rect width="220" height="138" fill="url(#sky1)"/><path d="M0 55 Q52 30 90 51 Q122 46 157 58 L220 46 L220 138 L0 138" fill="#879D9A" opacity=".45"/><path d="M0 82 Q54 76 108 81 T220 80 L220 138 L0 138Z" fill="url(#sea1)"/><path d="M0 106 C60 92 112 113 220 95 L220 138 L0 138" fill="#A5B4AE" opacity=".43"/><path d="M-9 130 Q52 118 114 131 T230 128" fill="none" stroke="#F0E8D9" opacity=".55" stroke-width="2"/><path d="M0 120 L54 111 L63 138 L0 138" fill="#D2D0C5" opacity=".75"/><circle cx="167" cy="30" r="13" fill="#EEE2CC" opacity=".85"/></svg></button><div class="media-thumbs"><button class="thumb" aria-label="查看视频示意" id="previewVideo"><svg viewBox="0 0 70 84" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="g2" x2="0" y2="1"><stop stop-color="#C2C7BD"/><stop offset="1" stop-color="#967F79"/></linearGradient></defs><rect width="70" height="84" fill="url(#g2)"/><path d="M0 48 L25 38 L46 48 L70 34 L70 84 L0 84" fill="#596F72"/><path d="M0 60 Q30 49 70 64 L70 84 L0 84" fill="#7F9593"/><circle cx="49" cy="25" r="9" fill="#E8D7B2"/></svg></button><button class="thumb" aria-label="查看更多影像" id="previewMore"><svg viewBox="0 0 70 84" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="70" height="84" fill="#D2D8D4"/><path d="M7 84V22L25 17V84 M30 84V7L50 14V84 M53 84V29L68 24V84" fill="#EDEBE3" stroke="#A2ADA7" stroke-width="1.8"/><path d="M7 39H26 M33 25H49 M53 47H66" stroke="#9DA8A1" stroke-width="2"/><path d="M0 70L70 65V84H0" fill="#BAC5BF"/></svg></button></div></div><div class="media-footer"><span>3 张参考影像</span><div class="more"><button class="mini-action" data-sheet="攻略">攻略</button><button class="mini-action" data-sheet="附近地点">附近</button></div></div></div></section>
+<div class="demo-bottom-hint">仅演示气泡布局与运动 · 不修改收藏数据</div>
+<nav class="dock" id="dock" aria-label="底部导航"><button class="nav-btn" data-nav="搜索"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M27 10 C36 10 43 16 45 25 C48 34 42 43 32 46 C22 49 13 44 11 34 C8 24 16 13 24 11"/>
+  <path d="M42 43 Q50 50 56 57" stroke-width="4.3"/>
+  <path d="M18 20 Q22 16 27 16" stroke-width="1.6"/>
+ </g>
+</svg><span>搜索</span></button><button class="nav-btn active" data-nav="总览"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M32 7 C44 7 54 14 57 25 C59 37 54 49 43 55 C32 61 19 57 12 47 C4 35 8 21 17 13 C22 9 27 7 32 7Z"/>
+  <path d="M10 36 C20 30 30 34 38 30 C46 26 52 28 56 31" stroke-width="1.6" opacity=".55"/>
+  <path d="M30 9 C27 20 29 34 26 46 C25 51 26 55 28 58" stroke-width="1.6" opacity=".55"/>
+ </g>
+</svg>
+<span>总览</span></button><button class="nav-btn" data-nav="收藏"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M32 8 L39.2 23.2 L56 25.4 L43.2 37.2 L46.1 54.4 L31.7 45.8 L16.8 54.4 L20 37.4 L8.1 25.3 L24.8 23Z" fill="#DBC381"/>
+  <path d="M25 25 L30 14" stroke-width="1.3"/>
+ </g>
+</svg><span>收藏</span></button><button class="nav-btn" data-nav="路线"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="14" cy="47" r="5.5"/>
+  <path d="M20 46 C30 44 20 26 33 26 C44 26 39 16 47 15" stroke-dasharray="3 6" stroke-width="3"/>
+  <path d="M45 9 L54 14 L45 20"/>
+ </g>
+</svg><span>路线</span></button></nav>
+<div class="sheet-bg" id="sheetBg"></div><div class="sheet" id="sheet" role="dialog" aria-label="示意信息" aria-modal="true"><div class="sheet-head"><div class="sheet-title" id="sheetTitle">攻略</div><button class="sheet-close" id="sheetClose" aria-label="关闭"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M17 17 C26 25 39 39 47 47 M46 17 C39 23 25 41 17 47" stroke-width="4.1"/>
+ </g>
+</svg></button></div><div id="sheetContent"></div></div><div class="toast" id="toast"></div></main>
+<script>
+(()=>{
+const app=document.getElementById('app'),map=document.getElementById('mapArea'),star=document.getElementById('origin'),b=document.getElementById('brief'),m=document.getElementById('media'),dock=document.getElementById('dock');
+let pos={x:.505,y:.475},open=true,closing=null,searching=false,toastTimeout=null;
+const clamp=(a,l,r)=>Math.max(l,Math.min(r,a));
+const rectDist=(x,y,r)=>Math.hypot(Math.max(r.x-x,0,x-r.x-r.w),Math.max(r.y-y,0,y-r.y-r.h));
+const intersect=(a,b)=>Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+function shapePath(w,h,rect,origin){
+  const r=17,half=12,x=origin.x-rect.x,y=origin.y-rect.y,cx=w/2,cy=h/2;
+  const dx=x-cx,dy=y-cy;
+  const side=Math.abs(dx/(w/2))>Math.abs(dy/(h/2))*1.20?(dx<0?'left':'right'):(dy<0?'top':'bottom');
+  const tipLength=clamp(rectDist(origin.x,origin.y,rect)-19,11,43);
+  const base=side==='top'?{x:clamp(x,r+half+7,w-r-half-7),y:0}:side==='bottom'?{x:clamp(x,r+half+7,w-r-half-7),y:h}:side==='left'?{x:0,y:clamp(y,r+half+7,h-r-half-7)}:{x:w,y:clamp(y,r+half+7,h-r-half-7)};
+  const delta=Math.hypot(x-base.x,y-base.y)||1,tx=base.x+(x-base.x)/delta*tipLength,ty=base.y+(y-base.y)/delta*tipLength;
+  const p=n=>Number(n.toFixed(1));
+  if(side==='top'){const px=base.x;return `M ${r} 0 H ${p(px-half)} Q ${p(px-half*.55)} 0 ${p(px-half*.40)} ${p(-4)} L ${p(tx)} ${p(ty)} L ${p(px+half*.40)} ${p(-4)} Q ${p(px+half*.55)} 0 ${p(px+half)} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`}
+  if(side==='bottom'){const px=base.x;return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${p(px+half)} Q ${p(px+half*.55)} ${h} ${p(px+half*.40)} ${p(h+4)} L ${p(tx)} ${p(ty)} L ${p(px-half*.40)} ${p(h+4)} Q ${p(px-half*.55)} ${h} ${p(px-half)} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`}
+  if(side==='left'){const py=base.y;return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${p(py+half)} Q 0 ${p(py+half*.5)} ${p(-4)} ${p(py+half*.36)} L ${p(tx)} ${p(ty)} L ${p(-4)} ${p(py-half*.36)} Q 0 ${p(py-half*.5)} 0 ${p(py-half)} V ${r} Q 0 0 ${r} 0 Z`}
+  const py=base.y;return `M ${r} 0 H ${w-r} Q ${w} 0 ${w} ${r} V ${p(py-half)} Q ${w} ${p(py-half*.5)} ${p(w+4)} ${p(py-half*.36)} L ${p(tx)} ${p(ty)} L ${p(w+4)} ${p(py+half*.36)} Q ${w} ${p(py+half*.5)} ${w} ${p(py+half)} V ${h-r} Q ${w} ${h} ${w-r} ${h} H ${r} Q 0 ${h} 0 ${h-r} V ${r} Q 0 0 ${r} 0 Z`;
+}
+const placements={};
+function layout(){
+ const W=app.clientWidth,H=app.clientHeight, o={x:pos.x*W,y:pos.y*H};
+ const safeTop=68, safeBottom=H-101,edge=14;const scale=clamp((W-30)/358,.86,1.08);const brief={w:Math.round(157*scale),h:Math.round(100*scale)},media={w:Math.round(254*scale),h:Math.round(216*scale)};
+ const maxX=(width)=>Math.max(edge,W-width-edge), fitX=(x,w)=>clamp(x,edge,maxX(w));
+ const opts=[];const B=(x,y)=>({x:fitX(x,brief.w),y,w:brief.w,h:brief.h});const M=(x,y)=>({x:fitX(x,media.w),y,w:media.w,h:media.h});
+ const mx=offset=>o.x-media.w/2+offset,bLeft=()=>o.x-brief.w-34,bRight=()=>o.x+34,bCentre=()=>o.x-brief.w/2;
+ // Candidate compositions preserve both bubble sizes and the place of the star.
+ for(const offset of [-18,0,18]){
+  opts.push({b:B(bLeft(),o.y-brief.h-40),m:M(mx(offset),o.y+45),type:'normal'});
+  opts.push({b:B(bRight(),o.y-brief.h-40),m:M(mx(offset),o.y+45),type:'normal'});
+  opts.push({b:B(bLeft(),o.y+43),m:M(mx(offset),o.y-media.h-45),type:'reverse'});
+  opts.push({b:B(bRight(),o.y+43),m:M(mx(offset),o.y-media.h-45),type:'reverse'});
+  opts.push({b:B(bCentre(),o.y+43),m:M(mx(offset),o.y+43+brief.h+17),type:'below'});
+  opts.push({b:B(bLeft(),o.y+43),m:M(mx(offset),o.y+43+brief.h+17),type:'below'});
+  opts.push({b:B(bCentre(),o.y-brief.h-42),m:M(mx(offset),o.y-brief.h-42-17-media.h),type:'above'});
+  opts.push({b:B(bRight(),o.y-brief.h-42),m:M(mx(offset),o.y-brief.h-42-17-media.h),type:'above'});
+  opts.push({b:B(bCentre(),o.y-media.h-42-brief.h-17),m:M(mx(offset),o.y-media.h-42),type:'above'});
+  opts.push({b:B(bCentre(),o.y+media.h+42+17),m:M(mx(offset),o.y+42),type:'below'});
+ }
+ function score(v){
+  let z=0;
+  for(const r of [v.b,v.m]){
+   if(r.y<safeTop) z+=Math.pow(safeTop-r.y,2)*10;
+   if(r.y+r.h>safeBottom)z+=Math.pow(r.y+r.h-safeBottom,2)*10;
+   const d=rectDist(o.x,o.y,r); if(d<27)z+=Math.pow(27-d,2)*90;
+   if(d>120)z+=Math.pow(d-120,2)*.9;
+   z+=d*.20;
+  }
+  z+=intersect(v.b,v.m)*180;
+  z+=(v.type==='normal'?0:v.type==='reverse'?6:27);
+  return z;
+ }
+ const choice=opts.sort((a,b)=>score(a)-score(b))[0];
+ for(const [name,el,r] of [['brief',b,choice.b],['media',m,choice.m]]){
+  placements[name]=r;
+  el.style.left=r.x+'px';el.style.top=r.y+'px';el.style.width=r.w+'px';el.style.height=r.h+'px';
+  el.style.setProperty('--shift-x',(o.x-(r.x+r.w/2)).toFixed(1)+'px');el.style.setProperty('--shift-y',(o.y-(r.y+r.h/2)).toFixed(1)+'px');
+  const svg=el.querySelector('.bubble-svg');svg.setAttribute('viewBox',`-64 -64 ${r.w+128} ${r.h+128}`);svg.querySelector('path').setAttribute('d',shapePath(r.w,r.h,r,o));
+ }
+ star.style.left=o.x+'px';star.style.top=o.y+'px';
+}
+function state(setOpen){if(closing){clearTimeout(closing);closing=null;}open=setOpen;b.dataset.hidden=m.dataset.hidden=open?'false':'true';star.setAttribute('aria-label',open?'收起两个气泡':'展开两个气泡');star.classList.toggle('is-active',open);if(open){setTimeout(()=>star.classList.remove('is-active'),400)}}
+function setLocation(x,y){const W=app.clientWidth,H=app.clientHeight;state(false);b.style.transition=m.style.transition=star.style.transition='none';pos={x:clamp(x/W,.085,.915),y:clamp(y/H,85/H,(H-140)/H)};layout();void b.offsetWidth;requestAnimationFrame(()=>{b.style.transition=m.style.transition=star.style.transition='';requestAnimationFrame(()=>state(true))})}
+star.addEventListener('click',e=>{e.stopPropagation();state(!open)});
+map.addEventListener('click',e=>{if(!searching)setLocation(e.clientX-app.getBoundingClientRect().left,e.clientY-app.getBoundingClientRect().top)});
+document.querySelectorAll('.poi').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();let [x,y]=el.dataset.position.split(',').map(Number);setLocation(x*app.clientWidth,y*app.clientHeight);toast('已切换示例地点')}));
+function toast(message){const t=document.getElementById('toast');clearTimeout(toastTimeout);t.textContent=message;t.classList.add('on');toastTimeout=setTimeout(()=>t.classList.remove('on'),1700)}
+function sheet(title){state(false);document.getElementById('sheetTitle').textContent=title;const body=document.getElementById('sheetContent');body.textContent='';const p=document.createElement('p');p.textContent=title==='攻略'?'旅行攻略、路线笔记会在这里展开。双气泡仍保持独立形态。':title==='附近地点'?'发现周边值得探索的地方。点击关闭即可回到地点气泡。':title==='照片与视频'?'这里展示的是演示图片。正式产品会读取你收藏的真实照片与视频。':title==='收藏'?'正式产品在这里进入「收藏地点 / 已保存路线」两个入口。':'路线规划功能保持不变。本页专注演示双气泡的空间关系。';body.append(p);
+ if(title==='收藏'){const a=document.createElement('div');a.className='sheet-actions';a.innerHTML='<button type="button">收藏地点</button><button type="button">已保存路线</button>';a.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>toast(btn.textContent+' · 演示占位')));body.append(a)}
+ document.getElementById('sheetBg').classList.add('open');document.getElementById('sheet').classList.add('open');}
+function closeSheet(){document.getElementById('sheetBg').classList.remove('open');document.getElementById('sheet').classList.remove('open');state(true)}
+document.getElementById('sheetClose').addEventListener('click',closeSheet);document.getElementById('sheetBg').addEventListener('click',closeSheet);
+document.querySelectorAll('[data-sheet]').forEach(el=>el.addEventListener('click',()=>sheet(el.dataset.sheet)));
+for(const id of ['previewMedia','previewVideo','previewMore'])document.getElementById(id).addEventListener('click',()=>sheet('照片与视频'));
+document.getElementById('editBrief').addEventListener('click',()=>{
+ const next=prompt('编辑想去的理由（仅更改本次演示）',document.getElementById('briefText').textContent);if(next!==null&&next.trim())document.getElementById('briefText').textContent=next.trim().slice(0,55);
+});
+function searchMode(on){searching=on;if(on){dock.dataset.search='true';dock.innerHTML=`<span class="search-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M27 10 C36 10 43 16 45 25 C48 34 42 43 32 46 C22 49 13 44 11 34 C8 24 16 13 24 11"/>
+  <path d="M42 43 Q50 50 56 57" stroke-width="4.3"/>
+  <path d="M18 20 Q22 16 27 16" stroke-width="1.6"/>
+ </g>
+</svg></span><input id="searchInput" type="search" placeholder="搜索地点" aria-label="搜索地点"/><button class="cancel-search" id="cancelSearch">取消</button>`;dock.querySelector('#cancelSearch').addEventListener('click',()=>searchMode(false));dock.querySelector('input').focus();state(false)}else{dock.dataset.search='false';dock.innerHTML=window.__navHTML;wireNav();state(true)}}
+function wireNav(){dock.querySelectorAll('[data-nav]').forEach(btn=>btn.addEventListener('click',()=>{const n=btn.dataset.nav;if(n==='搜索')return searchMode(true);if(n==='总览'){setLocation(app.clientWidth*.505,app.clientHeight*.475);toast('示意：地点已回到地图中央');return}sheet(n)}))}
+window.__navHTML=dock.innerHTML;wireNav();
+window.addEventListener('resize',()=>{layout()},{passive:true});window.visualViewport?.addEventListener('resize',layout,{passive:true});
+requestAnimationFrame(()=>{layout();state(true)});
+})();
+</script></body></html>
