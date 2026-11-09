@@ -38,6 +38,8 @@ jobs:
           cp -R stage1-29 _site/stage1-29
           # Stage1.30 isolated UX review; keep the existing production homepage unchanged.
           cp -R stage1-30 _site/stage1-30
+          # Isolated Stage1.31 fixed-map adaptive four-bubble review
+          cp -R stage1-31 _site/stage1-31
           touch _site/.nojekyll
       - name: Validate static deployment assets
         run: |
