@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>高德星标导入 · Travel Atlas</title>
+<style>
+:root{color-scheme:light;--ink:#171c21;--muted:#687076;--line:#e5e7e7;--yellow:#f6bc3a;--green:#2f7254;--danger:#bb4b4b}
+*{box-sizing:border-box}html{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,"PingFang SC",sans-serif}body{margin:0;background:#f7f8f7;color:var(--ink);padding:env(safe-area-inset-top) 18px calc(48px + env(safe-area-inset-bottom))}main{max-width:840px;margin:0 auto}header{padding:28px 0 20px;border-bottom:1px solid var(--line)}h1{font-size:30px;letter-spacing:-.04em;margin:7px 0 8px}h2{font-size:16px;margin:0 0 14px}p{line-height:1.65;color:var(--muted)}.eyebrow{font-weight:700;font-size:11px;letter-spacing:0;color:#927027}section{background:white;border:1px solid var(--line);border-radius:22px;padding:22px;margin-top:17px}.muted,.hint{font-size:12px;color:var(--muted)}label{font-size:12px;font-weight:650;display:block;margin-bottom:8px}input[type=file],input[type=password],select{width:100%;font:inherit;min-height:44px;padding:10px;border:1px solid #ccd2d2;border-radius:10px;background:#fff;color:#222}input[type=file]{max-width:100%}.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.buttonbar{display:flex;flex-wrap:wrap;gap:9px;margin-top:17px}button,.action{font:inherit;font-weight:650;font-size:12px;cursor:pointer;text-decoration:none;padding:12px 17px;border-radius:14px;border:1px solid var(--line);background:#fff;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:6px}button.primary{background:var(--yellow);border-color:#e7aa19;color:#3a2c12}button.danger{color:var(--danger)}button:disabled{opacity:.4;cursor:default}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{padding:16px;background:#f4f6f5;border-radius:14px}.stat b{font-size:25px;display:block;font-variant-numeric:tabular-nums}.stat span{color:var(--muted);font-size:12px}.progress{width:100%;height:9px;border:0;border-radius:10px;overflow:hidden;background:#edf0ef;margin:16px 0 8px}.progress::-webkit-progress-bar{background:#edf0ef}.progress::-webkit-progress-value{background:var(--yellow)}.tablewrap{overflow:auto;max-height:430px;border:1px solid var(--line);border-radius:14px;margin-top:14px}table{border-collapse:collapse;width:100%;font-size:12px;min-width:680px}thead{position:sticky;top:0;background:#f8f9f8}th,td{padding:11px 9px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}td small{color:var(--muted)}.ok{color:var(--green)}.warn{color:#9e6e18}.error{color:var(--danger)}#message{margin:14px 0 0;color:#4b5360;white-space:pre-wrap}#sourceFile{margin:3px 0 13px}.note{background:#fff9e9;border:1px solid #efd79e;border-radius:14px;padding:13px;color:#55452a;font-size:12px;line-height:1.65}footer{padding:24px 0 0;color:var(--muted);font-size:12px}a{color:#5d6d64} @media(max-width:580px){.fields{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}section{padding:16px}h1{font-size:25px}}
+</style>
+<style data-source="stage1-polish.css">
+/* Footprint Map V4.Stage1.20261109.23 — source-preserving polish layer.
+   Works only on the November 8 Stage1.22 baseline. No older layouts or icons. */
+:root{--fp-paper:#faf9f5;--fp-surface:#fffdfa;--fp-ink:#292923;--fp-muted:#78766f;--fp-line:#e5e2da;--fp-gold:#f6cc3b;--fp-ease:cubic-bezier(.2,.85,.25,1);--fp-shadow:0 12px 42px rgba(35,32,25,.14)}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
+body{color:var(--fp-ink);background:var(--fp-paper)}
+button,a,input,textarea,select{touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid #b58117!important;outline-offset:3px!important}
+button:active:not(:disabled),a:active{filter:brightness(.97)}
+#map{background:var(--fp-paper)}
+body.legacy-recovery #map,body:not(.vector-active):not(.amap-active) #map{visibility:visible!important}
+body.vector-active #map,body.amap-active #map{visibility:hidden!important}
+body.vector-active #amapSurface{display:none!important}
+body:not(.vector-active) #atlasVectorMap{pointer-events:none}
+#atlasMapLoader{pointer-events:none}
+/* Search is a single high-priority entry, no nested little grey frame. */
+.search-dock{background:rgba(255,253,249,.97)!important;border:1px solid rgba(227,222,211,.95)!important;box-shadow:0 5px 22px rgba(24,24,19,.12)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.search-dock .searchbox input{font-size:16px!important;letter-spacing:0!important;line-height:1.4}
+.search-dock .dock-go{min-width:44px!important;min-height:44px!important;display:grid;place-items:center}
+.search-results{box-shadow:var(--fp-shadow);border:1px solid var(--fp-line)}
+.search-result{min-height:52px}
+/* Keep approved three-icon dock. Elevate hit targets and tone down motion. */
+#appDock{border:1px solid #e2ded4!important;background:rgba(253,252,248,.96)!important;box-shadow:0 9px 34px #17170d22!important;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+#appDock .dock-btn{min-height:56px;min-width:74px;transition:background .18s var(--fp-ease),transform .18s var(--fp-ease)}
+#appDock .dock-btn:active{transform:scale(.96)}
+#dockRoutePop{box-shadow:var(--fp-shadow)!important;animation-duration:.18s!important}
+#dockRoutePop .dock-pop-btn{min-height:50px}
+#atlasVersionBadge{opacity:.65}
+/* The bottom sheet should read as one surface, without clipped content or crowded header. */
+.drawer{background:var(--fp-paper)!important;overscroll-behavior:contain;scrollbar-gutter:stable;box-shadow:0 -18px 55px #2020182d!important}
+.drawer .drawer-head{background:var(--fp-paper)!important}
+.drawer .drawer-head h2{font-size:clamp(19px,5vw,23px)!important;line-height:1.28!important}
+.drawer .iconclose,.memory-atlas .atlas-close,.fp-card-close{min-height:44px;min-width:44px;display:grid;place-items:center}
+.spotrow{min-height:86px;background:var(--fp-surface)!important;border:1px solid var(--fp-line)!important;border-radius:17px!important;transition:background .18s,transform .18s}
+.spotrow:active{transform:scale(.992);background:#f8f3e8!important}
+.spotrow strong{font-size:14px;line-height:1.45}
+.spotrow small{line-height:1.6}
+.backuprow{margin-top:24px}
+.backuprow button{min-height:47px}
+.footnote{line-height:1.75}
+/* Intentional editor: brief-first, advanced information collapses naturally. */
+dialog.editor{width:min(540px,calc(100% - 20px));border-radius:24px!important;background:var(--fp-paper)!important;overflow:hidden!important}
+dialog.editor::backdrop{background:rgba(18,21,24,.5);backdrop-filter:blur(4px)}
+.editor .editor-scroll{max-height:min(90dvh,900px);padding:23px 23px max(24px,env(safe-area-inset-bottom));overscroll-behavior:contain}
+.editor .edit-head{align-items:flex-start;margin-bottom:15px}
+.editor .edit-head h2{margin-top:5px;font-size:23px;line-height:1.2;letter-spacing:-.03em}
+.editor-eyebrow{color:#8a806a;font-size:9px;font-weight:750;letter-spacing:.14em}
+.editor .edit-sub{font-size:11px;line-height:1.5;margin:0 0 20px;color:#89867d;overflow-wrap:anywhere}
+.editor .field{color:#4c4942;margin:18px 0 8px;font-weight:650;font-size:13px}
+.editor .field-hint{font-size:11px;font-weight:400;color:#96918a}
+.editor .input,.editor .area{font-size:16px!important;color:#292923;border:1px solid #e0ddd5!important;background:#fffefa!important;border-radius:14px!important;padding:13px 14px!important;box-shadow:none!important;outline-offset:0}
+.editor .area{min-height:118px;height:128px;resize:vertical;line-height:1.7}
+.editor .input:focus,.editor .area:focus{border-color:#d3ae4b!important;box-shadow:0 0 0 3px #f6cc3b30!important;outline:0!important}
+.atlas-stage-selector{border:0;padding:0;margin:19px 0 17px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.atlas-stage-selector legend{font-weight:650;font-size:13px;margin-bottom:9px;color:#4c4942}
+.atlas-stage-option{display:block;min-width:0;position:relative;cursor:pointer}
+.atlas-stage-option input{position:absolute;opacity:0;width:1px;height:1px}
+.atlas-stage-option span{display:flex;flex-direction:column;gap:3px;padding:11px 13px;border:1px solid #e1dfd8;background:#fffefa;border-radius:13px;min-height:69px;transition:background .18s,border-color .18s,box-shadow .18s}
+.atlas-stage-option b{font-size:14px;font-weight:750}
+.atlas-stage-option small{font-size:11px;color:#827c70}
+.atlas-stage-option input:checked+span{border-color:#e2bd53;background:#fff6d7;box-shadow:inset 0 0 0 1px #f6cc3b50}
+.atlas-stage-option input:focus-visible+span{outline:2px solid #b58117;outline-offset:2px}
+.atlas-editor-more{margin-top:18px;background:#f6f4ed;border:1px solid #e9e5d9;border-radius:15px;overflow:hidden}
+.atlas-editor-more summary{display:flex;align-items:center;gap:8px;padding:15px 15px;cursor:pointer;list-style:none;min-height:53px}
+.atlas-editor-more summary::-webkit-details-marker{display:none}
+.atlas-editor-more summary::after{content:'⌄';font-size:20px;margin-left:auto;color:#837b68;transition:transform .18s}
+.atlas-editor-more[open] summary::after{transform:rotate(180deg)}
+.atlas-editor-more summary span{font-size:13px;font-weight:750}
+.atlas-editor-more summary small{color:#8e8a81;font-size:11px}
+.atlas-editor-detail-content{padding:0 15px 16px;border-top:1px solid #e9e5d9}
+.atlas-rank-fieldset{padding:0;border:0;margin:0}
+.atlas-rank-fieldset legend{display:block;width:100%}
+.editor .rank-choices label{min-height:44px;display:flex;align-items:center}
+.editor .add-photos{min-height:72px;background:#fffefa;border-color:#d6cba5}
+.editor .photo-remove{width:30px;height:30px;border-radius:12px}
+.editor .editor-actions{margin-top:18px;gap:9px}
+.editor .primary-btn{min-height:52px;border-radius:14px!important;background:#292923!important;color:#fffefa!important;font-size:15px;box-shadow:0 6px 20px #1b1b1520}
+.editor .danger-btn{min-height:52px;background:#fff1ec!important;color:#ab4432!important}
+.editor-save-hint{text-align:center;font-size:11px;color:#8d8981;line-height:1.6;margin:10px 0 0}
+/* Make discard confirmation feel native to the product rather than a browser alert. */
+.atlas-discard-dialog{padding:0;border:1px solid #e9e5d8;border-radius:21px;max-width:min(340px,calc(100% - 38px));box-shadow:0 18px 60px #16160d4b;background:#fffefa;color:#302e28}
+.atlas-discard-dialog::backdrop{background:#1118;backdrop-filter:blur(3px)}
+.atlas-discard-inner{padding:25px 23px 23px;text-align:center}
+.discard-symbol{color:#dfb942;font-size:26px}
+.atlas-discard-inner h2{font-size:20px;margin:8px 0}
+.atlas-discard-inner p{font-size:13px;line-height:1.65;color:#827c70;margin:0 0 19px}
+.discard-actions{display:grid;gap:8px}
+.discard-actions button{min-height:47px;border-radius:13px;border:1px solid #e6e1d5;font-weight:700;background:#282821;color:#fff}
+#atlasDiscardChanges{background:#fff7f1;color:#a94c3b;border-color:#f3dfd6}
+.atlas-empty-places{text-align:center;padding:32px 12px 34px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.atlas-empty-places .empty-star{width:66px;height:66px;border:1px solid #e5d9b9;background:#fbf5e4;border-radius:22px;display:grid;place-items:center;color:var(--fp-gold);font-size:32px}
+.atlas-empty-places strong{font-size:17px;margin-top:3px}
+.atlas-empty-places p{color:#867e70;font-size:13px;line-height:1.6;max-width:265px;margin:0 0 6px}
+.atlas-empty-places button{width:min(270px,100%);min-height:47px;border:0;background:#282821;color:white;font-size:14px;font-weight:750;border-radius:14px}
+.atlas-empty-places button.quiet{background:#f4f1e7;color:#5d5546;border:1px solid #e3dfd2}
+/* Respect keyboard, reduced motion and safe areas on iPhone. */
+@media(max-width:550px){
+ .search-dock{top:calc(8px + env(safe-area-inset-top));width:calc(100% - 26px)!important;max-width:none!important}
+ .search-dock .searchbox input{font-size:16px!important}
+ .drawer{max-height:calc(92dvh - env(safe-area-inset-top));width:100%;padding-left:17px;padding-right:17px}
+ .drawer .drawer-head{margin-left:-17px;margin-right:-17px;padding-left:17px;padding-right:17px}
+ .editor .editor-scroll{padding:21px 17px calc(20px + env(safe-area-inset-bottom))}
+ .editor .edit-head h2{font-size:21px}
+ #appDock .dock-btn{min-width:0;min-height:58px}
+ .atlas-stage-option span{padding:11px 9px}
+ .atlas-editor-more summary{flex-wrap:wrap}
+ .map-controls button{min-height:44px;min-width:44px}
+}
+@media(max-height:650px){.editor .editor-scroll{max-height:85dvh}.atlas-stage-option span{min-height:59px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Travel Atlas is a supporting workspace: use the same paper, ink and gold, without changing its route layout. */
+body.journey-page{--paper:#faf9f5;--card:#fffdfa;--ink:#292923;--muted:#817b70;--line:#e5e2da;--gold:#f6cc3b;--forest:#5b5548;background:#faf9f5}
+.journey-page .topbar{border-bottom:1px solid #e5e2da;background:rgba(255,253,249,.96);box-shadow:0 4px 22px #1d1b170a}
+.journey-page .brand{font-size:18px;letter-spacing:-.035em}
+.journey-page .brand-mark{color:#cc9f28}
+.journey-page .builder{background:#faf9f5;border-color:#e7e4da}
+.journey-page .builder h1{font-size:clamp(25px,3.4vw,32px);letter-spacing:-.045em}
+.journey-page .intro{font-size:13px;line-height:1.7}
+.journey-page .block{border-color:#e7e4da}
+.journey-page .block h2,.journey-page .section-head h2{font-size:13px}
+.journey-page .block input:not([type=file]),.journey-page .block select{min-height:46px;font-size:16px;border-radius:13px;background:#fffefa;border-color:#e0ded5}
+.journey-page .place,.journey-page .choice{border-radius:15px;border-color:#e5e1d6;background:#fffdfa;min-height:52px}
+.journey-page .place:hover{border-color:#cfb46d}
+.journey-page .choice-controls button{min-height:34px;min-width:34px}
+.journey-page button.full,.journey-page .topaction{min-height:46px;border-radius:14px}
+.journey-page .accent{background:#f6cc3b;color:#302913;border-color:#e9bf4e;box-shadow:0 5px 16px #e9bf4e2e}
+.journey-page .dark{background:#292923;color:#fffdfa}
+.journey-page .atlas-view{background:radial-gradient(ellipse at 85% 15%,#f2eddd 0%,transparent 48%),#faf9f5}
+.journey-page .journey{background:#fffdfa99;border-color:#e5e1d8}
+.journey-page .stop-card{background:#fffdfa;box-shadow:0 9px 32px #20201514;border-color:#e5e1d8}
+.journey-page .journey-more{display:block;padding:0;margin-top:9px}
+.journey-page .journey-more>summary{list-style:none;display:flex;align-items:center;gap:9px;min-height:53px;padding:12px 0;font-size:13px;font-weight:750;cursor:pointer;color:#464239}
+.journey-page .journey-more>summary::-webkit-details-marker{display:none}
+.journey-page .journey-more>summary span{font-size:11px;font-weight:400;color:#979081}
+.journey-page .journey-more>summary::after{content:'⌄';margin-left:auto;font-size:19px;color:#9b906d}
+.journey-page .journey-more[open]>summary::after{transform:rotate(180deg)}
+.journey-page .journey-more-content{display:grid;gap:8px;padding:7px 0 23px}
+.journey-page .journey-more-content .accent{margin-top:0}
+.journey-page .route-empty h3{font-size:20px}
+.journey-page .route-empty p{line-height:1.7}
+body.route-page{--fp-paper:#faf9f5;--fp-ink:#292923}
+.route-page #stopsDock,.route-page #rvDetail,.route-page #addStopDialog{background:#faf9f5}
+.route-page #rvDetail .brief{background:#fffdfa;border-color:#e4e1d8}
+.route-page .rv-callout{border-color:#e5e1d7;box-shadow:0 6px 22px #201e162a}
+.route-page .stop-bubble{box-shadow:0 12px 37px #201e1633}
+.route-page .view-all:active,.route-page .atlas-back:active{transform:scale(.97)}
+.route-page dialog input,.route-page dialog select{font-size:16px}
+@media(max-width:720px){
+ .journey-page .topbar{padding:9px 12px;gap:6px}
+ .journey-page .brand small{display:none}
+ .journey-page .topaction{padding:8px 11px;min-height:44px}
+ .journey-page .builder{padding:23px 17px 24px}
+ .journey-page .atlas-view{padding:22px 12px 26px}
+ .journey-page .form-row{gap:8px}
+ .journey-page .form-row input{min-width:0}
+ .journey-page .tools{padding-bottom:14px}
+}
+
+#atlasConfirmDelete{background:#fff0e8;color:#a84231;border-color:#edd3c5}
+#atlasConfirmDelete:disabled{opacity:.5;cursor:wait}
+
+/* Stage1.24: only useful controls remain on the map; the map mode button had no action. */
+#btnLayers,#layerMenu{display:none!important}
+#helptext{display:none!important} /* first-star guidance is already handled by #atlasFirstStar */
+#drawer #atlasVersionBadge{position:static!important;display:inline-flex;align-items:center;margin:12px 0 20px;padding:8px 10px;border:1px solid #e6e0d3;background:#f4f0e6;border-radius:10px;opacity:1;transform:none!important;font-size:11px;box-shadow:none}
+#atlasUnstarDialog #atlasConfirmUnstar{color:#945225;background:#fff4e7;border-color:#ecdec8}
+#atlasUnstarDialog #atlasConfirmUnstar:disabled{opacity:.5;cursor:wait}
+#searchResults{overscroll-behavior:contain;max-height:min(48dvh,430px);overflow-y:auto}
+.search-results .search-state{font-size:13px;line-height:1.6;padding:15px 16px}
+#searchResults .search-result{display:flex;flex-direction:column;justify-content:center;gap:3px;width:100%;text-align:left;padding:11px 14px;min-height:60px}
+#searchResults .search-result:focus-visible{outline:2px solid #b78e38;outline-offset:-2px;background:#fff7df}
+#destinationStar{min-height:46px}
+#editor .editor-actions{position:sticky;bottom:-1px;padding:8px 0 calc(9px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#faf9f5d9,#faf9f5 32%);z-index:2}
+#editor .editor-save-hint{margin:0 0 5px}
+.photo-viewer{touch-action:pan-y}
+.photo-viewer .viewer-photo{touch-action:pan-y;max-height:calc(100dvh - 180px)}
+@media(max-width:550px){
+ #destinationCard .destination-actions{gap:8px}
+ #atlasFirstStar{max-width:calc(100vw - 24px)}
+ .editor .editor-scroll{max-height:calc(100dvh - 18px)}
+ #viewer .viewer-arrow{width:44px;height:44px}
+}
+
+/* Place detail clearly communicates intent without introducing another navigation level. */
+.fp-place-stage{display:inline-flex;align-items:center;min-height:30px;padding:5px 10px;border-radius:999px;border:1px solid #e6d7a9;background:#fff7dc;color:#795e28;font-size:11px;font-weight:650;white-space:nowrap;margin-top:4px}
+.fp-place-stage:before{content:'★';color:#e5b52d;margin-right:5px;font-size:12px}
+.fp-place-stage:active{transform:scale(.97)}
+
+</style>
+<style data-source="stage1-finish.css">
+/* Footprint Map V4 · Stage1.25 / visual & motion detail pass.
+   Additive layer on Stage1.24. Preserves V3 art, map, quadrant SVG geometry and data. */
+:root{
+  --fp25-type:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --fp25-ink:#282721;--fp25-secondary:#68665d;--fp25-tertiary:#868279;
+  --fp25-paper:#faf9f5;--fp25-surface:#fffefa;--fp25-divider:#e7e3d9;
+  --fp25-gold:#eac45b;--fp25-press:#f5f1e6;
+  --fp25-fast:150ms;--fp25-standard:270ms;--fp25-sheet:360ms;
+  --fp25-ease:cubic-bezier(.22,1,.36,1);
+  --fp25-shadow:0 14px 44px rgba(40,35,24,.14);
+}
+html,body,button,input,select,textarea{font-family:var(--fp25-type)}
+body{color:var(--fp25-ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,a{-webkit-tap-highlight-color:transparent}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.48}
+:where(button,a,input,textarea,select):focus-visible{outline:2px solid #a77d27!important;outline-offset:3px!important}
+/* 3 navigation actions, one V3 hand-drawn language, no additional controls. */
+#appDock{gap:7px!important;padding:7px!important;border-radius:23px!important;background:rgba(255,254,250,.965)!important;border:1px solid rgba(222,217,205,.92)!important;box-shadow:0 10px 34px #27241b23!important}
+#appDock .dock-btn{width:71px!important;height:65px!important;min-width:71px!important;min-height:65px!important;border-radius:16px!important;gap:5px!important;background:transparent!important;box-shadow:none!important;padding:9px 8px 8px!important;transition:background var(--fp25-fast) ease,transform var(--fp25-fast) var(--fp25-ease),box-shadow var(--fp25-fast) ease!important}
+#appDock .dock-btn img{height:25px!important;width:25px!important;object-fit:contain}
+#appDock .dock-btn span{font-size:12px!important;line-height:1.2!important;font-weight:600!important;letter-spacing:0!important;color:#514d44!important}
+#appDock .dock-btn:is(.active,[aria-pressed="true"]){background:#f8ecc7!important;box-shadow:inset 0 0 0 1px #e9d49d!important}
+#appDock .dock-btn:is(.active,[aria-pressed="true"]) span{color:#3b321f!important}
+#appDock .dock-btn:active{transform:scale(.965)!important;background:var(--fp25-press)!important}
+#dockRoutePop{gap:8px;padding:8px;border-radius:21px!important;background:rgba(255,254,250,.975)!important;box-shadow:var(--fp25-shadow)!important;animation:dockPop25 220ms var(--fp25-ease) both!important;transform-origin:70% 100%}
+#dockRoutePop .dock-pop-btn{min-width:96px;width:96px;height:72px;gap:6px;border-radius:15px;background:#fbf8ef;box-shadow:inset 0 0 0 1px #eae5d8}
+#dockRoutePop .dock-pop-btn img{height:24px;width:24px}
+#dockRoutePop .dock-pop-btn span{font-size:12px;line-height:1.2;font-weight:600;letter-spacing:0}
+#dockRoutePop .dock-pop-btn:active{transform:scale(.965);background:#f6eccb}
+@keyframes dockPop25{from{opacity:0;transform:translateY(9px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* Search is a single quiet surface with an explicit search affordance. */
+#searchDock{background:rgba(255,254,250,.975)!important;border:1px solid var(--fp25-divider)!important;border-radius:19px!important;box-shadow:0 7px 27px #28241c1a!important}
+#searchDock .searchbox{min-height:53px!important;border:0!important;box-shadow:none!important;border-radius:19px!important;padding-inline:14px 6px!important;background:transparent!important}
+#searchDock #searchInput{font-family:var(--fp25-type)!important;font-size:16px!important;line-height:1.45!important;letter-spacing:0!important;color:var(--fp25-ink)!important}
+#searchInput::placeholder{color:#918d83!important;opacity:1}
+#searchDock .dock-go{border-radius:13px!important;min-height:44px!important;min-width:44px!important;background:#f4f1e8;color:var(--fp25-ink)}
+#searchDock .dock-go:active{background:#efe4c5}
+#searchResults{border:0!important;border-top:1px solid var(--fp25-divider)!important;box-shadow:none!important;border-radius:0 0 18px 18px!important;overscroll-behavior:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#searchResults::-webkit-scrollbar{display:none}
+#searchResults .search-result{padding:12px 15px!important;min-height:60px!important;gap:4px!important;font-size:14px!important;line-height:1.45!important;border-bottom:1px solid #eeeae1}
+#searchResults .search-result:active{background:#f9f1dc}
+/* Same control proportions around the map. Position and map strategy untouched. */
+.map-controls{gap:9px!important}
+.map-controls .circlebtn{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;border-radius:16px!important;background:rgba(255,254,250,.97)!important;box-shadow:0 5px 18px #24221c17!important;border-color:#e7e3da!important;transition:transform var(--fp25-fast) var(--fp25-ease),background var(--fp25-fast) ease}
+.map-controls .circlebtn:active{transform:scale(.95);background:#f6eedb!important}
+/* Sheets: shorter read lines, sticky heading, no unexpected extra scrollbar gutter. */
+.drawer{border-radius:25px 25px 0 0!important;background:var(--fp25-paper)!important;scrollbar-gutter:auto!important;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;transition:transform var(--fp25-sheet) var(--fp25-ease)!important;box-shadow:0 -14px 54px #27241d2b!important}
+.drawer::-webkit-scrollbar{display:none}
+.drawer .drawer-head{background:var(--fp25-paper)!important;padding-top:10px!important;padding-bottom:13px!important;min-height:75px}
+.drawer .drawer-head .sheet-grab{height:9px;margin:0 0 9px!important;touch-action:pan-x}
+.drawer .drawer-head .sheet-grab::before{width:37px!important;height:5px!important;background:#d1cdc3!important}
+.drawer .drawer-head h2{font-family:var(--fp25-type)!important;font-size:21px!important;font-weight:650!important;letter-spacing:-.025em!important;color:var(--fp25-ink)!important}
+.drawer .drawer-cn{font-size:21px!important;color:var(--fp25-ink)!important;font-weight:650!important}
+#drawer .iconclose,#closeEditor,.fp-card-close{border-radius:14px!important;background:transparent!important;color:#69665e!important;min-width:44px;min-height:44px}
+#drawer .iconclose:active,#closeEditor:active,.fp-card-close:active{background:#ece9e0!important}
+#drawer .savebox-main{min-height:51px!important;border-radius:15px!important;background:#fffefa!important;border:1px solid var(--fp25-divider)!important;font-size:14px!important}
+#drawer .savebox-main span{font-weight:650!important;color:var(--fp25-ink)!important}
+#drawer .savebox-menu{border-radius:16px!important;box-shadow:var(--fp25-shadow)}
+#drawer .savebox-menu button{min-height:48px;font-size:14px!important}
+#spotList .spotrow{min-height:91px!important;padding:11px 12px!important;margin:10px 0!important;gap:13px!important;border-radius:18px!important;background:#fffefa!important;box-shadow:0 2px 12px #26221708;transition:background var(--fp25-fast) ease,transform var(--fp25-fast) var(--fp25-ease)}
+#spotList .spotrow:active{transform:scale(.99);background:#fcf5e6!important}
+#spotList .spotrow strong{font-size:15px!important;font-weight:650!important;letter-spacing:-.01em!important;line-height:1.35!important}
+#spotList .spotrow small{font-size:12px!important;line-height:1.5!important;color:#817b70!important}
+#spotList .spotrow>img,#spotList .spotrow .spotempty{width:65px;height:65px;border-radius:13px!important}
+#spotList .spotrow .arrow img{opacity:.6;width:19px;height:19px}
+#drawer .backuprow{gap:10px!important}
+#drawer .backuprow button{font-size:12px!important;line-height:1.35;padding:13px 10px;min-height:50px;border-radius:14px!important;font-weight:600}
+#drawer .footnote{font-size:12px!important;line-height:1.7!important;color:#817d73!important}
+#cover{transition:opacity var(--fp25-standard) ease!important}
+/* Editor: stable hierarchy, larger readable supporting type, no horizontal jolts. */
+dialog.editor{border-radius:25px!important;box-shadow:0 24px 76px #15140f4d!important;background:var(--fp25-paper)!important}
+.editor .editor-scroll{overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.editor .editor-scroll::-webkit-scrollbar{display:none}
+.editor .edit-head{margin-bottom:12px!important;gap:8px}
+.editor .edit-head::before{display:none!important} /* extra cursive ornament competes with action */
+.editor .edit-head h2{font-family:var(--fp25-type)!important;font-weight:690!important;font-size:23px!important;line-height:1.22!important;letter-spacing:-.035em!important;margin:5px 0 0!important}
+.editor .editor-eyebrow{font-size:10px!important;font-weight:650!important;letter-spacing:.11em!important;color:#938b77!important}
+.editor .edit-sub{font-size:12px!important;line-height:1.55!important;color:#777268!important;margin:0 0 18px!important}
+.editor .field,.editor .atlas-stage-selector legend{font-size:13px!important;letter-spacing:0!important;line-height:1.4;font-weight:660!important;color:#4c4840!important}
+.editor .input,.editor .area{font-family:var(--fp25-type)!important;font-size:16px!important;font-weight:400!important;line-height:1.5!important;border:1px solid #e2ded4!important;border-radius:14px!important;background:var(--fp25-surface)!important;padding:13px 14px!important}
+.editor .area{min-height:114px!important;resize:vertical;line-height:1.7!important}
+.editor .input:focus,.editor .area:focus{border-color:#c7a44c!important;box-shadow:0 0 0 3px #eed68c45!important}
+.editor .atlas-stage-option span{min-height:66px!important;gap:4px!important;border-radius:14px!important;transition:border-color var(--fp25-fast) ease,background var(--fp25-fast) ease}
+.editor .atlas-stage-option b{font-size:14px!important;letter-spacing:0!important}
+.editor .atlas-stage-option small{font-size:12px!important;line-height:1.3!important}
+.editor .atlas-stage-option input:checked+span{border-color:#d9b757!important;background:#fff4cf!important}
+.editor .atlas-editor-more{background:#f4f1e9!important;border:1px solid #e7e3d7!important;border-radius:16px!important}
+.editor .atlas-editor-more summary{min-height:51px!important;padding:14px 15px!important;gap:9px}
+.editor .atlas-editor-more summary span{font-size:14px!important;font-weight:650!important}
+.editor .atlas-editor-more summary small{font-size:12px!important;color:#797368!important}
+#editor .editor-actions{gap:9px!important;box-shadow:none!important;background:linear-gradient(180deg,#faf9f500,#faf9f5 22%)!important;padding:15px 0 calc(10px + env(safe-area-inset-bottom))!important}
+#editor .editor-actions button{min-height:52px!important;border-radius:15px!important;font-family:var(--fp25-type)!important;font-size:15px!important;font-weight:650!important}
+#editor .editor-save-hint{font-size:11px;line-height:1.55;color:#8a857a}
+/* Memory card and 4 SVG bubble *content only*; SVG shape, arrows and hierarchy untouched. */
+.memory-atlas .memo-name{font-family:var(--fp25-type)!important;letter-spacing:-.025em!important;font-weight:640!important;font-size:21px!important;line-height:1.36!important}
+.memory-atlas .memo-text{font-family:var(--fp25-type)!important;font-size:14px!important;line-height:1.8!important;letter-spacing:0!important;color:#4b4943!important}
+.memory-atlas .memo-foot small{font-size:12px!important;line-height:1.4!important}
+.memory-atlas .memo-edit{min-height:40px;border-radius:12px!important;font-size:12px!important;font-weight:600!important}
+.memory-atlas .memory-quickbar button{font-family:var(--fp25-type)!important;font-size:12px!important;line-height:1.3!important;min-height:43px;transition:transform var(--fp25-fast) var(--fp25-ease),background var(--fp25-fast) ease}
+.memory-atlas .memory-quickbar button:active{transform:scale(.97)}
+#atlasOrbit .orbit-content{font-family:var(--fp25-type)}
+#atlasOrbit .orbit-kicker{font-size:11px;letter-spacing:.02em;color:#80796e}
+#atlasOrbit .orbit-title{font-weight:650;letter-spacing:-.02em;line-height:1.28}
+#atlasOrbit .orbit-note{font-size:clamp(11px,1.15vw,13px);line-height:1.5;color:#625f57}
+#atlasOrbit .orbit-action{font-size:11px;font-weight:650;border-radius:10px;transition:background var(--fp25-fast) ease}
+#atlasOrbit .orbit-action:active{background:#f1e8cf}
+#atlasOrbit.is-open .orbit-bubble{animation-duration:.47s!important}
+#atlasOrbit.is-open .orbit-content{animation-duration:.32s!important}
+/* Fullscreen photo navigation stays above home indicator, with true 44px targets. */
+#viewer .viewer-top{top:calc(12px + env(safe-area-inset-top));left:18px;right:16px}
+#viewer .viewer-close,#viewer .viewer-arrow{min-width:44px;min-height:44px;display:grid;place-items:center}
+#viewer .viewer-bottom{font-size:13px;line-height:1.5;padding-inline:20px;text-align:center;color:#dcdad4}
+#viewer .viewer-photo{max-height:calc(100dvh - 178px);object-fit:contain}
+/* Secondary screens inherit the same typographic scale and responsive rhythm. */
+body.journey-page,body.route-page{font-family:var(--fp25-type)!important;color:var(--fp25-ink)}
+.journey-page .builder h1{letter-spacing:-.04em!important;line-height:1.15!important}
+.journey-page .intro,.journey-page .place small,.journey-page .choice small{font-size:13px!important;line-height:1.55!important}
+.journey-page .block h2,.journey-page .section-head h2{font-size:14px!important;font-weight:650!important}
+.journey-page .place,.journey-page .choice{min-height:53px;border-radius:15px;transition:background var(--fp25-fast) ease}
+.journey-page button:active{filter:brightness(.975)}
+.route-page .stop-bubble h2{letter-spacing:-.025em;font-weight:650}
+.route-page .bubble-brief{font-size:13px;line-height:1.7}
+.route-page .bubble-ops a{font-size:12px;min-height:40px;display:grid;place-items:center}
+.route-page .atlas-stops,.route-page .stop-bubble{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+@media(max-width:550px){
+ #searchDock{width:calc(100% - 28px)!important;max-width:none!important;top:calc(10px + env(safe-area-inset-top))!important}
+ #appDock{bottom:calc(10px + env(safe-area-inset-bottom));gap:4px!important;padding:6px!important}
+ #appDock .dock-btn{width:73px!important;min-width:73px!important;height:64px!important;min-height:64px!important}
+ #dockRoutePop{bottom:calc(88px + env(safe-area-inset-bottom));right:calc(50% - 104px)}
+ .drawer{max-height:calc(89dvh - env(safe-area-inset-top))!important;padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+ .editor .editor-scroll{max-height:calc(var(--atlas-visual-height,100dvh) - 18px)!important;padding:20px 18px calc(16px + env(safe-area-inset-bottom))!important}
+ #editor .editor-actions{bottom:0}
+ .memory-atlas .memory-quickbar button{font-size:11px!important}
+}
+@media(max-width:355px){
+ #appDock .dock-btn{width:68px!important;min-width:68px!important}
+ #dockRoutePop .dock-pop-btn{width:90px;min-width:90px}
+ .editor .atlas-stage-option small{font-size:11px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .drawer,#dockRoutePop,#appDock .dock-btn,.spotrow,.circlebtn{transition-duration:.01ms!important;animation-duration:.01ms!important}
+ #atlasOrbit.is-open .orbit-bubble,#atlasOrbit.is-open .orbit-content{animation-duration:.01ms!important}
+}
+/* Collage sheet, search sheet and archive share the same visual density. */
+#fpPlaceCard{border-radius:24px!important;background:var(--fp25-paper)!important;box-shadow:var(--fp25-shadow)!important;animation:fp25CardIn .3s var(--fp25-ease) both!important}
+@keyframes fp25CardIn{from{opacity:.65;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+#fpPlaceCard .fp-card-name{font:650 21px/1.35 var(--fp25-type)!important;letter-spacing:-.025em!important}
+#fpPlaceCard .fp-card-kicker,#fpPlaceCard .fp-subheading label,#fpPlaceCard .fp-subheading strong{font-size:11px!important;font-weight:650!important;letter-spacing:.055em!important;color:#88774f!important}
+#fpPlaceCard .fp-card-scroll{scrollbar-width:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#fpPlaceCard .fp-card-scroll::-webkit-scrollbar{display:none}
+#fpPlaceCard .fp-brief-text{font-size:14px!important;line-height:1.8!important;color:#4d4a43!important}
+#fpPlaceCard .fp-block{border-radius:17px!important;padding:14px 15px!important;box-shadow:none!important;border-color:#e8e4da!important}
+#fpPlaceCard .fp-card-chip{min-height:45px!important;font-size:12px!important;font-weight:650!important;border-radius:13px!important}
+#fpPlaceCard .fp-edit-toggle{min-height:42px!important;font-size:12px!important;padding:9px 13px!important}
+#fpPlaceCard .fp-unstar-btn{width:44px!important;height:44px!important;min-width:44px!important;border-radius:14px!important}
+#fpSearchSheet{background:var(--fp25-paper)!important;border-color:#e6e2d8!important;border-radius:25px 25px 0 0!important;transition:transform .35s var(--fp25-ease),opacity .18s ease!important}
+#fpSearchSheet .fp-search-head h2{font-size:21px!important;font-weight:670!important;letter-spacing:-.03em!important}
+#fpSearchSheet .fp-search-label{font-size:11px!important;letter-spacing:.05em!important;font-weight:650!important}
+#fpSearchSheet .fp-quick{min-height:83px!important;border-radius:16px!important;font-size:12px!important;font-weight:600!important}
+#fpSearchSheet .fp-search-row{min-height:69px!important}
+#fpSearchSheet .fp-row-main strong{font-size:15px!important;font-weight:650!important}
+#fpSearchSheet .fp-row-main small{font-size:12px!important}
+#fpSearchSheet .fp-search-body{scrollbar-width:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#fpSearchSheet .fp-search-body::-webkit-scrollbar{display:none}
+
+.drawer.fp25-dragging,.drawer.fp25-dragging.visible{transition:none!important;will-change:transform}
+
+/* At the narrowest iPhone widths the optional row stays one line. */
+.editor .atlas-editor-more summary{display:grid!important;grid-template-columns:max-content minmax(0,1fr) 20px;align-items:center;flex-wrap:nowrap!important;column-gap:8px}
+.editor .atlas-editor-more summary small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.editor .atlas-editor-more summary::after{grid-column:3;margin:0!important;justify-self:center}
+@media(max-height:740px){.editor .editor-save-hint{margin-top:2px;font-size:10px}}
+#drawer #sheetCount{color:#898174!important;font-size:12px!important;font-weight:500!important;margin-left:7px}
+
+</style>
+<style data-source="stage1-detail.css">
+/* Footprint Map V4 · Stage1.26 | tactile detail, orbit geometry and reading rhythm.
+   Intentional additive layer: no changes to V3 hand-drawn assets, storage schema,
+   map renderer, independent SVG path generator, or route engine. */
+:root{
+  --fp26-ease:cubic-bezier(.22,.79,.26,1);
+  --fp26-touch:150ms;
+  --fp26-panel:330ms;
+}
+/* Make every card and the upright star share the EXACT same geometric center.
+   Stage1.25 kept two left-side cards relative to 50vw while the star and right
+   side were positioned at --orbit-cx. This restores uniform arrow clearance. */
+#atlasOrbit .orbit-bubble.tl{
+  left:calc(var(--orbit-cx) - var(--orbit-gap)/2 - var(--orbit-w)*var(--scale-tl))!important;
+  top:calc(var(--orbit-cy) - var(--orbit-gap)/2 - var(--orbit-h)*var(--scale-tl))!important;
+}
+#atlasOrbit .orbit-bubble.tr{
+  left:calc(var(--orbit-cx) + var(--orbit-gap)/2)!important;
+  top:calc(var(--orbit-cy) - var(--orbit-gap)/2 - var(--orbit-h)*var(--scale-tr))!important;
+}
+#atlasOrbit .orbit-bubble.bl{
+  left:calc(var(--orbit-cx) - var(--orbit-gap)/2 - var(--orbit-w)*var(--scale-bl))!important;
+  top:calc(var(--orbit-cy) + var(--orbit-gap)/2)!important;
+}
+#atlasOrbit .orbit-bubble.br{
+  left:calc(var(--orbit-cx) + var(--orbit-gap)/2)!important;
+  top:calc(var(--orbit-cy) + var(--orbit-gap)/2)!important;
+}
+/* Four independent vectors retain the approved hierarchy and common tail module. */
+#atlasOrbit .orbit-svg{filter:drop-shadow(0 10px 18px rgba(30,28,22,.14))}
+#atlasOrbit .orbit-kicker{display:flex;align-items:center;gap:5px;font-size:11px!important;letter-spacing:0!important;line-height:1.25!important;font-weight:650!important;color:#827b6f!important}
+#atlasOrbit .orbit-kicker-icon{width:14px;height:14px;opacity:.76}
+#atlasOrbit .orbit-title{font-weight:680!important;line-height:1.3!important;letter-spacing:-.025em!important;color:#282721}
+#atlasOrbit .orbit-note{font-size:12px;line-height:1.52!important;color:#625d53}
+#atlasOrbit .orbit-small{font-size:11px;line-height:1.48;color:#777166}
+#atlasOrbit .orbit-media-hero{background:#eeece5;border-radius:13px;min-height:48px}
+#atlasOrbit .orbit-media-placeholder{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;font-size:12px;font-weight:550;line-height:1.5;letter-spacing:0;color:#999180}
+#atlasOrbit .orbit-media-count{font-size:10px;border-radius:7px;background:rgba(39,38,31,.79);padding:5px 7px}
+#atlasOrbit .orbit-action{display:inline-flex;align-items:center;justify-content:center;min-height:36px!important;padding:7px 10px!important;font-size:11px!important;line-height:1.25!important;letter-spacing:0!important;background:#f6f2e8;border:1px solid #e5dfd1;color:#3e3930;border-radius:11px;transition:background var(--fp26-touch) ease,transform var(--fp26-touch) var(--fp26-ease)}
+#atlasOrbit .orbit-action:active{transform:scale(.965);background:#f0e8d6}
+#atlasOrbit .orbit-link{font-size:11px;line-height:1.35;min-height:35px;gap:5px}
+#atlasOrbit .orbit-near-list{scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#atlasOrbit .orbit-near-list::-webkit-scrollbar{display:none}
+#atlasOrbit .orbit-near-item{min-height:37px;align-items:center;gap:5px;padding-block:6px}
+#atlasOrbit .orbit-near-name{font-size:11px;line-height:1.4}
+#atlasOrbit .orbit-near-dist{font-size:10px}
+#atlasOrbit.is-open .orbit-bubble{animation:orbit26Enter .51s var(--fp26-ease) both!important}
+#atlasOrbit.is-open .orbit-content{animation:orbit26Content .33s .15s ease-out both!important}
+#atlasOrbit.is-open .orbit-center{animation:orbit26Star .36s var(--fp26-ease) both!important}
+#atlasOrbit.is-closing .orbit-bubble{animation-duration:.24s!important}
+@keyframes orbit26Enter{0%{opacity:0;transform:translate(var(--dx),var(--dy));filter:blur(1.5px)}100%{opacity:1;transform:translate(0,0);filter:none}}
+@keyframes orbit26Content{0%{opacity:0;transform:translateY(5px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes orbit26Star{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+/* Small phones: protect an 8pt outer margin while retaining photo as dominant. */
+@media(max-width:700px) and (orientation:portrait){
+  #atlasOrbit{--orbit-cx:47%;--scale-tr:1.10;--scale-bl:.93;--scale-tl:.88;--scale-br:1.04}
+  #atlasOrbit .orbit-content{padding:10px;gap:5px}
+  #atlasOrbit .orbit-bubble.tl .orbit-content{padding:9px;gap:4px}
+  #atlasOrbit .orbit-bubble.tl .orbit-title{font-size:12px!important}
+  #atlasOrbit .orbit-bubble.tl .orbit-note{font-size:11px!important;line-height:1.42!important;-webkit-line-clamp:3}
+  #atlasOrbit .orbit-bubble.tl .orbit-action{min-height:30px!important;padding:5px 7px!important;font-size:10px!important}
+  #atlasOrbit .orbit-bubble .orbit-kicker{font-size:11px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #atlasOrbit .orbit-bubble .orbit-kicker-icon{width:13px;height:13px}
+  #atlasOrbit .orbit-bubble .orbit-title{font-size:13px!important}
+  #atlasOrbit .orbit-bubble.tr .orbit-media-hero{min-height:42px}
+}
+@media(max-width:350px) and (orientation:portrait){
+  #atlasOrbit .orbit-content{padding:8px;gap:4px}
+  #atlasOrbit .orbit-kicker{font-size:10px!important}
+  #atlasOrbit .orbit-bubble.tl .orbit-title{font-size:11px!important}
+  #atlasOrbit .orbit-bubble .orbit-note{font-size:11px;line-height:1.4!important}
+  #atlasOrbit .orbit-action{padding:6px 7px!important}
+}
+/* Reader panels: consistent line rhythm, subtle separators and honest touch cues. */
+#spotList .spotrow{border:1px solid #e9e4d8!important;box-shadow:0 3px 11px rgba(36,32,22,.035)!important}
+#spotList .spotrow:focus-visible{outline:2px solid #b18a3b;outline-offset:3px}
+#spotList .spotrow small{line-height:1.55!important}
+#drawer .backuprow{margin-top:22px}
+#drawer .footnote{max-width:44ch;line-height:1.65!important}
+#editor .edit-head h2{line-height:1.2!important}
+#editor .field,#editor .atlas-stage-selector legend{letter-spacing:0!important}
+#editor #placeNote{line-height:1.65!important;resize:vertical;min-height:116px}
+#editor .editor-save-hint{max-width:46ch;margin-inline:auto}
+#editor .atlas-editor-more summary{transition:background var(--fp26-touch) ease}
+#editor .atlas-editor-more summary:active{background:#f3eee3}
+/* Suppress 300ms iOS tap ambiguity only on controls, never scroll surfaces. */
+#atlasOrbit button,#appDock button,#drawer button,#editor button,#fpPlaceCard button{touch-action:manipulation}
+/* User preference beats all nonessential entry/collapse effects. */
+@media(prefers-reduced-motion:reduce){
+ #atlasOrbit.is-open .orbit-bubble,#atlasOrbit.is-open .orbit-content,#atlasOrbit.is-open .orbit-center,
+ #atlasOrbit.is-closing .orbit-bubble{animation-duration:.01ms!important;animation-delay:0ms!important;filter:none!important}
+ #atlasOrbit .orbit-action,#editor .atlas-editor-more summary{transition-duration:.01ms!important}
+}
+/* The orbital view is a focused moment. Keep the map itself as context but
+   retire its loading badge, zoom stack and technical labels until dismissal. */
+body.atlas-orbit-active #atlasMapLoader,
+body.atlas-orbit-active .map-status,
+body.atlas-orbit-active #figureCaption,
+body.atlas-orbit-active #mapConnectionNote,
+body.atlas-orbit-active .map-controls{
+  opacity:0!important;pointer-events:none!important;
+  transition:opacity .16s ease!important;
+}
+
+@media(hover:none) and (pointer:coarse){#editor #placeNote{resize:none}}
+
+</style>
+<style data-source="stage1-32-design.css">
+/* Footprint Map Stage1.32 · Unified interaction & visual system.
+   Locked: original hand-drawn icons, existing data, 4/2/1 anchored bubbles.
+   No outlined white building blocks. No large gold active tile. */
+:root{
+ --f32-bg:#f2f4f1;--f32-paper:#fafbf9;--f32-ink:#263536;--f32-muted:#748382;
+ --f32-soft:#e9eeeb;--f32-accent:#bda77c;--f32-shadow:0 16px 40px rgba(31,46,46,.105);
+ --f32-ease:cubic-bezier(.22,1,.36,1);--f32-type:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;
+}
+html,body{font-family:var(--f32-type)!important;color:var(--f32-ink)!important;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font-family:var(--f32-type)!important;-webkit-tap-highlight-color:transparent}
+button:focus:not(:focus-visible),dialog:focus,dialog:focus:not(:focus-visible){outline:none!important}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #668a88!important;outline-offset:2px!important}
+button{touch-action:manipulation}
+[hidden],#atlasOrbit .orbit-bubble[hidden]{display:none!important}
+/* Compact dock, four independent actions. A search field replaces the dock in place. */
+#appDock{width:min(334px,calc(100vw - 30px))!important;min-height:64px!important;padding:5px!important;
+ border:0!important;border-radius:22px!important;background:rgba(249,251,249,.92)!important;
+ box-shadow:0 9px 29px rgba(25,45,45,.10)!important;backdrop-filter:blur(22px) saturate(1.1)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(1.1)!important}
+#appDock .dock-btn{min-height:54px!important;height:54px!important;gap:3px!important;padding:5px 2px!important;
+ border:0!important;border-radius:15px!important;transition:background .22s ease,transform .29s var(--f32-ease)!important}
+#appDock .dock-btn img{width:23px!important;height:23px!important}
+#appDock .dock-btn span{font-size:11px!important;font-weight:580!important;line-height:1.25!important;letter-spacing:0!important}
+#appDock .dock-btn.active,#appDock .dock-btn[aria-current="page"],#appDock .dock-btn.fp25-current,
+#appDock #dockStars.active{background:#e8eeeb!important;color:#263536!important;box-shadow:none!important}
+#appDock .dock-btn:active{transform:scale(.96)!important;background:#dfeae6!important}
+#fpSearchSheet{width:min(334px,calc(100vw - 30px))!important;bottom:calc(12px + env(safe-area-inset-bottom) + var(--fp-keyboard,0px))!important}
+#fpSearchSheet .fp-search-top{border:0!important;box-shadow:0 9px 29px rgba(25,45,45,.10)!important;background:rgba(249,251,249,.94)!important}
+#fpSearchSheet .fp-search-body{background:rgba(250,251,249,.98)!important;border:0!important;
+ box-shadow:0 12px 35px rgba(32,48,48,.1)!important;overscroll-behavior:contain}
+#fpSearchSheet .fp-search-row{border-bottom:1px solid #eef1ee!important;transition:background .18s ease}
+#fpSearchSheet .fp-search-row:active{background:#edf2ee!important}
+#dockRoutePop{border:0!important;background:rgba(250,251,249,.96)!important;box-shadow:var(--f32-shadow)!important}
+/* Map controls: paper + shadow, no redundant outline. */
+.map-controls .circlebtn{border:0!important;background:rgba(250,251,249,.95)!important;
+ box-shadow:0 5px 16px rgba(33,53,53,.12)!important;border-radius:17px!important;width:46px!important;height:46px!important}
+.map-controls .circlebtn:active{transform:scale(1.06)!important}
+/* Browsing and saved places: one content rhythm, two easy-entry cards. */
+#drawer{background:var(--f32-bg)!important;color:var(--f32-ink)!important;box-shadow:0 -14px 44px rgba(25,41,41,.13)!important;
+ border:0!important;border-radius:24px 24px 0 0!important;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+#drawer .drawer-head{background:var(--f32-bg)!important;padding:7px 4px 15px!important;min-height:68px!important}
+#drawer .drawer-head h2,#drawer .drawer-cn{font-size:20px!important;font-weight:665!important;letter-spacing:-.032em!important;color:var(--f32-ink)!important}
+#drawer #sheetCount{font-size:12px!important;font-weight:470!important;color:#84918d!important}
+#drawer .fp30-hub-grid{gap:12px!important;margin:5px 0 20px!important}
+#drawer .fp30-entry{min-height:132px!important;padding:16px 14px 14px!important;gap:8px!important;
+ border:0!important;border-radius:18px!important;background:var(--f32-paper)!important;
+ box-shadow:0 3px 13px rgba(31,50,50,.045)!important;transition:transform .28s var(--f32-ease),background .18s ease!important}
+#drawer .fp30-entry:active{transform:scale(.98)!important;background:#ebf1ed!important}
+#drawer .fp30-entry-icon{width:33px!important;height:33px!important;background:#edf1ed!important}
+#drawer .fp30-entry strong{font-size:15px!important;line-height:1.35!important;font-weight:640!important}
+#drawer .fp30-entry small{font-size:11px!important;line-height:1.4!important;color:var(--f32-muted)!important}
+#drawer #spotList .spotrow,#drawer #drawerRouteList .rs-row{border:0!important;border-radius:17px!important;
+ background:var(--f32-paper)!important;box-shadow:0 3px 15px rgba(31,50,50,.045)!important;
+ min-height:80px!important;padding:12px!important;margin:9px 0!important;transition:transform .2s var(--f32-ease),background .18s ease!important}
+#drawer #spotList .spotrow:active,#drawer #drawerRouteList .rs-row:active{transform:scale(.992)!important;background:#eef3ef!important}
+#drawer .spotrow strong{font-size:15px!important;letter-spacing:-.025em!important;font-weight:645!important;line-height:1.35!important}
+#drawer .spotrow small{font-size:12px!important;color:var(--f32-muted)!important;line-height:1.5!important}
+#drawer #spotList .spotrow>img,#drawer #spotList .spotrow .spotempty{width:60px!important;height:60px!important;border-radius:12px!important}
+#drawer #fp30Back{font-size:13px!important;color:#4d6869!important;min-height:44px!important}
+#drawer .fp30-detail-head h3{font-size:17px!important;font-weight:660!important}
+/* Editing: the place, intent and reason are first; metadata stays optional. */
+#editor.editor{background:var(--f32-paper)!important;border:0!important;border-radius:24px!important;
+ box-shadow:0 22px 68px rgba(18,37,37,.22)!important;max-width:510px!important;
+ max-height:calc(var(--atlas-visual-height,100dvh) - 22px)!important;outline:none!important}
+#editor::backdrop,dialog.atlas-discard-dialog::backdrop{background:rgba(19,34,35,.38)!important;backdrop-filter:blur(7px)!important;-webkit-backdrop-filter:blur(7px)!important}
+#editor .editor-scroll{padding:20px 20px 16px!important;scroll-padding-bottom:120px;overscroll-behavior-y:contain;scrollbar-width:none!important}
+#editor .edit-head{margin:0 0 10px!important}
+#editor .editor-eyebrow{font-size:10px!important;color:#87908b!important;letter-spacing:.06em!important}
+#editor .edit-head h2{font-size:22px!important;line-height:1.22!important;font-weight:690!important;color:var(--f32-ink)!important}
+#editor #coordText{font-size:11px!important;color:#93a09a!important;margin:0 0 13px!important;line-height:1.5!important}
+#editor .field,#editor .atlas-stage-selector legend{font-size:13px!important;color:#41514f!important;font-weight:660!important;margin:13px 0 7px!important}
+#editor .input,#editor .area{border:1px solid #e0e6e0!important;border-radius:13px!important;
+ background:#fff!important;padding:12px 14px!important;color:var(--f32-ink)!important;font-size:16px!important;
+ box-shadow:none!important;outline:none!important;transition:border-color .18s ease,box-shadow .18s ease!important}
+#editor .input:focus,#editor .area:focus{border-color:#8fa6a0!important;box-shadow:0 0 0 3px rgba(132,160,152,.16)!important}
+#editor .area{min-height:104px!important;line-height:1.65!important}
+#editor .atlas-stage-option span{border:1px solid #dfe5df!important;background:#fff!important;border-radius:14px!important;min-height:67px!important;box-shadow:none!important}
+#editor .atlas-stage-option input:checked+span{background:#e9f0eb!important;border-color:#afc0b6!important;box-shadow:none!important}
+#editor .atlas-stage-option b{font-size:14px!important;font-weight:655!important}
+#editor .atlas-stage-option small{color:#83918a!important;font-size:11px!important}
+#editor .atlas-editor-more{border:0!important;border-radius:17px!important;background:#f2f4ef!important;box-shadow:none!important}
+#editor .atlas-editor-more summary{min-height:50px!important;border:0!important;border-radius:16px!important;padding:13px 15px!important}
+#editor .atlas-editor-more summary span{font-size:14px!important;color:var(--f32-ink)!important;font-weight:640!important}
+#editor .atlas-editor-more summary small{font-size:11px!important;color:#85918a!important}
+#editor .rank-choices label{border:1px solid #dce3dc!important;border-radius:13px!important;background:transparent!important;color:#44524d!important}
+#editor .rank-choices label:has(input:checked){background:#e8eee6!important;border-color:#a9b9aa!important}
+#editor .editor-actions{padding:14px 0 6px!important;box-shadow:none!important;background:linear-gradient(to bottom,rgba(250,251,249,0),#fafbf9 25%)!important}
+#editor .editor-actions .primary-btn{min-height:52px!important;border:0!important;border-radius:15px!important;background:#293d3e!important;
+ color:#fff!important;font-size:15px!important;font-weight:670!important;box-shadow:0 8px 20px rgba(37,59,59,.12)!important}
+#editor .editor-actions .primary-btn:active{background:#405b5b!important;transform:scale(.99)}
+#editor .editor-save-hint{font-size:11px!important;color:#929c96!important;line-height:1.5!important;margin:6px 0 0!important}
+/* Confirmation dialogs: compact, quiet and consistent, no alert-like giant borders. */
+dialog.atlas-discard-dialog{border:0!important;border-radius:22px!important;background:var(--f32-paper)!important;
+ box-shadow:0 20px 65px rgba(23,39,41,.23)!important;width:min(340px,calc(100vw - 36px))!important;padding:0!important;outline:none!important}
+dialog.atlas-discard-dialog .atlas-discard-inner{padding:24px 21px 18px!important}
+dialog.atlas-discard-dialog .discard-symbol{font-size:20px!important;background:#edf2ed!important;color:#536a63!important;
+ border-radius:12px!important;width:38px!important;height:38px!important;display:grid!important;place-items:center!important;margin:0 auto 12px!important}
+dialog.atlas-discard-dialog h2{font-size:19px!important;font-weight:680!important;letter-spacing:-.025em!important;margin:0 0 8px!important;color:var(--f32-ink)!important}
+dialog.atlas-discard-dialog p{font-size:13px!important;line-height:1.6!important;color:var(--f32-muted)!important;margin:0 0 18px!important}
+dialog.atlas-discard-dialog .discard-actions{display:grid!important;gap:9px!important;margin:0!important}
+dialog.atlas-discard-dialog .discard-actions button{width:100%!important;min-height:46px!important;border-radius:13px!important;
+ border:0!important;font-size:14px!important;font-weight:640!important;box-shadow:none!important}
+dialog.atlas-discard-dialog .discard-actions button:first-child{background:#2b4040!important;color:#fff!important}
+dialog.atlas-discard-dialog .discard-actions button:last-child{background:#f4ece8!important;color:#9b564d!important}
+/* Existing route controls and cards share the same density without changing itinerary logic. */
+#atlasRoutesSheet,.route-page .stop-bubble,.journey-page .builder,.journey-page .block{
+ font-family:var(--f32-type)!important;color:var(--f32-ink)!important}
+#atlasRoutesSheet{background:var(--f32-paper)!important;border:0!important;box-shadow:var(--f32-shadow)!important}
+#atlasRoutesSheet .rs-row,.route-page .stop-bubble,.journey-page .place,.journey-page .choice{
+ border-color:rgba(184,199,188,.18)!important;border-radius:16px!important;box-shadow:0 3px 16px rgba(31,50,50,.05)!important}
+#atlasRoutesSheet .rs-new,.journey-page button,.route-page button{font-family:var(--f32-type)!important}
+#atlasRoutesSheet .rs-head strong{font-size:18px!important;font-weight:665!important}
+/* Bubbles: sizes and silhouette fixed; the DOM only chooses 4/2/1. */
+#atlasOrbit .orbit-bubble[hidden]{display:none!important}
+#atlasOrbit .orbit-bubble{isolation:isolate;overflow:visible!important;animation:none!important;filter:none!important;
+ border:0!important;will-change:transform,opacity}
+#atlasOrbit .orbit-svg{overflow:visible!important;filter:drop-shadow(0 9px 16px rgba(28,49,48,.16))!important}
+#atlasOrbit .orbit-svg path{fill:rgba(250,251,249,.94)!important;stroke:none!important;stroke-width:0!important}
+#atlasOrbit .orbit-content{animation:none!important;transition:none!important}
+#atlasOrbit .orbit-center svg path{fill:#c3aa77!important;stroke:#2f4243!important;stroke-width:2.25!important}
+#atlasOrbit .orbit-bubble.combo .orbit-content{padding:calc(12px * var(--orbit-unit,1))!important;
+ display:flex!important;gap:calc(8px * var(--orbit-unit,1))!important;flex-direction:column!important;min-width:0!important}
+#atlasOrbit .orbit-combo-title{font-size:calc(14px * var(--orbit-unit,1));font-weight:700;line-height:1.28;color:var(--f32-ink);
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#atlasOrbit .orbit-combo-section{display:flex;flex-direction:column;gap:4px;min-height:0}
+#atlasOrbit .orbit-combo-section .orbit-kicker{font-size:calc(12px * var(--orbit-unit,1))!important}
+#atlasOrbit .orbit-combo-brief{font-size:calc(11px * var(--orbit-unit,1));line-height:1.55;margin:0;color:#667774;
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+#atlasOrbit .orbit-combo-media{flex:1;min-height:0}
+#atlasOrbit .orbit-combo-preview{border:0!important;border-radius:calc(12px * var(--orbit-unit,1));background:#e8eeea!important;
+ color:#667875;box-shadow:none!important;flex:1;min-height:40px;max-height:107px;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:7px;font-size:11px}
+#atlasOrbit .orbit-combo-preview img:not(.orbit-ref-action-icon){object-fit:cover;width:100%;height:100%}
+#atlasOrbit .orbit-combo-preview .orbit-ref-action-icon{width:20px;height:20px}
+#atlasOrbit .orbit-combo-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-height:33px}
+#atlasOrbit .orbit-combo-shortcuts button{border:0!important;border-radius:11px!important;padding:5px 7px!important;
+ background:#e9efeb!important;color:#445855!important;display:flex!important;justify-content:center!important;gap:5px!important;
+ font-size:11px!important;font-weight:610!important;min-height:33px!important;margin:0!important}
+#atlasOrbit .orbit-combo-shortcuts button .orbit-ref-action-icon{height:15px;width:15px}
+#atlasOrbit .orbit-combo-shortcuts button:active{background:#dce8e1!important}
+@media(max-width:355px){#atlasOrbit .orbit-combo-shortcuts button{font-size:10px!important;gap:3px!important}}
+/* Date sheet: precise control without iOS native dark calendar alert. */
+#fp32Calendar:not([open]){display:none!important}
+#fp32Calendar{position:fixed;inset:0;z-index:4000;display:grid;place-items:center;padding:20px;
+ width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border:0;outline:0;box-shadow:none;
+ background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
+#fp32Calendar .fp32-cal-panel{width:min(345px,calc(100vw - 32px));padding:18px 16px 15px;
+ border-radius:22px;background:#fafbf9;box-shadow:0 21px 64px rgba(15,33,34,.22);color:var(--f32-ink)}
+#fp32Calendar .fp32-cal-header{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:14px}
+#fp32Calendar .fp32-cal-header strong{font-size:17px;font-weight:690}
+#fp32Calendar button{border:0;border-radius:12px;background:transparent;color:var(--f32-ink);min-height:40px;min-width:40px}
+#fp32Calendar button:active{background:#e5ece8}
+#fp32Calendar .fp32-cal-week,#fp32Calendar .fp32-cal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+#fp32Calendar .fp32-cal-week{margin-bottom:6px;color:#85938e;font-size:11px;text-align:center}
+#fp32Calendar .fp32-cal-days button{aspect-ratio:1;width:100%;min-height:0;min-width:0;font-size:13px;font-weight:550}
+#fp32Calendar .fp32-cal-days button[aria-selected=true]{background:#324f4c;color:#fff}
+#fp32Calendar .fp32-cal-days button.is-today:not([aria-selected=true]){background:#e7eee9;color:#294f4b}
+#fp32Calendar .fp32-cal-days span{min-height:35px}
+#fp32Calendar .fp32-cal-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:14px}
+#fp32Calendar .fp32-cal-actions button{background:#eef2ef;font-size:13px;min-height:44px}
+#fp32Calendar .fp32-cal-actions button:last-child{background:#304b4b;color:white}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}
+ #atlasOrbit .orbit-bubble,#atlasOrbit .orbit-content,#appDock,#drawer{animation:none!important;transition:none!important}}
+
+#fp32Calendar::backdrop{background:rgba(23,38,39,.38);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+#atlasOrbit .orbit-combo-nearby{position:absolute;inset:12px;z-index:4;display:flex;flex-direction:column;justify-content:center;
+ gap:5px;padding:13px;border-radius:14px;background:rgba(250,251,249,.98);box-shadow:0 3px 18px rgba(35,55,53,.10);
+ color:#637670;font-size:12px;overflow-y:auto}
+#atlasOrbit .orbit-combo-nearby button{min-height:40px;border:0;background:#eaf0eb;border-radius:9px;text-align:left;
+ padding:8px 10px;font-size:12px;color:#2d4a46;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+#atlasOrbit .orbit-combo-nearby .orbit-combo-nearby-close{background:transparent!important;color:#385853!important;
+ font-weight:660!important;min-height:30px;text-align:left;padding:2px 5px;margin-bottom:3px}
+#atlasOrbit .orbit-combo-nearby p{color:#61766f;font-size:11px;line-height:1.5;margin:5px 0}
+
+</style>
+</head><body><main>
+<header><div class="eyebrow">TRAVEL ATLAS · IMPORT</div><h1>把高德 🌟 带到旅行地图</h1><p>保留地点名称与地址，确认坐标后安全添加到地图。不会上传你的原始收藏文件，也不会覆盖已保存的 Brief、照片或视频。</p><a href="./index.html">← 返回 Travel Atlas 地图</a></header>
+<section><h2>01 · 选择收藏文件</h2><label for="sourceFile">选择高德收藏准备包中的 JSON 文件</label><input type="file" accept=".json,application/json" id="sourceFile"/><p class="hint">支持“高德339地点_待定位_完整原始数据.json”和已包含经纬度的 Travel Atlas 数据 JSON。原文件只在本机浏览器中读取，不会上传到本站服务器。</p><div class="stats"><div class="stat"><b id="total">0</b><span>待处理地点</span></div><div class="stat"><b id="found">0</b><span>已有坐标</span></div><div class="stat"><b id="review">0</b><span>需要核对</span></div><div class="stat"><b id="selected">0</b><span>准备导入</span></div></div></section>
+<section><h2>02 · 定位地点</h2><div class="fields"><div><label for="provider">坐标来源</label><select id="provider"><option value="amap">高德 Web 服务（推荐）</option><option value="photon">OpenStreetMap / Photon 试查（每次最多 20 个）</option></select></div><div><label for="key">高德 Web 服务 API Key（仅在本页使用）</label><input type="password" autocomplete="off" id="key" placeholder="不会保存或上传到本站"/></div></div><p class="hint">高德官方地理编码需你自己的 Web 服务 Key。免费试查使用 Photon 公开演示服务，地名覆盖不完整，禁止视为已确认坐标；为遵守其使用限制，每次最多查 20 条、间隔不低于 1.5 秒。<a href="https://developer.amap.com/api/webservice/guide/api/georegeo" target="_blank" rel="noopener noreferrer">高德官方说明</a></p><div class="buttonbar"><button id="lookup" class="primary" disabled>开始定位</button><button id="stop" disabled>暂停</button><button id="exportReview" disabled>下载定位审核 JSON</button></div><progress class="progress" id="progress" max="100" value="0"></progress><div id="message" role="status">请选择文件。</div></section>
+<section><h2>03 · 核对并导入</h2><div class="note">只有你勾选、且拥有有效经纬度的地点才会导入。对于精度不足或位置不确定的候选，默认不勾选。导入通过同一域名的 IndexedDB 保存，保持你已有的照片、视频与 Brief 完整不变。建议先在地图内导出一次 ZIP 备份。</div><div class="buttonbar"><button id="selectAccurate" disabled>勾选较可信结果</button><button id="clearChecked" disabled>取消全部勾选</button><button id="commit" class="primary" disabled>导入勾选的黄色星标</button></div><div class="tablewrap"><table><thead><tr><th>导入</th><th>地点</th><th>地址</th><th>匹配精度</th><th>经纬度（WGS84）</th></tr></thead><tbody id="rows"><tr><td colspan="5">尚未加载文件</td></tr></tbody></table></div></section><footer>Travel Atlas V4 · 高德收藏迁移工具 · 仅修改当前设备、当前域名的浏览器地图数据。<br/>如原地图是在另一个网站或设备使用，数据不会跨域自动同步。</footer>
+</main><script>
+'use strict';
+const $=id=>document.getElementById(id), rows=$('rows');
+let items=[], halted=false,processing=false;
+const msg=s=>{$('message').textContent=s};
+const sleep=n=>new Promise(ok=>setTimeout(ok,n));
+const bounded=(x,lo,hi)=>Number.isFinite(+x)&&+x>=lo&&+x<=hi;
+function inChina(lon,lat){return bounded(lon,72,138)&&bounded(lat,2,55)}
+function ofLat(x,y){let v=-100+2*x+3*y+.2*y*y+.1*x*y+.2*Math.sqrt(Math.abs(x));v+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;v+=(20*Math.sin(y*Math.PI)+40*Math.sin(y/3*Math.PI))*2/3;v+=(160*Math.sin(y/12*Math.PI)+320*Math.sin(y*Math.PI/30))*2/3;return v}
+function ofLon(x,y){let v=300+x+2*y+.1*x*x+.1*x*y+.1*Math.sqrt(Math.abs(x));v+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;v+=(20*Math.sin(x*Math.PI)+40*Math.sin(x/3*Math.PI))*2/3;v+=(150*Math.sin(x/12*Math.PI)+300*Math.sin(x/30*Math.PI))*2/3;return v}
+function wgsToGcj(lon,lat){if(!inChina(lon,lat))return [lon,lat];const a=6378245,ee=.00669342162296594323,x=lon-105,y=lat-35,rad=lat*Math.PI/180,m=1-ee*Math.sin(rad)**2;const dlat=ofLat(x,y)*180/((a*(1-ee))/(m*Math.sqrt(m))*Math.PI),dlon=ofLon(x,y)*180/(a/Math.sqrt(m)*Math.cos(rad)*Math.PI);return[lon+dlon,lat+dlat]}
+function gcjToWgs(lon,lat){let x=lon,y=lat;for(let i=0;i<5;i++){const p=wgsToGcj(x,y);x+=lon-p[0];y+=lat-p[1]}return[+x.toFixed(8),+y.toFixed(8)]}
+function normalize(data){let src;if(data.schema==='travel-atlas-amap-staging-v2'&&Array.isArray(data.items))src=data.items;else if(Array.isArray(data.items))src=data.items;else if(Array.isArray(data.places))src=data.places;else if(Array.isArray(data))src=data;else throw Error('不是支持的地点 JSON 文件');if(src.length>1000)throw Error('当前最多处理1000个地点');return src.map((p,i)=>{const name=String(p.name||p.title||'').trim().slice(0,110),address=String(p.address||'').trim().slice(0,260);const lat=p.latitude??p.lat,lng=p.longitude??p.lng;return{id:String(p.id||'amap-import-'+i).slice(0,90),name,address,province:String(p.province||'').slice(0,90),note:String(p.note||'').slice(0,2000),lat:inChina(lng,lat)?+lat:null,lng:inChina(lng,lat)?+lng:null,level:p.level|| (inChina(lng,lat)?'源文件已提供坐标':null),status:inChina(lng,lat)?(p.status||'source'):'pending',checked:inChina(lng,lat)&&(p.status?p.checked===true:true)}}).filter(x=>x.name)}
+function count(){let f=0,r=0,s=0;for(const p of items){if(p.lat!==null&&p.lng!==null)f++;if(p.status==='candidate'||p.status==='failed')r++;if(p.checked&&p.lat!==null)s++}$('total').textContent=items.length;$('found').textContent=f;$('review').textContent=r;$('selected').textContent=s;$('lookup').disabled=!items.length||processing;$('exportReview').disabled=!items.length;$('selectAccurate').disabled=!items.length;$('clearChecked').disabled=!items.length;$('commit').disabled=!s||processing;}
+function render(){rows.replaceChildren();const fragment=document.createDocumentFragment();items.forEach((p,i)=>{const tr=document.createElement('tr');const check=document.createElement('input');check.type='checkbox';check.checked=p.checked;check.disabled=p.lat===null;check.addEventListener('change',()=>{p.checked=check.checked;count()});const mark=document.createElement('td');mark.append(check);tr.append(mark);const cells=[p.name,p.address||p.province,p.status==='source'?'原始坐标':p.status==='ok'?'高德候选 · '+p.level:p.status==='candidate'?'待核对 · '+p.level:p.status==='failed'?'未定位':p.level||'待解析',p.lat===null?'—':p.lat.toFixed(6)+', '+p.lng.toFixed(6)];cells.forEach((value,k)=>{const td=document.createElement('td');td.textContent=value;td.className=(k===2?p.status==='ok'||p.status==='source'?'ok':p.status==='failed'?'error':'warn':'');if(k===3&&p.lat!==null){const link=document.createElement('a');link.href='https://www.openstreetmap.org/?mlat='+encodeURIComponent(p.lat)+'&mlon='+encodeURIComponent(p.lng)+'&zoom=16';link.target='_blank';link.rel='noopener noreferrer';link.textContent=' · 地图核对';td.append(link)}tr.append(td)});fragment.append(tr)});rows.append(fragment);count()}
+$('sourceFile').addEventListener('change',async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>8e6)throw Error('文件大于8MB，请先整理数据');const obj=JSON.parse(await file.text());items=normalize(obj);$('progress').value=0;msg('已读取 '+items.length+' 个地点。请定位缺少坐标的地点；已有坐标可直接核对导入。');render()}catch(e){items=[];render();msg('读取失败：'+e.message)}});
+// Credentials only leave the browser for the selected AMap API endpoint; they are never persisted.
+function amapJsonp(url){return new Promise((resolve,reject)=>{const name='__atlasAmap'+Date.now()+'_'+Math.floor(Math.random()*1000000);const el=document.createElement('script');let finished=false;const cleanup=()=>{if(finished)return;finished=true;clearTimeout(timeout);el.remove();try{delete window[name]}catch(e){window[name]=undefined}};const timeout=setTimeout(()=>{cleanup();reject(Error('高德请求超时，请检查 Key 与授权方式'))},14000);window[name]=data=>{cleanup();resolve(data)};el.onerror=()=>{cleanup();reject(Error('无法连接高德 Web 服务'))};el.src=url+'&callback='+name;document.head.appendChild(el)})}
+async function amap(q,key){const url='https://restapi.amap.com/v3/geocode/geo?output=JSON&key='+encodeURIComponent(key)+'&address='+encodeURIComponent(q);let data;const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),10000);try{const r=await fetch(url,{signal:ctl.signal});if(!r.ok)throw Error('HTTP '+r.status);data=await r.json()}catch(e){data=await amapJsonp(url)}finally{clearTimeout(timer)}if(String(data.status)!=='1')throw Error(data.info||'高德接口异常');return data.geocodes?.[0]||null}
+async function photon(q){const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),12000);try{const r=await fetch('https://photon.komoot.io/api/?q='+encodeURIComponent(q)+'&limit=3',{signal:ctl.signal});if(!r.ok)throw Error('Photon HTTP '+r.status);const data=await r.json();return data.features||[]}finally{clearTimeout(timer)}}
+function provinceMatch(p,s){return !p.province||!!s&&(String(s).includes(p.province.replace(/[省市]$/,''))||p.province.includes(String(s).replace(/[省市]$/,'')))}
+async function locate(p,provider,key){try{if(provider==='amap'){let g=await amap(p.address||p.name,key);if(!g||!g.location)return p.status='failed';const coord=String(g.location).split(',').map(Number);if(!inChina(coord[0],coord[1]))return p.status='failed';const [lng,lat]=gcjToWgs(coord[0],coord[1]);p.lng=lng;p.lat=lat;p.level=String(g.level||'未知');const precise=['兴趣点','门牌号','楼宇','交叉路口'].includes(p.level),goodProvince=provinceMatch(p,String(g.province||''));p.status=precise&&goodProvince?'ok':'candidate';p.checked=p.status==='ok';return}
+ const list=await photon(p.name+' '+p.province);let best=list.find(x=>inChina(x.geometry?.coordinates?.[0],x.geometry?.coordinates?.[1]));if(!best){p.status='failed';return}p.lng=+best.geometry.coordinates[0];p.lat=+best.geometry.coordinates[1];p.level='OpenStreetMap 候选 / '+String(best.properties?.name||'');p.status='candidate';p.checked=false;}catch(e){p.status='failed';p.level=String(e.message||e).slice(0,90)}}
+$('lookup').onclick=async()=>{const provider=$('provider').value,key=$('key').value.trim();if(provider==='amap'&&!key){msg('高德解析需要 Web 服务 API Key。它只用于向高德查询，并不会上传到我们的网站。');return}processing=true;halted=false;$('stop').disabled=false;count();const pending=items.filter(p=>p.lat===null);const limit=provider==='photon'?20:pending.length;let done=0;for(const p of pending.slice(0,limit)){if(halted)break;await locate(p,provider,key);done++;$('progress').value=100*(items.length-pending.length+done)/Math.max(1,items.length);msg('定位中：'+done+'/'+Math.min(limit,pending.length)+'；本轮已确认 '+items.filter(x=>x.checked).length+' 项。');await sleep(provider==='photon'?1600:420)}processing=false;$('stop').disabled=true;render();msg('本轮处理 '+done+' 项；绿色表示较可信的候选，黄色位置必须人工检查后才能勾选。'+(pending.length>limit?' 可再次点击“开始定位”继续，但公共演示服务不建议连续大量请求。':''));};
+$('stop').onclick=()=>{halted=true;$('stop').disabled=true;msg('正在停止。当前已找到的数据会保留在页面中。')};
+$('selectAccurate').onclick=()=>{items.forEach(x=>x.checked=(x.status==='ok'||x.status==='source')&&x.lat!==null);render()};
+$('clearChecked').onclick=()=>{items.forEach(x=>x.checked=false);render()};
+$('exportReview').onclick=()=>{const data={schema:'travel-atlas-amap-geocoded-v1',created:new Date().toISOString(),coordinate_system:'WGS84',items:items.map(p=>({...p}))};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='高德收藏_坐标审核结果.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2500)};
+function distance(a,b){const R=6371000,p1=a.lat*Math.PI/180,p2=b.lat*Math.PI/180,d=p2-p1,dl=(b.lng-a.lng)*Math.PI/180;return R*2*Math.asin(Math.sqrt(Math.sin(d/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2))}
+function openDb(){return new Promise((resolve,reject)=>{const r=indexedDB.open('private-travel-footprints-v1',1);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('places'))db.createObjectStore('places',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta',{keyPath:'key'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function allSaved(db){return new Promise((resolve,reject)=>{const t=db.transaction('places','readonly'),r=t.objectStore('places').getAll();r.onsuccess=()=>resolve(r.result||[]);r.onerror=()=>reject(r.error);t.onerror=()=>reject(t.error)})}
+function writeSaved(db,records){return new Promise((resolve,reject)=>{if(!records.length)return resolve();const t=db.transaction('places','readwrite');t.oncomplete=()=>resolve();t.onabort=()=>reject(t.error||Error('写入中止'));t.onerror=()=>reject(t.error||Error('写入失败'));for(const r of records)t.objectStore('places').put(r)})}
+$('commit').onclick=async()=>{const chosen=items.filter(p=>p.checked&&p.lat!==null&&p.lng!==null);if(!chosen.length)return;if(!confirm('将 '+chosen.length+' 个经你确认的星标保存到当前浏览器的 Travel Atlas？现有照片和 Brief 不会被覆盖。'))return;processing=true;count();let db;try{db=await openDb();const current=await allSaved(db),add=[];let skipped=0;for(const p of chosen){const same=current.some(old=>old.id===p.id||(String(old.title||'').trim()===p.name&&bounded(old.lat,-90,90)&&bounded(old.lng,-180,180)&&distance({lat:+old.lat,lng:+old.lng},p)<100))||add.some(old=>old.id===p.id||(old.title===p.name&&distance(old,p)<100));if(same){skipped++;continue}add.push({id:p.id,title:p.name,lat:p.lat,lng:p.lng,poiId:'',note:p.note||'',date:new Date().toISOString().slice(0,10),rank:2,stage:'plan',starred:true,photos:[],videos:[],references:[],demo:false})}await writeSaved(db,add);msg('已实际保存 '+add.length+' 个黄色星标；跳过 '+skipped+' 个重复地点。返回地图刷新即可查看。');$('commit').disabled=true;window.scrollTo({top:0,behavior:'smooth'})}catch(e){msg('导入失败：'+e.message+'。原有收藏未被主动覆盖；请先在地图导出 ZIP 备份。')}finally{db?.close();processing=false;count()}};
+</script>
+<script data-source="stage1-32-ui.js">
+/* Footprint Map 1.32 — unified, locale-first calendar.
+   No layout changes to the existing flows and no database migration. */
+(()=>{'use strict';
+if(window.__fp32CalendarInstalled)return;window.__fp32CalendarInstalled=true;
+let current=null,month=new Date(),selected='';
+const sheet=document.createElement('dialog');sheet.id='fp32Calendar';sheet.setAttribute('aria-label','选择日期');
+sheet.innerHTML=`<div class="fp32-cal-panel">
+ <div class="fp32-cal-header"><button type="button" data-prev aria-label="上一个月">‹</button><strong id="fp32CalMonth"></strong><button type="button" data-next aria-label="下一个月">›</button></div>
+ <div class="fp32-cal-week" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+ <div class="fp32-cal-days" id="fp32CalDays" role="grid" aria-label="日期"></div>
+ <div class="fp32-cal-actions"><button type="button" data-clear>清除</button><button type="button" data-today>今天</button><button type="button" data-done>完成</button></div>
+ </div>`;
+document.body.append(sheet);
+const pad=n=>String(n).padStart(2,'0');
+const iso=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
+function render(){
+ const y=month.getFullYear(),m=month.getMonth();
+ sheet.querySelector('#fp32CalMonth').textContent=`${y}年 ${m+1}月`;
+ const box=sheet.querySelector('#fp32CalDays');box.replaceChildren();
+ const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();
+ const today=new Date(),todayStr=iso(today.getFullYear(),today.getMonth(),today.getDate());
+ for(let i=0;i<first;i++)box.append(document.createElement('span'));
+ for(let d=1;d<=days;d++){
+  const day=iso(y,m,d),b=document.createElement('button');b.type='button';b.textContent=d;
+  b.dataset.date=day;b.setAttribute('aria-selected',String(selected===day));
+  b.setAttribute('aria-label',`${y}年${m+1}月${d}日`);if(day===todayStr)b.classList.add('is-today');
+  b.addEventListener('click',()=>{selected=day;render()});box.append(b);
+ }
+}
+function prepare(el){
+ if(!el||el.dataset.fp32Calendar)return;
+ // Text format remains an ISO date; existing storage and itinerary code read input.value unchanged.
+ el.type='text';el.readOnly=true;el.inputMode='none';el.autocomplete='off';
+ el.dataset.fp32Calendar='ready';el.classList.add('fp32-date');
+ el.setAttribute('aria-haspopup','dialog');el.setAttribute('aria-label',el.labels?.[0]?.textContent?.trim()||'选择日期');
+ if(!el.getAttribute('placeholder'))el.placeholder='选择日期';
+ el.addEventListener('click',e=>{e.preventDefault();open(el)});
+ el.addEventListener('keydown',e=>{if(['Enter',' ','ArrowDown'].includes(e.key)){e.preventDefault();open(el)}});
+}
+function open(el){current=el;const parsed=/^\d{4}-\d{2}-\d{2}$/.test(el.value)?el.value:'';
+ selected=parsed;const n=parsed?new Date(parsed+'T12:00:00'):new Date();month=new Date(n.getFullYear(),n.getMonth(),1);
+ render();if(!sheet.open)sheet.showModal();
+}
+function save(value){
+ if(current){current.value=value;current.dispatchEvent(new Event('input',{bubbles:true}));current.dispatchEvent(new Event('change',{bubbles:true}))}
+ if(sheet.open)sheet.close();current=null;
+}
+sheet.querySelector('[data-prev]').addEventListener('click',()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1);render()});
+sheet.querySelector('[data-next]').addEventListener('click',()=>{month=new Date(month.getFullYear(),month.getMonth()+1,1);render()});
+sheet.querySelector('[data-today]').addEventListener('click',()=>{const d=new Date();save(iso(d.getFullYear(),d.getMonth(),d.getDate()))});
+sheet.querySelector('[data-clear]').addEventListener('click',()=>save(''));
+sheet.querySelector('[data-done]').addEventListener('click',()=>save(selected));
+sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.close()});
+sheet.addEventListener('close',()=>{current=null});
+function scan(node=document){if(node.matches?.('input[type="date"]'))prepare(node);node.querySelectorAll?.('input[type="date"]').forEach(prepare)}
+scan();new MutationObserver(entries=>{for(const entry of entries)for(const n of entry.addedNodes)if(n.nodeType===1)scan(n)}).observe(document.body,{childList:true,subtree:true});
+})();
+
+</script>
+</body></html>
