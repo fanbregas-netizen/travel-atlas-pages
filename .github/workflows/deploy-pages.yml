@@ -40,6 +40,8 @@ jobs:
           cp -R stage1-30 _site/stage1-30
           # Isolated Stage1.31 fixed-map adaptive four-bubble review
           cp -R stage1-31 _site/stage1-31
+          # Stage1.32 isolated visual and interaction review; production homepage unchanged
+          cp -R stage1-32 _site/stage1-32
           # Interaction-only demo; never overwrites the approved live product
           cp -R demo-two-bubbles _site/demo-two-bubbles
           touch _site/.nojekyll
