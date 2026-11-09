@@ -32,6 +32,8 @@ jobs:
           mkdir -p _site/docs
           cp docs/TRAVEL_ARCHITECTURE_2026-11-02.md _site/docs/
           cp -R stage1-24 _site/stage1-24
+          # Isolated, screenshot-locked Stage1.28 bubble preview; production unchanged.
+          cp -R stage1-28 _site/stage1-28
           touch _site/.nojekyll
       - name: Validate static deployment assets
         run: |
