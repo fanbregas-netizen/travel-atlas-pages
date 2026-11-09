@@ -36,6 +36,8 @@ jobs:
           cp -R stage1-28 _site/stage1-28
           # Isolated Stage1.29 hand-drawn POI + adaptive orbit review
           cp -R stage1-29 _site/stage1-29
+          # Stage1.30 isolated UX review; keep the existing production homepage unchanged.
+          cp -R stage1-30 _site/stage1-30
           touch _site/.nojekyll
       - name: Validate static deployment assets
         run: |
