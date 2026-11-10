@@ -5726,6 +5726,15 @@ function adaptiveLayout(){
   // ever positioned at some unrelated 'screen center' while the bookmark moves.
   next=Core.layout(anchor.x,anchor.y,g);
   if(!Core.fits(next,g)){
+   // While an opened constellation follows a user's small map pan, keep it
+   // attached. Only dismiss if a card would truly leave the visible viewport;
+   // NEVER make the camera chase the star after opening.
+   const visible=Object.values(next).every(r=>r.x>=3&&r.y>=Math.max(40,g.safe.top-22)&&r.x+r.w<=g.W-3&&r.y+r.h<=Math.min(g.H-72,g.safe.bottom+22));
+   if(root.classList.contains('is-open')){
+    if(!visible){hide(true);return}
+    // Allow a little breathing outside the focus corridor during a gesture.
+    pendingFocus=0;
+   }else{
    root.dataset.orbitMode='focusing';
    if(pendingFocus<2&&!document.body.classList.contains('atlas-map-reframing')){
     pendingFocus++;
@@ -5734,6 +5743,7 @@ function adaptiveLayout(){
    }
    // Never expose crossed arrows or off-screen cards. Let the map settle.
    root.style.visibility='hidden';return;
+   }
   }
   mode='four';pendingFocus=0;
  }else{mode='one';next=targetRectForTiny(anchor,g)}
