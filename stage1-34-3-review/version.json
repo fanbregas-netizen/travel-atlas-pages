@@ -1,0 +1,7 @@
+{
+  "version": "V4.Stage1.20261110.34.3",
+  "base": "V4.Stage1.20261110.34.2",
+  "date": "2026-11-10",
+  "preview": true,
+  "focus": "iPhone visual and interaction polish; nonblocking map loading"
+}
