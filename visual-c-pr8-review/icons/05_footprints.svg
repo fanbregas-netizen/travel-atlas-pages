@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" aria-label="Footprints">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M17 31 C12 28 11 36 13 42 C15 49 23 52 27 47 C30 43 25 35 22 32 C20 30 19 30 17 31Z"/>
+  <path d="M39 27 C36 24 35 30 35 35 C35 43 42 48 47 44 C51 39 46 31 44 28 C43 27 41 26 39 27Z"/>
+  <path d="M13 24 Q10 21 12 18 M19 23 Q17 20 19 16 M25 25 Q25 21 28 20 M35 20 Q32 16 35 13 M42 20 Q40 15 43 13 M49 23 Q50 18 52 17" stroke-width="2.8"/>
+ </g>
+</svg>

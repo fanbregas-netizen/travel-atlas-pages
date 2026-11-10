@@ -54,6 +54,8 @@ jobs:
           cp -R stage1-34-6-review _site/stage1-34-6-review
           # Isolated Stage1.34.7 constellation acceptance, keep production and all older versions unchanged.
           cp -R stage1-34-7-review _site/stage1-34-7-review
+          # Separate Visual C PR #8 hands-on acceptance; do not replace official root.
+          cp -R visual-c-pr8-review _site/visual-c-pr8-review
           # Isolated Stage1.34.3 iPhone visual/interaction review; production unchanged.
           cp -R stage1-34-3-review _site/stage1-34-3-review
           # Isolated Stage1.34.4 focus-orbit fix; keeps production and previous reviews intact.
