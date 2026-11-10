@@ -1,0 +1,1503 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f3f1e9">
+<meta name="color-scheme" content="light">
+<meta name="description" content="Travel Atlas：在真实地图上查看 Footprint Map 收藏地点组成的旅行线路，点击每个地点查看 Brief、照片与旅行资料。">
+<title>旅行路线地图</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlRyYXZlbCBBdGxhcyI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMTIiIGZpbGw9IiNmN2Y2ZjMiLz48cGF0aCBkPSJNODAgMTQ1IDE5MiAxMTIgMzIwIDE0NiA0MzIgMTEydjI2NUwzMjAgNDEwbC0xMjgtMzQtMTEyIDMzeiIgZmlsbD0iI2VmZWVlOSIgc3Ryb2tlPSIjMjkyYzJhIiBzdHJva2Utd2lkdGg9IjEzIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTE5MiAxMTJ2MjY0TTMyMCAxNDZ2MjY0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjOWM3YmYiIHN0cm9rZS13aWR0aD0iMTEiLz48cGF0aCBkPSJtMjU2IDEzOCAzMiA2NiA3MyAxMC01MyA1MiAxMiA3My02NC0zNC02NCAzNCAxMi03My01My01MiA3My0xMHoiIGZpbGw9IiNmMmMzNTAiIHN0cm9rZT0iIzI5MmMyYSIgc3Ryb2tlLXdpZHRoPSIxMSIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style data-bundled="atlas-icons.css">
+/* ============================================================
+   Footprint Map × Travel Atlas — V3 手绘图标系统
+   来源：Footprint_Map_Icon_System_V3 完整开发素材包（用户确认）
+   规范：viewBox 64 / 主线宽 3.4 / 墨色 #161616 / 已收藏黄 #F6CC3B
+   尺寸：工具条 24 · 气泡内 32 · 强调 40 · 触控热区 ≥44
+   实现：CSS mask，url 相对本 CSS 文件，两份部署（stage1/app）通用
+   ============================================================ */
+:root{--ic-ink:#161616;--ic-saved:#c9a227}
+.ic-b::before,.ic-a::after{content:'';display:inline-block;flex:none;
+  -webkit-mask-position:center;-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;
+  mask-position:center;mask-size:contain;mask-repeat:no-repeat;background:var(--ic-ink)}
+
+/* ---------- 通用小工具 ---------- */
+.ic16::before{width:16px;height:16px}
+.ic18::before{width:18px;height:18px}
+.ic20::before{width:20px;height:20px}
+.ic24::before{width:24px;height:24px}
+
+/* ---------- 主页 · 右侧圆形按钮栏（btnStars/btnLocate 由内联 SVG 注入，见 index.html） ---------- */
+#atlasJourneyEntry{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1}
+#atlasJourneyEntry::before{content:'';width:21px;height:21px;background:#544b32;
+  -webkit-mask:url('icons/17_route.svg') center/contain no-repeat;mask:url('icons/17_route.svg') center/contain no-repeat}
+
+/* ---------- 主页 · 底部悬浮 dock（探索附近 / 收藏 / 标记地点） ---------- */
+#quickNear,#quickStars,#quickPin{font-size:0!important}
+#quickNear::before,#quickStars::before,#quickPin::before{content:'';display:block;width:24px;height:24px;margin:auto;background:var(--ic-ink);
+  -webkit-mask-position:center;-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;
+  mask-position:center;mask-size:contain;mask-repeat:no-repeat}
+#quickNear{-webkit-mask-image:none}
+#quickNear::before{-webkit-mask-image:url('icons/10_nearby.svg');mask-image:url('icons/10_nearby.svg')}
+#quickStars::before{-webkit-mask-image:url('icons/03_star.svg');mask-image:url('icons/03_star.svg')}
+#quickPin::before{-webkit-mask-image:url('icons/16_add_place.svg');mask-image:url('icons/16_add_place.svg')}
+body.picking #quickPin::before{display:none}
+
+/* ---------- 主页 · 底部导航（地图 / 足迹 / 标记地点 / 备份） ---------- */
+#navMap,#navList,#navAdd,#navBackup{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;line-height:1}
+#navMap::before,#navList::before,#navAdd::before,#navBackup::before{content:'';display:block;width:20px;height:20px;background:var(--ic-ink);
+  -webkit-mask-position:center;-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;
+  mask-position:center;mask-size:contain;mask-repeat:no-repeat}
+#navMap::before{-webkit-mask-image:url('icons/01_map.svg');mask-image:url('icons/01_map.svg')}
+#navList::before{-webkit-mask-image:url('icons/05_footprints.svg');mask-image:url('icons/05_footprints.svg')}
+#navAdd::before{-webkit-mask-image:url('icons/16_add_place.svg');mask-image:url('icons/16_add_place.svg')}
+#navBackup::before{-webkit-mask-image:url('icons/28_upload.svg');mask-image:url('icons/28_upload.svg')}
+#navAdd .symbol{font-size:12px}
+
+/* ---------- 主页 · 搜索条（dock-go 的放大镜由内联 V3 SVG 注入，见 index.html） ---------- */
+
+/* ---------- 通用 · 关闭按钮 ---------- */
+#closeDrawer,#closeMemory,.atlas-close,#amapClose,#closeViewer,#closeShareNotice,
+.rs-close,.fs-close,#routeMapClose,#routeSearchClose,#routeLibraryClose,
+#closeBubble,#routeSaveClose,#addStopClose{font-size:0!important}
+#closeDrawer::before,#closeMemory::before,.atlas-close::before,#amapClose::before,#closeViewer::before,#closeShareNotice::before,
+.rs-close::before,.fs-close::before,#routeMapClose::before,#routeSearchClose::before,#routeLibraryClose::before,
+#closeBubble::before,#routeSaveClose::before,#addStopClose::before{content:'';display:block;width:16px;height:16px;margin:auto;background:currentColor;color:inherit;
+  -webkit-mask:url('icons/19_close.svg') center/contain no-repeat;mask:url('icons/19_close.svg') center/contain no-repeat}
+#closeDrawer,#closeMemory,.atlas-close,#amapClose,#closeViewer,#closeShareNotice,
+.rs-close,.fs-close,#routeMapClose,#routeSearchClose,#routeLibraryClose{color:#3b4544}
+#closeBubble{display:grid;place-items:center;line-height:1}
+
+/* ---------- 主页 · 路线三入口 & 我的路线 ---------- */
+#routeMapAction,#routeSearchAction,#routeSavedAction,#savedTripEntry{display:inline-flex;align-items:center;gap:5px}
+#routeMapAction::before,#routeSearchAction::before,#routeSavedAction::before,#savedTripEntry::before{content:'';display:inline-block;width:15px;height:15px;background:var(--ic-ink);
+  -webkit-mask-position:center;-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;
+  mask-position:center;mask-size:contain;mask-repeat:no-repeat}
+#routeMapAction::before{-webkit-mask-image:url('icons/16_add_place.svg');mask-image:url('icons/16_add_place.svg')}
+#routeSearchAction::before{-webkit-mask-image:url('icons/02_search.svg');mask-image:url('icons/02_search.svg')}
+#routeSavedAction::before,#savedTripEntry::before{-webkit-mask-image:url('icons/17_route.svg');mask-image:url('icons/17_route.svg')}
+
+/* ---------- 主页 · 记忆卡快捷条 & 目的地卡 ---------- */
+#memoryUpload,#memoryShare,#memoryRoute,#memoryUnstar,
+#destinationStar,#destinationNav,#destinationUnstar{display:inline-flex;align-items:center;gap:5px}
+#memoryUpload::before,#memoryShare::before,#memoryRoute::before,#memoryUnstar::before,
+#destinationStar::before,#destinationNav::before,#destinationUnstar::before{content:'';display:inline-block;width:15px;height:15px;background:currentColor;
+  -webkit-mask-position:center;-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;
+  mask-position:center;mask-size:contain;mask-repeat:no-repeat}
+#memoryUpload::before{-webkit-mask-image:url('icons/13_add_media.svg');mask-image:url('icons/13_add_media.svg')}
+#memoryShare::before{-webkit-mask-image:url('icons/15_share.svg');mask-image:url('icons/15_share.svg')}
+#memoryRoute::before,#destinationNav::before{-webkit-mask-image:url('icons/40_direction.svg');mask-image:url('icons/40_direction.svg')}
+#memoryUnstar::before,#destinationStar::before,#destinationUnstar::before{-webkit-mask-image:url('icons/03_star.svg');mask-image:url('icons/03_star.svg')}
+
+/* ---------- 主页 · 收藏列表 spotrow 封面占位 ---------- */
+.spotempty.spotempty-ic{font-size:0}
+.spotempty.spotempty-ic::before{content:'';display:block;width:26px;height:26px;background:#e8b23a;
+  -webkit-mask:url('icons/03_star.svg') center/contain no-repeat;mask:url('icons/03_star.svg') center/contain no-repeat}
+.spotempty.spotempty-vid::before{content:'';display:block;width:24px;height:24px;background:#8b9089;
+  -webkit-mask:url('icons/12_video.svg') center/contain no-repeat;mask:url('icons/12_video.svg') center/contain no-repeat}
+
+/* ---------- 路线视图 ---------- */
+.atlas-back span[aria-hidden]{display:none}
+.atlas-back::before{content:'';display:inline-block;width:17px;height:17px;background:var(--ic-ink);vertical-align:-3px;margin-right:2px;
+  -webkit-mask:url('icons/35_back.svg') center/contain no-repeat;mask:url('icons/35_back.svg') center/contain no-repeat}
+#viewAll span[aria-hidden]{display:none}
+#viewAll::before{content:'';display:block;width:20px;height:20px;background:var(--ic-ink);
+  -webkit-mask:url('icons/42_fit.svg') center/contain no-repeat;mask:url('icons/42_fit.svg') center/contain no-repeat}
+.empty-icon{font-size:0!important}
+.empty-icon::before{content:'';display:block;width:40px;height:40px;background:var(--ic-saved);
+  -webkit-mask:url('icons/03_star.svg') center/contain no-repeat;mask:url('icons/03_star.svg') center/contain no-repeat}
+#addStop,#saveRoute,#amapNavigate,#backToSource{display:inline-flex;align-items:center;gap:5px}
+#addStop::before,#saveRoute::before,#amapNavigate::before,#backToSource::before{content:'';display:inline-block;width:15px;height:15px;background:currentColor;
+  -webkit-mask-position:center;-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;
+  mask-position:center;mask-size:contain;mask-repeat:no-repeat}
+#addStop::before{-webkit-mask-image:url('icons/16_add_place.svg');mask-image:url('icons/16_add_place.svg')}
+#saveRoute::before{-webkit-mask-image:url('icons/39_save_note.svg');mask-image:url('icons/39_save_note.svg')}
+#saveRoute span[aria-hidden]{display:none}
+#amapNavigate::before{-webkit-mask-image:url('icons/40_direction.svg');mask-image:url('icons/40_direction.svg')}
+#backToSource::before{-webkit-mask-image:url('icons/29_open_link.svg');mask-image:url('icons/29_open_link.svg')}
+.add-stop-foot a::before{content:'';display:inline-block;width:14px;height:14px;background:var(--ic-saved);vertical-align:-2px;margin-right:3px;
+  -webkit-mask:url('icons/active_04_star_saved.svg') center/contain no-repeat;mask:url('icons/active_04_star_saved.svg') center/contain no-repeat}
+
+/* ---------- 旅程规划页 ---------- */
+.back-link .back-arrow{display:none}
+.back-link::before{content:'';display:inline-block;width:16px;height:16px;background:var(--ic-ink);vertical-align:-3px;margin-right:3px;
+  -webkit-mask:url('icons/35_back.svg') center/contain no-repeat;mask:url('icons/35_back.svg') center/contain no-repeat}
+#copyPrompt,#aiCopy,#aiImport,.filelabel[for=importPlan]{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+#copyPrompt::before,#aiCopy::before{content:'';display:inline-block;width:15px;height:15px;background:currentColor;
+  -webkit-mask:url('icons/30_copy.svg') center/contain no-repeat;mask:url('icons/30_copy.svg') center/contain no-repeat}
+#aiImport::before,.filelabel[for=importPlan]::before{content:'';display:inline-block;width:15px;height:15px;background:currentColor;
+  -webkit-mask:url('icons/28_upload.svg') center/contain no-repeat;mask:url('icons/28_upload.svg') center/contain no-repeat}
+
+/* build.15 路线卡/合并底栏：图标已内嵌 img，停用 ::before 以免重影 */
+#routeMapAction::before,#routeSavedAction::before,#routeMapClose::before{display:none!important}
+
+</style>
+<style>
+:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;color:#232622;background:#f3f1e9;--ink:#252a28;--gold:#e9bb45;--atlas-dur-1:.2s;--atlas-dur-2:.3s;--atlas-dur-3:.45s;--atlas-ease:cubic-bezier(.3,.9,.35,1);--atlas-ease-spring:cubic-bezier(.2,.8,.2,1);--safe-top:env(safe-area-inset-top);--safe-bottom:env(safe-area-inset-bottom)}
+*{box-sizing:border-box}body{margin:0;width:100%;height:100vh;height:100dvh;overflow:hidden;font-family:inherit;-webkit-text-size-adjust:100%;touch-action:pan-x pan-y}button,a{-webkit-tap-highlight-color:transparent}button{font-family:inherit;cursor:pointer}#atlasMap{position:fixed;inset:0;z-index:0;background:#edece6}#routeLines{position:fixed;inset:0;z-index:2;pointer-events:none;width:100%;height:100%}#routeOutline{stroke:#fffef7;stroke-width:7;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.98}#routeStroke{stroke:#3b4544;stroke-width:3.1;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 0}#pinLayer{position:fixed;inset:0;z-index:3;pointer-events:none}.route-pin{position:absolute;pointer-events:auto;transform:translate(-50%,-100%);border:0;padding:0;background:transparent;width:48px;height:56px;display:grid;place-items:start center;filter:drop-shadow(0 3px 4px #1113)}.pin-body{position:relative;margin-top:1px;width:41px;height:41px;border:3px solid white;border-radius:50% 50% 50% 14%;transform:rotate(-45deg);display:grid;place-items:center;background:#f3c55e;box-shadow:0 2px 0 #b58c27;color:#312e22}.pin-body>span{transform:rotate(45deg);font-size:16px;font-weight:850;font-variant-numeric:tabular-nums}.route-pin.active .pin-body{background:#283534;color:#fff;border-color:#fff9d9;outline:2px solid #e9bc47;outline-offset:2px}.route-pin:focus-visible{outline:3px solid #c79a1c;border-radius:22px}#pinLayer .route-pin[hidden]{display:none}
+.atlas-topbar{position:fixed;top:calc(var(--safe-top) + 11px);left:14px;right:14px;z-index:10;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;pointer-events:none}.atlas-topbar>*{pointer-events:auto}.atlas-back,.view-all{display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid #e7e0d3;border-radius:999px;min-height:44px;background:#fffef9ec;box-shadow:0 4px 14px #1111;color:#353835;text-decoration:none;font-size:12px;font-weight:720;padding:0 12px;backdrop-filter:blur(12px)}.atlas-back>span:first-child{font-size:21px;margin-right:3px}.view-all>span:first-child{font-size:20px}.atlas-brand{justify-self:center;display:flex;flex-direction:column;gap:1px;min-width:0;max-width:100%;text-align:center;padding:7px 13px;background:#fffefaeb;border:1px solid #e6e2d5;border-radius:14px;box-shadow:0 4px 16px #1111;backdrop-filter:blur(12px)}.atlas-brand-top{letter-spacing:0;color:#a07819;font-size:11px;font-weight:850}.atlas-brand strong{font-size:12px;max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.view-all{white-space:nowrap}.atlas-status{position:fixed;z-index:11;top:calc(var(--safe-top) + 74px);left:50%;transform:translateX(-50%);max-width:calc(100vw - 36px);color:#585f5c;background:#fffff7ee;border:1px solid #e4e2da;box-shadow:0 5px 14px #1111;border-radius:14px;padding:8px 11px;text-align:center;font-size:11px;line-height:1.35;opacity:1;transition:opacity .2s}.atlas-status:empty,.atlas-status.is-quiet{opacity:0;pointer-events:none}.atlas-legend{position:fixed;z-index:5;left:14px;top:calc(var(--safe-top) + 122px); /* build .18 · 让开顶部状态条,不再 chip 叠 chip */background:#fffaf0d9;border:1px solid #eadfcb;border-radius:999px;padding:7px 10px;font-size:11px;color:#756952;backdrop-filter:blur(7px);max-width:calc(100vw - 28px)}.atlas-legend[hidden]{display:none}
+.atlas-stops{position:fixed;z-index:9;bottom:calc(var(--safe-bottom) + 12px);left:12px;right:12px;background:#fffefaef;border:1px solid #ede7d9;box-shadow:0 10px 35px #14140f22;border-radius:22px;padding:14px 14px 12px;backdrop-filter:blur(16px)}.dock-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 3px 10px}.dock-head div{min-width:0;display:flex;flex-direction:column;gap:3px}.dock-head small{color:#7a652f;font-size:11px;font-weight:900;letter-spacing:0}.dock-head strong{color:#29302d;font-size:14px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.dock-head>span{font-size:11px;color:#888475;text-align:right}.stop-rail{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding:0 1px 3px}.stop-chip{display:flex;align-items:center;gap:8px;border:1px solid #e6e2d9;border-radius:14px;background:#fff;padding:10px 11px;min-width:130px;max-width:238px;text-align:left;color:#313734;flex-shrink:0}.stop-chip:focus-visible{outline:3px solid #e6bf4b}.stop-chip.active{border-color:#c69a32;background:#fff7de}.stop-chip .chip-number{font-weight:850;background:#ebc55e;border-radius:14px;min-width:27px;height:29px;display:grid;place-items:center;font-size:12px}.stop-chip.active .chip-number{background:#333e39;color:#fff}.stop-chip .chip-name{font-size:11px;font-weight:720;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.dock-note{margin:8px 2px 0;font-size:11px;color:#6e6a5e;line-height:1.4}
+.stop-bubble{position:fixed;z-index:12;width:min(355px,calc(100vw - 26px));max-height:min(420px,calc(100dvh - 245px));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;background:#fffefa;border:1px solid #e4dfd2;border-radius:22px;box-shadow:0 16px 42px #1d211b37;padding:17px 18px 14px;color:#242b28;animation:popIn var(--atlas-dur-2) var(--atlas-ease) both}.stop-bubble[hidden]{display:none}.bubble-meta{font-size:11px;font-weight:820;letter-spacing:0;color:#8a6d22;padding-right:35px}.stop-bubble h2{font-size:20px;line-height:1.24;letter-spacing:-.025em;margin:8px 32px 10px 0;overflow-wrap:anywhere}.bubble-close{position:absolute;z-index:1;right:8px;top:8px;background:transparent;border:0;border-radius:0;width:40px;height:40px;font-size:26px;font-weight:300;color:#8a8577;line-height:1}.bubble-brief{font-size:12px;line-height:1.7;color:#545b56;margin:0 0 12px;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.bubble-media{display:grid;grid-template-columns:1.6fr 1fr;grid-auto-rows:74px;gap:5px;border-radius:14px;overflow:hidden;margin:10px 0 12px}.bubble-media[hidden],.bubble-sources[hidden]{display:none}.bubble-media>a,.bubble-media>button{position:relative;border:0;background:#e9e8e0;padding:0;width:100%;height:100%;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#706651;font-size:11px}.bubble-media .hero-media{grid-row:span 2}.bubble-media img{width:100%;height:100%;object-fit:cover}.bubble-media button .play-icon{position:absolute;z-index:1;background:#1d2323cc;color:white;border-radius:50%;width:30px;height:30px;display:grid;place-items:center;font-size:14px}.bubble-media .video-title{max-width:90%;font-size:11px;overflow:hidden;text-overflow:ellipsis}.bubble-sources{display:flex;gap:6px;flex-wrap:wrap;margin:11px 0}.bubble-sources a{font-size:11px;color:#7b6324;text-decoration:none;background:#f7f1df;border-radius:22px;padding:7px 9px;border:1px solid #eae0bd;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bubble-ops{display:flex;gap:7px;border-top:.5px solid #ece9e1;padding-top:10px;margin-top:10px}.bubble-ops a{flex:1;text-align:center;min-width:0;text-decoration:none;background:#f3f1e9;color:#333a36;border-radius:10px;padding:9px 5px;font-size:11px;font-weight:740}.bubble-ops a:first-child{background:#f1d36c;color:#473b1b}.bubble-pointer{position:absolute;width:14px;height:14px;background:#fffefa;border-right:1px solid #e4dfd2;border-bottom:1px solid #e4dfd2;transform:rotate(45deg);box-shadow:4px 4px 4px #1111}.stop-bubble[data-orient="below"] .bubble-pointer{transform:rotate(225deg)}
+.empty-state{position:fixed;inset:0;z-index:15;display:grid;place-items:center;background:#f5f3ecdF;padding:20px}.empty-state[hidden]{display:none}.empty-inner{max-width:340px;background:white;padding:26px 24px;border-radius:22px;text-align:center;box-shadow:0 18px 50px #10182012}.empty-icon{font-size:40px;color:#d5ae46}.empty-inner h1{font-size:20px;margin:10px 0}.empty-inner p{font-size:12px;line-height:1.6;color:#646c68}.empty-inner a{display:inline-block;text-decoration:none;border-radius:14px;background:#f0c95a;color:#382d16;padding:12px 18px;font-size:12px;font-weight:780}
+@keyframes popIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(min-width:780px){.atlas-topbar{left:22px;right:22px}.atlas-stops{left:24px;right:auto;width:min(545px,calc(100vw - 48px))}.stop-bubble{max-height:490px}.atlas-brand strong{max-width:340px}.atlas-legend{top:auto;bottom:160px;right:20px;left:auto}}
+@media(max-width:420px){.atlas-topbar{left:10px;right:10px;gap:5px}.atlas-back,.view-all{padding:0 9px;min-height:44px}.atlas-back .back-name{font-size:11px}.atlas-brand{padding:7px 8px}.atlas-brand strong{max-width:127px;font-size:12px}.atlas-stops{left:9px;right:9px}.stop-bubble{max-height:min(360px,calc(100dvh - 258px))}}
+@media(prefers-reduced-motion:reduce){.stop-bubble{animation:none}*{scroll-behavior:auto!important;transition:none!important}}
+
+
+/* Route persistence and map-first, Apple-style sliding location card. */
+.dock-actions{display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap}.dock-actions #travelDates{font-size:11px;color:#898372;white-space:nowrap}.dock-actions #saveRoute{min-height:44px;border:1px solid #d5ad4b;background:#f5d46c;color:#51401b;font-size:11px;font-weight:850;border-radius:14px;padding:7px 9px;white-space:nowrap}
+.bubble-grip{display:none}.save-route-dialog{border:1px solid #e7e1d1;background:#fffefa;padding:23px;border-radius:22px;max-width:calc(100vw - 32px);width:390px;color:#2d3330;box-shadow:0 18px 65px #1115;font-family:inherit}.save-route-dialog::backdrop{background:#10191899}.save-route-dialog h2{margin:0 0 9px;font-size:20px}.save-route-dialog p{font-size:12px;line-height:1.6;color:#83867e}.save-route-dialog label{font-size:12px;font-weight:800;display:block;margin:18px 0 7px}.save-route-dialog input{display:block;width:100%;min-height:46px;font-size:16px;padding:10px 12px;border-radius:14px;border:1px solid #d7d6cb;background:#fff}.save-route-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}.save-route-actions button{min-height:43px;border:1px solid #ddd9cf;border-radius:14px;background:#f7f6f1;font-size:12px;font-weight:800;padding:10px 16px;color:#454945}.save-route-actions #routeSaveConfirm{background:#ecc85e;border-color:#dfb341;color:#49391c}.save-route-dialog #saveRouteError{margin-bottom:0;color:#ac533d}
+.bubble-media video{height:100%;width:100%;object-fit:cover;display:block;background:#343e3e}.bubble-media .dynamic-video{position:relative;min-width:0;min-height:0;overflow:hidden;border-radius:10px}.bubble-media .dynamic-video:after{content:'视频';position:absolute;top:6px;left:6px;pointer-events:none;background:#1e2720b9;color:#fff;font-size:11px;border-radius:4px;padding:3px 5px}.bubble-media video::-webkit-media-controls-panel{background:#e8ebec4d}
+@media(max-width:640px){.stop-bubble{left:12px!important;right:12px!important;top:auto!important;bottom:calc(148px + env(safe-area-inset-bottom))!important;width:calc(100vw - 24px)!important;height:auto;max-height:min(52dvh,calc(100dvh - 235px));overflow-y:auto;overscroll-behavior:contain;border-radius:22px 22px 22px 22px;padding:32px 16px 17px;animation:popIn .23s ease both;touch-action:pan-y;transition:height .26s cubic-bezier(.16,.84,.31,1)}.stop-bubble[data-snap="half"]{height:min(49dvh,440px)}.stop-bubble[data-snap="full"]{height:min(70dvh,calc(100dvh - 230px))}.stop-bubble .bubble-pointer{display:none}.bubble-grip{display:flex;position:sticky;top:-32px;z-index:3;border:0;background:#fffefa;width:100%;height:29px;align-items:center;justify-content:center;margin:-32px 0 11px;padding:0;touch-action:none;cursor:ns-resize}.bubble-grip span{display:block;width:40px;height:5px;border-radius:22px;background:#d7d6d0}.bubble-meta{padding-right:38px}.bubble-close{top:36px}.dock-actions #travelDates{display:none}.dock-head strong{font-size:12px}.dock-actions #saveRoute,.dock-actions #addStop{font-size:11px}.atlas-stops{padding:10px 12px 9px}.dock-head{margin-bottom:7px}.stop-chip{min-width:108px;padding:8px}.dock-note{display:none}}
+.stop-day{display:inline-grid;place-items:center;min-width:23px;height:17px;padding:0 4px;border-radius:999px;background:#f6ead0;border:1px solid #e3cfa0;color:#8a6d22;font-size:11px;font-weight:800;flex-shrink:0}
+.stop-chip.active .stop-day{background:#333e39;border-color:#333e39;color:#f0e2b6}
+.dock-actions #addStop{min-height:44px;border:1px solid #d8d4c8;background:#fff;color:#3d4441;font-size:11px;font-weight:850;border-radius:14px;padding:7px 9px;white-space:nowrap}
+.save-route-dialog .form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.save-route-dialog select{display:block;width:100%;min-height:46px;font-size:14px;padding:9px 11px;border-radius:14px;border:1px solid #d7d6cb;background:#fff;font-family:inherit}
+.add-stop-list{display:grid;gap:6px;max-height:min(38vh,300px);overflow-y:auto;overscroll-behavior:contain;margin-top:10px;border:1px solid #eceadf;border-radius:14px;padding:8px;background:#fbfaf5}
+.add-stop-item{display:flex;flex-direction:column;gap:2px;text-align:left;border:1px solid transparent;border-radius:10px;background:#fff;padding:9px 11px;min-height:44px;color:#2d3330}
+.add-stop-item:hover{border-color:#e3d5ac}
+.add-stop-item.picked{border-color:#c69a32;background:#fff7de}
+.add-stop-item .add-stop-name{font-size:12px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.add-stop-item .add-stop-addr{font-size:11px;color:#8b9089;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.add-stop-empty{margin:6px;font-size:11px;color:#8b9089;text-align:center}
+.add-stop-foot{margin:14px 0 0;font-size:11px;color:#8b9089;text-align:center}
+.add-stop-foot a{color:#8a6d22}
+/* build .17 · 加点弹窗三段式:头部(✕) / 可滚列表 / 吸底操作区——确认与回退永远可达 */
+.add-stop-dialog{overflow:hidden}
+.add-stop-dialog[open]{display:flex;flex-direction:column}
+.add-stop-dialog .asd-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.add-stop-dialog .asd-head h2{margin:0}
+.add-stop-dialog .asd-close{flex:none;width:38px;height:38px;border-radius:0;border:0;background:transparent;color:#8a8577;font-size:24px;font-weight:300;line-height:1;cursor:pointer}
+.add-stop-dialog .asd-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.add-stop-dialog .asd-foot{flex:none;border-top:1px solid #eceadf;padding-top:8px;margin-top:10px;background:inherit}
+.add-stop-dialog .asd-foot .save-route-actions{margin-top:10px}
+.add-stop-dialog #addStopConfirm:disabled{opacity:.45;cursor:not-allowed}
+.add-stop-dialog #addStopError{margin-bottom:0;color:#ac533d;font-size:12px;min-height:16px}
+.seg-outline{stroke:#fffef7;stroke-width:7;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.98}
+.seg-stroke{stroke:#3b4544;stroke-width:3.1;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.seg-mark circle{fill:#fffefa;stroke:#c9a227;stroke-width:1.6}
+.seg-mark text{font-size:11px;font-weight:800;fill:#8a6d22}
+.day-start-pill{position:fixed;z-index:4;pointer-events:none;background:#1b1b1b;color:#f0d78a;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;box-shadow:0 2px 8px #0003;letter-spacing:0;transform:translateX(-50%);white-space:nowrap}
+.day-start-pill[hidden]{display:none}
+.bubble-addr{font-size:11px;color:#8b9089;margin:-4px 32px 9px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bubble-addr:empty{display:none}
+</style>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+/* Footprint Map → Travel Atlas: geographical, read-only route viewer.
+ * Renders saved private places, not AI-generated or fetched social-media bodies.
+ * The curved connecting line is a VISUAL ORDER GUIDE, not a road routing result. */
+(()=>{'use strict';
+const KEY='footprint-to-travel-atlas-selection-v1',ACTIVE='footprint-to-travel-atlas-active-v1',DB='private-travel-footprints-v1';
+const $=id=>document.getElementById(id),make=(tag,className,t)=>{const el=document.createElement(tag);if(className)el.className=className;if(t!==undefined)el.textContent=t;return el};
+const coord=v=>Number.isFinite(+v)&&v!==null&&v!==undefined&&v!=='';
+const text=(v,max=400)=>String(v??'').slice(0,max);
+const imageData=src=>typeof src==='string'&&(/^(data:image\/(png|jpeg|webp);base64,)/i.test(src)||/^https:\/\//i.test(src));
+const urls=[];let places=[],map=null,pins=[],active=-1,redrawRaf=0,routePayload=null,routeCoords=[],statusTimeout=0,stopDays=[],addCandidate=null,segEls=[],markEls=[],dayPills=[];
+const SVGNS='http://www.w3.org/2000/svg';
+function notice(t,keep=false){const box=$('atlasStatus');box.textContent=t;box.classList.remove('is-quiet');clearTimeout(statusTimeout);if(!keep)statusTimeout=setTimeout(()=>box.classList.add('is-quiet'),3200)}
+function empty(t){$('emptyMessage').textContent=t;$('emptyState').hidden=false;notice('',false)}
+function readSelection(){let handoff=null;try{handoff=sessionStorage.getItem(KEY);if(handoff){sessionStorage.removeItem(KEY);sessionStorage.setItem(ACTIVE,handoff)}else handoff=sessionStorage.getItem(ACTIVE)}catch{}if(!handoff)return null;let p;try{p=JSON.parse(handoff)}catch{return null}if(p.schema!==KEY||!Array.isArray(p.placeIds)||!p.placeIds.length||p.placeIds.length>100||!p.placeIds.every(x=>typeof x==='string'&&x.length<200))return null;if(!p.createdAt||Date.now()-p.createdAt>7*86400000||p.createdAt>Date.now()+60000)return null;return p}
+function getRecords(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB,1);req.onerror=()=>reject(req.error||Error('数据库读取失败'));req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('places'))db.createObjectStore('places',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta',{keyPath:'key'})};req.onsuccess=()=>{const db=req.result;let request;try{request=db.transaction('places','readonly').objectStore('places').getAll()}catch(e){db.close();reject(e);return}request.onsuccess=()=>{resolve(request.result||[]);db.close()};request.onerror=()=>{reject(request.error);db.close()}}})}
+async function loadPlaces(ids){let all=[];try{all=await getRecords()}catch(err){try{all=JSON.parse(localStorage.getItem('travel-places')||'[]')}catch{}if(!Array.isArray(all))all=[];if(!all.length)throw err}const lookup=new Map(all.filter(p=>p?.starred!==false&&!p?.demo&&coord(p.lat)&&coord(p.lng)&&Math.abs(+p.lat)<=85.05&&Math.abs(+p.lng)<=180).map(p=>[String(p.id),p]));const missing=ids.filter(id=>!lookup.has(id));if(missing.length)notice(`其中 ${missing.length} 个收藏点已删除或缺少坐标，已跳过`,true);return ids.map(id=>lookup.get(id)).filter(Boolean)}
+function clamp(v,a,b){return Math.min(b,Math.max(a,v))}
+function outlinePath(points){if(!points.length)return '';let d=`M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;const off=Math.min(25,len*.105)*(i%2?-1:1),midX=(a.x+b.x)/2+(-dy/len)*off,midY=(a.y+b.y)/2+(dx/len)*off;d+=` Q ${midX.toFixed(1)} ${midY.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`}return d}
+function pointPositions(){return routeCoords.map(x=>map.project([+x.lng,+x.lat]))}
+function scheduleOverlays(){if(redrawRaf)return;redrawRaf=requestAnimationFrame(()=>{redrawRaf=0;drawOverlays()})}
+function buildRouteLayers(){const g=$('routeSegs');g.replaceChildren();segEls=[];markEls=[];const mk=()=>{const o=document.createElementNS(SVGNS,'path'),s=document.createElementNS(SVGNS,'path');o.setAttribute('class','seg-outline');s.setAttribute('class','seg-stroke');g.append(o,s);return{o,s}};for(let i=0;i<places.length-1;i++){if(stopDays[i]!==stopDays[i+1]){const seg={type:'cross',a:mk(),b:mk()};const mark=document.createElementNS(SVGNS,'g');mark.setAttribute('class','seg-mark');const c=document.createElementNS(SVGNS,'circle');c.setAttribute('r','11');const t=document.createElementNS(SVGNS,'text');t.setAttribute('text-anchor','middle');t.textContent='D'+(stopDays[i+1]||1);mark.append(c,t);g.append(mark);seg.mark=mark;segEls.push(seg)}else segEls.push({type:'same',p:mk()})}for(const el of document.querySelectorAll('.day-start-pill'))el.remove();dayPills=[];const seen=new Set();for(let i=0;i<places.length;i++){const d=stopDays[i]||1;if(seen.has(d))continue;seen.add(d);const pill=make('span','day-start-pill','D'+d);pill.dataset.stop=String(i);document.body.append(pill);dayPills.push(pill)}}
+function drawOverlays(){if(!map||!places.length)return;const coords=pointPositions();const points=coords.map(p=>({x:p.x,y:p.y}));const svg=$('routeLines');svg.setAttribute('viewBox',`0 0 ${innerWidth} ${innerHeight}`);$('routeOutline').setAttribute('d','');$('routeStroke').setAttribute('d','');const lerp=(a,b,t)=>a+(b-a)*t;const quad=(p0,p1,p2,t)=>({x:lerp(lerp(p0.x,p1.x,t),lerp(p1.x,p2.x,t),t),y:lerp(lerp(p0.y,p1.y,t),lerp(p1.y,p2.y,t),t)});for(let i=0;i<segEls.length;i++){const a=points[i],b=points[i+1],dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1,off=Math.min(25,len*.105)*(i%2?-1:1),m={x:(a.x+b.x)/2+(-dy/len)*off,y:(a.y+b.y)/2+(dx/len)*off},seg=segEls[i];if(seg.type==='same'){const d=`M ${a.x.toFixed(1)} ${a.y.toFixed(1)} Q ${m.x.toFixed(1)} ${m.y.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;seg.p.o.setAttribute('d',d);seg.p.s.setAttribute('d',d)}else{const r1=quad(a,m,b,.38),r2=quad(a,m,b,.62),mid=quad(a,m,b,.5),q1a={x:lerp(a.x,m.x,.38),y:lerp(a.y,m.y,.38)},q2b={x:lerp(m.x,b.x,.62),y:lerp(m.y,b.y,.62)};const d1=`M ${a.x.toFixed(1)} ${a.y.toFixed(1)} Q ${q1a.x.toFixed(1)} ${q1a.y.toFixed(1)} ${r1.x.toFixed(1)} ${r1.y.toFixed(1)}`,d2=`M ${r2.x.toFixed(1)} ${r2.y.toFixed(1)} Q ${q2b.x.toFixed(1)} ${q2b.y.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;seg.a.o.setAttribute('d',d1);seg.a.s.setAttribute('d',d1);seg.b.o.setAttribute('d',d2);seg.b.s.setAttribute('d',d2);seg.mark.setAttribute('transform',`translate(${mid.x.toFixed(1)} ${mid.y.toFixed(1)})`);seg.mark.querySelector('text').setAttribute('y','3.6')}}for(let i=0;i<pins.length;i++){pins[i].style.left=points[i].x+'px';pins[i].style.top=points[i].y+'px';pins[i].hidden=points[i].x < -50||points[i].x>innerWidth+50||points[i].y < -50||points[i].y>innerHeight+50}for(const pill of dayPills){const i=Number(pill.dataset.stop),pt=points[i];if(!pt||pins[i].hidden){pill.hidden=true;continue}pill.hidden=false;pill.style.left=clamp(pt.x-14,30,innerWidth-30)+'px';pill.style.top=Math.max(pt.y-62,126)+'px'}if(active>=0)positionBubble(active)}
+function fit(){if(!map||!places.length)return;active=-1;$('stopBubble').hidden=true;selectVisual();const lons=places.map(p=>+p.lng),lats=places.map(p=>+p.lat);if(places.length===1||Math.max(...lons)-Math.min(...lons)<.00008&&Math.max(...lats)-Math.min(...lats)<.00008){map.easeTo({center:[lons[0],lats[0]],zoom:13.8,bearing:0,pitch:0,duration:550});return}const pad={top:125,right:Math.min(75,innerWidth*.16),bottom:Math.min(255,innerHeight*.31),left:Math.min(75,innerWidth*.16)};map.fitBounds([[Math.min(...lons),Math.min(...lats)],[Math.max(...lons),Math.max(...lats)]],{padding:pad,maxZoom:13.8,duration:650,bearing:0,pitch:0})}
+/* build .18 · 与主页一致:标签单语言化(中文优先),不再中英双行叠印 */
+function singleLanguage(){if(!map)return;for(const layer of map.getStyle()?.layers||[]){if(layer.type!=='symbol')continue;const tf=layer.layout?.['text-field'];if(!tf)continue;try{if(/name/i.test(JSON.stringify(tf)))map.setLayoutProperty(layer.id,'text-field',['coalesce',['get','name:zh'],['get','name:nonlatin'],['get','name:latin'],['get','name']])}catch{}}}
+function recolor(){if(!map)return;if(window.AtlasFigureGround?.apply?.(map))return;const style=map.getStyle();for(const layer of style?.layers||[]){try{const id=String(layer.id).toLowerCase(),sl=String(layer['source-layer']||'').toLowerCase(),key=id+' '+sl;if(layer.type==='fill'){const building=/building/.test(key),water=/water/.test(key),green=/park|grass|landcover|landuse|wood|forest/.test(key);if(building){map.setPaintProperty(layer.id,'fill-color',['interpolate',['linear'],['zoom'],14,'#313533',15.6,'#515552',16.1,'#fdfcf8',20,'#ffffff']);map.setPaintProperty(layer.id,'fill-opacity',.94)}else map.setPaintProperty(layer.id,'fill-color',water?'#e2e3df':green?'#eae9e3':'#efeee9');}else if(layer.type==='background')map.setPaintProperty(layer.id,'background-color','#f1f0ea');else if(layer.type==='line'){map.setPaintProperty(layer.id,'line-color',/road|street|highway|bridge|transport/.test(key)?'#bcbcb8':'#d6d5cf');}else if(layer.type==='symbol'){map.setPaintProperty(layer.id,'text-color','#505451');map.setPaintProperty(layer.id,'text-halo-color','#f5f4ef');map.setPaintProperty(layer.id,'text-halo-width',1.2)}else if(layer.type==='fill-extrusion')map.setLayoutProperty(layer.id,'visibility','none')}catch{}}}
+async function getMaplibre(){if(window.maplibregl)return window.maplibregl;for(const alt of ['https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js']){try{await new Promise((yes,no)=>{const el=document.createElement('script');el.src=alt;el.onload=yes;el.onerror=()=>no(Error('备用地图引擎也无法加载'));document.head.append(el)});if(window.maplibregl)return window.maplibregl}catch{}}throw Error('地图引擎加载失败，请检查网络或关闭内容拦截后刷新')}
+function setupMap(MapLibre){map=new MapLibre.Map({container:'atlasMap',style:'https://tiles.openfreemap.org/styles/bright',center:[+places[0].lng,+places[0].lat],zoom:10,minZoom:2,maxZoom:19,renderWorldCopies:false,pitch:0,bearing:0,maxPitch:0,dragRotate:false,touchPitch:false,antialias:true,attributionControl:{compact:true}});window.__atlasMap=map;try{map.touchZoomRotate?.disableRotation();map.keyboard?.disableRotation()}catch{}map.on('load',()=>{recolor();singleLanguage();window.AtlasRouteBuildings?.attach?.(map);fit();drawOverlays();notice('路线已生成：点击编号查看地点内容');});map.on('move',scheduleOverlays);map.on('zoom',scheduleOverlays);map.on('resize',scheduleOverlays);window.addEventListener('resize',()=>{map.resize?.();scheduleOverlays()});map.on('error',e=>{console.warn('Travel Atlas 地图数据提示:',e?.error?.message||e);if(!map.loaded())notice('部分地图资源未加载；可以检查网络后刷新',true)});map.getCanvas?.().addEventListener('click',()=>dismissBubble());}
+function showStopRail(){const rail=$('stopRail');rail.replaceChildren();for(let i=0;i<places.length;i++){const p=places[i],button=make('button','stop-chip');button.type='button';button.setAttribute('role','listitem');button.dataset.stop=String(i);const number=make('span','chip-number',String(i+1).padStart(2,'0'));const day=make('span','stop-day','D'+(stopDays[i]||1));const name=make('span','chip-name',text(p.title||p.name||'收藏地点',35));button.append(number,day,name);button.onclick=()=>activate(i,true);rail.append(button)}const count=places.length;$('routeSummary').textContent=count+' 处收藏 · 按选择顺序';const dateRange=[routePayload?.startDate,routePayload?.endDate].filter(Boolean).join(' — ');$('travelDates').textContent=dateRange;const title=text(routePayload?.title||'',60);if(title)$('tripName').textContent=title;$('routeLegend').hidden=false}
+function addPins(){const panel=$('pinLayer');panel.replaceChildren();pins=[];for(let i=0;i<places.length;i++){const p=places[i],b=make('button','route-pin');b.type='button';b.setAttribute('aria-label',`查看第 ${i+1} 站：${text(p.title||p.name,90)}`);b.dataset.stop=String(i);const body=make('span','pin-body');body.append(make('span','',String(i+1)));b.append(body);b.onclick=e=>{e.stopPropagation();activate(i,false)};panel.append(b);pins.push(b)}}
+function selectVisual(){for(const b of pins)b.classList.toggle('active',Number(b.dataset.stop)===active);for(const b of $('stopRail').children)b.classList.toggle('active',Number(b.dataset.stop)===active)}
+function sourceLinks(p){const all=[...(Array.isArray(p.savedLinks)?p.savedLinks:[]),...(Array.isArray(p.references)?p.references:[]),...(Array.isArray(p.guides)?p.guides:[])];if(p.url)all.push(p.url);if(p.link)all.push(p.link);const links=[],seen=new Set();for(const item of all){const raw=typeof item==='string'?item:item?.url||item?.link||item?.href||'';try{const url=new URL(raw);if(!['https:','http:'].includes(url.protocol)||seen.has(url.href))continue;seen.add(url.href);links.push({href:url.href,label:text(typeof item==='object'?item.title||url.hostname:url.hostname,42)});if(links.length>=5)break}catch{}}return links}
+window.__rvSourceLinks=sourceLinks; /* build .20 · 详情卡(第二段脚本)也要用 */
+function mediaUrl(item){if(typeof item==='string')return imageData(item)?item:null;const src=item?.src||item?.dataUrl||'';if(imageData(src))return src;const blob=item?.blob;if(blob instanceof Blob){const url=URL.createObjectURL(blob);urls.push(url);return url}return null}
+function videoUrl(item){const src=typeof item==='string'?item:item?.src||item?.dataUrl||'';if(typeof src==='string'&&(/^data:video\/(mp4|webm|quicktime);base64,/i.test(src)||/^https:\/\//.test(src)))return src;if(item?.blob instanceof Blob){const url=URL.createObjectURL(item.blob);urls.push(url);return url}return null}
+function fillMedia(p){const box=$('bubbleMedia');for(const v of box.querySelectorAll('video'))v.pause();box.replaceChildren();const media=[];for(const item of p.photos||[]){const src=mediaUrl(item);if(src)media.push({type:'image',src})}for(const item of p.videos||[]){const src=videoUrl(item);if(src)media.push({type:'video',src,label:text(item?.name||'旅行视频',35)})}box.hidden=!media.length;if(!media.length)return;for(const [index,item] of media.slice(0,5).entries()){if(item.type==='image'){const el=make('button',index===0?'hero-media':'');el.type='button';el.setAttribute('aria-label','查看第 '+(index+1)+' 张图片');const image=make('img');image.alt='收藏的旅行照片';image.loading='lazy';image.src=item.src;el.append(image);el.onclick=()=>{window.open(item.src,'_blank','noopener,noreferrer')};box.append(el)}else{const el=make('div','dynamic-video'+(index===0?' hero-media':''));const video=make('video');video.src=item.src;video.muted=true;video.defaultMuted=true;video.autoplay=true;video.loop=true;video.playsInline=true;video.preload='metadata';video.controls=true;video.setAttribute('playsinline','');video.setAttribute('aria-label',item.label);el.append(video);box.append(el);video.play().catch(()=>{})}}}
+function wgsToGcj(lon,lat){if(lon<72.004||lon>137.8347||lat<0.8293||lat>55.8271)return[lon,lat];const x=lon-105,y=lat-35,rad=lat*Math.PI/180,ee=.006693421622965943,a=6378245,magic=1-ee*Math.sin(rad)**2;const dlat=-100+2*x+3*y+.2*y*y+.1*x*y+.2*Math.sqrt(Math.abs(x))+(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3+(20*Math.sin(y*Math.PI)+40*Math.sin(y/3*Math.PI))*2/3+(160*Math.sin(y/12*Math.PI)+320*Math.sin(y*Math.PI/30))*2/3;const dlng=300+x+2*y+.1*x*x+.1*x*y+.1*Math.sqrt(Math.abs(x))+(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3+(20*Math.sin(x*Math.PI)+40*Math.sin(x/3*Math.PI))*2/3+(150*Math.sin(x/12*Math.PI)+300*Math.sin(x/30*Math.PI))*2/3;return[lon+dlng*180/(a/Math.sqrt(magic)*Math.cos(rad)*Math.PI),lat+dlat*180/((a*(1-ee))/(magic*Math.sqrt(magic))*Math.PI)]}
+function navigateUrl(p){const [lon,lat]=wgsToGcj(+p.lng,+p.lat);return 'https://uri.amap.com/navigation?'+new URLSearchParams({to:lon.toFixed(6)+','+lat.toFixed(6)+','+text(p.title||p.name,60),mode:'car',src:'travel_atlas',callnative:'1'}).toString()}
+function fillBubble(i){const p=places[i];$('bubbleStep').textContent='第 '+(i+1)+' / '+places.length+' 站 · 第 '+(stopDays[i]||1)+' 天';$('bubbleTitle').textContent=text(p.title||p.name,120);const note=text(p.note||p.brief||p.description||'',800).replace(/^原高德地址[：:][^\n]*\n?/,'').trim();$('bubbleBrief').textContent=note||'还没写想去原因。可返回旅行地图，为这个地点补充为什么想去的记录。';$('bubbleAddr').textContent=text(p.address||'',120).replace(/^原高德地址[：:]\s*/,'');urls.splice(0).forEach(x=>URL.revokeObjectURL(x));$('amapNavigate').href=navigateUrl(p);$('backToSource').href='./?openPlace='+encodeURIComponent(p.id)}
+function positionBubble(i){if(active!==i||!map||$('stopBubble').hidden)return;if(matchMedia('(max-width:640px)').matches){const b=$('stopBubble');b.style.left='';b.style.top='';return;}const p=map.project([+places[i].lng,+places[i].lat]),bubble=$('stopBubble'),dock=$('stopsDock').getBoundingClientRect();const w=bubble.offsetWidth,h=bubble.offsetHeight;const left=clamp(p.x-w/2,13,innerWidth-w-13);const headerBottom=Math.max(90,innerHeight>780?105:83);const dockTop=dock.top;const fitsAbove=p.y-h-29>headerBottom,fitsBelow=p.y+30+h<dockTop-6;let top,orient='above';if(fitsAbove)top=p.y-h-22;else if(fitsBelow){top=p.y+29;orient='below'}else top=clamp(p.y-h-19,headerBottom,Math.max(headerBottom,dockTop-h-7));bubble.style.left=left+'px';bubble.style.top=top+'px';bubble.dataset.orient=orient;const arrow=bubble.querySelector('.bubble-pointer');if(arrow){arrow.style.left=clamp(p.x-left-7,22,w-25)+'px';arrow.style.top=orient==='above'?(h-8)+'px':'-6px'}}
+function activate(i,move){if(i<0||i>=places.length)return;active=i;selectVisual();fillBubble(i);$('stopBubble').hidden=false;setSnap('peek');if(move&&map){const p=places[i];map.easeTo({center:[+p.lng,+p.lat],zoom:Math.max(11,Math.min(14,map.getZoom())),duration:480,essential:true})}positionBubble(i);const rail=$('stopRail'),node=rail?.children[i];if(rail&&node){const left=node.offsetLeft-rail.offsetLeft-(rail.clientWidth-node.clientWidth)/2;rail.scrollTo?.({left:Math.max(0,left),behavior:'smooth'})}}
+function dismissBubble(){for(const v of $('bubbleMedia').querySelectorAll('video'))v.pause();active=-1;$('stopBubble').hidden=true;selectVisual()}
+
+const PLAN_DB='travel-atlas-journeys-v1';let savedId=null,createdAt=null,saveBusy=false;
+function planDb(){return new Promise((resolve,reject)=>{const r=indexedDB.open(PLAN_DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('plans'))r.result.createObjectStore('plans',{keyPath:'id'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error('保存库正在被其他标签页占用'))})}
+async function readSavedPlan(id){const db=await planDb();return new Promise((resolve,reject)=>{let req;try{req=db.transaction('plans','readonly').objectStore('plans').get(id)}catch(err){db.close();reject(err);return}req.onsuccess=()=>{db.close();resolve(req.result||null)};req.onerror=()=>{db.close();reject(req.error)}})}
+async function writeSavedPlan(item){const db=await planDb();return new Promise((resolve,reject)=>{let tx;try{tx=db.transaction('plans','readwrite');tx.objectStore('plans').put(item)}catch(err){db.close();reject(err);return}tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{};tx.onabort=()=>{db.close();reject(tx.error||Error('保存事务未完成'))}})}
+async function resolveRoute(){const id=new URLSearchParams(location.search).get('saved');if(!id)return readSelection();if(!/^[\w-]{1,140}$/.test(id))return null;let item;try{item=await readSavedPlan(id)}catch(err){notice('读取保存的路线失败：'+err.message,true);return null}if(!item)return null;let stops=Array.isArray(item.selected)&&item.selected.length?item.selected.map((s,i)=>({id:String(s?.id??''),day:Math.max(1,Math.min(60,Number(s?.day)||1)),order:Number(s?.order)||i+1})):[];if(!stops.length&&Array.isArray(item.stops))stops=item.stops.map((s,i)=>({id:String(s?.placeId??''),day:Math.max(1,Math.min(60,Number(s?.day)||1)),order:i+1}));if(!stops.length&&Array.isArray(item.placeIds))stops=item.placeIds.map((pid,i)=>({id:String(pid),day:1,order:i+1}));stops=stops.filter(s=>s.id&&s.id.length<200).slice(0,100).sort((a,b)=>a.day-b.day||a.order-b.order);if(!stops.length)return null;savedId=item.id;createdAt=item.createdAt;return{schema:KEY,placeIds:stops.map(s=>s.id),stops,startDate:item.startDate||'',endDate:item.endDate||'',origin:item.origin||'',destination:item.destination||'',title:item.title||'',createdAt:Date.now(),source:'saved'}}
+function openSave(){if(!routePayload||!places.length)return;const modal=$('saveRouteDialog');const todayStr=new Date().toLocaleDateString('sv-SE');$('routeSaveName').value=routePayload.title||`我的旅行 · ${routePayload.startDate||todayStr}`;$('routeSaveStart').value=routePayload.startDate||'';$('routeSaveEnd').value=routePayload.endDate||'';$('routeSaveOrigin').value=routePayload.origin||'';$('routeSaveDest').value=routePayload.destination||'';$('saveRouteError').textContent='';modal.showModal();const firstEmpty=['routeSaveStart','routeSaveEnd','routeSaveOrigin','routeSaveDest'].find(fid=>!$(fid).value);$(firstEmpty||'routeSaveName').focus()}
+async function saveRoute(e){e?.preventDefault();if(saveBusy)return;const title=$('routeSaveName').value.trim().slice(0,80);if(!title){$('saveRouteError').textContent='请填写路线名称';return}const start=$('routeSaveStart').value,end=$('routeSaveEnd').value,origin=$('routeSaveOrigin').value.trim(),destination=$('routeSaveDest').value.trim();const miss=[];if(!start)miss.push('出发日期');if(!end)miss.push('结束日期');if(!origin)miss.push('出发地');if(!destination)miss.push('目的地');if(miss.length){$('saveRouteError').textContent='请先补全先决条件：'+miss.join('、');return}if(end<start){$('saveRouteError').textContent='结束日期不能早于开始日期';return}saveBusy=true;$('routeSaveConfirm').disabled=true;const now=new Date().toISOString();const id=savedId||(crypto?.randomUUID?.()||'trip-'+Date.now());const ids=places.map(p=>String(p.id));const item={id,title,placeIds:ids,selected:ids.map((pid,i)=>({id:pid,day:stopDays[i]||1,time:'',order:i+1})),startDate:start,endDate:end,origin:origin.slice(0,70),destination:destination.slice(0,70),createdAt:createdAt||now,updatedAt:now,version:2,mapStyle:'black-white-plan',source:'footprint-map'};try{await writeSavedPlan(item);savedId=id;createdAt=item.createdAt;routePayload.title=title;routePayload.startDate=start;routePayload.endDate=end;routePayload.origin=item.origin;routePayload.destination=item.destination;$('tripName').textContent=title;$('travelDates').textContent=[start,end].join(' — ');$('saveRoute').textContent='✓ 已保存';$('saveRouteDialog').close();history.replaceState(null,'','./route-view.html?saved='+encodeURIComponent(id));notice('路线已保存到「我的路线」；地点图文将与主页同步更新')}catch(err){$('saveRouteError').textContent='保存失败：'+err.message}finally{saveBusy=false;$('routeSaveConfirm').disabled=false}}
+function setSnap(state){const b=$('stopBubble');b.dataset.snap=state;if(state==='peek')b.scrollTop=0}
+function setupCardGestures(){
+ const grip=$('bubbleGrip');let press=null,lastSwipe=0;
+ grip.setAttribute('role','slider');grip.setAttribute('aria-label','向上或向下拖动地点卡片');grip.setAttribute('aria-valuemin','1');grip.setAttribute('aria-valuemax','3');
+ const states=['peek','half','full'];
+ const move=by=>{const index=Math.max(0,states.indexOf($('stopBubble').dataset.snap||'peek'));if(by<0&&index===0){dismissBubble();return}setSnap(states[Math.max(0,Math.min(2,index+by))]);grip.setAttribute('aria-valuenow',String(Math.max(0,Math.min(2,index+by))+1))};
+ grip.addEventListener('pointerdown',e=>{press={y:e.clientY,id:e.pointerId};try{grip.setPointerCapture(e.pointerId)}catch(_){}});
+ grip.addEventListener('pointerup',e=>{if(!press)return;const delta=e.clientY-press.y;press=null;if(Math.abs(delta)<26)return;lastSwipe=Date.now();move(delta<0?1:-1)});
+ grip.addEventListener('pointercancel',()=>{press=null});
+ grip.addEventListener('click',()=>{if(Date.now()-lastSwipe<450||$('stopBubble').hidden)return;move(1)});
+ grip.addEventListener('keydown',e=>{if(e.key==='ArrowUp'){e.preventDefault();move(1)}else if(e.key==='ArrowDown'){e.preventDefault();move(-1)}else if(e.key==='Escape'){e.preventDefault();dismissBubble()}});
+}
+function tripDays(){if(routePayload?.startDate&&routePayload?.endDate)return Math.max(1,Math.min(60,Math.round((new Date(routePayload.endDate+'T12:00:00')-new Date(routePayload.startDate+'T12:00:00'))/86400000)+1));return 0}
+function openAddStop(){if(!routePayload||!places.length)return;$('addStopError').textContent='';addCandidate=null;$('addStopConfirm').disabled=true;$('addStopSearch').value='';const maxDay=Math.max(tripDays(),1,...stopDays);const sel=$('addStopDay');sel.replaceChildren();for(let d=1;d<=maxDay;d++)sel.add(new Option('D'+d,d));sel.value=String(maxDay);$('addStopDialog').showModal();renderAddStopList('');$('addStopSearch').focus()}
+async function renderAddStopList(q){const box=$('addStopList');box.replaceChildren(make('p','add-stop-empty','正在读取收藏…'));let all;try{all=await getRecords()}catch(e){box.replaceChildren(make('p','add-stop-empty','无法读取收藏库：'+e.message));return}const inRoute=new Set(places.map(p=>String(p.id)));const items=all.filter(p=>p&&p.starred!==false&&!p.demo&&coord(p.lat)&&coord(p.lng)&&Math.abs(+p.lat)<=90&&Math.abs(+p.lng)<=180&&!inRoute.has(String(p.id))&&(text(p.title||p.name)+' '+text(p.address||'')).toLowerCase().includes(q.trim().toLowerCase())).slice(0,60);box.replaceChildren();if(!items.length){box.append(make('p','add-stop-empty',q?'没有匹配的收藏。':'所有已定位的收藏都已在路线里。'));return}for(const p of items){const b=make('button','add-stop-item');b.type='button';b.setAttribute('role','option');b.append(make('span','add-stop-name',text(p.title||p.name,60)),make('span','add-stop-addr',text(p.address||'保存的地图位置',60)));b.onclick=()=>{addCandidate=p;for(const x of box.children)x.classList.toggle('picked',x===b);$('addStopError').textContent='';$('addStopConfirm').disabled=false};box.append(b)}}
+function confirmAddStop(){if(!addCandidate){$('addStopError').textContent='请先在列表中选择一个收藏点。';return}const day=Math.max(1,Number($('addStopDay').value)||1);const entry=addCandidate;places.push(entry);stopDays.push(day);const order=places.map((p,i)=>i).sort((a,b)=>stopDays[a]-stopDays[b]||a-b);places=order.map(i=>places[i]);stopDays=order.map(i=>stopDays[i]);routePayload.placeIds=places.map(p=>String(p.id));routeCoords=places.map(p=>({lng:+p.lng,lat:+p.lat}));dismissBubble();addPins();showStopRail();buildRouteLayers();$('addStopDialog').close();notice('已把「'+text(entry.title||entry.name,40)+'」加入 D'+day+'。点「保存路线」后写入我的路线。',true)}
+function initUI(){$('viewAll').onclick=fit;$('saveRoute').onclick=openSave;$('routeSaveCancel').onclick=()=>$('saveRouteDialog').close();$('routeSaveForm').addEventListener('submit',saveRoute);$('addStop').onclick=openAddStop;$('addStopCancel').onclick=()=>$('addStopDialog').close();$('addStopClose').onclick=()=>$('addStopDialog').close();$('addStopDialog').addEventListener('click',e=>{if(e.target===$('addStopDialog'))$('addStopDialog').close()});$('addStopConfirm').onclick=confirmAddStop;$('addStopSearch').oninput=e=>renderAddStopList(e.target.value);setupCardGestures();$('closeBubble').onclick=dismissBubble;document.addEventListener('keydown',e=>{if(e.key==='Escape')dismissBubble()});$('atlasMap').addEventListener('click',()=>{if(active>=0)dismissBubble()});}
+async function init(){initUI();routePayload=await resolveRoute();if(!routePayload){empty('请在 Footprint Map 点击「路线」，通过地图选点或列表搜索选出收藏地点后进入。');return}const ids=[...new Set(routePayload.placeIds)];try{places=await loadPlaces(ids)}catch(e){empty('无法读取当前浏览器中的收藏地点：'+e.message);return}if(!places.length){empty('本次选中的地点没有可读取的真实坐标。请返回主页检查收藏是否存在。');return}const stopList=routePayload.stops||ids.map((pid,i)=>({id:pid,day:1,order:i+1}));stopDays=ids.filter(id=>places.some(p=>String(p.id)===id)).map(id=>stopList.find(s=>s.id===id)?.day||1);routeCoords=places.map(p=>({lng:+p.lng,lat:+p.lat}));addPins();showStopRail();buildRouteLayers();try{const lib=await getMaplibre();setupMap(lib)}catch(e){empty('真实地图未能启动：'+e.message);return}}
+window.__atlasRV={get places(){return places},get stopDays(){return stopDays},fit,
+applyOrder(ids){try{const pos=new Map(ids.map((id,i)=>[String(id),i]));const order=places.map((p,i)=>i).sort((a,b)=>(pos.get(String(places[a].id))??a)-(pos.get(String(places[b].id))??b));places=order.map(i=>places[i]);stopDays=order.map(i=>stopDays[i]);routePayload.placeIds=places.map(p=>String(p.id));routeCoords=places.map(p=>({lng:+p.lng,lat:+p.lat}));dismissBubble();addPins();showStopRail();buildRouteLayers();/* Keep current camera when merely reordering stops. */}catch(e){console.warn('applyOrder',e)}}};
+const run=()=>init().catch(e=>empty('路线加载异常：'+e.message));if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+})();
+
+</script>
+<style data-bundled="stage1-polish.css">
+/* Footprint Map V4.Stage1.20261109.23 — source-preserving polish layer.
+   Works only on the November 8 Stage1.22 baseline. No older layouts or icons. */
+:root{--fp-paper:#faf9f5;--fp-surface:#fffdfa;--fp-ink:#292923;--fp-muted:#78766f;--fp-line:#e5e2da;--fp-gold:#f6cc3b;--fp-ease:cubic-bezier(.2,.85,.25,1);--fp-shadow:0 12px 42px rgba(35,32,25,.14)}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
+body{color:var(--fp-ink);background:var(--fp-paper)}
+button,a,input,textarea,select{touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid #b58117!important;outline-offset:3px!important}
+button:active:not(:disabled),a:active{filter:brightness(.97)}
+#map{background:var(--fp-paper)}
+body.legacy-recovery #map,body:not(.vector-active):not(.amap-active) #map{visibility:visible!important}
+body.vector-active #map,body.amap-active #map{visibility:hidden!important}
+body.vector-active #amapSurface{display:none!important}
+body:not(.vector-active) #atlasVectorMap{pointer-events:none}
+#atlasMapLoader{pointer-events:none}
+/* Search is a single high-priority entry, no nested little grey frame. */
+.search-dock{background:rgba(255,253,249,.97)!important;border:1px solid rgba(227,222,211,.95)!important;box-shadow:0 5px 22px rgba(24,24,19,.12)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.search-dock .searchbox input{font-size:16px!important;letter-spacing:0!important;line-height:1.4}
+.search-dock .dock-go{min-width:44px!important;min-height:44px!important;display:grid;place-items:center}
+.search-results{box-shadow:var(--fp-shadow);border:1px solid var(--fp-line)}
+.search-result{min-height:52px}
+/* Keep approved three-icon dock. Elevate hit targets and tone down motion. */
+#appDock{border:1px solid #e2ded4!important;background:rgba(253,252,248,.96)!important;box-shadow:0 9px 34px #17170d22!important;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+#appDock .dock-btn{min-height:56px;min-width:74px;transition:background .18s var(--fp-ease),transform .18s var(--fp-ease)}
+#appDock .dock-btn:active{transform:scale(.96)}
+#dockRoutePop{box-shadow:var(--fp-shadow)!important;animation-duration:.18s!important}
+#dockRoutePop .dock-pop-btn{min-height:50px}
+#atlasVersionBadge{opacity:.65}
+/* The bottom sheet should read as one surface, without clipped content or crowded header. */
+.drawer{background:var(--fp-paper)!important;overscroll-behavior:contain;scrollbar-gutter:stable;box-shadow:0 -18px 55px #2020182d!important}
+.drawer .drawer-head{background:var(--fp-paper)!important}
+.drawer .drawer-head h2{font-size:clamp(19px,5vw,23px)!important;line-height:1.28!important}
+.drawer .iconclose,.memory-atlas .atlas-close,.fp-card-close{min-height:44px;min-width:44px;display:grid;place-items:center}
+.spotrow{min-height:86px;background:var(--fp-surface)!important;border:1px solid var(--fp-line)!important;border-radius:17px!important;transition:background .18s,transform .18s}
+.spotrow:active{transform:scale(.992);background:#f8f3e8!important}
+.spotrow strong{font-size:14px;line-height:1.45}
+.spotrow small{line-height:1.6}
+.backuprow{margin-top:24px}
+.backuprow button{min-height:47px}
+.footnote{line-height:1.75}
+/* Intentional editor: brief-first, advanced information collapses naturally. */
+dialog.editor{width:min(540px,calc(100% - 20px));border-radius:24px!important;background:var(--fp-paper)!important;overflow:hidden!important}
+dialog.editor::backdrop{background:rgba(18,21,24,.5);backdrop-filter:blur(4px)}
+.editor .editor-scroll{max-height:min(90dvh,900px);padding:23px 23px max(24px,env(safe-area-inset-bottom));overscroll-behavior:contain}
+.editor .edit-head{align-items:flex-start;margin-bottom:15px}
+.editor .edit-head h2{margin-top:5px;font-size:23px;line-height:1.2;letter-spacing:-.03em}
+.editor-eyebrow{color:#8a806a;font-size:9px;font-weight:750;letter-spacing:.14em}
+.editor .edit-sub{font-size:11px;line-height:1.5;margin:0 0 20px;color:#89867d;overflow-wrap:anywhere}
+.editor .field{color:#4c4942;margin:18px 0 8px;font-weight:650;font-size:13px}
+.editor .field-hint{font-size:11px;font-weight:400;color:#96918a}
+.editor .input,.editor .area{font-size:16px!important;color:#292923;border:1px solid #e0ddd5!important;background:#fffefa!important;border-radius:14px!important;padding:13px 14px!important;box-shadow:none!important;outline-offset:0}
+.editor .area{min-height:118px;height:128px;resize:vertical;line-height:1.7}
+.editor .input:focus,.editor .area:focus{border-color:#d3ae4b!important;box-shadow:0 0 0 3px #f6cc3b30!important;outline:0!important}
+.atlas-stage-selector{border:0;padding:0;margin:19px 0 17px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.atlas-stage-selector legend{font-weight:650;font-size:13px;margin-bottom:9px;color:#4c4942}
+.atlas-stage-option{display:block;min-width:0;position:relative;cursor:pointer}
+.atlas-stage-option input{position:absolute;opacity:0;width:1px;height:1px}
+.atlas-stage-option span{display:flex;flex-direction:column;gap:3px;padding:11px 13px;border:1px solid #e1dfd8;background:#fffefa;border-radius:13px;min-height:69px;transition:background .18s,border-color .18s,box-shadow .18s}
+.atlas-stage-option b{font-size:14px;font-weight:750}
+.atlas-stage-option small{font-size:11px;color:#827c70}
+.atlas-stage-option input:checked+span{border-color:#e2bd53;background:#fff6d7;box-shadow:inset 0 0 0 1px #f6cc3b50}
+.atlas-stage-option input:focus-visible+span{outline:2px solid #b58117;outline-offset:2px}
+.atlas-editor-more{margin-top:18px;background:#f6f4ed;border:1px solid #e9e5d9;border-radius:15px;overflow:hidden}
+.atlas-editor-more summary{display:flex;align-items:center;gap:8px;padding:15px 15px;cursor:pointer;list-style:none;min-height:53px}
+.atlas-editor-more summary::-webkit-details-marker{display:none}
+.atlas-editor-more summary::after{content:'⌄';font-size:20px;margin-left:auto;color:#837b68;transition:transform .18s}
+.atlas-editor-more[open] summary::after{transform:rotate(180deg)}
+.atlas-editor-more summary span{font-size:13px;font-weight:750}
+.atlas-editor-more summary small{color:#8e8a81;font-size:11px}
+.atlas-editor-detail-content{padding:0 15px 16px;border-top:1px solid #e9e5d9}
+.atlas-rank-fieldset{padding:0;border:0;margin:0}
+.atlas-rank-fieldset legend{display:block;width:100%}
+.editor .rank-choices label{min-height:44px;display:flex;align-items:center}
+.editor .add-photos{min-height:72px;background:#fffefa;border-color:#d6cba5}
+.editor .photo-remove{width:30px;height:30px;border-radius:12px}
+.editor .editor-actions{margin-top:18px;gap:9px}
+.editor .primary-btn{min-height:52px;border-radius:14px!important;background:#292923!important;color:#fffefa!important;font-size:15px;box-shadow:0 6px 20px #1b1b1520}
+.editor .danger-btn{min-height:52px;background:#fff1ec!important;color:#ab4432!important}
+.editor-save-hint{text-align:center;font-size:11px;color:#8d8981;line-height:1.6;margin:10px 0 0}
+/* Make discard confirmation feel native to the product rather than a browser alert. */
+.atlas-discard-dialog{padding:0;border:1px solid #e9e5d8;border-radius:21px;max-width:min(340px,calc(100% - 38px));box-shadow:0 18px 60px #16160d4b;background:#fffefa;color:#302e28}
+.atlas-discard-dialog::backdrop{background:#1118;backdrop-filter:blur(3px)}
+.atlas-discard-inner{padding:25px 23px 23px;text-align:center}
+.discard-symbol{color:#dfb942;font-size:26px}
+.atlas-discard-inner h2{font-size:20px;margin:8px 0}
+.atlas-discard-inner p{font-size:13px;line-height:1.65;color:#827c70;margin:0 0 19px}
+.discard-actions{display:grid;gap:8px}
+.discard-actions button{min-height:47px;border-radius:13px;border:1px solid #e6e1d5;font-weight:700;background:#282821;color:#fff}
+#atlasDiscardChanges{background:#fff7f1;color:#a94c3b;border-color:#f3dfd6}
+.atlas-empty-places{text-align:center;padding:32px 12px 34px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.atlas-empty-places .empty-star{width:66px;height:66px;border:1px solid #e5d9b9;background:#fbf5e4;border-radius:22px;display:grid;place-items:center;color:var(--fp-gold);font-size:32px}
+.atlas-empty-places strong{font-size:17px;margin-top:3px}
+.atlas-empty-places p{color:#867e70;font-size:13px;line-height:1.6;max-width:265px;margin:0 0 6px}
+.atlas-empty-places button{width:min(270px,100%);min-height:47px;border:0;background:#282821;color:white;font-size:14px;font-weight:750;border-radius:14px}
+.atlas-empty-places button.quiet{background:#f4f1e7;color:#5d5546;border:1px solid #e3dfd2}
+/* Respect keyboard, reduced motion and safe areas on iPhone. */
+@media(max-width:550px){
+ .search-dock{top:calc(8px + env(safe-area-inset-top));width:calc(100% - 26px)!important;max-width:none!important}
+ .search-dock .searchbox input{font-size:16px!important}
+ .drawer{max-height:calc(92dvh - env(safe-area-inset-top));width:100%;padding-left:17px;padding-right:17px}
+ .drawer .drawer-head{margin-left:-17px;margin-right:-17px;padding-left:17px;padding-right:17px}
+ .editor .editor-scroll{padding:21px 17px calc(20px + env(safe-area-inset-bottom))}
+ .editor .edit-head h2{font-size:21px}
+ #appDock .dock-btn{min-width:0;min-height:58px}
+ .atlas-stage-option span{padding:11px 9px}
+ .atlas-editor-more summary{flex-wrap:wrap}
+ .map-controls button{min-height:44px;min-width:44px}
+}
+@media(max-height:650px){.editor .editor-scroll{max-height:85dvh}.atlas-stage-option span{min-height:59px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Travel Atlas is a supporting workspace: use the same paper, ink and gold, without changing its route layout. */
+body.journey-page{--paper:#faf9f5;--card:#fffdfa;--ink:#292923;--muted:#817b70;--line:#e5e2da;--gold:#f6cc3b;--forest:#5b5548;background:#faf9f5}
+.journey-page .topbar{border-bottom:1px solid #e5e2da;background:rgba(255,253,249,.96);box-shadow:0 4px 22px #1d1b170a}
+.journey-page .brand{font-size:18px;letter-spacing:-.035em}
+.journey-page .brand-mark{color:#cc9f28}
+.journey-page .builder{background:#faf9f5;border-color:#e7e4da}
+.journey-page .builder h1{font-size:clamp(25px,3.4vw,32px);letter-spacing:-.045em}
+.journey-page .intro{font-size:13px;line-height:1.7}
+.journey-page .block{border-color:#e7e4da}
+.journey-page .block h2,.journey-page .section-head h2{font-size:13px}
+.journey-page .block input:not([type=file]),.journey-page .block select{min-height:46px;font-size:16px;border-radius:13px;background:#fffefa;border-color:#e0ded5}
+.journey-page .place,.journey-page .choice{border-radius:15px;border-color:#e5e1d6;background:#fffdfa;min-height:52px}
+.journey-page .place:hover{border-color:#cfb46d}
+.journey-page .choice-controls button{min-height:34px;min-width:34px}
+.journey-page button.full,.journey-page .topaction{min-height:46px;border-radius:14px}
+.journey-page .accent{background:#f6cc3b;color:#302913;border-color:#e9bf4e;box-shadow:0 5px 16px #e9bf4e2e}
+.journey-page .dark{background:#292923;color:#fffdfa}
+.journey-page .atlas-view{background:radial-gradient(ellipse at 85% 15%,#f2eddd 0%,transparent 48%),#faf9f5}
+.journey-page .journey{background:#fffdfa99;border-color:#e5e1d8}
+.journey-page .stop-card{background:#fffdfa;box-shadow:0 9px 32px #20201514;border-color:#e5e1d8}
+.journey-page .journey-more{display:block;padding:0;margin-top:9px}
+.journey-page .journey-more>summary{list-style:none;display:flex;align-items:center;gap:9px;min-height:53px;padding:12px 0;font-size:13px;font-weight:750;cursor:pointer;color:#464239}
+.journey-page .journey-more>summary::-webkit-details-marker{display:none}
+.journey-page .journey-more>summary span{font-size:11px;font-weight:400;color:#979081}
+.journey-page .journey-more>summary::after{content:'⌄';margin-left:auto;font-size:19px;color:#9b906d}
+.journey-page .journey-more[open]>summary::after{transform:rotate(180deg)}
+.journey-page .journey-more-content{display:grid;gap:8px;padding:7px 0 23px}
+.journey-page .journey-more-content .accent{margin-top:0}
+.journey-page .route-empty h3{font-size:20px}
+.journey-page .route-empty p{line-height:1.7}
+body.route-page{--fp-paper:#faf9f5;--fp-ink:#292923}
+.route-page #stopsDock,.route-page #rvDetail,.route-page #addStopDialog{background:#faf9f5}
+.route-page #rvDetail .brief{background:#fffdfa;border-color:#e4e1d8}
+.route-page .rv-callout{border-color:#e5e1d7;box-shadow:0 6px 22px #201e162a}
+.route-page .stop-bubble{box-shadow:0 12px 37px #201e1633}
+.route-page .view-all:active,.route-page .atlas-back:active{transform:scale(.97)}
+.route-page dialog input,.route-page dialog select{font-size:16px}
+@media(max-width:720px){
+ .journey-page .topbar{padding:9px 12px;gap:6px}
+ .journey-page .brand small{display:none}
+ .journey-page .topaction{padding:8px 11px;min-height:44px}
+ .journey-page .builder{padding:23px 17px 24px}
+ .journey-page .atlas-view{padding:22px 12px 26px}
+ .journey-page .form-row{gap:8px}
+ .journey-page .form-row input{min-width:0}
+ .journey-page .tools{padding-bottom:14px}
+}
+
+#atlasConfirmDelete{background:#fff0e8;color:#a84231;border-color:#edd3c5}
+#atlasConfirmDelete:disabled{opacity:.5;cursor:wait}
+
+/* Stage1.24: only useful controls remain on the map; the map mode button had no action. */
+#btnLayers,#layerMenu{display:none!important}
+#helptext{display:none!important} /* first-star guidance is already handled by #atlasFirstStar */
+#drawer #atlasVersionBadge{position:static!important;display:inline-flex;align-items:center;margin:12px 0 20px;padding:8px 10px;border:1px solid #e6e0d3;background:#f4f0e6;border-radius:10px;opacity:1;transform:none!important;font-size:11px;box-shadow:none}
+#atlasUnstarDialog #atlasConfirmUnstar{color:#945225;background:#fff4e7;border-color:#ecdec8}
+#atlasUnstarDialog #atlasConfirmUnstar:disabled{opacity:.5;cursor:wait}
+#searchResults{overscroll-behavior:contain;max-height:min(48dvh,430px);overflow-y:auto}
+.search-results .search-state{font-size:13px;line-height:1.6;padding:15px 16px}
+#searchResults .search-result{display:flex;flex-direction:column;justify-content:center;gap:3px;width:100%;text-align:left;padding:11px 14px;min-height:60px}
+#searchResults .search-result:focus-visible{outline:2px solid #b78e38;outline-offset:-2px;background:#fff7df}
+#destinationStar{min-height:46px}
+#editor .editor-actions{position:sticky;bottom:-1px;padding:8px 0 calc(9px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#faf9f5d9,#faf9f5 32%);z-index:2}
+#editor .editor-save-hint{margin:0 0 5px}
+.photo-viewer{touch-action:pan-y}
+.photo-viewer .viewer-photo{touch-action:pan-y;max-height:calc(100dvh - 180px)}
+@media(max-width:550px){
+ #destinationCard .destination-actions{gap:8px}
+ #atlasFirstStar{max-width:calc(100vw - 24px)}
+ .editor .editor-scroll{max-height:calc(100dvh - 18px)}
+ #viewer .viewer-arrow{width:44px;height:44px}
+}
+
+/* Place detail clearly communicates intent without introducing another navigation level. */
+.fp-place-stage{display:inline-flex;align-items:center;min-height:30px;padding:5px 10px;border-radius:999px;border:1px solid #e6d7a9;background:#fff7dc;color:#795e28;font-size:11px;font-weight:650;white-space:nowrap;margin-top:4px}
+.fp-place-stage:before{content:'★';color:#e5b52d;margin-right:5px;font-size:12px}
+.fp-place-stage:active{transform:scale(.97)}
+
+</style>
+<style data-bundled="stage1-finish.css">
+/* Footprint Map V4 · Stage1.25 / visual & motion detail pass.
+   Additive layer on Stage1.24. Preserves V3 art, map, quadrant SVG geometry and data. */
+:root{
+  --fp25-type:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --fp25-ink:#282721;--fp25-secondary:#68665d;--fp25-tertiary:#868279;
+  --fp25-paper:#faf9f5;--fp25-surface:#fffefa;--fp25-divider:#e7e3d9;
+  --fp25-gold:#eac45b;--fp25-press:#f5f1e6;
+  --fp25-fast:150ms;--fp25-standard:270ms;--fp25-sheet:360ms;
+  --fp25-ease:cubic-bezier(.22,1,.36,1);
+  --fp25-shadow:0 14px 44px rgba(40,35,24,.14);
+}
+html,body,button,input,select,textarea{font-family:var(--fp25-type)}
+body{color:var(--fp25-ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,a{-webkit-tap-highlight-color:transparent}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.48}
+:where(button,a,input,textarea,select):focus-visible{outline:2px solid #a77d27!important;outline-offset:3px!important}
+/* 3 navigation actions, one V3 hand-drawn language, no additional controls. */
+#appDock{gap:7px!important;padding:7px!important;border-radius:23px!important;background:rgba(255,254,250,.965)!important;border:1px solid rgba(222,217,205,.92)!important;box-shadow:0 10px 34px #27241b23!important}
+#appDock .dock-btn{width:71px!important;height:65px!important;min-width:71px!important;min-height:65px!important;border-radius:16px!important;gap:5px!important;background:transparent!important;box-shadow:none!important;padding:9px 8px 8px!important;transition:background var(--fp25-fast) ease,transform var(--fp25-fast) var(--fp25-ease),box-shadow var(--fp25-fast) ease!important}
+#appDock .dock-btn img{height:25px!important;width:25px!important;object-fit:contain}
+#appDock .dock-btn span{font-size:12px!important;line-height:1.2!important;font-weight:600!important;letter-spacing:0!important;color:#514d44!important}
+#appDock .dock-btn:is(.active,[aria-pressed="true"]){background:#f8ecc7!important;box-shadow:inset 0 0 0 1px #e9d49d!important}
+#appDock .dock-btn:is(.active,[aria-pressed="true"]) span{color:#3b321f!important}
+#appDock .dock-btn:active{transform:scale(.965)!important;background:var(--fp25-press)!important}
+#dockRoutePop{gap:8px;padding:8px;border-radius:21px!important;background:rgba(255,254,250,.975)!important;box-shadow:var(--fp25-shadow)!important;animation:dockPop25 220ms var(--fp25-ease) both!important;transform-origin:70% 100%}
+#dockRoutePop .dock-pop-btn{min-width:96px;width:96px;height:72px;gap:6px;border-radius:15px;background:#fbf8ef;box-shadow:inset 0 0 0 1px #eae5d8}
+#dockRoutePop .dock-pop-btn img{height:24px;width:24px}
+#dockRoutePop .dock-pop-btn span{font-size:12px;line-height:1.2;font-weight:600;letter-spacing:0}
+#dockRoutePop .dock-pop-btn:active{transform:scale(.965);background:#f6eccb}
+@keyframes dockPop25{from{opacity:0;transform:translateY(9px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* Search is a single quiet surface with an explicit search affordance. */
+#searchDock{background:rgba(255,254,250,.975)!important;border:1px solid var(--fp25-divider)!important;border-radius:19px!important;box-shadow:0 7px 27px #28241c1a!important}
+#searchDock .searchbox{min-height:53px!important;border:0!important;box-shadow:none!important;border-radius:19px!important;padding-inline:14px 6px!important;background:transparent!important}
+#searchDock #searchInput{font-family:var(--fp25-type)!important;font-size:16px!important;line-height:1.45!important;letter-spacing:0!important;color:var(--fp25-ink)!important}
+#searchInput::placeholder{color:#918d83!important;opacity:1}
+#searchDock .dock-go{border-radius:13px!important;min-height:44px!important;min-width:44px!important;background:#f4f1e8;color:var(--fp25-ink)}
+#searchDock .dock-go:active{background:#efe4c5}
+#searchResults{border:0!important;border-top:1px solid var(--fp25-divider)!important;box-shadow:none!important;border-radius:0 0 18px 18px!important;overscroll-behavior:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#searchResults::-webkit-scrollbar{display:none}
+#searchResults .search-result{padding:12px 15px!important;min-height:60px!important;gap:4px!important;font-size:14px!important;line-height:1.45!important;border-bottom:1px solid #eeeae1}
+#searchResults .search-result:active{background:#f9f1dc}
+/* Same control proportions around the map. Position and map strategy untouched. */
+.map-controls{gap:9px!important}
+.map-controls .circlebtn{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;border-radius:16px!important;background:rgba(255,254,250,.97)!important;box-shadow:0 5px 18px #24221c17!important;border-color:#e7e3da!important;transition:transform var(--fp25-fast) var(--fp25-ease),background var(--fp25-fast) ease}
+.map-controls .circlebtn:active{transform:scale(.95);background:#f6eedb!important}
+/* Sheets: shorter read lines, sticky heading, no unexpected extra scrollbar gutter. */
+.drawer{border-radius:25px 25px 0 0!important;background:var(--fp25-paper)!important;scrollbar-gutter:auto!important;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;transition:transform var(--fp25-sheet) var(--fp25-ease)!important;box-shadow:0 -14px 54px #27241d2b!important}
+.drawer::-webkit-scrollbar{display:none}
+.drawer .drawer-head{background:var(--fp25-paper)!important;padding-top:10px!important;padding-bottom:13px!important;min-height:75px}
+.drawer .drawer-head .sheet-grab{height:9px;margin:0 0 9px!important;touch-action:pan-x}
+.drawer .drawer-head .sheet-grab::before{width:37px!important;height:5px!important;background:#d1cdc3!important}
+.drawer .drawer-head h2{font-family:var(--fp25-type)!important;font-size:21px!important;font-weight:650!important;letter-spacing:-.025em!important;color:var(--fp25-ink)!important}
+.drawer .drawer-cn{font-size:21px!important;color:var(--fp25-ink)!important;font-weight:650!important}
+#drawer .iconclose,#closeEditor,.fp-card-close{border-radius:14px!important;background:transparent!important;color:#69665e!important;min-width:44px;min-height:44px}
+#drawer .iconclose:active,#closeEditor:active,.fp-card-close:active{background:#ece9e0!important}
+#drawer .savebox-main{min-height:51px!important;border-radius:15px!important;background:#fffefa!important;border:1px solid var(--fp25-divider)!important;font-size:14px!important}
+#drawer .savebox-main span{font-weight:650!important;color:var(--fp25-ink)!important}
+#drawer .savebox-menu{border-radius:16px!important;box-shadow:var(--fp25-shadow)}
+#drawer .savebox-menu button{min-height:48px;font-size:14px!important}
+#spotList .spotrow{min-height:91px!important;padding:11px 12px!important;margin:10px 0!important;gap:13px!important;border-radius:18px!important;background:#fffefa!important;box-shadow:0 2px 12px #26221708;transition:background var(--fp25-fast) ease,transform var(--fp25-fast) var(--fp25-ease)}
+#spotList .spotrow:active{transform:scale(.99);background:#fcf5e6!important}
+#spotList .spotrow strong{font-size:15px!important;font-weight:650!important;letter-spacing:-.01em!important;line-height:1.35!important}
+#spotList .spotrow small{font-size:12px!important;line-height:1.5!important;color:#817b70!important}
+#spotList .spotrow>img,#spotList .spotrow .spotempty{width:65px;height:65px;border-radius:13px!important}
+#spotList .spotrow .arrow img{opacity:.6;width:19px;height:19px}
+#drawer .backuprow{gap:10px!important}
+#drawer .backuprow button{font-size:12px!important;line-height:1.35;padding:13px 10px;min-height:50px;border-radius:14px!important;font-weight:600}
+#drawer .footnote{font-size:12px!important;line-height:1.7!important;color:#817d73!important}
+#cover{transition:opacity var(--fp25-standard) ease!important}
+/* Editor: stable hierarchy, larger readable supporting type, no horizontal jolts. */
+dialog.editor{border-radius:25px!important;box-shadow:0 24px 76px #15140f4d!important;background:var(--fp25-paper)!important}
+.editor .editor-scroll{overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.editor .editor-scroll::-webkit-scrollbar{display:none}
+.editor .edit-head{margin-bottom:12px!important;gap:8px}
+.editor .edit-head::before{display:none!important} /* extra cursive ornament competes with action */
+.editor .edit-head h2{font-family:var(--fp25-type)!important;font-weight:690!important;font-size:23px!important;line-height:1.22!important;letter-spacing:-.035em!important;margin:5px 0 0!important}
+.editor .editor-eyebrow{font-size:10px!important;font-weight:650!important;letter-spacing:.11em!important;color:#938b77!important}
+.editor .edit-sub{font-size:12px!important;line-height:1.55!important;color:#777268!important;margin:0 0 18px!important}
+.editor .field,.editor .atlas-stage-selector legend{font-size:13px!important;letter-spacing:0!important;line-height:1.4;font-weight:660!important;color:#4c4840!important}
+.editor .input,.editor .area{font-family:var(--fp25-type)!important;font-size:16px!important;font-weight:400!important;line-height:1.5!important;border:1px solid #e2ded4!important;border-radius:14px!important;background:var(--fp25-surface)!important;padding:13px 14px!important}
+.editor .area{min-height:114px!important;resize:vertical;line-height:1.7!important}
+.editor .input:focus,.editor .area:focus{border-color:#c7a44c!important;box-shadow:0 0 0 3px #eed68c45!important}
+.editor .atlas-stage-option span{min-height:66px!important;gap:4px!important;border-radius:14px!important;transition:border-color var(--fp25-fast) ease,background var(--fp25-fast) ease}
+.editor .atlas-stage-option b{font-size:14px!important;letter-spacing:0!important}
+.editor .atlas-stage-option small{font-size:12px!important;line-height:1.3!important}
+.editor .atlas-stage-option input:checked+span{border-color:#d9b757!important;background:#fff4cf!important}
+.editor .atlas-editor-more{background:#f4f1e9!important;border:1px solid #e7e3d7!important;border-radius:16px!important}
+.editor .atlas-editor-more summary{min-height:51px!important;padding:14px 15px!important;gap:9px}
+.editor .atlas-editor-more summary span{font-size:14px!important;font-weight:650!important}
+.editor .atlas-editor-more summary small{font-size:12px!important;color:#797368!important}
+#editor .editor-actions{gap:9px!important;box-shadow:none!important;background:linear-gradient(180deg,#faf9f500,#faf9f5 22%)!important;padding:15px 0 calc(10px + env(safe-area-inset-bottom))!important}
+#editor .editor-actions button{min-height:52px!important;border-radius:15px!important;font-family:var(--fp25-type)!important;font-size:15px!important;font-weight:650!important}
+#editor .editor-save-hint{font-size:11px;line-height:1.55;color:#8a857a}
+/* Memory card and 4 SVG bubble *content only*; SVG shape, arrows and hierarchy untouched. */
+.memory-atlas .memo-name{font-family:var(--fp25-type)!important;letter-spacing:-.025em!important;font-weight:640!important;font-size:21px!important;line-height:1.36!important}
+.memory-atlas .memo-text{font-family:var(--fp25-type)!important;font-size:14px!important;line-height:1.8!important;letter-spacing:0!important;color:#4b4943!important}
+.memory-atlas .memo-foot small{font-size:12px!important;line-height:1.4!important}
+.memory-atlas .memo-edit{min-height:40px;border-radius:12px!important;font-size:12px!important;font-weight:600!important}
+.memory-atlas .memory-quickbar button{font-family:var(--fp25-type)!important;font-size:12px!important;line-height:1.3!important;min-height:43px;transition:transform var(--fp25-fast) var(--fp25-ease),background var(--fp25-fast) ease}
+.memory-atlas .memory-quickbar button:active{transform:scale(.97)}
+#atlasOrbit .orbit-content{font-family:var(--fp25-type)}
+#atlasOrbit .orbit-kicker{font-size:11px;letter-spacing:.02em;color:#80796e}
+#atlasOrbit .orbit-title{font-weight:650;letter-spacing:-.02em;line-height:1.28}
+#atlasOrbit .orbit-note{font-size:clamp(11px,1.15vw,13px);line-height:1.5;color:#625f57}
+#atlasOrbit .orbit-action{font-size:11px;font-weight:650;border-radius:10px;transition:background var(--fp25-fast) ease}
+#atlasOrbit .orbit-action:active{background:#f1e8cf}
+#atlasOrbit.is-open .orbit-bubble{animation-duration:.47s!important}
+#atlasOrbit.is-open .orbit-content{animation-duration:.32s!important}
+/* Fullscreen photo navigation stays above home indicator, with true 44px targets. */
+#viewer .viewer-top{top:calc(12px + env(safe-area-inset-top));left:18px;right:16px}
+#viewer .viewer-close,#viewer .viewer-arrow{min-width:44px;min-height:44px;display:grid;place-items:center}
+#viewer .viewer-bottom{font-size:13px;line-height:1.5;padding-inline:20px;text-align:center;color:#dcdad4}
+#viewer .viewer-photo{max-height:calc(100dvh - 178px);object-fit:contain}
+/* Secondary screens inherit the same typographic scale and responsive rhythm. */
+body.journey-page,body.route-page{font-family:var(--fp25-type)!important;color:var(--fp25-ink)}
+.journey-page .builder h1{letter-spacing:-.04em!important;line-height:1.15!important}
+.journey-page .intro,.journey-page .place small,.journey-page .choice small{font-size:13px!important;line-height:1.55!important}
+.journey-page .block h2,.journey-page .section-head h2{font-size:14px!important;font-weight:650!important}
+.journey-page .place,.journey-page .choice{min-height:53px;border-radius:15px;transition:background var(--fp25-fast) ease}
+.journey-page button:active{filter:brightness(.975)}
+.route-page .stop-bubble h2{letter-spacing:-.025em;font-weight:650}
+.route-page .bubble-brief{font-size:13px;line-height:1.7}
+.route-page .bubble-ops a{font-size:12px;min-height:40px;display:grid;place-items:center}
+.route-page .atlas-stops,.route-page .stop-bubble{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+@media(max-width:550px){
+ #searchDock{width:calc(100% - 28px)!important;max-width:none!important;top:calc(10px + env(safe-area-inset-top))!important}
+ #appDock{bottom:calc(10px + env(safe-area-inset-bottom));gap:4px!important;padding:6px!important}
+ #appDock .dock-btn{width:73px!important;min-width:73px!important;height:64px!important;min-height:64px!important}
+ #dockRoutePop{bottom:calc(88px + env(safe-area-inset-bottom));right:calc(50% - 104px)}
+ .drawer{max-height:calc(89dvh - env(safe-area-inset-top))!important;padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+ .editor .editor-scroll{max-height:calc(var(--atlas-visual-height,100dvh) - 18px)!important;padding:20px 18px calc(16px + env(safe-area-inset-bottom))!important}
+ #editor .editor-actions{bottom:0}
+ .memory-atlas .memory-quickbar button{font-size:11px!important}
+}
+@media(max-width:355px){
+ #appDock .dock-btn{width:68px!important;min-width:68px!important}
+ #dockRoutePop .dock-pop-btn{width:90px;min-width:90px}
+ .editor .atlas-stage-option small{font-size:11px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .drawer,#dockRoutePop,#appDock .dock-btn,.spotrow,.circlebtn{transition-duration:.01ms!important;animation-duration:.01ms!important}
+ #atlasOrbit.is-open .orbit-bubble,#atlasOrbit.is-open .orbit-content{animation-duration:.01ms!important}
+}
+/* Collage sheet, search sheet and archive share the same visual density. */
+#fpPlaceCard{border-radius:24px!important;background:var(--fp25-paper)!important;box-shadow:var(--fp25-shadow)!important;animation:fp25CardIn .3s var(--fp25-ease) both!important}
+@keyframes fp25CardIn{from{opacity:.65;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+#fpPlaceCard .fp-card-name{font:650 21px/1.35 var(--fp25-type)!important;letter-spacing:-.025em!important}
+#fpPlaceCard .fp-card-kicker,#fpPlaceCard .fp-subheading label,#fpPlaceCard .fp-subheading strong{font-size:11px!important;font-weight:650!important;letter-spacing:.055em!important;color:#88774f!important}
+#fpPlaceCard .fp-card-scroll{scrollbar-width:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#fpPlaceCard .fp-card-scroll::-webkit-scrollbar{display:none}
+#fpPlaceCard .fp-brief-text{font-size:14px!important;line-height:1.8!important;color:#4d4a43!important}
+#fpPlaceCard .fp-block{border-radius:17px!important;padding:14px 15px!important;box-shadow:none!important;border-color:#e8e4da!important}
+#fpPlaceCard .fp-card-chip{min-height:45px!important;font-size:12px!important;font-weight:650!important;border-radius:13px!important}
+#fpPlaceCard .fp-edit-toggle{min-height:42px!important;font-size:12px!important;padding:9px 13px!important}
+#fpPlaceCard .fp-unstar-btn{width:44px!important;height:44px!important;min-width:44px!important;border-radius:14px!important}
+#fpSearchSheet{background:var(--fp25-paper)!important;border-color:#e6e2d8!important;border-radius:25px 25px 0 0!important;transition:transform .35s var(--fp25-ease),opacity .18s ease!important}
+#fpSearchSheet .fp-search-head h2{font-size:21px!important;font-weight:670!important;letter-spacing:-.03em!important}
+#fpSearchSheet .fp-search-label{font-size:11px!important;letter-spacing:.05em!important;font-weight:650!important}
+#fpSearchSheet .fp-quick{min-height:83px!important;border-radius:16px!important;font-size:12px!important;font-weight:600!important}
+#fpSearchSheet .fp-search-row{min-height:69px!important}
+#fpSearchSheet .fp-row-main strong{font-size:15px!important;font-weight:650!important}
+#fpSearchSheet .fp-row-main small{font-size:12px!important}
+#fpSearchSheet .fp-search-body{scrollbar-width:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#fpSearchSheet .fp-search-body::-webkit-scrollbar{display:none}
+
+.drawer.fp25-dragging,.drawer.fp25-dragging.visible{transition:none!important;will-change:transform}
+
+/* At the narrowest iPhone widths the optional row stays one line. */
+.editor .atlas-editor-more summary{display:grid!important;grid-template-columns:max-content minmax(0,1fr) 20px;align-items:center;flex-wrap:nowrap!important;column-gap:8px}
+.editor .atlas-editor-more summary small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.editor .atlas-editor-more summary::after{grid-column:3;margin:0!important;justify-self:center}
+@media(max-height:740px){.editor .editor-save-hint{margin-top:2px;font-size:10px}}
+#drawer #sheetCount{color:#898174!important;font-size:12px!important;font-weight:500!important;margin-left:7px}
+
+</style>
+<style data-bundled="stage1-detail.css">
+/* Footprint Map V4 · Stage1.26 | tactile detail, orbit geometry and reading rhythm.
+   Intentional additive layer: no changes to V3 hand-drawn assets, storage schema,
+   map renderer, independent SVG path generator, or route engine. */
+:root{
+  --fp26-ease:cubic-bezier(.22,.79,.26,1);
+  --fp26-touch:150ms;
+  --fp26-panel:330ms;
+}
+/* Make every card and the upright star share the EXACT same geometric center.
+   Stage1.25 kept two left-side cards relative to 50vw while the star and right
+   side were positioned at --orbit-cx. This restores uniform arrow clearance. */
+#atlasOrbit .orbit-bubble.tl{
+  left:calc(var(--orbit-cx) - var(--orbit-gap)/2 - var(--orbit-w)*var(--scale-tl))!important;
+  top:calc(var(--orbit-cy) - var(--orbit-gap)/2 - var(--orbit-h)*var(--scale-tl))!important;
+}
+#atlasOrbit .orbit-bubble.tr{
+  left:calc(var(--orbit-cx) + var(--orbit-gap)/2)!important;
+  top:calc(var(--orbit-cy) - var(--orbit-gap)/2 - var(--orbit-h)*var(--scale-tr))!important;
+}
+#atlasOrbit .orbit-bubble.bl{
+  left:calc(var(--orbit-cx) - var(--orbit-gap)/2 - var(--orbit-w)*var(--scale-bl))!important;
+  top:calc(var(--orbit-cy) + var(--orbit-gap)/2)!important;
+}
+#atlasOrbit .orbit-bubble.br{
+  left:calc(var(--orbit-cx) + var(--orbit-gap)/2)!important;
+  top:calc(var(--orbit-cy) + var(--orbit-gap)/2)!important;
+}
+/* Four independent vectors retain the approved hierarchy and common tail module. */
+#atlasOrbit .orbit-svg{filter:drop-shadow(0 10px 18px rgba(30,28,22,.14))}
+#atlasOrbit .orbit-kicker{display:flex;align-items:center;gap:5px;font-size:11px!important;letter-spacing:0!important;line-height:1.25!important;font-weight:650!important;color:#827b6f!important}
+#atlasOrbit .orbit-kicker-icon{width:14px;height:14px;opacity:.76}
+#atlasOrbit .orbit-title{font-weight:680!important;line-height:1.3!important;letter-spacing:-.025em!important;color:#282721}
+#atlasOrbit .orbit-note{font-size:12px;line-height:1.52!important;color:#625d53}
+#atlasOrbit .orbit-small{font-size:11px;line-height:1.48;color:#777166}
+#atlasOrbit .orbit-media-hero{background:#eeece5;border-radius:13px;min-height:48px}
+#atlasOrbit .orbit-media-placeholder{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;font-size:12px;font-weight:550;line-height:1.5;letter-spacing:0;color:#999180}
+#atlasOrbit .orbit-media-count{font-size:10px;border-radius:7px;background:rgba(39,38,31,.79);padding:5px 7px}
+#atlasOrbit .orbit-action{display:inline-flex;align-items:center;justify-content:center;min-height:36px!important;padding:7px 10px!important;font-size:11px!important;line-height:1.25!important;letter-spacing:0!important;background:#f6f2e8;border:1px solid #e5dfd1;color:#3e3930;border-radius:11px;transition:background var(--fp26-touch) ease,transform var(--fp26-touch) var(--fp26-ease)}
+#atlasOrbit .orbit-action:active{transform:scale(.965);background:#f0e8d6}
+#atlasOrbit .orbit-link{font-size:11px;line-height:1.35;min-height:35px;gap:5px}
+#atlasOrbit .orbit-near-list{scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#atlasOrbit .orbit-near-list::-webkit-scrollbar{display:none}
+#atlasOrbit .orbit-near-item{min-height:37px;align-items:center;gap:5px;padding-block:6px}
+#atlasOrbit .orbit-near-name{font-size:11px;line-height:1.4}
+#atlasOrbit .orbit-near-dist{font-size:10px}
+#atlasOrbit.is-open .orbit-bubble{animation:orbit26Enter .51s var(--fp26-ease) both!important}
+#atlasOrbit.is-open .orbit-content{animation:orbit26Content .33s .15s ease-out both!important}
+#atlasOrbit.is-open .orbit-center{animation:orbit26Star .36s var(--fp26-ease) both!important}
+#atlasOrbit.is-closing .orbit-bubble{animation-duration:.24s!important}
+@keyframes orbit26Enter{0%{opacity:0;transform:translate(var(--dx),var(--dy));filter:blur(1.5px)}100%{opacity:1;transform:translate(0,0);filter:none}}
+@keyframes orbit26Content{0%{opacity:0;transform:translateY(5px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes orbit26Star{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+/* Small phones: protect an 8pt outer margin while retaining photo as dominant. */
+@media(max-width:700px) and (orientation:portrait){
+  #atlasOrbit{--orbit-cx:47%;--scale-tr:1.10;--scale-bl:.93;--scale-tl:.88;--scale-br:1.04}
+  #atlasOrbit .orbit-content{padding:10px;gap:5px}
+  #atlasOrbit .orbit-bubble.tl .orbit-content{padding:9px;gap:4px}
+  #atlasOrbit .orbit-bubble.tl .orbit-title{font-size:12px!important}
+  #atlasOrbit .orbit-bubble.tl .orbit-note{font-size:11px!important;line-height:1.42!important;-webkit-line-clamp:3}
+  #atlasOrbit .orbit-bubble.tl .orbit-action{min-height:30px!important;padding:5px 7px!important;font-size:10px!important}
+  #atlasOrbit .orbit-bubble .orbit-kicker{font-size:11px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #atlasOrbit .orbit-bubble .orbit-kicker-icon{width:13px;height:13px}
+  #atlasOrbit .orbit-bubble .orbit-title{font-size:13px!important}
+  #atlasOrbit .orbit-bubble.tr .orbit-media-hero{min-height:42px}
+}
+@media(max-width:350px) and (orientation:portrait){
+  #atlasOrbit .orbit-content{padding:8px;gap:4px}
+  #atlasOrbit .orbit-kicker{font-size:10px!important}
+  #atlasOrbit .orbit-bubble.tl .orbit-title{font-size:11px!important}
+  #atlasOrbit .orbit-bubble .orbit-note{font-size:11px;line-height:1.4!important}
+  #atlasOrbit .orbit-action{padding:6px 7px!important}
+}
+/* Reader panels: consistent line rhythm, subtle separators and honest touch cues. */
+#spotList .spotrow{border:1px solid #e9e4d8!important;box-shadow:0 3px 11px rgba(36,32,22,.035)!important}
+#spotList .spotrow:focus-visible{outline:2px solid #b18a3b;outline-offset:3px}
+#spotList .spotrow small{line-height:1.55!important}
+#drawer .backuprow{margin-top:22px}
+#drawer .footnote{max-width:44ch;line-height:1.65!important}
+#editor .edit-head h2{line-height:1.2!important}
+#editor .field,#editor .atlas-stage-selector legend{letter-spacing:0!important}
+#editor #placeNote{line-height:1.65!important;resize:vertical;min-height:116px}
+#editor .editor-save-hint{max-width:46ch;margin-inline:auto}
+#editor .atlas-editor-more summary{transition:background var(--fp26-touch) ease}
+#editor .atlas-editor-more summary:active{background:#f3eee3}
+/* Suppress 300ms iOS tap ambiguity only on controls, never scroll surfaces. */
+#atlasOrbit button,#appDock button,#drawer button,#editor button,#fpPlaceCard button{touch-action:manipulation}
+/* User preference beats all nonessential entry/collapse effects. */
+@media(prefers-reduced-motion:reduce){
+ #atlasOrbit.is-open .orbit-bubble,#atlasOrbit.is-open .orbit-content,#atlasOrbit.is-open .orbit-center,
+ #atlasOrbit.is-closing .orbit-bubble{animation-duration:.01ms!important;animation-delay:0ms!important;filter:none!important}
+ #atlasOrbit .orbit-action,#editor .atlas-editor-more summary{transition-duration:.01ms!important}
+}
+/* The orbital view is a focused moment. Keep the map itself as context but
+   retire its loading badge, zoom stack and technical labels until dismissal. */
+body.atlas-orbit-active #atlasMapLoader,
+body.atlas-orbit-active .map-status,
+body.atlas-orbit-active #figureCaption,
+body.atlas-orbit-active #mapConnectionNote,
+body.atlas-orbit-active .map-controls{
+  opacity:0!important;pointer-events:none!important;
+  transition:opacity .16s ease!important;
+}
+
+@media(hover:none) and (pointer:coarse){#editor #placeNote{resize:none}}
+
+</style>
+<style data-bundled="stage1-32-design.css">
+/* Footprint Map Stage1.32 · Unified interaction & visual system.
+   Locked: original hand-drawn icons, existing data, 4/2/1 anchored bubbles.
+   No outlined white building blocks. No large gold active tile. */
+:root{
+ --f32-bg:#f2f4f1;--f32-paper:#fafbf9;--f32-ink:#263536;--f32-muted:#748382;
+ --f32-soft:#e9eeeb;--f32-accent:#bda77c;--f32-shadow:0 16px 40px rgba(31,46,46,.105);
+ --f32-ease:cubic-bezier(.22,1,.36,1);--f32-type:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;
+}
+html,body{font-family:var(--f32-type)!important;color:var(--f32-ink)!important;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font-family:var(--f32-type)!important;-webkit-tap-highlight-color:transparent}
+button:focus:not(:focus-visible),dialog:focus,dialog:focus:not(:focus-visible){outline:none!important}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #668a88!important;outline-offset:2px!important}
+button{touch-action:manipulation}
+[hidden],#atlasOrbit .orbit-bubble[hidden]{display:none!important}
+/* Compact dock, four independent actions. A search field replaces the dock in place. */
+#appDock{width:min(334px,calc(100vw - 30px))!important;min-height:64px!important;padding:5px!important;
+ border:0!important;border-radius:22px!important;background:rgba(249,251,249,.92)!important;
+ box-shadow:0 9px 29px rgba(25,45,45,.10)!important;backdrop-filter:blur(22px) saturate(1.1)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(1.1)!important}
+#appDock .dock-btn{min-height:54px!important;height:54px!important;gap:3px!important;padding:5px 2px!important;
+ border:0!important;border-radius:15px!important;transition:background .22s ease,transform .29s var(--f32-ease)!important}
+#appDock .dock-btn img{width:23px!important;height:23px!important}
+#appDock .dock-btn span{font-size:11px!important;font-weight:580!important;line-height:1.25!important;letter-spacing:0!important}
+#appDock .dock-btn.active,#appDock .dock-btn[aria-current="page"],#appDock .dock-btn.fp25-current,
+#appDock #dockStars.active{background:#e8eeeb!important;color:#263536!important;box-shadow:none!important}
+#appDock .dock-btn:active{transform:scale(.96)!important;background:#dfeae6!important}
+#fpSearchSheet{width:min(334px,calc(100vw - 30px))!important;bottom:calc(12px + env(safe-area-inset-bottom) + var(--fp-keyboard,0px))!important}
+#fpSearchSheet .fp-search-top{border:0!important;box-shadow:0 9px 29px rgba(25,45,45,.10)!important;background:rgba(249,251,249,.94)!important}
+#fpSearchSheet .fp-search-body{background:rgba(250,251,249,.98)!important;border:0!important;
+ box-shadow:0 12px 35px rgba(32,48,48,.1)!important;overscroll-behavior:contain}
+#fpSearchSheet .fp-search-row{border-bottom:1px solid #eef1ee!important;transition:background .18s ease}
+#fpSearchSheet .fp-search-row:active{background:#edf2ee!important}
+#dockRoutePop{border:0!important;background:rgba(250,251,249,.96)!important;box-shadow:var(--f32-shadow)!important}
+/* Map controls: paper + shadow, no redundant outline. */
+.map-controls .circlebtn{border:0!important;background:rgba(250,251,249,.95)!important;
+ box-shadow:0 5px 16px rgba(33,53,53,.12)!important;border-radius:17px!important;width:46px!important;height:46px!important}
+.map-controls .circlebtn:active{transform:scale(1.06)!important}
+/* Browsing and saved places: one content rhythm, two easy-entry cards. */
+#drawer{background:var(--f32-bg)!important;color:var(--f32-ink)!important;box-shadow:0 -14px 44px rgba(25,41,41,.13)!important;
+ border:0!important;border-radius:24px 24px 0 0!important;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+#drawer .drawer-head{background:var(--f32-bg)!important;padding:7px 4px 15px!important;min-height:68px!important}
+#drawer .drawer-head h2,#drawer .drawer-cn{font-size:20px!important;font-weight:665!important;letter-spacing:-.032em!important;color:var(--f32-ink)!important}
+#drawer #sheetCount{font-size:12px!important;font-weight:470!important;color:#84918d!important}
+#drawer .fp30-hub-grid{gap:12px!important;margin:5px 0 20px!important}
+#drawer .fp30-entry{min-height:132px!important;padding:16px 14px 14px!important;gap:8px!important;
+ border:0!important;border-radius:18px!important;background:var(--f32-paper)!important;
+ box-shadow:0 3px 13px rgba(31,50,50,.045)!important;transition:transform .28s var(--f32-ease),background .18s ease!important}
+#drawer .fp30-entry:active{transform:scale(.98)!important;background:#ebf1ed!important}
+#drawer .fp30-entry-icon{width:33px!important;height:33px!important;background:#edf1ed!important}
+#drawer .fp30-entry strong{font-size:15px!important;line-height:1.35!important;font-weight:640!important}
+#drawer .fp30-entry small{font-size:11px!important;line-height:1.4!important;color:var(--f32-muted)!important}
+#drawer #spotList .spotrow,#drawer #drawerRouteList .rs-row{border:0!important;border-radius:17px!important;
+ background:var(--f32-paper)!important;box-shadow:0 3px 15px rgba(31,50,50,.045)!important;
+ min-height:80px!important;padding:12px!important;margin:9px 0!important;transition:transform .2s var(--f32-ease),background .18s ease!important}
+#drawer #spotList .spotrow:active,#drawer #drawerRouteList .rs-row:active{transform:scale(.992)!important;background:#eef3ef!important}
+#drawer .spotrow strong{font-size:15px!important;letter-spacing:-.025em!important;font-weight:645!important;line-height:1.35!important}
+#drawer .spotrow small{font-size:12px!important;color:var(--f32-muted)!important;line-height:1.5!important}
+#drawer #spotList .spotrow>img,#drawer #spotList .spotrow .spotempty{width:60px!important;height:60px!important;border-radius:12px!important}
+#drawer #fp30Back{font-size:13px!important;color:#4d6869!important;min-height:44px!important}
+#drawer .fp30-detail-head h3{font-size:17px!important;font-weight:660!important}
+/* Editing: the place, intent and reason are first; metadata stays optional. */
+#editor.editor{background:var(--f32-paper)!important;border:0!important;border-radius:24px!important;
+ box-shadow:0 22px 68px rgba(18,37,37,.22)!important;max-width:510px!important;
+ max-height:calc(var(--atlas-visual-height,100dvh) - 22px)!important;outline:none!important}
+#editor::backdrop,dialog.atlas-discard-dialog::backdrop{background:rgba(19,34,35,.38)!important;backdrop-filter:blur(7px)!important;-webkit-backdrop-filter:blur(7px)!important}
+#editor .editor-scroll{padding:20px 20px 16px!important;scroll-padding-bottom:120px;overscroll-behavior-y:contain;scrollbar-width:none!important}
+#editor .edit-head{margin:0 0 10px!important}
+#editor .editor-eyebrow{font-size:10px!important;color:#87908b!important;letter-spacing:.06em!important}
+#editor .edit-head h2{font-size:22px!important;line-height:1.22!important;font-weight:690!important;color:var(--f32-ink)!important}
+#editor #coordText{font-size:11px!important;color:#93a09a!important;margin:0 0 13px!important;line-height:1.5!important}
+#editor .field,#editor .atlas-stage-selector legend{font-size:13px!important;color:#41514f!important;font-weight:660!important;margin:13px 0 7px!important}
+#editor .input,#editor .area{border:1px solid #e0e6e0!important;border-radius:13px!important;
+ background:#fff!important;padding:12px 14px!important;color:var(--f32-ink)!important;font-size:16px!important;
+ box-shadow:none!important;outline:none!important;transition:border-color .18s ease,box-shadow .18s ease!important}
+#editor .input:focus,#editor .area:focus{border-color:#8fa6a0!important;box-shadow:0 0 0 3px rgba(132,160,152,.16)!important}
+#editor .area{min-height:104px!important;line-height:1.65!important}
+#editor .atlas-stage-option span{border:1px solid #dfe5df!important;background:#fff!important;border-radius:14px!important;min-height:67px!important;box-shadow:none!important}
+#editor .atlas-stage-option input:checked+span{background:#e9f0eb!important;border-color:#afc0b6!important;box-shadow:none!important}
+#editor .atlas-stage-option b{font-size:14px!important;font-weight:655!important}
+#editor .atlas-stage-option small{color:#83918a!important;font-size:11px!important}
+#editor .atlas-editor-more{border:0!important;border-radius:17px!important;background:#f2f4ef!important;box-shadow:none!important}
+#editor .atlas-editor-more summary{min-height:50px!important;border:0!important;border-radius:16px!important;padding:13px 15px!important}
+#editor .atlas-editor-more summary span{font-size:14px!important;color:var(--f32-ink)!important;font-weight:640!important}
+#editor .atlas-editor-more summary small{font-size:11px!important;color:#85918a!important}
+#editor .rank-choices label{border:1px solid #dce3dc!important;border-radius:13px!important;background:transparent!important;color:#44524d!important}
+#editor .rank-choices label:has(input:checked){background:#e8eee6!important;border-color:#a9b9aa!important}
+#editor .editor-actions{padding:14px 0 6px!important;box-shadow:none!important;background:linear-gradient(to bottom,rgba(250,251,249,0),#fafbf9 25%)!important}
+#editor .editor-actions .primary-btn{min-height:52px!important;border:0!important;border-radius:15px!important;background:#293d3e!important;
+ color:#fff!important;font-size:15px!important;font-weight:670!important;box-shadow:0 8px 20px rgba(37,59,59,.12)!important}
+#editor .editor-actions .primary-btn:active{background:#405b5b!important;transform:scale(.99)}
+#editor .editor-save-hint{font-size:11px!important;color:#929c96!important;line-height:1.5!important;margin:6px 0 0!important}
+/* Confirmation dialogs: compact, quiet and consistent, no alert-like giant borders. */
+dialog.atlas-discard-dialog{border:0!important;border-radius:22px!important;background:var(--f32-paper)!important;
+ box-shadow:0 20px 65px rgba(23,39,41,.23)!important;width:min(340px,calc(100vw - 36px))!important;padding:0!important;outline:none!important}
+dialog.atlas-discard-dialog .atlas-discard-inner{padding:24px 21px 18px!important}
+dialog.atlas-discard-dialog .discard-symbol{font-size:20px!important;background:#edf2ed!important;color:#536a63!important;
+ border-radius:12px!important;width:38px!important;height:38px!important;display:grid!important;place-items:center!important;margin:0 auto 12px!important}
+dialog.atlas-discard-dialog h2{font-size:19px!important;font-weight:680!important;letter-spacing:-.025em!important;margin:0 0 8px!important;color:var(--f32-ink)!important}
+dialog.atlas-discard-dialog p{font-size:13px!important;line-height:1.6!important;color:var(--f32-muted)!important;margin:0 0 18px!important}
+dialog.atlas-discard-dialog .discard-actions{display:grid!important;gap:9px!important;margin:0!important}
+dialog.atlas-discard-dialog .discard-actions button{width:100%!important;min-height:46px!important;border-radius:13px!important;
+ border:0!important;font-size:14px!important;font-weight:640!important;box-shadow:none!important}
+dialog.atlas-discard-dialog .discard-actions button:first-child{background:#2b4040!important;color:#fff!important}
+dialog.atlas-discard-dialog .discard-actions button:last-child{background:#f4ece8!important;color:#9b564d!important}
+/* Existing route controls and cards share the same density without changing itinerary logic. */
+#atlasRoutesSheet,.route-page .stop-bubble,.journey-page .builder,.journey-page .block{
+ font-family:var(--f32-type)!important;color:var(--f32-ink)!important}
+#atlasRoutesSheet{background:var(--f32-paper)!important;border:0!important;box-shadow:var(--f32-shadow)!important}
+#atlasRoutesSheet .rs-row,.route-page .stop-bubble,.journey-page .place,.journey-page .choice{
+ border-color:rgba(184,199,188,.18)!important;border-radius:16px!important;box-shadow:0 3px 16px rgba(31,50,50,.05)!important}
+#atlasRoutesSheet .rs-new,.journey-page button,.route-page button{font-family:var(--f32-type)!important}
+#atlasRoutesSheet .rs-head strong{font-size:18px!important;font-weight:665!important}
+/* Bubbles: sizes and silhouette fixed; the DOM only chooses 4/2/1. */
+#atlasOrbit .orbit-bubble[hidden]{display:none!important}
+#atlasOrbit .orbit-bubble{isolation:isolate;overflow:visible!important;animation:none!important;filter:none!important;
+ border:0!important;will-change:transform,opacity}
+#atlasOrbit .orbit-svg{overflow:visible!important;filter:drop-shadow(0 9px 16px rgba(28,49,48,.16))!important}
+#atlasOrbit .orbit-svg path{fill:rgba(250,251,249,.94)!important;stroke:none!important;stroke-width:0!important}
+#atlasOrbit .orbit-content{animation:none!important;transition:none!important}
+#atlasOrbit .orbit-center svg path{fill:#c3aa77!important;stroke:#2f4243!important;stroke-width:2.25!important}
+#atlasOrbit .orbit-bubble.combo .orbit-content{padding:calc(12px * var(--orbit-unit,1))!important;
+ display:flex!important;gap:calc(8px * var(--orbit-unit,1))!important;flex-direction:column!important;min-width:0!important}
+#atlasOrbit .orbit-combo-title{font-size:calc(14px * var(--orbit-unit,1));font-weight:700;line-height:1.28;color:var(--f32-ink);
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#atlasOrbit .orbit-combo-section{display:flex;flex-direction:column;gap:4px;min-height:0}
+#atlasOrbit .orbit-combo-section .orbit-kicker{font-size:calc(12px * var(--orbit-unit,1))!important}
+#atlasOrbit .orbit-combo-brief{font-size:calc(11px * var(--orbit-unit,1));line-height:1.55;margin:0;color:#667774;
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+#atlasOrbit .orbit-combo-media{flex:1;min-height:0}
+#atlasOrbit .orbit-combo-preview{border:0!important;border-radius:calc(12px * var(--orbit-unit,1));background:#e8eeea!important;
+ color:#667875;box-shadow:none!important;flex:1;min-height:40px;max-height:107px;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:7px;font-size:11px}
+#atlasOrbit .orbit-combo-preview img:not(.orbit-ref-action-icon){object-fit:cover;width:100%;height:100%}
+#atlasOrbit .orbit-combo-preview .orbit-ref-action-icon{width:20px;height:20px}
+#atlasOrbit .orbit-combo-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-height:33px}
+#atlasOrbit .orbit-combo-shortcuts button{border:0!important;border-radius:11px!important;padding:5px 7px!important;
+ background:#e9efeb!important;color:#445855!important;display:flex!important;justify-content:center!important;gap:5px!important;
+ font-size:11px!important;font-weight:610!important;min-height:33px!important;margin:0!important}
+#atlasOrbit .orbit-combo-shortcuts button .orbit-ref-action-icon{height:15px;width:15px}
+#atlasOrbit .orbit-combo-shortcuts button:active{background:#dce8e1!important}
+@media(max-width:355px){#atlasOrbit .orbit-combo-shortcuts button{font-size:10px!important;gap:3px!important}}
+/* Date sheet: precise control without iOS native dark calendar alert. */
+#fp32Calendar:not([open]){display:none!important}
+#fp32Calendar{position:fixed;inset:0;z-index:4000;display:grid;place-items:center;padding:20px;
+ width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border:0;outline:0;box-shadow:none;
+ background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
+#fp32Calendar .fp32-cal-panel{width:min(345px,calc(100vw - 32px));padding:18px 16px 15px;
+ border-radius:22px;background:#fafbf9;box-shadow:0 21px 64px rgba(15,33,34,.22);color:var(--f32-ink)}
+#fp32Calendar .fp32-cal-header{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:14px}
+#fp32Calendar .fp32-cal-header strong{font-size:17px;font-weight:690}
+#fp32Calendar button{border:0;border-radius:12px;background:transparent;color:var(--f32-ink);min-height:40px;min-width:40px}
+#fp32Calendar button:active{background:#e5ece8}
+#fp32Calendar .fp32-cal-week,#fp32Calendar .fp32-cal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+#fp32Calendar .fp32-cal-week{margin-bottom:6px;color:#85938e;font-size:11px;text-align:center}
+#fp32Calendar .fp32-cal-days button{aspect-ratio:1;width:100%;min-height:0;min-width:0;font-size:13px;font-weight:550}
+#fp32Calendar .fp32-cal-days button[aria-selected=true]{background:#324f4c;color:#fff}
+#fp32Calendar .fp32-cal-days button.is-today:not([aria-selected=true]){background:#e7eee9;color:#294f4b}
+#fp32Calendar .fp32-cal-days span{min-height:35px}
+#fp32Calendar .fp32-cal-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:14px}
+#fp32Calendar .fp32-cal-actions button{background:#eef2ef;font-size:13px;min-height:44px}
+#fp32Calendar .fp32-cal-actions button:last-child{background:#304b4b;color:white}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}
+ #atlasOrbit .orbit-bubble,#atlasOrbit .orbit-content,#appDock,#drawer{animation:none!important;transition:none!important}}
+
+#fp32Calendar::backdrop{background:rgba(23,38,39,.38);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+#atlasOrbit .orbit-combo-nearby{position:absolute;inset:12px;z-index:4;display:flex;flex-direction:column;justify-content:center;
+ gap:5px;padding:13px;border-radius:14px;background:rgba(250,251,249,.98);box-shadow:0 3px 18px rgba(35,55,53,.10);
+ color:#637670;font-size:12px;overflow-y:auto}
+#atlasOrbit .orbit-combo-nearby button{min-height:40px;border:0;background:#eaf0eb;border-radius:9px;text-align:left;
+ padding:8px 10px;font-size:12px;color:#2d4a46;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+#atlasOrbit .orbit-combo-nearby .orbit-combo-nearby-close{background:transparent!important;color:#385853!important;
+ font-weight:660!important;min-height:30px;text-align:left;padding:2px 5px;margin-bottom:3px}
+#atlasOrbit .orbit-combo-nearby p{color:#61766f;font-size:11px;line-height:1.5;margin:5px 0}
+
+</style>
+<style id="stage135-route-detail">
+#rvDetail .rv-source-row{display:flex;gap:8px;align-items:center;min-width:0;margin:7px 0}
+#rvDetail .rv-source-row>a{flex:1;min-width:0;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:0;background:#f0f3ef;color:#385854;min-height:43px;display:flex;align-items:center}
+#rvDetail .rv-source-row>button{flex:none;background:#e6eee9;border:0;border-radius:11px;color:#35534d;padding:0 11px;min-height:43px;font-size:13px;font-weight:650;cursor:pointer}
+#rvDetail .rv-source-tip{font-size:11px;line-height:1.55;color:#73817c;margin:10px 2px 2px}
+#rvDetail .rv-sec>small{color:#68807a!important;letter-spacing:0!important;font-size:12px!important;font-weight:700!important}
+#rvDetail .ops a,#rvDetail .ops button{min-height:44px}
+</style><style data-bundled="stage1-36-polish.css">
+/* Footprint Map · Stage 1.36 | Finishing pass on approved Stage 1.35.
+   Lightweight visual corrections only; the map renderer, original hand-drawn
+   icon files, star geometry, 4/2/1 SVG bubbles and local stores are unchanged. */
+:root{
+ --fp36-ink:#263a38;--fp36-quiet:#71827d;--fp36-hairline:#e5ebe6;
+ --fp36-paper:#fafbf9;--fp36-accent:#36524d;
+ --fp36-ease:cubic-bezier(.2,.85,.3,1);
+ --fp36-type:-apple-system,BlinkMacSystemFont,'SF Pro Text','PingFang SC','Helvetica Neue',sans-serif;
+}
+html{font-family:var(--fp36-type);-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{font-family:var(--fp36-type);-webkit-font-smoothing:antialiased;}
+button,input,textarea,select{font-family:inherit;}
+button,a,summary,[role=button]{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+:where(button,a,select,input,textarea,summary):focus-visible{outline:2px solid #698e87!important;outline-offset:3px!important;}
+:where(.drawer,.editor-scroll,.place-list,.chosen-list,.route-search-list,.fp-search-body,.asd-scroll){overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;}
+/* Map remains full-bleed. Only unify icon and caption rhythm inside the four-item dock. */
+#appDock{box-sizing:border-box;isolation:isolate;}
+#appDock .dock-btn{position:relative;will-change:auto;}
+#appDock .dock-btn img{object-fit:contain;display:block;flex:0 0 auto;}
+#appDock .dock-btn span{font-family:var(--fp36-type);letter-spacing:-.015em!important;}
+#appDock .dock-btn.active:after,#appDock .dock-btn.fp25-current:after{content:"";position:absolute;bottom:3px;left:calc(50% - 9px);width:18px;height:2px;border-radius:2px;background:#708a81;opacity:.62;pointer-events:none;}
+#appDock .dock-btn:focus-visible{outline-offset:-3px!important;}
+@media(hover:hover){#appDock .dock-btn:hover:not(.active){background:#f0f4f0!important;}}
+#dockRoutePop .dock-pop-btn{min-height:52px;}
+#drawer{scrollbar-width:thin;scrollbar-color:#c9d5ce transparent;}
+#drawer .drawer-head{isolation:isolate;transition:box-shadow .2s ease;}
+#drawer.fp36-scrolled .drawer-head{box-shadow:0 10px 22px #20342e11;}
+#drawer #spotList .spotrow strong,#drawer .fp30-entry strong,#drawer #drawerRouteList .rs-row strong{overflow-wrap:anywhere;}
+#drawer .fp30-entry-icon img{object-fit:contain;}
+#drawer .fp30-entry-arrow{font-size:17px;line-height:1;color:#83958e;}
+#drawer .fp30-entry:focus-visible{outline-offset:1px!important;}
+#fpSearchSheet .fp-search-row{min-height:58px;}
+#fpSearchSheet .fp-search-row :is(strong,small){overflow-wrap:anywhere;}
+#fpSearchSheet input,#searchInput,#searchDock input,#routeSearchInput{font-size:16px!important;}
+#editor .editor-scroll{scroll-behavior:auto;}
+#editor .editor-save-hint{max-width:38ch;margin-inline:auto!important;}
+#editor .atlas-editor-more summary:active{background:#eaf0ea!important;}
+#editor #placeSourceLinks{font-size:16px!important;}
+#editor .editor-actions{box-shadow:0 -5px 20px #273a3211!important;}
+#editor .iconclose,#drawer .iconclose{min-height:44px;min-width:44px;display:grid;place-items:center;}
+#atlasOrbit .orbit-bubble{backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+/* Route planner: coherent type sizes, comfortable tap targets, quiet surfaces. */
+body.journey-page{font-family:var(--fp36-type);--fp36-line-height:1.5;}
+.journey-page .builder h1{font-weight:720;letter-spacing:-.046em;}
+.journey-page .intro{max-width:38ch;line-height:1.7;}
+.journey-page .block h2{font-size:13px;font-weight:690;letter-spacing:-.018em;}
+.journey-page .section-head{align-items:baseline;}
+.journey-page .mini-label,.journey-page .count{color:#85948e;font-weight:560;}
+.journey-page .block label:not(.filelabel){font-size:12px;line-height:1.45;letter-spacing:.005em;}
+.journey-page .block :is(input:not([type=file]),select){font-size:16px!important;min-height:46px;line-height:1.4;border-radius:13px;transition:border-color .16s ease,box-shadow .16s ease;}
+.journey-page .block :is(input:not([type=file]),select):focus{border-color:#87a39b;box-shadow:0 0 0 3px #688c7e1a;outline:0;}
+.journey-page .block input::placeholder{color:#a0aca6;opacity:1;}
+.journey-page .block input[type=date]{padding-inline:9px;min-width:0;}
+.journey-page .form-row>div{min-width:0;}
+.journey-page .place-list,.journey-page .chosen-list{scrollbar-width:thin;scrollbar-color:#c6d2cb transparent;scroll-padding:8px;}
+.journey-page .place{padding:12px 13px;min-height:61px;border-radius:15px;transition:background .18s ease,border-color .18s ease,transform .18s var(--fp36-ease);}
+.journey-page .place:active:not(:disabled){transform:scale(.99);background:#f0f5f0;}
+.journey-page .place-name,.journey-page .choice-name{font-size:14px;letter-spacing:-.017em;font-weight:650;}
+.journey-page .place-location{font-size:11px;line-height:1.45;margin-top:3px;color:#879890;}
+.journey-page .place:disabled{opacity:.7;background:#f7f9f6;}
+.journey-page .plus{font-size:22px;line-height:1;color:#8ba49a;}
+.journey-page .choice{border-radius:16px;padding:12px;column-gap:9px;row-gap:11px;box-shadow:0 1px 2px #1f3b3106;}
+.journey-page .choice-index{width:28px;height:28px;background:#eaf0ec;color:#425f58;}
+.journey-page .choice-controls{display:grid;grid-template-columns:74px minmax(91px,1fr) repeat(3,38px);gap:6px;align-items:center;justify-content:initial;}
+.journey-page .choice-controls .day-picker{width:100%!important;max-width:none;height:42px!important;min-height:42px!important;padding-inline:7px!important;}
+.journey-page .choice-controls .time-picker{width:100%;max-width:none;min-width:0;height:42px!important;min-height:42px!important;padding-inline:5px!important;}
+.journey-page .choice-controls button{width:38px;height:42px;min-height:42px!important;font-size:18px;font-weight:450;}
+.journey-page .choice-controls button:active:not(:disabled){background:#dce9e2;transform:scale(.96);}
+.journey-page .choice-controls button:disabled{opacity:.36;}
+.journey-page .route-decisions{background:#eff3ef;border:1px solid #e0e8e1;border-radius:18px;padding:15px;}
+.journey-page .route-decisions>p:first-child{font-size:13px;line-height:1.6;margin-bottom:11px;}
+.journey-page .route-decisions .full{min-height:49px;font-size:13px;font-weight:650;margin-top:8px;}
+.journey-page .route-decisions .accent,.journey-page #savePlan{background:#34514c;color:#fff;border-color:transparent;}
+.journey-page .route-decisions .accent:active,.journey-page #savePlan:active{background:#496b62;}
+.journey-page .route-decisions .outline{background:#fff;color:#405c54;}
+.journey-page .full{min-height:48px;letter-spacing:-.01em;}
+.journey-page .open-map{justify-content:center;}.journey-page .atlas-heading h2{letter-spacing:-.043em;}
+.journey-page .journey{overflow:hidden;}
+.journey-page .route-intro{padding-top:19px;}
+.journey-page .route-intro .route-name{letter-spacing:-.028em;}
+.journey-page .day-label{background:#f8faf7;}
+.journey-page .stop-card{transition:box-shadow .22s ease;border-radius:16px;}
+.journey-page .card-title{font-weight:715;letter-spacing:-.025em;}
+.journey-page .card-note{line-height:1.7;}
+.journey-page .source-entry button,.journey-page .source-entry a{font-family:inherit;min-height:39px;}
+.journey-page .journey-more>summary{border-radius:10px;}
+.journey-page .journey-more>summary:active{background:#eef3ef;}
+.journey-page .ai-dialog{max-height:calc(100dvh - 30px);overflow:auto;overscroll-behavior:contain;padding:23px;}
+.journey-page .ai-dialog textarea{font-size:16px;min-height:146px;}
+.journey-page #status{overflow-wrap:anywhere;}
+.journey-page.has-unsaved-plan #savePlan::before{content:"";display:inline-block;width:6px;height:6px;margin-right:6px;vertical-align:2px;border-radius:50%;background:#e7d8a5;}
+/* Action feedback is visible from any scroll position on the iPhone. */
+.journey-toast{position:fixed;z-index:200;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,0);width:max-content;max-width:min(380px,calc(100vw - 28px));padding:13px 17px;border-radius:16px;background:rgba(42,66,58,.97);color:white;box-shadow:0 12px 36px #233c3540;font:560 13px/1.55 var(--fp36-type);text-align:center;pointer-events:none;backdrop-filter:blur(14px);animation:fp36-toast-in .26s var(--fp36-ease) both;}
+.journey-toast[hidden]{display:none!important;}
+.journey-toast.is-error{background:rgba(101,63,47,.98);}
+.journey-toast.is-leaving{opacity:0;transform:translate(-50%,8px);transition:opacity .2s ease,transform .2s ease;}
+@keyframes fp36-toast-in{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+/* Native, keyboard-accessible confirmation, no browser blocking alert. */
+.plan-discard-dialog{color:#263a38;border:1px solid #e0e7df;background:#fbfcfa;box-shadow:0 28px 80px #1d332f44;border-radius:22px;max-width:calc(100vw - 30px);width:360px;text-align:center;padding:25px 22px 20px;}
+.plan-discard-dialog::backdrop{background:#1425217a;backdrop-filter:blur(5px);}
+.plan-discard-mark{margin:auto;width:40px;height:40px;display:grid;place-items:center;background:#edf1ea;color:#829f90;border-radius:14px;font-size:21px;}
+.plan-discard-dialog h2{font-size:19px;line-height:1.35;letter-spacing:-.035em;margin:14px 0 8px;}
+.plan-discard-dialog p{font-size:13px;line-height:1.7;color:#718179;margin:0 0 20px;}
+.plan-discard-actions{display:grid;gap:8px;}
+.plan-discard-actions button{min-height:48px;border-radius:14px;font:650 14px var(--fp36-type);cursor:pointer;}
+.plan-discard-actions .dark{background:#34514c;color:#fff;border:0;}
+.plan-discard-actions .outline{background:#fff;color:#7b5c51;border:1px solid #e7e4dd;}
+/* Route map: make tap/scroll behavior consistent with the planner. */
+.route-page #stopsDock{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.route-page #stopsDock :is(button,a){touch-action:manipulation;}
+.route-page #rvDetail{overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;}
+.route-page :is(#addStopSearch,#routeSaveName,#routeSaveOrigin,#routeSaveDest){font-size:16px!important;}
+.route-page :is(#saveRouteDialog,#addStopDialog){max-height:calc(100dvh - 22px);overflow:auto;}
+@media(max-width:760px){
+ .journey-page .topbar{height:98px;grid-template-rows:52px 42px;gap:0;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:0 15px;}
+ .journey-page .brand{font-size:15px;}
+ .journey-page .top-actions{gap:8px;padding:0 0 6px;}
+ .journey-page .topaction{min-height:40px;border-radius:12px;}
+ .journey-page .builder{padding:22px 17px 28px;}
+ .journey-page .builder h1{font-size:25px;margin:14px 0 9px;}
+ .journey-page .atlas-view{padding:25px 12px 29px;}
+ .journey-page .place-list{max-height:266px;}
+ .journey-page .chosen-list{max-height:min(48dvh,430px);}
+ .journey-page .block{padding:19px 0;}
+ .journey-page .atlas-heading{gap:10px;}
+ .journey-page .atlas-heading .print{min-height:43px;}
+ .journey-page .route-stop{min-height:160px;}
+}
+@media(max-width:360px){
+ .journey-page .choice-controls{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) repeat(3,38px);gap:5px;}
+ .journey-page .choice-controls .day-picker,.journey-page .choice-controls .time-picker{font-size:16px!important;}
+ .journey-page .choice{padding:10px;}
+ .journey-page .topbar{padding-inline:10px;}
+}
+@media(max-height:580px){.journey-toast{bottom:calc(8px + env(safe-area-inset-bottom));}.journey-page .ai-dialog{max-height:92dvh;}}
+@media(prefers-reduced-motion:reduce){
+ .journey-toast{animation:none!important;}
+ .journey-toast.is-leaving{transition:none!important;}
+ .journey-page .place,.journey-page .stop-card,#drawer .drawer-head{transition:none!important;}
+}
+@media print{.journey-toast,.plan-discard-dialog{display:none!important;}}
+
+</style>
+</head><body class="route-page">
+<div id="atlasMap" role="application" aria-label="真实地理底图和本次旅行的地点路线"></div>
+<svg id="routeLines" aria-hidden="true" preserveAspectRatio="none"><path id="routeOutline"/><path id="routeStroke"/><g id="routeSegs"></g></svg>
+<div id="pinLayer" aria-label="旅行沿线地点"></div>
+<header class="atlas-topbar">
+  <a class="atlas-back" href="./" aria-label="返回旅行地图"><span aria-hidden="true">←</span><span class="back-name">Footprint Map</span></a>
+  <div class="atlas-brand"><span class="atlas-brand-top">TRAVEL ATLAS</span><strong id="tripName">我的旅行路线</strong></div>
+  <button id="viewAll" class="view-all" type="button" aria-label="查看整条路线"><span aria-hidden="true">⌗</span><span>全览</span></button>
+</header>
+<div class="atlas-status" id="atlasStatus" role="status">正在读取本次旅行的收藏点……</div>
+<div class="atlas-legend" id="routeLegend" hidden>依照选择顺序连线 · 线路仅供规划示意，非真实道路导航</div>
+<section id="stopBubble" class="stop-bubble" aria-label="可上下滑动的地点图文气泡" hidden><button class="bubble-grip" id="bubbleGrip" type="button" aria-label="向上展开或向下收起地点卡片"><span></span></button>
+  <div class="bubble-pointer" aria-hidden="true"></div>
+  <button id="closeBubble" class="bubble-close" type="button" aria-label="关闭地点详情">×</button>
+  <div class="bubble-meta" id="bubbleStep">STOP 01</div>
+  <h2 id="bubbleTitle"></h2>
+  <p id="bubbleAddr" class="bubble-addr"></p>
+  <p id="bubbleBrief" class="bubble-brief"></p>
+  <div id="bubbleMedia" class="bubble-media" hidden></div>
+  <div id="bubbleSources" class="bubble-sources" hidden></div>
+  <div class="bubble-ops"><a id="amapNavigate" target="_blank" rel="noopener noreferrer">高德导航</a><a id="backToSource">查看收藏详情</a></div>
+</section>
+<footer class="atlas-stops" id="stopsDock" aria-label="旅行路线站点导航">
+  <div class="dock-head"><div><small>JOURNEY / 我的旅行</small><strong id="routeSummary">路线准备中</strong></div><div class="dock-actions"><span id="travelDates"></span><button type="button" id="addStop" aria-label="在路线中添加收藏点">＋ 加点</button><button type="button" id="saveRoute" aria-label="保存当前路线">保存路线 <span aria-hidden="true">⌁</span></button></div></div>
+  <div id="stopRail" class="stop-rail" role="list"></div>
+  <div class="dock-note">所有地点按原始地理坐标显示。点击编号，查看保存的图文与来源。</div>
+</footer>
+<dialog id="saveRouteDialog" class="save-route-dialog" aria-label="保存旅行路线"><form method="dialog" id="routeSaveForm"><h2>保存这段旅程</h2><p>保存站点、顺序与日期；今后再次打开，将读取收藏地点的最新想去理由与影像。</p><label for="routeSaveName">路线名称</label><input id="routeSaveName" type="text" maxlength="80" required placeholder="例如：浙江沿海五日游" autofocus><div class="form-row"><div><label for="routeSaveStart">出发日期</label><input id="routeSaveStart" type="date"></div><div><label for="routeSaveEnd">结束日期</label><input id="routeSaveEnd" type="date"></div></div><div class="form-row"><div><label for="routeSaveOrigin">出发地</label><input id="routeSaveOrigin" type="text" maxlength="70" placeholder="上海"></div><div><label for="routeSaveDest">目的地</label><input id="routeSaveDest" type="text" maxlength="70" placeholder="浙南沿海"></div></div><div class="save-route-actions"><button value="cancel" type="button" id="routeSaveCancel">取消</button><button value="save" type="submit" id="routeSaveConfirm">保存路线</button></div><p id="saveRouteError" role="status"></p></form></dialog><dialog id="addStopDialog" class="save-route-dialog add-stop-dialog" aria-label="在路线中添加收藏点"><div class="asd-head"><h2>把收藏点加进路线</h2><button type="button" id="addStopClose" class="asd-close" aria-label="关闭">✕</button></div><div class="asd-scroll"><p>从你主页的 ★ 收藏里选择；加入后点「保存路线」生效，主页星标保持不变。</p><label for="addStopSearch">搜索收藏</label><input id="addStopSearch" type="search" placeholder="搜索名称或地址…" autocomplete="off"><div id="addStopList" class="add-stop-list" role="listbox" aria-label="可加入的收藏点"></div><p class="add-stop-foot">主页还没有这个点？<a href="./">回主页点亮收藏</a>，再回来添加。</p></div><div class="asd-foot"><label for="addStopDay">安排到第几天</label><select id="addStopDay"></select><p id="addStopError" role="status"></p><div class="save-route-actions"><button type="button" id="addStopCancel">取消</button><button type="button" id="addStopConfirm" disabled>加入路线</button></div></div></dialog><div id="emptyState" class="empty-state" hidden><div class="empty-inner"><div class="empty-icon">☆</div><h1>还没有本次路线</h1><p id="emptyMessage">先在 Footprint Map 选择已收藏地点，才能生成路线地图。</p><a href="./">返回旅行地图 选点</a></div></div>
+<style id="rv15">
+
+/* ===== build.15 路线视图定稿（手绘稿3/5） ===== */
+.atlas-brand{display:none!important}
+.atlas-back{border-radius:14px!important;width:44px;min-width:44px;padding:0!important;display:grid;place-items:center}
+.atlas-back .back-name{display:none!important}
+.day-start-pill{display:none!important}
+#viewAll{font-size:0!important;position:fixed;top:calc(var(--safe-top,0px) + 11px);right:14px;z-index:12;width:44px;height:44px;border-radius:14px;border:1px solid #e7e0d3;background:#fffef9ec;box-shadow:0 4px 14px #1111;display:grid;place-items:center;padding:0;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#viewAll::before{width:23px!important;height:23px!important}
+.route-pin{width:46px;height:46px}
+.rv-star{display:block;width:44px;height:44px;filter:drop-shadow(0 3px 4px rgba(17,17,17,.22));transition:transform .25s;pointer-events:none}
+.route-pin.active .rv-star{transform:scale(1.18)}
+/* build .20 · 用户批注：D1 黑牌含义不明——天数信息已在底部 chip(01·D1)与详情卡副标题(D1·第2站)，地图上的黑牌移除 */
+#stopsDock .dock-head{display:none}
+#stopsDock .dock-note{display:none}
+.rv-railrow{display:flex;gap:4px;align-items:center}
+.rv-railrow #stopRail{flex:1;min-width:0;padding-bottom:0;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 86%,transparent);mask-image:linear-gradient(90deg,#000 86%,transparent)}
+.rv-railrow #stopRail::-webkit-scrollbar{display:none}
+.rv-railrow #addStop,.rv-railrow #saveRoute{flex:none;font-size:0!important;width:40px;min-width:40px;min-height:40px;height:40px;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;display:grid;place-items:center;cursor:pointer}
+.rv-railrow #addStop::before,.rv-railrow #saveRoute::before{width:23px!important;height:23px!important}
+.rv-railrow #saveRoute span{display:none}
+body.rv-dirty #saveRoute::before{background-color:#c8963e!important}
+/* build .19 · 用户批注:底栏 icon 钉死墨色(旧缓存的 CSS 变量曾把它们串成蓝色),尺寸统一 22px */
+#stopsDock #addStop::before,#stopsDock #saveRoute::before{background:#161616!important;width:22px!important;height:22px!important}
+body.rv-dirty #stopsDock #saveRoute::before{background:#c8963e!important}
+#viewAll::before{background:#161616!important}
+.stop-chip{cursor:grab;touch-action:pan-x}
+.stop-chip::before{content:"";width:8px;height:14px;flex:none;background-image:radial-gradient(#c9c2b4 1.6px,transparent 1.8px);background-size:4px 4.6px;background-position:center;opacity:.9}
+.stop-chip.rv-dragging{opacity:.55;transform:scale(1.05)}
+body:has(#stopBubble:not([hidden])) #stopsDock{display:none}
+body:has(#rvDetail.open) #stopsDock{display:none}
+#stopBubble .bubble-meta{display:none}
+#stopBubble .bubble-ops a{font-size:0!important;display:grid;place-items:center;padding:8px 5px}
+#stopBubble .bubble-ops a::before{width:20px!important;height:20px!important}
+.rv-hints{display:flex;gap:14px;align-items:center;margin:6px 0 2px}
+.rv-hints span{display:flex;gap:5px;align-items:center;font-size:11px;color:#b6af9f}
+.rv-hints img{width:19px;opacity:.4}
+.rv-hints span.has{color:#161616}
+.rv-hints span.has img{opacity:1}
+#rvDetail{position:fixed;left:0;right:0;bottom:0;max-height:78%;z-index:40;background:#fbf8f0;border-radius:22px 22px 0 0;box-shadow:0 -10px 34px #0003;padding:16px 18px;overflow-y:auto;transform:translateY(125%);transition:transform .55s cubic-bezier(.32,.9,.35,1)}
+#rvDetail.open{transform:translateY(0)}
+#rvDetail .grab{width:44px;height:5px;border-radius:3px;background:#ddd5c4;margin:0 auto 12px;position:sticky;top:0;z-index:3}
+#rvDetail .photos{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto}
+#rvDetail .photos div{width:80px;height:60px;border-radius:14px;background:linear-gradient(135deg,#dfe7d5,#cdd9e2);display:grid;place-items:center;flex:none}
+#rvDetail .photos img{width:21px;height:21px;opacity:.5}
+#rvDetail h2{font-size:20px;color:#161616;margin:0 34px 3px 0}
+#rvDetail .addr{font-size:11px;color:#9a917f;margin-bottom:10px}
+#rvDetail .brief{font-size:12px;color:#44423c;line-height:1.7;background:#fff;border:1px solid #eee7d9;border-radius:14px;padding:11px 13px;margin-bottom:12px}
+#rvDetail .rv-sec{margin:0 0 12px}
+#rvDetail .rv-sec>small{display:block;font-size:11px;font-weight:800;color:#b3934a;margin-bottom:7px}
+#rvDetail .rv-links .links{display:flex;flex-direction:column;gap:6px}
+#rvDetail .rv-links a{display:block;font-size:12px;color:#7b6324;text-decoration:none;background:#f7f1df;border:1px solid #eae0bd;border-radius:10px;padding:9px 11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#rvDetail .rv-links-empty{font-size:12px;color:#8f887a;margin:0}
+#rvDetail .ops{display:flex;gap:8px}
+#rvDetail .ops button{flex:1;height:46px;border:1px solid #e7e0d3;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;font-size:12px;font-weight:750;color:#333a36}
+#rvDetail .ops button[data-op="nav"]{background:#f1d36c;border-color:#e3c25e;color:#473b1b}
+#rvDetail .ops button span{pointer-events:none}
+#rvDetail .ops img{width:17px;height:17px}
+.rv-x{position:sticky;top:12px;margin:-2px 0 -30px auto;width:40px;height:40px;border-radius:0;border:0;background:transparent;color:#8a8577;font-size:26px;font-weight:300;line-height:1;display:grid;place-items:center;cursor:pointer;z-index:3} /* build .21 · 详情卡滚动时关闭钮吸附额头 */
+.rv-x img{width:15px;height:15px}
+#stopBubble{bottom:12px}
+/* build .16 · 图8 批注：大气泡退役，改为贴星名称小气泡；点气泡→详情大卡底部升起 */
+#stopBubble{display:none!important}
+body:has(#stopBubble:not([hidden])) #stopsDock{display:block!important}
+.rv-callout{position:fixed;z-index:40;transform:translate(-50%,-100%);max-width:min(230px,72vw);background:#fffefa;border:1px solid #e4dfd2;border-radius:14px;box-shadow:0 7px 22px #1d211b30;padding:7px 12px 8px;text-align:center;cursor:pointer;animation:rvCalloutIn .2s ease both;font-family:inherit}
+@keyframes rvCalloutIn{from{transform:translate(-50%,calc(-100% + 10px));opacity:0}to{transform:translate(-50%,-100%);opacity:1}}
+.rv-callout::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#fffefa}
+.rv-callout small{display:block;font-size:11px;font-weight:820;letter-spacing:.1em;color:#8a6d22;line-height:1.3}
+.rv-callout span{display:block;font-size:12px;font-weight:750;color:#242b28;line-height:1.35;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.rv-callout[hidden]{display:none}
+@media (max-width:640px){
+  #addStopDialog{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;max-width:none;margin:0;border:0;border-radius:22px 22px 0 0;background:#fbf8f0;padding:16px 16px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -10px 34px #0003;height:min(78dvh,660px);max-height:calc(100dvh - 24px)}
+  #addStopDialog::backdrop{background:rgba(20,20,18,.18)}
+  #addStopDialog .add-stop-list{max-height:none;overflow:visible}
+}
+
+</style>
+
+<script>
+/* ===== build.15 路线视图定稿 add-on ===== */
+(function(){
+'use strict';
+function ready(fn){const t0=Date.now();(function poll(){
+  if(window.__atlasMap&&window.__atlasRV&&document.querySelector('.route-pin'))return fn();
+  if(Date.now()-t0>45000)return;setTimeout(poll,300)})()}
+ready(init);
+function init(){
+  const RV=window.__atlasRV, map=window.__atlasMap;
+  // 纯星 pin（pinLayer 重渲染后自动补）
+  const pinLayer=document.getElementById('pinLayer');
+  const starify=()=>{document.querySelectorAll('.route-pin').forEach(p=>{
+    if(p.dataset.rv)return;p.dataset.rv='1';
+    p.innerHTML='<img class="rv-star" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTYXZlZCI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0zMiA4IEwzOS4yIDIzLjIgTDU2IDI1LjQgTDQzLjIgMzcuMiBMNDYuMSA1NC40IEwzMS43IDQ1LjggTDE2LjggNTQuNCBMMjAgMzcuNCBMOC4xIDI1LjMgTDI0LjggMjNaIiBmaWxsPSIjRjZDQzNCIi8+CiAgPHBhdGggZD0iTTI1IDI1IEwzMCAxNCIgc3Ryb2tlLXdpZHRoPSIxLjMiLz4KIDwvZz4KPC9zdmc+" alt="">';
+  });};
+  starify();new MutationObserver(starify).observe(pinLayer,{childList:true});
+  const lg=document.getElementById('routeLegend');if(lg)lg.textContent='按实际道路绘制 · 仅供规划参考';
+  // 加点卡重构：＋｜chips｜保存 一行
+  const dock=document.getElementById('stopsDock');
+  if(!dock.querySelector('.rv-railrow')){
+    const row=document.createElement('div');row.className='rv-railrow';
+    dock.prepend(row);
+    row.append(document.getElementById('addStop'),document.getElementById('stopRail'),document.getElementById('saveRoute'));
+  }
+  // 保存金色 = 有未保存改动
+  const dirty=on=>document.body.classList.toggle('rv-dirty',on);
+  new MutationObserver(()=>dirty(true)).observe(document.getElementById('stopRail'),{childList:true});
+  document.getElementById('routeSaveForm').addEventListener('submit',()=>dirty(false));
+  // chips 长按拖拽调序
+  const rail=document.getElementById('stopRail');
+  let drag=null;
+  rail.addEventListener('pointerdown',e=>{
+    const chip=e.target.closest('.stop-chip');if(!chip)return;
+    drag={chip,timer:setTimeout(()=>{if(drag){drag.on=true;chip.classList.add('rv-dragging')}},220),on:false};
+  });
+  window.addEventListener('pointermove',e=>{
+    if(!drag||!drag.on)return;
+    const chips=[...rail.children];
+    for(const c of chips){
+      if(c===drag.chip)continue;
+      const r=c.getBoundingClientRect();
+      if(e.clientX<r.left+r.width/2){rail.insertBefore(drag.chip,c);return}
+    }
+    rail.appendChild(drag.chip);
+  },{passive:true});
+  window.addEventListener('pointerup',()=>{
+    if(!drag)return;clearTimeout(drag.timer);
+    if(drag.on){
+      drag.chip.classList.remove('rv-dragging');
+      const ids=[...rail.children].map(c=>RV.places[+c.dataset.stop]?.id).filter(Boolean);
+      RV.applyOrder(ids);dirty(true);reRoad();
+      const kill=ev=>{ev.stopPropagation();ev.preventDefault();rail.removeEventListener('click',kill,true)};
+      rail.addEventListener('click',kill,true);setTimeout(()=>rail.removeEventListener('click',kill,true),350);
+    }
+    drag=null;
+  });
+  // 真实道路线 + D标
+  let roadCoords=null,roadBusy=false,roadRetry=0;
+  async function reRoad(){
+    if(roadBusy)return;roadBusy=true;
+    if(map&&!map.isStyleLoaded()){roadBusy=false;map.once('idle',()=>reRoad());setTimeout(()=>reRoad(),2500);return}
+    try{
+      if(map.getLayer('rv-road-line'))map.removeLayer('rv-road-line');
+      if(map.getLayer('rv-road-casing'))map.removeLayer('rv-road-casing');
+      if(map.getSource('rv-road'))map.removeSource('rv-road');
+    }catch(e){}
+    document.querySelectorAll('.rv-daytag').forEach(t=>t.remove());
+    document.getElementById('routeLines').style.display='';
+    const pts=RV.places.map(p=>[+p.lng,+p.lat]);
+    if(pts.length<2){roadBusy=false;return}
+    try{
+      const url='https://router.project-osrm.org/route/v1/driving/'+pts.map(c=>c[0]+','+c[1]).join(';')+'?geometries=geojson&overview=full';
+      const j=await (await fetch(url)).json();
+      roadCoords=j.routes[0].geometry.coordinates;
+      map.addSource('rv-road',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:roadCoords}}});
+      map.addLayer({id:'rv-road-casing',type:'line',source:'rv-road',paint:{'line-color':'#fffef7','line-width':7,'line-opacity':.95},layout:{'line-cap':'round','line-join':'round'}});
+      map.addLayer({id:'rv-road-line',type:'line',source:'rv-road',paint:{'line-color':'#3b4544','line-width':3.1},layout:{'line-cap':'round','line-join':'round'}});
+      document.getElementById('routeLines').style.display='none';
+      roadRetry=0;
+    }catch(e){/* 离线保留原示意连线；稍后自动重试 */
+      if(roadRetry<2){roadRetry++;setTimeout(()=>reRoad(),3200)}
+    }
+    roadBusy=false;
+  }
+  /* build .20 · 用户批注：D1 黑牌含义不明且与底部 chip(01·D1)/详情卡重复——移除地图上的天数黑牌 */
+  reRoad();
+  // 气泡：提示行 + 点气泡弹详情大卡
+  const bubble=document.getElementById('stopBubble');
+  const detail=document.createElement('div');detail.id='rvDetail';
+  /* build .20 · 用户批注：详情卡内容与主页收藏点卡片联动——同一套 01 Brief / 02 影像 / 03 资料 结构 */
+  detail.innerHTML='<div class="grab"></div><button class="rv-x" aria-label="关闭"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJDbG9zZSI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0xNyAxNyBDMjYgMjUgMzkgMzkgNDcgNDcgTTQ2IDE3IEMzOSAyMyAyNSA0MSAxNyA0NyIgc3Ryb2tlLXdpZHRoPSI0LjEiLz4KIDwvZz4KPC9zdmc+" alt=""></button><h2></h2><div class="addr"></div><div class="rv-sec"><small>想去的理由</small><div class="brief"></div></div><div class="rv-sec rv-media"><small>照片与视频</small><div class="photos"></div></div><div class="rv-sec rv-links"><small>参考资料</small><div class="links"></div></div><div class="ops"><button data-op="nav"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJEaXJlY3Rpb25zIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik04IDM0IEwzMSAxMCBMNTUgMzMgTDMxIDU1IFoiLz48cGF0aCBkPSJNMjEgMzQgSDM5IFYyNSBNMzIgMjUgTDM5IDI1Ii8+PC9nPjwvc3ZnPg==" alt=""><span>导航</span></button><button data-op="src"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJPcGVuIExpbmsiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTM1IDE0IEg1MSBWMzAgTTUwIDE1IEwzMSAzNCIvPjxwYXRoIGQ9Ik00MyAzNSBWNDggUTQzIDUyIDM4IDUyIEgxNSBRMTEgNTIgMTEgNDcgVjI0IFExMSAyMCAxNiAyMCBIMjciLz48cGF0aCBkPSJNMTcgNDYgTDI3IDQ2IiBzdHJva2Utd2lkdGg9IjEuOSIvPjwvZz48L3N2Zz4=" alt=""><span>收藏详情</span></button></div>';
+  document.body.appendChild(detail);
+  detail.querySelector('.rv-x').onclick=()=>detail.classList.remove('open');
+  /* build .20 · 下滑关闭手势：捏住眉头或内容拉到顶后继续下拉，松手超阈值即收起 */
+  (function(){let sy=0,dy=0,on=false,engaged=false;detail.addEventListener('touchstart',e=>{if(detail.scrollTop>0)return;sy=e.touches[0].clientY;dy=0;on=true;engaged=!!e.target.closest('.sheet-grab,.rv-detail-head')},{passive:true});detail.addEventListener('touchmove',e=>{if(!on)return;const raw=e.touches[0].clientY-sy;if(!engaged){if(raw<26)return;engaged=true;sy=e.touches[0].clientY}dy=e.touches[0].clientY-sy;if(dy<=0){dy=0;return}if(dy>8)e.preventDefault();detail.style.transition='none';detail.style.transform='translateY('+Math.round(dy)+'px)'},{passive:false});const end=()=>{if(!on)return;on=false;engaged=false;detail.style.transition='';detail.style.transform='';if(dy>Math.min(120,detail.offsetHeight*0.28))detail.classList.remove('open');dy=0};detail.addEventListener('touchend',end,{passive:true});detail.addEventListener('touchcancel',end,{passive:true})})();
+  detail.querySelector('[data-op="nav"]').onclick=()=>document.getElementById('amapNavigate').click();
+  detail.querySelector('[data-op="src"]').onclick=()=>document.getElementById('backToSource').click();
+  function curPlace(){
+    const t=document.getElementById('bubbleTitle').textContent;
+    return RV.places.find(p=>(p.title||p.name||'')===t)||null;
+  }
+  function fillHints(){
+    if(bubble.querySelector('.rv-hints'))return;
+    const p=curPlace();if(!p)return;
+    const ph=(p.photos||[]).length, vd=(p.videos||[]).length, bf=!!(p.note||p.brief||'').trim();
+    const h=document.createElement('div');h.className='rv-hints';
+    h.innerHTML='<span class="'+(ph?'has':'')+'"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJQaG90b3MiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iMTEiIHk9IjE4IiB3aWR0aD0iMzYiIGhlaWdodD0iMzAiIHJ4PSI0Ii8+PHBhdGggZD0iTTE3IDQyIEwyNyAzMSBMMzMgMzYgTDM5IDI5IEw0NSAzNiIvPjxjaXJjbGUgY3g9IjIyIiBjeT0iMjYiIHI9IjMiLz48cGF0aCBkPSJNMjMgMTIgSDUwIFE1NSAxMiA1NSAxNyBWNDEiIHN0cm9rZS13aWR0aD0iMS45Ii8+PC9nPjwvc3ZnPg==" alt="">'+ph+'</span>'
+      +'<span class="'+(vd?'has':'')+'"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJWaWRlbyI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0xMCAxNyBDMTkgMTYgMzMgMTcgNDMgMTcgTDQzIDQ3IFEzMSA0OSAxMCA0NyBaIi8+CiAgPHBhdGggZD0iTTQ0IDI1IEw1NCAxOSBMNTUgNDQgTDQ0IDM5WiIvPgogIDxwYXRoIGQ9Ik0yNiAyNSBMMjYgMzkgTDM2IDMyIFoiIHN0cm9rZS13aWR0aD0iMi4yIi8+CiA8L2c+Cjwvc3ZnPg==" alt="">'+vd+'</span>'
+      +'<span class="'+(bf?'has':'')+'"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJCcmllZiI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0xNSAyNyBDMTggMjAgMjcgMTcgMzYgMTkgQzQzIDIwIDQ5IDI1IDQ3IDMyIEM0NSAzOCAzOCA0MiAyOSA0MSBDMjEgNDEgMTggMzYgMjMgMzMgQzI5IDI4IDM4IDI4IDM4IDMzIEMzNyAzNiAzMSAzNiAzMCAzNSIvPgogIDxwYXRoIGQ9Ik0xNiAyNSBDMjAgMTkgMjggMTYgMzUgMTcgTTIwIDQ0IEwxNyA0OSBNMjUgNDYgTDIzIDUzIiBzdHJva2Utd2lkdGg9IjEuNyIvPgogPC9nPgo8L3N2Zz4=" alt=""></span>';
+    const ops=bubble.querySelector('.bubble-ops');ops.before(h);
+  }
+  function openDetail(){
+    const p=curPlace();if(!p)return;
+    detail.querySelector('h2').textContent=p.title||p.name||'';
+    const i=RV.places.indexOf(p);
+    const addr=String(p.address||'').replace(/^原高德地址[：:]\s*/,'').trim();
+    detail.querySelector('.addr').textContent=(addr?addr+' · ':'')+'D'+(RV.stopDays[i]||1)+' · 第'+(i+1)+'站';
+    detail.querySelector('.brief').textContent=(p.note||p.brief||'').replace(/^原高德地址[：:][^\n]*\n?/,'').trim()||'（还没有 Brief，回主页为这个地点补一段为什么想去）';
+    /* build .19 · 只显示真实照片;没有照片就不再摆渐变色占位块(用户批注:像坏掉的按钮) */
+    const strip=detail.querySelector('.photos');strip.replaceChildren();
+    const okImg=src=>typeof src==='string'&&(/^(data:image\/(png|jpeg|webp|gif);base64,)/i.test(src)||/^https?:\/\//i.test(src));
+    const shots=(p.photos||[]).map(x=>okImg(typeof x==='string'?x:x?.src||'')?(typeof x==='string'?x:x.src):null).filter(Boolean).slice(0,8);
+    detail.querySelector('.rv-media').hidden=!shots.length;
+    for(const s of shots){const d=document.createElement('div');const im=document.createElement('img');im.src=s;im.alt='旅行照片';im.style.cssText='width:100%;height:100%;object-fit:cover;opacity:1';d.append(im);strip.append(d)}
+    /* build .20 · 社交资料与主页收藏卡一致：没有就显示空态文案 */
+    const links=(window.__rvSourceLinks?window.__rvSourceLinks(p):[]),box=detail.querySelector('.links');box.replaceChildren();
+    detail.querySelector('.rv-links').hidden=false;
+    if(links.length){for(const l of links){
+      const row=document.createElement('div');row.className='rv-source-row';
+      const a=document.createElement('a');a.href=l.href;a.target='_blank';a.rel='noopener noreferrer';a.textContent='打开 · '+l.label;
+      const copy=document.createElement('button');copy.type='button';copy.textContent='复制';copy.setAttribute('aria-label','复制来源链接');
+      copy.addEventListener('click',async()=>{try{if(!navigator.clipboard?.writeText)throw Error('此浏览器不支持复制');await navigator.clipboard.writeText(l.href);copy.textContent='已复制';setTimeout(()=>copy.textContent='复制',1600)}catch(_){window.prompt('可长按复制后在原平台打开链接：',l.href)}});
+      row.append(a,copy);box.append(row);
+    }box.append(Object.assign(document.createElement('p'),{className:'rv-source-tip',textContent:'部分社交平台需要登录或跳转原应用，打不开时可复制链接到相应平台查看。'}))}
+    else box.innerHTML='<p class="rv-links-empty">暂无保存的参考链接，可以在收藏地点中添加。</p>';
+    detail.classList.add('open');
+  }
+  new MutationObserver(()=>{
+    if(!bubble.hidden){bubble.querySelector('.rv-hints')?.remove();fillHints()}
+    else detail.classList.remove('open');
+  }).observe(bubble,{attributes:true,attributeFilter:['hidden']});
+  bubble.addEventListener('click',e=>{
+    if(e.target.closest('a,button,.bubble-ops'))return;
+    /* build .22 · 用户批注「直接进入收藏详情」：点气泡不再先弹精简详情卡，直达主页收藏详情 */
+    document.getElementById('backToSource')?.click();
+  });
+  // build .16 · 贴星名称小气泡：点星→callout 贴星，点气泡→详情大卡底部升起
+  const callout=document.createElement('button');
+  callout.type='button';callout.className='rv-callout';callout.hidden=true;
+  callout.setAttribute('aria-label','查看该地点详情');
+  document.body.appendChild(callout);
+  function fillCallout(){
+    const p=curPlace();if(!p){callout.hidden=true;return}
+    const i=RV.places.indexOf(p);
+    const sm=document.createElement('small');
+    sm.textContent='D'+(RV.stopDays[i]||1)+' · 第'+(i+1)+'站';
+    const nm=document.createElement('span');
+    nm.textContent=p.title||p.name||'';
+    callout.replaceChildren(sm,nm);
+    callout.hidden=false;posCallout();
+  }
+  function posCallout(){
+    if(callout.hidden)return;
+    const p=curPlace();if(!p)return;
+    const pt=map.project([+p.lng,+p.lat]);
+    const half=callout.offsetWidth/2||90;
+    const x=Math.max(half+8,Math.min(innerWidth-half-8,pt.x));
+    callout.style.left=x+'px';
+    callout.style.top=(pt.y-56)+'px';
+  }
+  new MutationObserver(()=>{
+    if(!bubble.hidden)fillCallout();
+    else callout.hidden=true;
+  }).observe(bubble,{attributes:true,attributeFilter:['hidden']});
+  /* 详情大卡升起时收起小气泡，关闭后恢复 */
+  new MutationObserver(()=>{
+    if(detail.classList.contains('open'))callout.hidden=true;
+    else if(!bubble.hidden)fillCallout();
+  }).observe(detail,{attributes:true,attributeFilter:['class']});
+  /* build .19 · 连着点不同的星:标题变了就同步刷新小气泡/提示行/详情卡
+     (原实现只在 hidden 属性变化时刷新,连点时气泡停在第一个地点) */
+  new MutationObserver(()=>{
+    if(bubble.hidden)return;
+    bubble.querySelector('.rv-hints')?.remove();fillHints();
+    if(detail.classList.contains('open'))openDetail();else fillCallout();
+  }).observe(document.getElementById('bubbleTitle'),{childList:true,characterData:true,subtree:true});
+  map.on('move',posCallout);
+  callout.addEventListener('click',e=>{e.stopPropagation();openDetail()});
+}
+})();
+</script>
+
+<script data-bundled="stage1-32-ui.js">
+/* Footprint Map 1.32 — unified, locale-first calendar.
+   No layout changes to the existing flows and no database migration. */
+(()=>{'use strict';
+if(window.__fp32CalendarInstalled)return;window.__fp32CalendarInstalled=true;
+let current=null,month=new Date(),selected='';
+const sheet=document.createElement('dialog');sheet.id='fp32Calendar';sheet.setAttribute('aria-label','选择日期');
+sheet.innerHTML=`<div class="fp32-cal-panel">
+ <div class="fp32-cal-header"><button type="button" data-prev aria-label="上一个月">‹</button><strong id="fp32CalMonth"></strong><button type="button" data-next aria-label="下一个月">›</button></div>
+ <div class="fp32-cal-week" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+ <div class="fp32-cal-days" id="fp32CalDays" role="grid" aria-label="日期"></div>
+ <div class="fp32-cal-actions"><button type="button" data-clear>清除</button><button type="button" data-today>今天</button><button type="button" data-done>完成</button></div>
+ </div>`;
+document.body.append(sheet);
+const pad=n=>String(n).padStart(2,'0');
+const iso=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
+function render(){
+ const y=month.getFullYear(),m=month.getMonth();
+ sheet.querySelector('#fp32CalMonth').textContent=`${y}年 ${m+1}月`;
+ const box=sheet.querySelector('#fp32CalDays');box.replaceChildren();
+ const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();
+ const today=new Date(),todayStr=iso(today.getFullYear(),today.getMonth(),today.getDate());
+ for(let i=0;i<first;i++)box.append(document.createElement('span'));
+ for(let d=1;d<=days;d++){
+  const day=iso(y,m,d),b=document.createElement('button');b.type='button';b.textContent=d;
+  b.dataset.date=day;b.setAttribute('aria-selected',String(selected===day));
+  b.setAttribute('aria-label',`${y}年${m+1}月${d}日`);if(day===todayStr)b.classList.add('is-today');
+  b.addEventListener('click',()=>{selected=day;render()});box.append(b);
+ }
+}
+function prepare(el){
+ if(!el||el.dataset.fp32Calendar)return;
+ // Text format remains an ISO date; existing storage and itinerary code read input.value unchanged.
+ el.type='text';el.readOnly=true;el.inputMode='none';el.autocomplete='off';
+ el.dataset.fp32Calendar='ready';el.classList.add('fp32-date');
+ el.setAttribute('aria-haspopup','dialog');el.setAttribute('aria-label',el.labels?.[0]?.textContent?.trim()||'选择日期');
+ if(!el.getAttribute('placeholder'))el.placeholder='选择日期';
+ el.addEventListener('click',e=>{e.preventDefault();open(el)});
+ el.addEventListener('keydown',e=>{if(['Enter',' ','ArrowDown'].includes(e.key)){e.preventDefault();open(el)}});
+}
+function open(el){current=el;const parsed=/^\d{4}-\d{2}-\d{2}$/.test(el.value)?el.value:'';
+ selected=parsed;const n=parsed?new Date(parsed+'T12:00:00'):new Date();month=new Date(n.getFullYear(),n.getMonth(),1);
+ render();if(!sheet.open)sheet.showModal();
+}
+function save(value){
+ if(current){current.value=value;current.dispatchEvent(new Event('input',{bubbles:true}));current.dispatchEvent(new Event('change',{bubbles:true}))}
+ if(sheet.open)sheet.close();current=null;
+}
+sheet.querySelector('[data-prev]').addEventListener('click',()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1);render()});
+sheet.querySelector('[data-next]').addEventListener('click',()=>{month=new Date(month.getFullYear(),month.getMonth()+1,1);render()});
+sheet.querySelector('[data-today]').addEventListener('click',()=>{const d=new Date();save(iso(d.getFullYear(),d.getMonth(),d.getDate()))});
+sheet.querySelector('[data-clear]').addEventListener('click',()=>save(''));
+sheet.querySelector('[data-done]').addEventListener('click',()=>save(selected));
+sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.close()});
+sheet.addEventListener('close',()=>{current=null});
+function scan(node=document){if(node.matches?.('input[type="date"]'))prepare(node);node.querySelectorAll?.('input[type="date"]').forEach(prepare)}
+scan();new MutationObserver(entries=>{for(const entry of entries)for(const n of entry.addedNodes)if(n.nodeType===1)scan(n)}).observe(document.body,{childList:true,subtree:true});
+})();
+
+</script>
+<script data-bundled="atlas-map-design.js">
+/* Footprint Map / Travel Atlas V4: shared 2D figure-ground visual palette. */
+(()=>{'use strict';
+const palette=Object.freeze({paper:'#f7f6f3',land:'#f3f2ee',park:'#f0efe9',water:'#e3e3df',road:'#b5b6b1',minor:'#d7d7d0',ink:'#393c39',stroke:'#e6e5df'});
+function apply(map){if(!map?.getStyle||!map?.setPaintProperty)return false;const style=map.getStyle();if(!Array.isArray(style?.layers))return false;
+for(const layer of style.layers){const id=String(layer.id||'').toLowerCase(),src=String(layer['source-layer']||'').toLowerCase(),name=id+' '+src;try{
+if(layer.type==='background')map.setPaintProperty(layer.id,'background-color',palette.paper);
+else if(layer.type==='fill'){const building=/building/.test(name),water=/water/.test(name),green=/park|landcover|landuse|wood|grass|forest|farmland|natural/.test(name);if(building){map.setPaintProperty(layer.id,'fill-color',['interpolate',['linear'],['zoom'],10,'#313331',14,'#323432',15.5,'#565956',15.9,'#ffffff',19,'#ffffff']);map.setPaintProperty(layer.id,'fill-opacity',['interpolate',['linear'],['zoom'],9,.8,13.5,.93,15.5,.83,16.2,.96,19,.98]);}else map.setPaintProperty(layer.id,'fill-color',water?palette.water:green?palette.park:palette.land);}
+else if(layer.type==='line'){const road=/road|street|highway|bridge|transport/.test(name),major=/motorway|trunk|primary/.test(name),water=/water/.test(name),building=/building/.test(name),trail=/path|track|footway|cycleway|pedestrian|steps|bridleway/.test(name);
+/* build .18 · 低缩放不再空白:道路从 z5 起可见,主干道更早更深;人行道/小径虚线改细实线,去掉"虚线疤"。 */
+if(trail){try{map.setPaintProperty(layer.id,'line-dasharray',['literal',[1,0]])}catch(_){}}
+map.setPaintProperty(layer.id,'line-color',water?'#cacbc5':building?palette.stroke:major?'#a9aaa3':road?palette.road:palette.minor);
+/* build .21 · 用户批注：放到最大后 block 边缘的描线辣眼睛——建筑描边随放大淡出，街区块纯白干净 */
+if(building)map.setPaintProperty(layer.id,'line-opacity',['interpolate',['linear'],['zoom'],13,.9,15.2,.18,15.5,0]);
+if(road)map.setPaintProperty(layer.id,'line-opacity',['interpolate',['linear'],['zoom'],5,major?.55:.32,12,major?.78:.6,15,.89,19,.96]);}
+else if(layer.type==='symbol'){map.setPaintProperty(layer.id,'text-color',palette.ink);map.setPaintProperty(layer.id,'text-halo-color','#faf9f5');map.setPaintProperty(layer.id,'text-halo-width',1.1);}
+else if(layer.type==='fill-extrusion')map.setLayoutProperty(layer.id,'visibility','none');
+}catch(_){}}
+try{map.setPitch?.(0)}catch(_){}return true;}
+window.AtlasFigureGround={palette,apply,version:'v4-figure-ground-20261103.18'};
+})();
+</script>
+<script data-bundled="atlas-route-buildings.js">
+/* Travel Atlas B · architectural figure-ground, strictly overhead (camera does not tilt).
+   Shared vector footprints, black → translucent → white block, 2D side relief at close zoom.
+   Does not alter any marker, route, photo, or POI behavior. */
+(()=>{'use strict';
+const VERSION='architectural-B-overhead-final-20261103';
+const NEAR='atlas-route-building-relief-near',FAR='atlas-route-building-relief-far';
+const roof=['interpolate',['linear'],['zoom'],11,'#303230',14.3,'#343633',15.08,'#5b5d59',15.48,'#969993',15.83,'#c7cac4',16.25,'#e8e9e5',16.65,'#f9f9f6',17.1,'#ffffff',19,'#ffffff'];
+const alpha=['interpolate',['linear'],['zoom'],10,1,14.5,.98,15.12,.86,15.5,.47,15.82,.41,16.08,.55,16.46,.84,16.82,.97,19,1];
+// A single, restrained lower fill creates volume; NO outline and NO duplicate shadow layers.
+const outline=roof;
+const relief1=['interpolate',['linear'],['zoom'],15.1,0,15.7,.035,16.15,.095,16.6,.16,17.1,.22,19,.22];
+
+function findBuildings(map){
+ const style=map.getStyle?.()||{};
+ let buildings=(style.layers||[]).filter(l=>l.type==='fill'&&l.source&&l['source-layer']&&/building/i.test(String(l.id)+' '+String(l['source-layer'])));
+ if(buildings.length)return buildings;
+ const vector=Object.entries(style.sources||{}).find(([_,v])=>v?.type==='vector');if(!vector)return [];
+ const id='atlas-route-fallback-real-buildings';
+ try{if(!map.getLayer?.(id)){const before=style.layers?.find(l=>l.type==='symbol'&&l.layout?.['text-field'])?.id;map.addLayer({id,type:'fill',source:vector[0],'source-layer':'building',minzoom:11,paint:{'fill-color':'#353735','fill-opacity':.98}},before)}}
+ catch(e){console.warn('无法载入建筑矢量轮廓',e);return []}
+ return (map.getStyle?.()?.layers||[]).filter(l=>l.id===id);
+}
+function paint(map,layer,key,value){try{map.setPaintProperty(layer.id,key,value)}catch(e){console.warn('建筑样式未支持',key,e?.message)}}
+function addShadow(map,id,building,shift,opacity,color){
+ if(map.getLayer?.(id))return;
+ try{map.addLayer({id,type:'fill',source:building.source,'source-layer':building['source-layer'],minzoom:15.1,paint:{
+  'fill-color':color,'fill-opacity':opacity,'fill-translate':shift,'fill-translate-anchor':'viewport'
+ }},building.id)}catch(e){console.warn('建筑俯视体块侧面暂不可用',e?.message)}
+}
+function apply(map){
+ const buildings=findBuildings(map);if(!buildings.length)return {ok:false,reason:'No OSM vector building footprint in the loaded map style'};
+ for(const l of buildings){
+  paint(map,l,'fill-color',roof);paint(map,l,'fill-opacity',alpha);paint(map,l,'fill-outline-color',outline);
+ }
+ const first=buildings[0];
+ if(map.getLayer?.(FAR))try{map.removeLayer(FAR)}catch(_){}
+ addShadow(map,NEAR,first,[2.8,3.4],relief1,'#6d7671');
+ // Markers, labels, interactive POIs and map camera are not modified.
+ return {ok:true,footprints:buildings.length,relief:[NEAR]};
+}
+function attach(map){
+ if(!map||map.__atlasOverheadB)return;
+ map.__atlasOverheadB=true;
+ const result=apply(map);
+ try{if(Math.abs(map.getPitch?.()||0)>.05)map.setPitch?.(0)}catch(_){}
+ window.__atlasRouteBStatus={version:VERSION,...result,view:'fixed-overhead',pitchMax:0};
+}
+window.AtlasRouteBuildings={attach,apply,pitchForZoom:()=>0,version:VERSION,zoomStages:[
+ {zoom:12.8,name:'黑色建筑',opacity:.98,pitch:0},
+ {zoom:15.65,name:'半透明过渡',opacity:.44,pitch:0},
+ {zoom:17.3,name:'白色屋顶 + 俯视侧面',opacity:1,pitch:0}
+]};
+})();
+</script>
+</body></html>
