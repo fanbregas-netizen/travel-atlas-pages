@@ -7131,7 +7131,7 @@ function morph(toSearch,{origin,target}={}){
  const t=measureTarget(), endIcon={x:(t.icon?.x||dest.x+18)+(t.icon?.w||20)/2-dest.x,y:(t.icon?.y||dest.y+dest.h/2-10)+(t.icon?.h||20)/2-dest.y};
  const targetIcon={x:endIcon.x,y:endIcon.y};
  const homeIcons=other.map(o=>({node:o.node,x:o.pos.x+o.pos.w/2-fromDock.x,y:o.pos.y+o.pos.h/2-fromDock.y}));
- const radiusA=22,radiusB=22, duration=toSearch?420:390;
+ const radiusA=22,radiusB=22, duration=toSearch?352:324;
  const ease=t=>1-(1+17*t)*Math.exp(-17*t); // critically damped spring, not a hard step
  let start=0;
  const draw=(now)=>{
