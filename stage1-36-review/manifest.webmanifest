@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "私人旅行地图 · Stage 1.36",
+  "short_name": "旅行地图",
+  "description": "把想去的地点与旅行回忆收藏在一张地图上。",
+  "lang": "zh-CN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f6f3",
+  "theme_color": "#f7f6f3",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
