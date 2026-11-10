@@ -4799,7 +4799,7 @@ class Map{
     // When panning is needed, atlas:focus-settled gates orbit expansion.
     focusMapPlaceIfNeeded(p);
     window.__atlasPoiFeedback?.(p.lat,p.lng);stopInlineVideos(true);
-    setPicking(false);hideDestination();closeSearchResults();closeMapPopup();selectedId=id;pulseStar(id);
+    setPicking(false);hideDestination();closeSearchResults();closeMapPopup();selectedId=id;if(window.__atlasInteractionMode!=='swipe-card')pulseStar(id);
     for(const [key,m] of markers.entries())updateMarkerIcon(m,key===id);if(isOfficial()){paintOfficialBookmarks();updateOfficialSelectionPin({lat:+p.lat,lng:+p.lng,name:p.title||p.name||'已收藏地点'})}
     // Tapping a saved star must not suddenly pan or zoom the map. The card handles its own safe area.
     const items=mediaItems(p),rightCount=items.length>=5?3:Math.min(2,items.length),vertical=items.slice(0,rightCount),horizontal=items.slice(rightCount);
@@ -5570,7 +5570,7 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
     window.__atlasVersionCheck=check;
   })();
   </script>
-  <script>window.__atlasPreferCollage=false</script>
+  <script>window.__atlasPreferCollage=true;window.__atlasInteractionMode='swipe-card'</script>
   <script data-inline="atlas-constellation-core.js">
 /* Footprint Map V4 · Stage 1.34.7: independent, pure geometry for one real map bookmark.
  * It never creates a marker, never pans a map and never accesses user data.
@@ -5631,6 +5631,9 @@ if(typeof module!=='undefined'&&module.exports)module.exports=API;
   <script data-inline="atlas-orbit.js">
 (function orbitModule(){
 'use strict';
+// The approved fallback uses the original saved place and native bottom sheet.
+// Do not mount four SVG bubbles or an additional center star in this mode.
+if(window.__atlasInteractionMode==='swipe-card')return;
 const sheet=document.getElementById('memorySheet');
 if(!sheet||document.getElementById('atlasOrbit'))return;
 const root=document.createElement('section');root.id='atlasOrbit';root.hidden=true;root.setAttribute('role','dialog');root.setAttribute('aria-label','星标旅行记忆：四向展开');
@@ -6494,7 +6497,7 @@ function mountPlace(){if(placeCard)return;placeCard=h('article');placeCard.id='f
 function closePlace(){if(!activePlaceId)return;stopTileVideos();activePlaceId='';editMode='';placeCard.hidden=true;document.body.classList.remove('fp-place-open');const close=$('closeMemory');if(close)close.click();}
 window.__atlasClosePlace=closePlace;
 /* build .21 · 用户批注：划卡片要有响应——捏住眉头/内容到顶继续下拉即随手势下滑，松手过阈值关闭（对齐抽屉与高德/苹果 sheet） */
-function attachPlaceSwipe(){let sy=0,dy=0,on=false;
+function attachPlaceSwipe(){if(window.__atlasInteractionMode==='swipe-card')return;let sy=0,dy=0,on=false;
  placeCard.addEventListener('touchstart',e=>{const sc=placeCard.querySelector('.fp-card-scroll');if(sc&&sc.scrollTop>0&&!e.target.closest('.fp-card-header,.sheet-grab'))return;sy=e.touches[0].clientY;dy=0;on=true},{passive:true});
  placeCard.addEventListener('touchmove',e=>{if(!on)return;const dy=e.touches[0].clientY-sy;if(dy<=0){if(dy<-8)on=false;return}if(dy>10)e.preventDefault();placeCard.style.animation='none';placeCard.style.transition='none';placeCard.style.transform='translateY('+Math.round(dy)+'px)'},{passive:false});
  const end=e=>{if(!on)return;on=false;const dy=e.changedTouches[0].clientY-sy;placeCard.style.animation='';placeCard.style.transition='';placeCard.style.transform='';if(dy>Math.min(120,placeCard.offsetHeight*0.26))closePlace()};
@@ -6502,7 +6505,7 @@ function attachPlaceSwipe(){let sy=0,dy=0,on=false;
 }
  /* build .20 · 进入规划模式时主程序用来收起地点卡，避免盖住规划条 */
 async function showPlaceCard(id,reframe=true){if(!id)return;if(activePlaceId===id&&!placeCard.hidden)reframe=false; /* build .21 · 同一地点的卡片重渲染不再反复推动地图 */activePlaceId=id;editMode='';closeSearch();const fresh=await readPlace(id);if(!fresh||id!==activePlaceId)return;await renderPlace(id);placeCard.dataset.placeId=id;placeCard.hidden=false;document.body.classList.add('fp-place-open');requestAnimationFrame(()=>{if(activePlaceId===id)for(const v of tileVideos){if(v.isConnected){v.muted=true;v.playsInline=true;v.play().catch(()=>{})}}});
- if(reframe){const token=id;setTimeout(()=>{if(token!==activePlaceId)return;const selected=[...document.querySelectorAll('.atlas-bookmark-hit')].find(el=>el.dataset.placeId===id)||document.querySelector('.star-pin.selected, .atlas-photo-location-pin.selected, .atlas-vector-photo-pin.selected');const card=placeCard.getBoundingClientRect();const marker=selected?.getBoundingClientRect();if(marker&&marker.bottom>card.top-50)window.__atlasReframeForCollage?.(id)},700)}
+ if(reframe&&window.__atlasInteractionMode!=='swipe-card'){const token=id;setTimeout(()=>{if(token!==activePlaceId)return;const selected=[...document.querySelectorAll('.atlas-bookmark-hit')].find(el=>el.dataset.placeId===id)||document.querySelector('.star-pin.selected, .atlas-photo-location-pin.selected, .atlas-vector-photo-pin.selected');const card=placeCard.getBoundingClientRect();const marker=selected?.getBoundingClientRect();if(marker&&marker.bottom>card.top-50)window.__atlasReframeForCollage?.(id)},700)}
 }
 async function renderPlace(id){const p=await readPlace(id);if(!p||id!==activePlaceId)return;stopTileVideos();placeCard.replaceChildren();if(editMode)placeCard.classList.add('fp-editing');const grab=h('div','sheet-grab');grab.setAttribute('aria-hidden','true');placeCard.append(grab);const head=h('header','fp-card-header'),titlewrap=h('div','fp-card-title-wrap');titlewrap.append(h('h2','fp-card-name',p.title||'未命名地点'));const stageBtn=btn(p.stage==='visited'?'已到访 · 足迹':'想去 · 灵感',()=>window.__atlasEditPlace?.(id),'fp-place-stage');stageBtn.setAttribute('aria-label','更改地点状态，当前：'+(p.stage==='visited'?'已到访':'想去'));titlewrap.append(stageBtn);const editToggle=btn(placeCard.classList.contains('fp-editing')?'完成':'编辑',()=>{placeCard.classList.toggle('fp-editing');if(!placeCard.classList.contains('fp-editing'))editMode='';renderPlace(id)},'fp-subaction fp-edit-toggle');
  /* build .20 · 用户批注：收藏点卡片上始终要有「取消收藏」——金星即已收藏，点它取消（影像保留） */
@@ -6549,7 +6552,7 @@ const $=id=>document.getElementById(id);
 const states=['peek','half','full'];
 const handlers=new WeakSet();const observedNodes=new WeakSet();
 const current=node=>Math.max(0,states.indexOf(node.dataset.atlasSnap||'peek'));
-function setSnap(node,index){const next=Math.max(0,Math.min(2,index));node.dataset.atlasSnap=states[next];node.querySelector('[data-atlas-grip]')?.setAttribute('aria-valuenow',String(next+1));if(node.id==='fpPlaceCard'){const pid=node.dataset.placeId;clearTimeout(node.__atlasSnapRf);node.__atlasSnapRf=setTimeout(()=>{if(pid&&node.dataset.placeId===pid&&!node.hidden)window.__atlasReframeForCollage?.(pid)},380)}}
+function setSnap(node,index){const next=Math.max(0,Math.min(2,index));node.dataset.atlasSnap=states[next];node.querySelector('[data-atlas-grip]')?.setAttribute('aria-valuenow',String(next+1));if(node.id==='fpPlaceCard'&&window.__atlasInteractionMode!=='swipe-card'){const pid=node.dataset.placeId;clearTimeout(node.__atlasSnapRf);node.__atlasSnapRf=setTimeout(()=>{if(pid&&node.dataset.placeId===pid&&!node.hidden)window.__atlasReframeForCollage?.(pid)},380)}}
 function closeSheet(node){if(node.id==='fpSearchSheet')node.querySelector('.fp-search-close')?.click();else if(node.id==='fpPlaceCard')node.querySelector('.fp-card-close')?.click();}
 function install(node,selector,initial){
  if(!node)return;let grip=node.querySelector(selector);
@@ -6567,13 +6570,13 @@ function install(node,selector,initial){
  // without stealing normal scroll, selection, media controls, or edit fields.
  const sc=node.querySelector(node.id==='fpPlaceCard'?'.fp-card-scroll':'.fp-search-body');
  if(sc&&!handlers.has(sc)){handlers.add(sc);let at=null;sc.addEventListener('touchstart',e=>{if(e.touches.length!==1||e.target.closest('button,a,input,textarea,select,video')){at=null;return}at={y:e.touches[0].clientY,scroll:sc.scrollTop}},{passive:true});
- sc.addEventListener('touchend',e=>{if(!at||e.changedTouches.length!==1)return;const diff=e.changedTouches[0].clientY-at.y;const canCollapse=at.scroll<=3&&diff>75;const canExpand=diff< -80&&current(node)<2;if(canCollapse)setSnap(node,current(node)-1);else if(canExpand)setSnap(node,current(node)+1);at=null},{passive:true});
+ sc.addEventListener('touchend',e=>{if(!at||e.changedTouches.length!==1)return;const diff=e.changedTouches[0].clientY-at.y;const canCollapse=at.scroll<=3&&diff>75;const canExpand=diff< -80&&current(node)<2;if(canCollapse){if(current(node)===0)closeSheet(node);else setSnap(node,current(node)-1)}else if(canExpand)setSnap(node,current(node)+1);at=null},{passive:true});
  sc.addEventListener('touchcancel',()=>{at=null},{passive:true})}
  if(!observedNodes.has(node)){observedNodes.add(node);new MutationObserver(()=>{if(node.hidden){setSnap(node,states.indexOf(initial));node.style.removeProperty('height')}}).observe(node,{attributes:true,attributeFilter:['hidden']});}
 }
 function viewPort(){const v=window.visualViewport;if(!v)return;const update=()=>{const height=Math.max(300,v.height),kb=Math.max(0,innerHeight-v.height-v.offsetTop);document.documentElement.style.setProperty('--atlas-visible-height',height+'px');document.documentElement.style.setProperty('--atlas-keyboard-bottom',kb+'px');const search=$('fpSearchSheet');if(search&&!search.hidden&&kb>100)setSnap(search,2)};
  v.addEventListener('resize',update,{passive:true});v.addEventListener('scroll',update,{passive:true});update()}
-function setup(){install($('fpSearchSheet'),'.fp-search-grip','half');install($('fpPlaceCard'),'.atlas-card-grip','half');}
+function setup(){install($('fpSearchSheet'),'.fp-search-grip','half');install($('fpPlaceCard'),'.atlas-card-grip','peek');}
 function init(){setup();new MutationObserver(()=>{setup()}).observe(document.body,{childList:true,subtree:true});viewPort();window.AtlasPhase1={version:'V4-mobile-sheets-a1-20261103',setSnap}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
