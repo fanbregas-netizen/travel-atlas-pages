@@ -1,0 +1,13 @@
+{
+  "version": "V4.Stage1.20261110.34.5",
+  "base": "V4.Stage1.20261110.34.4",
+  "preview": true,
+  "changes": [
+    "bubble polish",
+    "map recovery",
+    "nonblocking route startup",
+    "layout rhythm"
+  ],
+  "date": "2026-11-10",
+  "release_date": "2026-11-10"
+}
