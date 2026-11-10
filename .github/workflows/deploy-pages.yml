@@ -64,6 +64,8 @@ jobs:
           cp -R stage1-36-review _site/stage1-36-review
           # Interaction-only demo; never overwrites the approved live product
           cp -R demo-two-bubbles _site/demo-two-bubbles
+          # Isolated Interaction B Dock V4 approval preview (official homepage untouched).
+          cp -R interaction-b-pr12-review _site/interaction-b-pr12-review
           touch _site/.nojekyll
       - name: Validate static deployment assets
         run: |
