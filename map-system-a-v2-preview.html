@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f2f1ed">
+<title>Footprint Map · 地图系统 A｜深入验收</title>
+<style>
+:root{--ink:#242720;--quiet:#73776d;--line:#e2e2db;--paper:#f3f2ed;--ivory:#fffefa;--sage:#5d6a5d;--gold:#d7b36e}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;color:var(--ink);background:var(--paper)}button,input,textarea{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #8f9b83;outline-offset:2px}a{color:#475e4e}
+.app{max-width:1110px;margin:auto;padding:24px 28px 60px}.top{display:flex;align-items:center;justify-content:space-between;gap:20px}.eyebrow{font-size:11px;color:#687269;letter-spacing:.15em;font-weight:720}.top h1{font-size:clamp(25px,4vw,36px);letter-spacing:-.055em;line-height:1.15;margin:7px 0 10px;font-weight:720}.desc{margin:0;color:var(--quiet);line-height:1.6;font-size:13px;max-width:700px}.top-meta{text-align:right;font-size:11px;color:var(--quiet);line-height:1.8;white-space:nowrap}.top-meta strong{color:#3b443b}
+.scenes{display:flex;gap:9px;overflow-x:auto;margin:24px 0 18px;padding:2px 0 10px;scrollbar-width:none}.scenes::-webkit-scrollbar{display:none}.scene{background:#fdfcf7;border:1px solid #dfdfd7;color:#555a50;border-radius:15px;padding:12px 14px;display:flex;gap:10px;align-items:center;white-space:nowrap;transition:.2s;font-size:12px}.scene strong{font-size:11px;opacity:.6}.scene.selected{background:#262b24;color:#fff;border-color:#262b24}.scene.selected strong{color:#dfc28a;opacity:1}
+.columns{display:grid;grid-template-columns:minmax(330px,420px) minmax(320px,1fr);align-items:start;gap:30px}.phone-shell{max-width:420px;margin:auto;width:100%;padding:8px;border-radius:49px;background:#1a1b19;box-shadow:0 30px 70px #181b1633,0 3px 10px #181b1612;position:relative}.phone{height:min(760px,calc((100vw - 50px)*1.75));min-height:510px;max-height:760px;border-radius:42px;background:#f3f2ed;position:relative;overflow:hidden;isolation:isolate}.map-surface{position:absolute;inset:0;overflow:hidden;touch-action:none;background:#f3f2ee;cursor:grab}.map-surface.dragging{cursor:grabbing}.map-surface svg{display:block;width:100%;height:100%}.map-surface .world{will-change:transform}.map-bg{fill:#f3f2ee}.river{fill:#dedfd9}.park{fill:#e6e9dc}.minorRoad{fill:none;stroke:#dddcd4;stroke-width:7;stroke-linecap:round}.majorRoad{fill:none;stroke:#b9bcb4;stroke-width:19;stroke-linecap:round}.roadCenter{fill:none;stroke:#efeee8;stroke-width:12}.building{stroke:#efefe9;stroke-width:1.6;transition:fill .22s,opacity .22s}.building-shadow{fill:#687069;opacity:0;transition:opacity .18s}.ghost-copy{pointer-events:none;opacity:0}.map-title{fill:#767b72;font-size:12px;letter-spacing:.08em;font-weight:600;paint-order:stroke;stroke:#f5f4ee;stroke-width:4px}.park-title{fill:#6b806c;font-size:12px;font-weight:580;paint-order:stroke;stroke:#f1f0eb;stroke-width:3px}
+.phone-status{position:absolute;z-index:15;top:0;left:0;right:0;height:39px;display:flex;align-items:center;justify-content:space-between;padding:0 27px;pointer-events:none;font-size:12px;font-weight:690;color:#191c18}.dynamic-island{height:24px;width:100px;position:absolute;top:6px;left:50%;transform:translateX(-50%);background:#1b1c1b;border-radius:18px}.map-header{position:absolute;top:51px;left:13px;right:13px;z-index:12;display:flex;gap:8px}.map-search{border:1px solid #e5e5dc;background:#fffefaee;height:44px;border-radius:16px;display:flex;align-items:center;gap:8px;min-width:0;flex:1;padding:0 13px;box-shadow:0 4px 16px #282b2415;color:#555d53;font-size:13px;text-align:left}.magnifier{font-size:24px;line-height:1}.map-search span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.map-round{width:44px;height:44px;background:#fffefaee;border:1px solid #e5e5dc;box-shadow:0 4px 16px #282b2415;display:grid;place-items:center;border-radius:15px;font-size:19px}.map-hud{position:absolute;right:13px;top:106px;z-index:9;background:#fffef9ee;border:1px solid #e1e2d8;border-radius:12px;box-shadow:0 4px 14px #282b2410;padding:8px 11px;min-width:112px}.map-hud .step{font-size:11px;font-weight:730}.map-hud .level{font-size:10px;color:#7b7f74;margin-top:3px}.map-hud .level b{color:#535e52}.map-cross{position:absolute;top:46%;left:50%;height:10px;width:10px;border:1px solid #7b8b75;border-radius:50%;transform:translate(-50%,-50%);opacity:0;pointer-events:none}.map-star{position:absolute;z-index:6;width:43px;height:43px;border:0;padding:0;background:transparent;transform:translate(-50%,-50%);filter:drop-shadow(0 3px 3px #242c2436);touch-action:manipulation}.map-star svg{display:block;width:100%;height:100%}.map-star[hidden]{display:none!important}.map-star:active{scale:.93}.map-poi{position:absolute;z-index:5;transform:translate(-50%,-50%);border:0;background:transparent;padding:0;display:flex;gap:6px;align-items:center;max-width:170px;touch-action:manipulation;filter:drop-shadow(0 2px 3px #16191618)}.poi-token{width:23px;height:23px;border-radius:50%;background:#fffefa;border:1.5px solid #6b7369;display:grid;place-items:center;font-size:12px;color:#343c36;flex:none}.poi-text{font-size:10.5px;font-weight:690;white-space:nowrap;max-width:128px;overflow:hidden;text-overflow:ellipsis;color:#343a35;background:#fffefaef;border-radius:8px;padding:4px 6px}.map-poi.selected .poi-token{background:#202722;color:#fff;border-color:#202722}
+.map-controls{position:absolute;right:14px;bottom:120px;z-index:11;display:flex;flex-direction:column;gap:6px}.map-controls button{border:1px solid #e0e1d9;background:#fffefaec;border-radius:13px;width:43px;height:40px;box-shadow:0 4px 16px #242a2412;font-size:22px;color:#404940}.map-controls button:active{background:#f1f1ea}.map-bottom{position:absolute;bottom:0;left:0;right:0;height:83px;z-index:10;background:#fffefaf3;border-top:1px solid #e8e8df;display:flex;justify-content:space-around;align-items:flex-start;padding:13px 7px 18px;backdrop-filter:blur(13px);-webkit-backdrop-filter:blur(13px)}.bottom-item{text-align:center;font-size:10px;color:#73786e}.bottom-item svg{height:23px;width:23px;display:block;margin:0 auto 4px}.bottom-item.active{color:#303a31;font-weight:700}.bottom-item.active svg{stroke:#4d5e4b}.phone-home{position:absolute;z-index:16;bottom:7px;left:50%;transform:translateX(-50%);width:114px;height:4px;background:#232720;border-radius:6px;pointer-events:none}
+.toast{position:absolute;z-index:21;bottom:101px;left:50%;transform:translateX(-50%) translateY(10px);opacity:0;transition:.23s;pointer-events:none;padding:10px 14px;background:#262b25ef;color:white;white-space:nowrap;font-size:11px;max-width:90%;text-overflow:ellipsis;overflow:hidden;border-radius:13px}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.mini-sheet{position:absolute;bottom:83px;left:9px;right:9px;z-index:10;background:#fffefa;padding:17px 17px 16px;border:1px solid #e1e1d9;border-radius:21px 21px 14px 14px;box-shadow:0 -10px 38px #292e281d;display:none}.mini-sheet.open{display:block}.mini-sheet .handle{width:32px;height:4px;border-radius:4px;background:#d9dcd1;margin:0 auto 12px}.mini-sheet h3{margin:0 0 6px;font-size:17px}.mini-sheet p{margin:0;color:#777f73;font-size:11px;line-height:1.6}.mini-sheet .close{position:absolute;right:12px;top:10px;border:0;background:#f0f0e9;border-radius:50%;font-size:19px;width:31px;height:31px;color:#737a70}
+.search-sheet{position:absolute;z-index:19;left:8px;right:8px;top:100px;max-height:55%;overflow:auto;border:1px solid #dfdfd7;background:#fffefa;border-radius:19px;padding:13px;box-shadow:0 12px 33px #1d261d29;display:none}.search-sheet.show{display:block}.search-sheet .shead{display:flex;gap:8px}.search-sheet input{border:1px solid #e1e1da;background:#f5f5ef;border-radius:11px;height:42px;padding:0 12px;font-size:13px;flex:1;min-width:0;outline:0}.search-sheet .x{border:0;background:#ededeb;border-radius:11px;padding:0 14px;color:#5b625b;font-size:12px}.search-sheet .quick{display:flex;gap:7px;flex-wrap:wrap;padding:12px 1px 5px}.search-sheet .quick button{background:#f3f3ed;border:1px solid #e2e4da;border-radius:11px;padding:8px 10px;font-size:11px;color:#5d665a}.search-sheet .slabel{font-size:11px;font-weight:750;color:#889085;margin:10px 5px 5px}.search-sheet .result{padding:10px 8px;border:0;background:#fffefa;width:100%;border-bottom:1px solid #ecece5;display:flex;justify-content:space-between;gap:14px;text-align:left}.search-sheet .result b{font-size:12px;color:#383f38}.search-sheet .result small{font-size:10px;color:#848a82}.search-sheet .empty{font-size:12px;padding:16px 8px;color:#7d8679}
+.load-mask{position:absolute;z-index:18;inset:0;background:#f2f1edee;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}.load-mask.on{display:flex}.load-glyph{width:61px;height:61px;border:1px solid #e1e0d8;border-radius:18px;background:#faf9f3;display:grid;place-items:center;box-shadow:0 5px 25px #2b322510}.load-glyph svg{width:31px;height:31px}.load-mask h3{font-size:15px;margin:0}.load-mask p{font-size:12px;color:#777d71;max-width:220px;text-align:center;margin:0;line-height:1.7}.progress{width:125px;height:3px;background:#e0e2d8;border-radius:5px;overflow:hidden}.progress:before{content:"";display:block;width:35%;height:100%;background:#798674;border-radius:3px;animation:loading 1.2s ease-in-out infinite alternate}@keyframes loading{from{transform:translateX(-50%)}to{transform:translateX(280%)}}
+.panel{display:flex;flex-direction:column;gap:14px}.panel-card{border-radius:22px;background:#fffefa;border:1px solid #e2e2d9;padding:20px 21px;box-shadow:0 5px 25px #29312b06}.section-label{font-size:11px;color:#788176;font-weight:730;letter-spacing:.06em}.panel-card h2{font-size:21px;letter-spacing:-.038em;margin:8px 0 10px;font-weight:720}.panel-card p{font-size:12.5px;color:#6c756a;line-height:1.8;margin:0}.scope{margin:15px 0;padding:10px 12px;background:#f2f3ed;color:#535e51;border-radius:13px;font-size:11px;line-height:1.6}.scope strong{color:#303e30}.scope.warn{background:#f5f1e7;color:#806f52}.scope.warn strong{color:#6e5b3c}.split{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}.compare{padding:4px;background:#f1f2eb;border-radius:13px;display:flex;gap:4px}.compare button{border:0;background:transparent;color:#666e62;border-radius:10px;padding:9px 13px;font-size:12px}.compare button.active{background:#fffefa;color:#303c31;font-weight:730;box-shadow:0 2px 6px #16221812}.zoom-row{display:flex;align-items:center;gap:15px;margin-top:16px}.zoom-row label{font-size:11px;color:#7c8377;white-space:nowrap}.zoom-row input{flex:1;accent-color:#576b56}.zoom-row output{font-size:12px;font-weight:740;color:#424f41;min-width:35px}.buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}.buttons button{padding:10px 12px;border:1px solid #dedfd5;border-radius:11px;background:#fff;font-size:11px;color:#465246}.buttons button.primary{color:#fff;background:#344336;border-color:#344336}.buttons button:hover{border-color:#a0a898}.btn-status{padding:8px 0;color:#737b70;font-size:11px;line-height:1.7}.metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}.metric{background:#f4f4ef;border-radius:14px;padding:13px 10px}.metric b{display:block;font-size:20px;font-weight:710;letter-spacing:-.03em}.metric span{display:block;font-size:10px;color:#7c8378;margin-top:5px}.steps{font-size:12px;color:#5c685d;line-height:1.8;padding-left:18px;margin:10px 0 0}.steps li{padding-bottom:3px}.review h3{font-size:15px;margin:0 0 8px}.review .status-options{display:flex;flex-wrap:wrap;gap:8px}.review .status-options button{padding:9px 12px;border-radius:10px;border:1px solid #e0e2d8;background:#f6f6f0;color:#637062;font-size:11px}.review .status-options button.active{background:#e8ede4;border-color:#a5b19d;color:#344a35;font-weight:750}.review .status-options button.needs.active{background:#f4e9e0;border-color:#d4bca8;color:#815c3e}.review textarea{margin-top:12px;width:100%;min-height:73px;padding:11px 12px;background:#fcfcf9;border:1px solid #e3e4dc;border-radius:12px;font-size:12px;resize:vertical;line-height:1.6;color:#384338}.review .copy{margin-top:10px;width:100%;background:#262d25;color:#fff;border:0;border-radius:12px;padding:12px;font-size:12px;font-weight:650}.footer{margin-top:23px;color:#7b8278;font-size:11px;line-height:1.8;border-top:1px solid #dedfd6;padding-top:16px}.footer a{font-weight:700;text-underline-offset:3px}
+@media(max-width:780px){.app{padding:19px 14px 40px}.top-meta{display:none}.top h1{font-size:26px}.scenes{margin:16px -14px 13px;padding:2px 14px 10px}.columns{grid-template-columns:1fr;gap:18px}.phone-shell{max-width:400px;padding:6px;border-radius:43px}.phone{height:min(760px,calc((100vw - 46px)*1.82));min-height:490px;max-height:760px;border-radius:38px}.panel-card{padding:17px}.metric-grid{gap:7px}.panel-card h2{font-size:19px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+<div><div class="eyebrow">TRAVEL ATLAS / FOOTPRINT MAP · 地图系统 A</div><h1>地图体验 · 深入验收</h1><p class="desc">8 个可操作场景，展示本轮地图修复及后续待联调体验。适合直接用 iPhone 浏览器操作。所有地图地块及 POI 均为本地模拟，不连接真实地图数据。</p></div>
+<div class="top-meta"><strong>交互验收稿 V2</strong><br>PR #11 · feature/map<br>与正式网站完全隔离</div>
+</header>
+<nav class="scenes" id="scenes" aria-label="演示场景">
+<button class="scene selected" data-scene="boot"><strong>01</strong>加载稳定</button>
+<button class="scene" data-scene="zoom"><strong>02</strong>连续缩放</button>
+<button class="scene" data-scene="building"><strong>03</strong>俯视建筑</button>
+<button class="scene" data-scene="ghost"><strong>04</strong>底图重影</button>
+<button class="scene" data-scene="poi"><strong>05</strong>地点 POI</button>
+<button class="scene" data-scene="search"><strong>06</strong>地点搜索</button>
+<button class="scene" data-scene="anchor"><strong>07</strong>单星定位</button>
+<button class="scene" data-scene="recover"><strong>08</strong>失败恢复</button>
+</nav>
+<div class="columns">
+<section class="phone-shell" aria-label="iPhone 地图演示">
+<div class="phone" id="phone">
+  <div class="map-surface" id="mapSurface">
+   <svg viewBox="0 0 390 760" preserveAspectRatio="none" aria-label="俯视建筑及地点交互地图">
+    <rect class="map-bg" width="390" height="760"/>
+    <g id="world" class="world">
+      <rect class="map-bg" width="2000" height="2000"/>
+      <path class="river" d="M1508 -80 C1460 250 1545 440 1457 682 S1500 1072 1435 1300 S1430 1800 1490 2050 L2050 2050 L2050 -80Z"/>
+      <path class="park" d="M415 497 L648 502 L646 704 L411 702Z M1110 813 L1307 817 L1304 1043 L1107 1040 Z M280 1180 L455 1169 L461 1410 L280 1415Z"/>
+      <g id="minorRoads"></g><g id="majorRoads"></g><g id="ghostBuildings" class="ghost-copy"></g><g id="shadows"></g><g id="buildings"></g>
+      <g><text class="park-title" x="453" y="599">城市绿地</text><text class="park-title" x="1143" y="919">滨河公园</text><text class="map-title" x="1409" y="753" transform="rotate(-90 1409 753)">滨水步道</text></g>
+    </g>
+   </svg>
+   <div id="poiLayer"></div>
+   <button class="map-star" id="star" aria-label="查看唯一黄色星标地点"><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M22 4 27.5 15.4 40 17.2 31 26 33.3 39 22 32.5 10.7 39 13 26 4 17.2 16.5 15.4Z" fill="#d7b36e" stroke="#35433d" stroke-width="2.1" stroke-linejoin="round"/></svg></button>
+   <div class="map-cross"></div>
+  </div>
+  <div class="phone-status"><span>9:41</span><span class="dynamic-island"></span><span>●●● ▰</span></div>
+  <div class="map-header"><button class="map-search" id="searchToggle"><span class="magnifier">⌕</span><span id="searchPrompt">搜索地点、景点、城市</span></button><button class="map-round" id="locate" aria-label="回到收藏点">⌖</button></div>
+  <div class="map-hud"><div class="step" id="stepTitle">街区建筑</div><div class="level"><b id="zoomHud">15.8</b> / 俯视 0°</div></div>
+  <div class="map-controls"><button id="zoomPlus" aria-label="放大地图">+</button><button id="zoomMinus" aria-label="缩小地图">−</button></div>
+  <div class="mini-sheet" id="miniSheet"><div class="handle"></div><button class="close" id="sheetClose" aria-label="关闭地点卡">×</button><h3>被收藏的目的地</h3><p>演示：唯一的黄色星标与地理坐标相连。开关信息卡不会自动改变地图视角；正式上滑卡片属于交互模块 B。</p></div>
+  <div class="search-sheet" id="searchSheet"><div class="shead"><input id="searchInput" placeholder="输入地名，例如美术馆" autocomplete="off"><button class="x" id="searchClose">完成</button></div><div class="quick"><button data-quick="美术馆">美术馆</button><button data-quick="咖啡">咖啡</button><button data-quick="公园">公园</button><button id="rapidSearch">连续搜索测试</button></div><div class="slabel" id="searchLabel">地点示例</div><div id="searchResults"></div></div>
+  <div class="load-mask" id="loadMask"><div class="load-glyph"><svg viewBox="0 0 40 40"><path d="M20 4 25 14 35 16 28 24 30 35 20 29 10 35 12 24 5 16 15 14Z" fill="#d7b36e" stroke="#364039" stroke-width="2"/></svg></div><h3 id="loadTitle">地图正在准备</h3><p id="loadDetail">建立单一地图画布与地点投影</p><div class="progress"></div></div>
+  <div class="toast" id="toast"></div>
+  <div class="map-bottom"><div class="bottom-item active"><svg viewBox="0 0 24 24" fill="none" stroke="#52624d" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>发现</div><div class="bottom-item"><svg viewBox="0 0 24 24" fill="none" stroke="#70786e" stroke-width="1.7"><path d="m12 2 2.9 6 6.6.9-4.8 4.7 1.1 6.5L12 17l-5.8 3.1 1.1-6.5L2.5 8.9 9.1 8Z"/></svg>足迹</div><div class="bottom-item"><svg viewBox="0 0 24 24" fill="none" stroke="#70786e" stroke-width="1.7"><path d="m4 19 7-15 4 8 5-7M4 19l7-5 4 5 5-14"/></svg>路线</div><div class="bottom-item"><svg viewBox="0 0 24 24" fill="none" stroke="#70786e" stroke-width="1.7"><path d="M4 6h16M4 12h16M4 18h16"/></svg>更多</div></div>
+  <div class="phone-home"></div>
+</div></section>
+<section class="panel" aria-label="场景说明与验收记录">
+<div class="panel-card">
+  <div class="section-label" id="scenarioNo">场景 01 / 08</div>
+  <h2 id="sceneTitle">地图加载稳定性</h2>
+  <p id="sceneIntro">演示冷启动时先准备单一画布，再显示底图；尝试正常和弱网两种节奏。</p>
+  <div class="scope" id="scopeInfo"></div>
+  <div class="split"><span class="section-label">效果对照</span><div class="compare"><button id="before">修复前</button><button id="after" class="active">修复后</button></div></div>
+  <div class="zoom-row"><label for="zoomRange">缩放级别</label><input id="zoomRange" type="range" min="11" max="19" step=".1" value="15.8"><output id="zoomOutput">15.8</output></div>
+  <div class="buttons" id="sceneActions"></div>
+  <div class="btn-status" id="sceneMessage"></div>
+  <div class="metric-grid"><div class="metric"><b id="metric1">1</b><span id="metricLabel1">活动地图层</span></div><div class="metric"><b id="metric2">0°</b><span id="metricLabel2">俯仰角度</span></div><div class="metric"><b id="metric3">1</b><span id="metricLabel3">黄色星标</span></div></div>
+</div>
+<div class="panel-card"><div class="section-label">验收观察重点</div><ol class="steps" id="steps"></ol></div>
+<div class="panel-card review"><h3>记录这项体验是否符合预期</h3><p style="margin-bottom:13px">你的选择仅保存在当前浏览器，复制后可直接发回聊天。</p><div class="status-options"><button data-status="unreviewed" class="active">尚未验收</button><button data-status="pass">符合预期</button><button data-status="needs" class="needs">需要修改</button></div><textarea id="reviewNote" placeholder="需要修改的细节，例如缩放节奏、建筑颜色、POI 密度……"></textarea><button class="copy" id="copyFeedback">复制全部验收反馈</button><div class="btn-status" id="feedbackMessage"></div></div>
+</section>
+</div>
+<footer class="footer"><strong>交付边界：</strong>此 HTML 是供快速比较的离线交互样机。已提交的地图模块修复位于 <a href="https://github.com/fanbregas-netizen/travel-atlas/pull/11">PR #11</a>；完整产品共享入口的整合工作位于 <a href="https://github.com/fanbregas-netizen/travel-atlas/issues/9">Issue #9</a>。本文件不会修改正式网站，也不读取、写入或传输旅行收藏及媒体数据。</footer>
+</div>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
+const nodes={world:$('world'),shadows:$('shadows'),buildings:$('buildings'),ghost:$('ghostBuildings'),poiLayer:$('poiLayer'),star:$('star')};
+const sceneOrder=['boot','zoom','building','ghost','poi','search','anchor','recover'];
+const scenes={
+ boot:{title:'地图加载稳定性',intro:'演示冷启动时先建立单一画布，再显示地图和地点层。你可以主动模拟正常加载和弱网延迟。',scope:'待集成验证：当前 PR 未解决真实网络瓦片或 iPhone GPU 的冷启动卡顿。此处仅演示期望的加载状态与处理节奏。',steps:['点「模拟正常加载」，观察地图准备完成后的单一画布。','点「模拟弱网加载」，观察加载提示是否清楚、是否有底图闪现。','正式产品还需 iPhone Safari 在真实网络下测量首屏加载与冻结情况。'],actions:[['模拟正常加载','bootNormal','primary'],['模拟弱网加载','bootSlow',''],['重新准备底图','reload','']]},
+ zoom:{title:'连续缩放与平移',intro:'连续点击 + / −、拖动地图，或用滑杆观察城市 → 街区 → 街道的节奏。黄色星标始终使用相同的地理锚点。',scope:'部分已提交：当前地图适配层提供单一活动渲染器的投影、相机观察及事件清理。真实触控流畅度仍待产品集成。',steps:['先在 zoom 11–14 观察整体建筑纹理与道路。','放大到 15–17，检查黑色体块向白色屋顶的渐变。','拖动地图，注意星标随地图地理坐标移动而不是悬浮在屏幕中。'],actions:[['城市层级','zoomCity',''],['街区层级','zoomDistrict',''],['街道层级','zoomStreet','primary'],['复位位置','resetMap','']]},
+ building:{title:'建筑层级与样式重载',intro:'重点观察城市黑块、街道白色屋顶、克制的边缘阴影。点击「重新加载样式」查看是否能够恢复建筑体块层。',scope:'已提交源码修复：AtlasRouteBuildings 的样式加载监听会恢复建筑体块和单层阴影，保持俯视 0°；该修复尚需接入最终主页面。',steps:['将倍率调整到 13、15.5、17.5，对比建筑色阶。','保持 zoom ≥ 16.5，触发一次「重新加载样式」。','修复后应恢复单层侧影，不应该叠加出第二、第三层阴影。'],actions:[['黑色建筑','zoomDistrict',''],['白色屋顶','zoomStreet','primary'],['重新加载样式','reload','']]},
+ ghost:{title:'缩放重影与双底图',intro:'旧版示意中，隐藏底图仍可能显示错位的建筑副本；修复后的适配层增加互斥显示规则，避免不同底图同时显示。',scope:'部分已提交：活动 provider 互斥显示规则已进入地图模块。隐藏旧地图仍持续重算瓦片的问题须由主集成聊天修改共享入口（Issue #9）。',steps:['先切换「修复前」，观察建筑轮廓被平移后出现的重影。','切换「修复后」，观察多余的底图是否消失。','再次拖动、放大缩小；真实浏览器里还需要检查 DOM、网络及 GPU 使用。'],actions:[['产生一次平移','nudge',''],['返回中心','resetMap',''],['重新加载样式','reload','']]},
+ poi:{title:'POI 密度与名称',intro:'街道级地图中显示小型地点图标和名称，并保留清晰的建筑底图层级。修复前的 POI 文字条件会在样式加载成功后错误隐藏名称。',scope:'已提交源码修复：zoom ≥ 15.25 时，POI 名称不再以样式「尚未加载」为显示前提。地点丰富度和真实数据源仍需联调。',steps:['放大到 16 左右，观察地点图标与名称。','在修复前/后切换，重点比较文字消失问题。','切换 POI 分类，检查图标与文字有无过度重叠。'],actions:[['全部地点','poiAll','primary'],['文化景点','poiCulture',''],['餐饮咖啡','poiFood',''],['公共设施','poiPublic','']]},
+ search:{title:'地点搜索与异步结果',intro:'通过模拟地名列表展示「搜索 A 尚未完成，搜索 B 已经输入」的情况。修复后的结果应只保留最新搜索。',scope:'已提交模块能力：可取消的异步搜索、过期结果拦截、坐标校验及 POI 去重；当前演示不调用高德或 OpenStreetMap。',steps:['点击「连续搜索测试」，首先搜索美术馆，随后自动输入咖啡。','修复前示意：慢返回的美术馆结果可能覆盖咖啡结果。','修复后示意：只接收当前请求的结果，已过期请求不能回填。'],actions:[['打开搜索','openSearch','primary'],['连续搜索测试','rapidSearch',''],['清除查询','clearSearch','']]},
+ anchor:{title:'单颗黄色星标地理锚定',intro:'同一收藏地点只有一个黄色星标。地图平移或缩放时，星标根据地点坐标重新投影，不应该出现额外漂浮副本。',scope:'已提交适配能力：活动地图读取与投影校验。星标 DOM 和上滑卡片仍由交互模块 B 持有，此页不修改其正式交互。',steps:['点击地图上的黄色星标，打开简化的信息示例。','在保持地点信息打开的状态下拖动地图；星标必须跟随地图。','点击「回到收藏点」，确认屏幕中的星标仍只有一颗。'],actions:[['打开星标信息','openStar','primary'],['平移地图','nudge',''],['回到收藏点','resetMap','']]},
+ recover:{title:'网络失败与画布恢复',intro:'模拟底图连接失败、加载超时与重试提示；目标是遇到服务问题时不让整个屏幕死锁，仍然能正常退出或重试。',scope:'待集成验证：网络超时、MapLibre/高德切换和 Safari WebGL 恢复尚不能由 PR #11 的静态测试证明。这是期望体验演示，不是已修复结论。',steps:['点击「模拟加载失败」，观察明确且可恢复的状态提示。','再点「重新连接」，观察恢复动画。','真实 iPhone 还需在弱网/断网/返回应用等场景下验证页面不冻结。'],actions:[['模拟加载失败','bootFail',''],['重新连接','bootNormal','primary'],['弱网恢复','bootSlow','']]}
+};
+let scene='boot',before=false,zoom=15.8,center={x:835,y:785},starPlace={x:835,y:785},poiFilter='all',searchSeq=0,loadSeq=0,selectedPoi=null,toastTimer=0,loading=false,reliefReady=true,searchOpen=false;
+const poiData=[
+{id:'a',name:'当代美术馆',cat:'culture',glyph:'◇',x:740,y:685,lat:31.185,lng:121.467},
+{id:'b',name:'城市设计中心',cat:'culture',glyph:'□',x:1010,y:620,lat:31.188,lng:121.472},
+{id:'c',name:'社区咖啡馆',cat:'food',glyph:'◕',x:917,y:810,lat:31.183,lng:121.468},
+{id:'d',name:'独立书店',cat:'culture',glyph:'▤',x:658,y:941,lat:31.182,lng:121.462},
+{id:'e',name:'河畔公园',cat:'culture',glyph:'♧',x:1220,y:908,lat:31.18,lng:121.478},
+{id:'f',name:'地铁站',cat:'public',glyph:'M',x:870,y:1091,lat:31.177,lng:121.47},
+{id:'g',name:'城市医院',cat:'public',glyph:'+',x:481,y:805,lat:31.185,lng:121.453},
+{id:'h',name:'日常食堂',cat:'food',glyph:'◒',x:1074,y:968,lat:31.182,lng:121.476},
+{id:'i',name:'社区图书馆',cat:'public',glyph:'▥',x:556,y:600,lat:31.19,lng:121.459},
+{id:'j',name:'烘焙工房',cat:'food',glyph:'◕',x:865,y:501,lat:31.191,lng:121.47},
+{id:'k',name:'小型画廊',cat:'culture',glyph:'◇',x:1159,y:655,lat:31.189,lng:121.479}
+];
+function svgEl(name,attrs={},parent){const el=document.createElementNS(NS,name);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,String(v));parent?.appendChild(el);return el}
+for(let x=100;x<=1800;x+=200){svgEl('path',{d:`M${x} 0V2000`,class:'majorRoad'},$('majorRoads'));svgEl('path',{d:`M${x} 0V2000`,class:'roadCenter'},$('majorRoads'))}
+for(let y=100;y<=1800;y+=200){svgEl('path',{d:`M0 ${y}H2000`,class:'majorRoad'},$('majorRoads'));svgEl('path',{d:`M0 ${y}H2000`,class:'roadCenter'},$('majorRoads'))}
+for(let x=200;x<=1700;x+=200)svgEl('path',{d:`M${x} 0V2000`,class:'minorRoad'},$('minorRoads'));
+for(let y=200;y<=1700;y+=200)svgEl('path',{d:`M0 ${y}H2000`,class:'minorRoad'},$('minorRoads'));
+const buildings=[];
+for(let i=0;i<9;i++)for(let j=0;j<9;j++){
+ const bx=i*200+118,by=j*200+119;if(i>=7)continue;
+ if(i===2&&j===2||i===5&&j===4||i===1&&j===6)continue;
+ const seed=(i*17+j*23)%11;
+ const plots=[{x:4,y:2,w:68+seed%4*3,h:68+seed%3*4},{x:86,y:4,w:87-seed%4*4,h:65+seed%4*5},{x:4,y:83,w:77+seed%5*2,h:79-seed%3*3},{x:94,y:87,w:77-seed%3*3,h:74+seed%4*3}];
+ for(let k=0;k<plots.length;k++){const p=plots[k],bx0=bx+p.x,by0=by+p.y;const b={x:bx0,y:by0,w:p.w,h:p.h};buildings.push(b);svgEl('rect',{x:b.x+3,y:b.y+4,width:b.w,height:b.h,rx:1.3,class:'building-shadow'},nodes.shadows);svgEl('rect',{x:b.x,y:b.y,width:b.w,height:b.h,rx:1.3,class:'building'},nodes.buildings)}
+}
+function scale(){return .42*Math.pow(1.2,zoom-12)}
+function project(x,y){const s=scale();return{x:195+(x-center.x)*s,y:344+(y-center.y)*s}}
+function toast(message){const n=$('toast');n.textContent=message;n.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>n.classList.remove('show'),1800)}
+function keepCenter(){center.x=Math.max(180,Math.min(1560,center.x));center.y=Math.max(180,Math.min(1530,center.y))}
+function render(){
+ const s=scale();keepCenter();nodes.world.setAttribute('transform',`translate(195 344) scale(${s}) translate(${-center.x} ${-center.y})`);
+ const color=zoom<14.3?'#343633':zoom<15.3?'#555954':zoom<16.2?'#b6b9b1':zoom<16.7?'#e5e7e0':'#fff';
+ nodes.buildings.querySelectorAll('.building').forEach(b=>{b.style.fill=color;b.style.opacity=zoom<15.8?'.98':'.96'});
+ nodes.shadows.style.opacity=zoom>=16.2&&reliefReady&&(scene!=='building'||!before)?'1':'0';
+ nodes.ghost.innerHTML='';
+ if(scene==='ghost'&&before){
+   buildings.filter((b,i)=>i%3===0).forEach(b=>svgEl('rect',{x:b.x+10/s,y:b.y+10/s,width:b.w,height:b.h,rx:1,fill:'#6f756c',opacity:'.32'},nodes.ghost));
+   nodes.ghost.style.opacity='1';
+ }else nodes.ghost.style.opacity='0';
+ const p=project(starPlace.x,starPlace.y);nodes.star.style.left=p.x/390*100+'%';nodes.star.style.top=p.y/760*100+'%';nodes.star.hidden=p.x<-20||p.x>415||p.y<0||p.y>685;
+ const step=zoom<14.2?'城市总览':zoom<16.2?'街区建筑':'街道俯视';$('stepTitle').textContent=step;$('zoomHud').textContent=zoom.toFixed(1);$('zoomOutput').textContent=zoom.toFixed(1);$('zoomRange').value=zoom;
+ $('metric1').textContent=scene==='ghost'&&before?'2':'1';$('metric2').textContent='0°';$('metric3').textContent='1';
+ renderPOIs();
+}
+function renderPOIs(){nodes.poiLayer.replaceChildren();if(zoom<12.8)return;
+ const rows=poiData.filter(p=>poiFilter==='all'||p.cat===poiFilter);let count=0;const cells=new Set();
+ for(const p of rows){if(count>=(zoom>=16.3?11:zoom>=14.5?6:3))break;const xy=project(p.x,p.y);if(xy.x<19||xy.x>360||xy.y<115||xy.y>640)continue;
+ const key=Math.floor(xy.x/(zoom>=15.25?78:45))+':'+Math.floor(xy.y/(zoom>=15.25?43:39));if(cells.has(key))continue;cells.add(key);
+ const button=document.createElement('button');button.type='button';button.className='map-poi'+(selectedPoi===p.id?' selected':'');button.style.left=xy.x/390*100+'%';button.style.top=xy.y/760*100+'%';button.setAttribute('aria-label','查看'+p.name);
+ const icon=document.createElement('span');icon.className='poi-token';icon.textContent=p.glyph;button.appendChild(icon);
+ if(zoom>=15.25&&!(scene==='poi'&&before)){const t=document.createElement('span');t.className='poi-text';t.textContent=p.name;button.appendChild(t)}
+ button.addEventListener('click',ev=>{ev.stopPropagation();selectedPoi=p.id;toast(p.name+' · 示例地点');renderPOIs()});nodes.poiLayer.appendChild(button);count++;
+ }
+}
+const persisted={};try{const fromStorage=JSON.parse(localStorage.getItem('fp-map-a-review-v2')||'{}');if(fromStorage&&typeof fromStorage==='object')Object.assign(persisted,fromStorage)}catch(_){/* offline file may not allow storage */}
+function persist(){try{localStorage.setItem('fp-map-a-review-v2',JSON.stringify(persisted))}catch(_){}}
+function setStatus(value){const entry=persisted[scene]||(persisted[scene]={});entry.status=value;persist();document.querySelectorAll('[data-status]').forEach(b=>b.classList.toggle('active',b.dataset.status===value))}
+function syncReview(){const r=persisted[scene]||{};document.querySelectorAll('[data-status]').forEach(b=>b.classList.toggle('active',b.dataset.status===(r.status||'unreviewed')));$('reviewNote').value=r.note||'';$('feedbackMessage').textContent=''}
+function showScene(next){
+ scene=next;const item=scenes[next];searchSeq++;closeSearch();$('miniSheet').classList.remove('open');
+ document.querySelectorAll('[data-scene]').forEach(b=>{const active=b.dataset.scene===scene;b.classList.toggle('selected',active);b.setAttribute('aria-current',active?'true':'false')});
+ $('scenarioNo').textContent=`场景 ${String(sceneOrder.indexOf(scene)+1).padStart(2,'0')} / 08`;$('sceneTitle').textContent=item.title;$('sceneIntro').textContent=item.intro;
+ $('scopeInfo').textContent=item.scope;$('scopeInfo').classList.toggle('warn',item.scope.startsWith('待'));
+ $('steps').replaceChildren();for(const s of item.steps){const li=document.createElement('li');li.textContent=s;$('steps').appendChild(li)}
+ $('sceneActions').replaceChildren();for(const [label,action,emphasis] of item.actions){const b=document.createElement('button');b.textContent=label;b.className=emphasis||'';b.addEventListener('click',()=>actions[action]?.());$('sceneActions').appendChild(b)}
+ if(next==='poi'||next==='building'){zoom=16.7}else if(next==='ghost'){zoom=15.8}else if(next==='zoom'){zoom=13.3}else if(next==='anchor'){zoom=15.9}else zoom=15.8;
+ poiFilter='all';selectedPoi=null;reliefReady=true;center={x:835,y:785};
+ $('sceneMessage').textContent=next==='boot'||next==='recover'?'点击操作，查看不同准备与恢复状态。':'可以直接在 iPhone 示意地图上拖动、缩放和点击。';
+ syncReview();render()
+}
+function openSearch(){searchOpen=true;$('searchSheet').classList.add('show');$('searchInput').focus();scheduleSearch($('searchInput').value)}
+function closeSearch(){searchOpen=false;$('searchSheet').classList.remove('show')}
+function showSearch(rows,msg){$('searchLabel').textContent=msg;$('searchResults').replaceChildren();if(!rows.length){const div=document.createElement('div');div.className='empty';div.textContent='没有匹配地点，可尝试其他关键词';$('searchResults').appendChild(div);return}for(const p of rows){const b=document.createElement('button');b.className='result';const left=document.createElement('b');left.textContent=p.name;const right=document.createElement('small');right.textContent='示例坐标';b.append(left,right);b.onclick=()=>{center={x:p.x,y:p.y};zoom=16.3;selectedPoi=p.id;closeSearch();render();toast('已定位：'+p.name)};$('searchResults').appendChild(b)}}
+function scheduleSearch(q,lag){const id=++searchSeq;const v=q.trim(),delay=lag??250;$('searchLabel').textContent=v?'正在搜索「'+v+'」':'地点示例';$('searchResults').replaceChildren();setTimeout(()=>{if(!before&&id!==searchSeq)return;const rows=poiData.filter(p=>!v||p.name.includes(v));const filtered=rows.filter((p,i)=>rows.findIndex(x=>x.id===p.id)===i);showSearch(filtered.slice(0,8),v?'「'+v+'」的结果':'地点示例');if(id!==searchSeq&&before)toast('旧请求覆盖了最新搜索（修复前示意）')},delay)}
+function rapidSearch(){openSearch();$('searchInput').value='美术馆';scheduleSearch('美术馆',1000);setTimeout(()=>{$('searchInput').value='咖啡';scheduleSearch('咖啡',280)},120)}
+function load(kind){
+ const id=++loadSeq;loading=true;$('loadMask').classList.add('on');$('loadTitle').textContent=kind==='fail'?'正在连接地图服务':kind==='slow'?'弱网加载中':'地图正在准备';$('loadDetail').textContent='示意流程：只准备当前活动地图容器。';
+ if(kind==='fail'){
+   setTimeout(()=>{if(loadSeq!==id)return;loading=false;$('loadTitle').textContent='地图服务暂不可用';$('loadDetail').textContent='可返回基础地图或重新连接，不应出现无法操作的死锁。';$('loadMask').querySelector('.progress').style.display='none';toast('模拟连接失败')},930);
+ }else{
+   $('loadMask').querySelector('.progress').style.display='block';
+   setTimeout(()=>{if(loadSeq!==id)return;loading=false;$('loadMask').classList.remove('on');$('sceneMessage').textContent=kind==='slow'?'弱网加载演示完成：此效果不等于真实网络性能验证。':'模拟加载完成：请拖动或缩放地图。';toast('活动地图已准备')},kind==='slow'?2100:760)
+ }
+}
+const actions={
+ bootNormal:()=>load('normal'),bootSlow:()=>load('slow'),bootFail:()=>load('fail'),
+ zoomCity:()=>{zoom=12.5;render()},zoomDistrict:()=>{zoom=14.2;render()},zoomStreet:()=>{zoom=17.5;render()},
+ resetMap:()=>{center={...starPlace};zoom=15.8;render();toast('已回到收藏点')},
+ nudge:()=>{center.x+=175;center.y+=80;render();toast('已平移地图')},
+ reload:()=>{reliefReady=false;render();toast('模拟样式重载中…');setTimeout(()=>{reliefReady=!before;render();toast(before?'旧版阴影层未恢复':'建筑阴影层已恢复（单层）')},500)},
+ poiAll:()=>{poiFilter='all';render()},poiCulture:()=>{poiFilter='culture';render()},poiFood:()=>{poiFilter='food';render()},poiPublic:()=>{poiFilter='public';render()},
+ openSearch,rapidSearch,clearSearch:()=>{$('searchInput').value='';openSearch();scheduleSearch('')},
+ openStar:()=>{$('miniSheet').classList.add('open');toast('始终只有一颗地理星标')}
+};
+$('searchToggle').onclick=openSearch;$('searchClose').onclick=closeSearch;$('sheetClose').onclick=()=>$('miniSheet').classList.remove('open');$('star').onclick=e=>{e.stopPropagation();actions.openStar()};$('locate').onclick=actions.resetMap;
+$('zoomPlus').onclick=()=>{zoom=Math.min(19,Math.round((zoom+.4)*10)/10);render()};$('zoomMinus').onclick=()=>{zoom=Math.max(11,Math.round((zoom-.4)*10)/10);render()};
+$('zoomRange').addEventListener('input',e=>{zoom=Number(e.target.value);render()});
+$('before').onclick=()=>{before=true;$('before').classList.add('active');$('after').classList.remove('active');render()};
+$('after').onclick=()=>{before=false;$('after').classList.add('active');$('before').classList.remove('active');reliefReady=true;render()};
+document.querySelectorAll('[data-scene]').forEach(b=>b.onclick=()=>showScene(b.dataset.scene));
+document.querySelectorAll('[data-status]').forEach(b=>b.onclick=()=>setStatus(b.dataset.status));
+$('reviewNote').addEventListener('input',e=>{const r=persisted[scene]||(persisted[scene]={});r.note=e.target.value;persist()});
+$('copyFeedback').onclick=async()=>{
+ const lines=['Travel Atlas / Footprint Map 地图系统 A｜第二轮验收',...sceneOrder.map((key,i)=>{const v=persisted[key]||{};const word=v.status==='pass'?'符合预期':v.status==='needs'?'需要修改':'尚未验收';return `${i+1}. ${scenes[key].title}：${word}${v.note?' — '+v.note:''}`;}),'备注：HTML 演示稿为离线交互样机，非正式 V4 产品实测。'];
+ const txt=lines.join('\n');
+ try{await navigator.clipboard.writeText(txt);$('feedbackMessage').textContent='已复制验收反馈，可返回聊天粘贴。'}catch(_){
+  const field=$('reviewNote');field.value=txt;field.select();$('feedbackMessage').textContent='当前浏览器不允许自动复制，反馈已放入下方文本框，请手动选择复制。';}
+};
+$('searchInput').addEventListener('input',e=>scheduleSearch(e.target.value));
+document.querySelectorAll('[data-quick]').forEach(b=>b.onclick=()=>{$('searchInput').value=b.dataset.quick;scheduleSearch(b.dataset.quick)});$('rapidSearch').onclick=rapidSearch;
+const fingers=new Map();let dragStart=null,pinchStart=null;
+const surface=$('mapSurface');
+surface.addEventListener('pointerdown',e=>{
+ if(e.target.closest('button'))return;surface.setPointerCapture(e.pointerId);fingers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(fingers.size===1){dragStart={x:e.clientX,y:e.clientY,cx:center.x,cy:center.y};surface.classList.add('dragging')}
+ if(fingers.size===2){const pts=[...fingers.values()];pinchStart={dist:Math.hypot(pts[1].x-pts[0].x,pts[1].y-pts[0].y),zoom};dragStart=null}
+});
+surface.addEventListener('pointermove',e=>{
+ if(!fingers.has(e.pointerId))return;fingers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(fingers.size===2&&pinchStart){const pts=[...fingers.values()];const dist=Math.hypot(pts[1].x-pts[0].x,pts[1].y-pts[0].y);zoom=Math.max(11,Math.min(19,pinchStart.zoom+Math.log2(Math.max(1,dist)/Math.max(1,pinchStart.dist))*1.8));render();return}
+ if(fingers.size===1&&dragStart){center.x=dragStart.cx-(e.clientX-dragStart.x)/scale()*390/surface.clientWidth;center.y=dragStart.cy-(e.clientY-dragStart.y)/scale()*760/surface.clientHeight;render()}
+});
+function endPointer(e){fingers.delete(e.pointerId);if(!fingers.size){dragStart=null;pinchStart=null;surface.classList.remove('dragging')}else if(fingers.size===1){const p=[...fingers.values()][0];dragStart={x:p.x,y:p.y,cx:center.x,cy:center.y};pinchStart=null}}
+surface.addEventListener('pointerup',endPointer);surface.addEventListener('pointercancel',endPointer);
+surface.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(11,Math.min(19,zoom+(e.deltaY<0?.25:-.25)));render()},{passive:false});
+$('loadMask').onclick=()=>{if(!loading){$('loadMask').classList.remove('on');toast('已回到地图')}};
+showScene('boot');
+})();
+</script>
+</body></html>
