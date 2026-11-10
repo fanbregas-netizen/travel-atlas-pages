@@ -48,6 +48,8 @@ jobs:
           cp -R stage1-34-1-review _site/stage1-34-1-review
           # Isolated Stage1.34.2 iPhone touch and itinerary acceptance; production unchanged.
           cp -R stage1-34-2-review _site/stage1-34-2-review
+          # Isolated Stage1.34.3 iPhone visual/interaction review; production unchanged.
+          cp -R stage1-34-3-review _site/stage1-34-3-review
           # Isolated Stage1.36 complete iPhone acceptance preview; does not replace production homepage.
           cp -R stage1-36-review _site/stage1-36-review
           # Interaction-only demo; never overwrites the approved live product
