@@ -66,6 +66,8 @@ jobs:
           cp -R demo-two-bubbles _site/demo-two-bubbles
           # Isolated Interaction B Dock V4 approval preview (official homepage untouched).
           cp -R interaction-b-pr12-review _site/interaction-b-pr12-review
+          # Isolated real-product interaction B home Dock search preview; root product unchanged.
+          cp -R interaction-b-real-home-search-review _site/interaction-b-real-home-search-review
           touch _site/.nojekyll
       - name: Validate static deployment assets
         run: |
