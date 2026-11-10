@@ -9,6 +9,13 @@ body.fp-search-ux-prepare #fpSearchSheet {
   transition:none!important;
   pointer-events:none!important;
 }
+/* Legacy Stage1.34 uses a higher-specificity opening selector that forces Dock opacity:1. */
+body.fp34-searching.fp-search-open.fp-search-ux-flight #appDock,
+body.fp34-searching.fp-search-open.fp-search-ux-prepare #appDock,
+body.fp34-searching.fp-search-open.fp-search-ux-flight #fpSearchSheet,
+body.fp34-searching.fp-search-open.fp-search-ux-prepare #fpSearchSheet {
+  opacity:0!important;animation:none!important;transition:none!important;pointer-events:none!important;
+}
 /* Disable the legacy two-element crossfade/clip. The new geometry owns transitions. */
 body.fp34-searching.fp-search-open #appDock,
 body.fp34-searching.fp-search-open #fpSearchSheet,
