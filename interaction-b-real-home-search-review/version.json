@@ -1,7 +1,7 @@
 {
-  "version": "V4.Stage1.20261110.CardRestore.Integration.1",
+  "version": "V4.Stage1.20261110.34.7",
   "base": "V4.Stage1.20261110.34.7",
   "date": "2026-11-10",
   "interaction": "swipe-card",
-  "review": "single anchored star, bottom-sheet restore; local candidate; not iPhone-approved"
+  "review": "Real home Dock search isolated preview: no temporary single tile, synchronous Safari focus; production unchanged"
 }
