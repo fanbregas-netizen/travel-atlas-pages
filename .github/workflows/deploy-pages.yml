@@ -72,6 +72,8 @@ jobs:
           cp -R interaction-b-v4-complete-review _site/interaction-b-v4-complete-review
           # Second V4 interaction acceptance batch A, isolated demo data only.
           cp -R interaction-b-v4-batch-a-review _site/interaction-b-v4-batch-a-review
+          # Second V4 iPhone acceptance B batch, isolated media and backup data.
+          cp -R interaction-b-v4-batch-b-review _site/interaction-b-v4-batch-b-review
           # Original V4 map / card / Dock rubber-band review, independent of production and existing demo.
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
