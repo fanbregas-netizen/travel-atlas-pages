@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "Footprint Map · Stage1.34.1 验收",
+  "short_name": "旅行地图",
+  "description": "旅行收藏与路线编排 iPhone 独立验收",
+  "lang": "zh-CN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f6f3",
+  "theme_color": "#f7f6f3",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
