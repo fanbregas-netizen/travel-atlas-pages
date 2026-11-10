@@ -1,0 +1,7 @@
+{
+  "version": "V4.Stage1.20261110.34.4",
+  "base": "V4.Stage1.20261110.34.3",
+  "date": "2026-11-10",
+  "preview": true,
+  "fix": "saved star geographic focus uses the same four-SVG-bubble fit corridor"
+}
