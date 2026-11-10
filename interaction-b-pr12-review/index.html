@@ -50,10 +50,7 @@
 .dock .nav.primary{background:#315846;color:#fff;font-weight:720;max-width:105px}
 .dock .nav:active{transform:scale(.96)}
 .dock-stage{position:absolute;z-index:11;left:50%;bottom:calc(84px + 10px);transform:translateX(-50%);pointer-events:none;background:#fbfcf7e8;border:1px solid #ffffffa8;padding:6px 11px;border-radius:22px;font-size:10px;font-weight:680;color:#68806d;box-shadow:0 4px 20px #1d30200f;white-space:nowrap;opacity:.95}
-body:has(.sheet:not([hidden])) .dock-stage{opacity:0}
-.atlas-bookmark-hit.selected svg{filter:drop-shadow(0 0 4px #e7bf5c77) drop-shadow(0 3px 6px #34443836)}
-.media-grid.list{display:flex;flex-direction:column}
-.media-grid.list .grid-photo,.media-grid.list .grid-photo.main{width:100%;height:195px;flex:none}
+body:has(.sheet:not([hidden])) .dock-stage{opacity:0}\n.atlas-bookmark-hit.selected svg{filter:drop-shadow(0 0 4px #e7bf5c77) drop-shadow(0 3px 6px #34443836)}\n.media-grid.list{display:flex;flex-direction:column}\n.media-grid.list .grid-photo,.media-grid.list .grid-photo.main{width:100%;height:195px;flex:none}
 .demo-menu{position:absolute;top:121px;right:14px;width:260px;z-index:32;background:#fffefa;box-shadow:0 20px 60px #263a303a;border:1px solid #fff;border-radius:23px;padding:17px;backdrop-filter:blur(16px)}
 .demo-menu[hidden]{display:none}.demo-menu-heading{font-size:14px;font-weight:800;display:flex;justify-content:space-between;margin-bottom:13px}.demo-menu-heading span{color:#a0a99e;font-size:10px;font-weight:600}
 .menu-jumps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
@@ -95,6 +92,56 @@ body:has(.sheet:not([hidden])) .dock-stage{opacity:0}
 #sheet .section-heading:active,#sheet .other:active,#sheet .photos:active{opacity:.75}
 @media(max-width:720px){.layer-surface{padding-top:max(47px,env(safe-area-inset-top))}.demo-menu{top:calc(107px + env(safe-area-inset-top))}.dock{bottom:max(8px,env(safe-area-inset-bottom))}.dock-stage{bottom:calc(95px + env(safe-area-inset-bottom))}}
 @media(prefers-reduced-motion:reduce){.layer,.dock,.toast{transition:none!important}}
+
+/* Search interaction V5: a single map-owned search workspace slides in from the Dock. */
+.layer.search-layer{background:#fafaf6;opacity:1;transform:translate3d(0,102%,0);transition:transform .54s cubic-bezier(.17,.86,.23,1),opacity .26s ease;box-shadow:0 -14px 42px #1d362417}
+.layer.search-layer.active{transform:translate3d(0,0,0)}
+.layer.search-layer .layer-header{background:#fafaf6;border-bottom:1px solid #e8ebe4}
+.layer.search-layer .layer-body{padding:24px 18px calc(113px + env(safe-area-inset-bottom));background:linear-gradient(170deg,#fafaf6 0%,#f5f7ef 100%)}
+.search-intro{margin:5px 0 25px}
+.search-intro .search-overline{font-size:10px;font-weight:800;letter-spacing:.15em;color:#a2a98c;display:flex;gap:9px;align-items:center}
+.search-intro .search-overline:before{content:'';height:1px;width:17px;background:#b3be9f}
+.search-intro h2{font-size:30px;font-weight:750;line-height:1.22;letter-spacing:-.05em;margin:11px 0 5px;color:#2c4236}
+.search-intro p{font-size:12px;line-height:1.7;color:#8c9b8c;margin:0}
+.search-input-wrap{height:58px;display:flex;gap:10px;align-items:center;background:#fffefa;border:1.5px solid #e6eae1;border-radius:19px;padding:0 13px;box-shadow:0 4px 24px #304e3508;transition:box-shadow .2s,border-color .2s}
+.search-input-wrap:focus-within{border-color:#9cb49e;box-shadow:0 0 0 3px #87a58d1b,0 4px 24px #304e350a}
+.search-input-wrap svg{width:19px;height:19px;flex:none;color:#67836d}
+.search-input-wrap input{flex:1;min-width:0;font-size:15px;font-weight:530;font-family:inherit;color:#32473a;background:transparent;border:0;outline:0;caret-color:#55755e}
+.search-input-wrap input::placeholder{color:#a4b0a4;font-weight:430}
+.search-clear-inline{height:29px;width:29px;border:0;border-radius:50%;background:#edf1e9;display:grid;place-items:center;color:#7f9182;opacity:1;transition:opacity .15s}
+.search-clear-inline[hidden]{display:none}
+.search-clear-inline svg{height:14px;width:14px;color:#7f9182}
+.search-chip-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:13px 0 25px;padding-bottom:4px}
+.search-chip-row::-webkit-scrollbar{display:none}
+.search-chip{flex:none;border:1px solid #e6eae0;background:#fcfcf7;color:#647967;border-radius:13px;padding:9px 13px;font-size:11px;font-weight:680;white-space:nowrap;transition:transform .15s,background .15s}
+.search-chip:active{transform:scale(.97);background:#e8eee2}
+.search-section-title{font-size:11px;font-weight:760;letter-spacing:.1em;color:#869785;display:flex;justify-content:space-between;align-items:center;margin:24px 0 11px}
+.search-section-title span:last-child{font-size:10px;letter-spacing:normal;font-weight:530;color:#abb4a7}
+.search-row{display:flex;gap:13px;align-items:center;width:100%;text-align:left;border:1px solid #e8ece2;background:#fffefa;border-radius:19px;padding:15px 14px;box-shadow:0 5px 20px #2d4a3308;color:#355141;animation:searchRowIn .31s both cubic-bezier(.17,.86,.23,1)}
+.search-row:active{transform:scale(.99);background:#f4f6ef}
+.search-row-icon{width:43px;height:43px;display:grid;place-items:center;background:#eef3e9;border-radius:14px;flex:none;color:#527662}
+.search-row-icon svg{width:21px;height:21px}
+.search-row-copy{min-width:0;flex:1}.search-row-copy b{display:block;font-size:15px;font-weight:760;letter-spacing:-.025em;color:#314a3a}
+.search-row-copy small{font-size:11px;line-height:1.5;color:#9daa9e;display:block;margin-top:4px}
+.search-row-next{font-size:20px;line-height:1;color:#96aa9b;margin-right:3px}
+.search-saved-tag{display:inline-block;margin-left:7px;font-size:9px;letter-spacing:0;font-weight:700;color:#967633;background:#f7efda;border-radius:6px;padding:3px 5px;vertical-align:2px}
+.search-empty{padding:32px 21px;margin:2px 0 4px;background:#fffefa;border:1px dashed #dce4d9;border-radius:21px;text-align:center;color:#899c8b}
+.search-empty-symbol{font-size:26px;line-height:1.2;color:#9bb3a1}
+.search-empty strong{display:block;font-size:14px;color:#557061;margin:10px 0 7px}
+.search-empty p{font-size:11px;line-height:1.8;margin:0}
+.search-scope-note{padding:17px 5px;color:#a1ad9f;font-size:11px;line-height:1.75}
+.search-scope-note b{color:#718a76}
+.search-keyboard-open .dock{opacity:0;pointer-events:none;transform:translate3d(0,105%,0)}
+.search-keyboard-open .layer.search-layer .layer-body{padding-bottom:30px}
+.search-keyboard-open .search-intro{margin-bottom:12px}
+.search-keyboard-open .search-intro h2{font-size:24px}
+.search-keyboard-open .search-intro p{display:none}
+.search-active-indicator{display:inline-flex;align-items:center;gap:5px;color:#9aa99b;font-size:10px;font-weight:550}
+.search-active-indicator i{width:5px;height:5px;background:#88a791;border-radius:50%;display:inline-block}
+.atlas-bookmark-hit.search-selected svg{animation:searchPinPulse .72s cubic-bezier(.14,.85,.23,1) both}
+@keyframes searchRowIn{from{opacity:0;transform:translate3d(0,12px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes searchPinPulse{0%{scale:.83}47%{scale:1.12}100%{scale:1}}
+@media(prefers-reduced-motion:reduce){.layer.search-layer,.search-row,.atlas-bookmark-hit.search-selected svg{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -478,7 +525,7 @@ const tabIcon={
 };
 const icon=(name)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(tabIcon[name]||tabIcon.layout)+'</svg>';
 const keys={map:'地图',peek:'预览',half:'半屏',full:'全屏',brief:'Brief',media:'照片视频',guides:'相关攻略',nearby:'附近地点'};
-const state={layer:null,editing:false,note:'想趁清晨沿着河道慢慢走，在石桥边停一停，看看临水的老房子和安静的街巷。',savedGuide:false,likedNearby:false,layout:'grid',photos:[],menu:false};
+const state={searchQuery:'',searchRecent:['平江路'],layer:null,editing:false,note:'想趁清晨沿着河道慢慢走，在石桥边停一停，看看临水的老房子和安静的街巷。',savedGuide:false,likedNearby:false,layout:'grid',photos:[],menu:false};
 const mapItems=[['map','地图','map'],['search','搜索','search'],['saved','收藏','bookmark'],['route','路线','route']];
 const placeItems=[['overview','概览','layout'],['media','照片','photo'],['guides','攻略','guide'],['nearby','附近','nearby']];
 const subItems={
@@ -486,7 +533,7 @@ const subItems={
   media:[['back','地点','back'],['layout','切换排版','grid'],['upload','添加照片','plus','primary']],
   guides:[['back','地点','back'],['readGuide','阅读','view'],['saveGuide','收藏攻略','bookmark','primary']],
   nearby:[['back','地点','back'],['seeMap','地图定位','map'],['keepNearby','加入想去','heart','primary']],
-  search:[['backMap','地图','map'],['clearSearch','清除','close'],['showPlace','查看地点','nearby','primary']],
+  search:[['backMap','地图','map'],['clearSearch','清空','close'],['showPlace','打开地点','nearby','primary']],
   saved:[['backMap','地图','map'],['showPlace','打开地点','nearby','primary']],
   route:[['backMap','地图','map'],['showPlace','回到地点','nearby','primary']]
 };
@@ -509,6 +556,30 @@ function renderDock(){
  document.querySelectorAll('[data-jump]').forEach(el=>el.classList.toggle('active',el.dataset.jump===(state.layer|| (s.level==='closed'?'map':s.level))));
  $('savedStar').classList.toggle('selected',s.level!=='closed');
 }
+const escapeHtml=value=>String(value).replace(/[&"'<>]/g,char=>({'&':'&amp;','"':'&quot;',"'":'&#39;','<':'&lt;','>':'&gt;'}[char]));
+const searchMatches=value=>{
+  const q=(value||'').trim().toLowerCase().replace(/\s+/g,'');
+  return !q || ['平江路','平江','苏州','古街','建筑','街巷','pingjiang','suzhou'].some(word=>word.toLowerCase().includes(q)||q.includes(word.toLowerCase()));
+};
+function updateSearchResults(){
+  if(state.layer!=='search')return;
+  const area=$('searchResults'),clear=$('searchClearInline');
+  if(!area)return;
+  const q=state.searchQuery.trim();
+  if(clear)clear.hidden=!q;
+  if(q&&!searchMatches(q)) {
+    area.innerHTML=`<div class="search-section-title">搜索结果 <span>0 个地点</span></div><div class="search-empty"><div class="search-empty-symbol">⌕</div><strong>暂时没有找到匹配地点</strong><p>这是独立交互原型，尚未连接真实地点搜索。<br/>可试试「平江路」或「苏州」。</p></div>`;
+  } else {
+    const heading=q?'搜索结果':'最近搜索';
+    area.innerHTML=`<div class="search-section-title">${heading}<span>${q?'1 个示例地点':'已保存 1 项'}</span></div><button type="button" class="search-row" data-action="showPlace" aria-label="选择平江路并回到地图"><span class="search-row-icon">${icon(q?'nearby':'search')}</span><span class="search-row-copy"><b>平江路<span class="search-saved-tag">已收藏</span></b><small>苏州 · 旧城街区 · 地点示意</small></span><span class="search-row-next" aria-hidden="true">›</span></button>`;
+  }
+}
+function updateKeyboardVisibility(){
+  const v=window.visualViewport;
+  const delta=Math.max(0,window.innerHeight-(v?.height || window.innerHeight));
+  document.body.classList.toggle('search-keyboard-open',state.layer==='search' && delta>130);
+}
+window.visualViewport?.addEventListener('resize',updateKeyboardVisibility);
 function renderLayer(){
  const kind=state.layer;if(!kind)return;
  const titles={brief:'为什么想去',media:'照片与视频',guides:'相关攻略',nearby:'附近地点',search:'搜索地点',saved:'我的收藏',route:'规划路线'};
@@ -521,30 +592,49 @@ function renderLayer(){
  const media=`<div class="layer-overline">与地点绑定的媒体</div><h2 class="layer-title">收藏的画面，<br>也记录在这里。</h2><p class="layer-sub">所有照片都归属同一个地点。演示页仅保存在本次打开状态，不上传服务器。</p><div class="media-grid ${state.layout==='list'?'list':''}">${photoNodes.join('')}</div><p class="dock-caption">底部 Dock 变为「返回地点 / 切换排版 / 添加照片」。</p>`;
  const guides=`<div class="layer-overline">地点相关内容</div><h2 class="layer-title">关于这条街，<br>收藏过的攻略。</h2><p class="layer-sub">点击卡片里的「展开内容」，查看一条示例攻略；底部可以进行收藏操作。</p><div class="guide-card"><span class="tag">攻略 01 / 示意</span><strong>沿河慢走 · 街巷观察</strong><p>从一条安静的小巷开始，沿着河道慢慢走，注意桥、街角和建筑立面的变化。</p><button type="button" class="guide-toggle">展开内容</button><div class="guide-extra"><p>建议把路线留得松一些，路过喜欢的店就停下来。示意内容不包含真实路径。</p></div></div><div class="guide-card"><span class="tag">攻略 02 / 示意</span><strong>清晨拍照 · 光影备忘</strong><p>记录树影、墙面、河水和老建筑之间的光线关系。</p><button type="button" class="guide-toggle">展开内容</button><div class="guide-extra"><p>优先观察沿街立面和桥边的层次变化，具体地点需以实际地图为准。</p></div></div><p class="dock-caption">底部 Dock 变为「返回地点 / 阅读 / 收藏攻略」。</p>`;
  const nearby=`<div class="layer-overline">从这个地点出发</div><h2 class="layer-title">附近还有什么<br>值得停留。</h2><p class="layer-sub">这里只展示附近内容的交互排版。不是实际 POI 数据，也不生成额外黄色星标。</p><div class="nearby-row"><div class="nearby-img">⌖</div><div class="details"><b>河边石桥 · 示意</b><p>建筑细节 · 街巷摄影</p></div><button data-action="keepNearby" type="button">想去</button></div><div class="nearby-row"><div class="nearby-img">♧</div><div class="details"><b>沿河小巷 · 示意</b><p>步行探索 · 地点灵感</p></div><button data-action="seeMap" type="button">地图</button></div><div class="nearby-row"><div class="nearby-img">▤</div><div class="details"><b>小书店 · 示意</b><p>在地文化 · 慢慢逛</p></div><button data-action="keepNearby" type="button">想去</button></div><p class="dock-caption">底部 Dock 变为「返回地点 / 地图定位 / 加入想去」。</p>`;
- const search=`<div class="layer-overline">全局搜索</div><h2 class="layer-title">找一个想去<br>的地方。</h2><div class="searchbox">${icon('search')}<input id="searchInput" placeholder="输入地点，如：平江路" value="平江路" autocomplete="off" /></div><div id="searchResult" class="preview-row"><span>✦</span><div class="blurb"><strong>平江路</strong><p>示意收藏地点 · 苏州</p></div><button data-action="showPlace">查看</button></div><p class="dock-caption">搜索模式属于全局层；底部是「地图 / 清除 / 查看地点」。</p>`;
+ const search=`<div class="search-intro"><div class="search-overline">地点搜索 · 演示模式</div><h2>发现下一站。</h2><p>从地图出发，找到感兴趣的地点。</p></div>
+ <div class="search-input-wrap">${icon('search')}<input id="searchInput" type="search" inputmode="search" enterkeyhint="search" aria-label="搜索地点" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="搜索地点、城市或建筑" value="${escapeHtml(state.searchQuery)}"/><button type="button" id="searchClearInline" class="search-clear-inline" data-action="clearSearch" aria-label="清除搜索词" hidden>${icon('close')}</button></div>
+ <div class="search-chip-row" aria-label="搜索推荐"><button type="button" class="search-chip" data-search-term="平江路">平江路</button><button type="button" class="search-chip" data-search-term="苏州">苏州</button><button type="button" class="search-chip" data-search-term="古街">古街</button><button type="button" class="search-chip" data-search-term="建筑">建筑</button></div>
+ <div id="searchResults" class="search-results" aria-live="polite"></div>
+ <div class="search-scope-note">本页仅模拟 <b>平江路</b> 这一收藏地点。选择结果会回到地图，在原有黄色星标上打开地点卡片。真实搜索与地图数据将在集成阶段接入。</div>`
  const saved=`<div class="layer-overline">全局收藏</div><h2 class="layer-title">所有想去的地方。</h2><p class="layer-sub">从这里可返回地点卡片，地点仍使用地图上的同一颗黄色星标。</p><div class="preview-row"><span>⭐</span><div class="blurb"><strong>平江路</strong><p>苏州 · 已记录 Brief、照片、攻略</p></div><button data-action="showPlace">查看</button></div><p class="dock-caption">全局收藏页的 Dock 提供返回地图和打开地点，不复制地图星标。</p>`;
  const route=`<div class="layer-overline">地图全局能力</div><h2 class="layer-title">路线规划</h2><p class="layer-sub">这里展示 Dock 路线入口的层级行为。真实导航需要未来接入地图模块，不在本演示中模拟距离或行驶时间。</p><div class="guide-card"><span class="tag">示意路线</span><strong>从当前位置 → 平江路</strong><p>真实定位、路径计算与路况信息尚未接入。</p></div><p class="dock-caption">底部 Dock：返回地图 / 回到地点。</p>`;
  body.innerHTML={brief,media,guides,nearby,search,saved,route}[kind];
  if(kind==='media')body.querySelector('.media-grid').classList.toggle('list',state.layout==='list');
  if(kind==='search'){
-   const input=$('searchInput');input.addEventListener('input',()=>{$('searchResult').hidden=!input.value.trim()||!('平江路'.includes(input.value.trim()))});
+   const input=$('searchInput');
+   input.addEventListener('input',()=>{state.searchQuery=input.value;updateSearchResults()});
+   input.addEventListener('search',()=>{state.searchQuery=input.value;updateSearchResults();input.blur()});
+   updateSearchResults();
  }
  body.scrollTop=0;
 }
 function layerOpen(kind){
  if(sheetState().level==='closed' && ['brief','media','guides','nearby'].includes(kind))window.__demo.open('demo-pingjiang');
+ clearTimeout(hideTimer);
  state.layer=kind;state.menu=false;$('demoMenu').hidden=true;
+ layer.classList.toggle('search-layer',kind==='search');
+ if(kind==='search')state.searchQuery='';
  layer.hidden=false;renderLayer();renderDock();
  requestAnimationFrame(()=>layer.classList.add('active'));
+ if(kind==='search'){
+   const input=$('searchInput');
+   // Synchronous user-gesture focus is the iPhone Safari-friendly path to the keyboard.
+   try{input?.focus({preventScroll:true})}catch(_){input?.focus()}
+   updateKeyboardVisibility();
+ }
 }
 function back(){
  if(!state.layer)return;
- const detail=['brief','media','guides','nearby'].includes(state.layer);
+  if(state.layer==='search')$('searchInput')?.blur();
+  document.body.classList.remove('search-keyboard-open');
+  const detail=['brief','media','guides','nearby'].includes(state.layer);
  layer.classList.remove('active');state.layer=null;renderDock();
  clearTimeout(hideTimer);hideTimer=setTimeout(()=>{if(!state.layer)layer.hidden=true},320);
  if(!detail)window.__demo.close();
 }
 function mapReset(){
+ $('searchInput')?.blur();document.body.classList.remove('search-keyboard-open');
  state.layer=null;layer.classList.remove('active');layer.hidden=true;
  state.menu=false;$('demoMenu').hidden=true;
  window.__demo.close();renderDock();
@@ -553,7 +643,8 @@ function jump(key){
  state.menu=false;$('demoMenu').hidden=true;
  if(key==='map'){mapReset();return}
  if(['peek','half','full'].includes(key)){
-   state.layer=null;layer.classList.remove('active');layer.hidden=true;
+   $('searchInput')?.blur();document.body.classList.remove('search-keyboard-open');
+    state.layer=null;layer.classList.remove('active');layer.hidden=true;
    if(sheetState().level==='closed')window.__demo.open('demo-pingjiang');
    if(key!=='peek')window.__demo.snap(key);
    else if(sheetState().level!=='closed')window.__demo.snap('peek');
@@ -584,16 +675,48 @@ function action(key){
  case'saveGuide':state.savedGuide=!state.savedGuide;toast(state.savedGuide?'已收藏示例攻略':'已取消收藏');break;
  case'seeMap':mapReset();toast('返回原地图（附近点位均为示意）');break;
  case'keepNearby':state.likedNearby=!state.likedNearby;toast(state.likedNearby?'已标记想去（仅演示）':'已取消标记');break;
- case'clearSearch':if($('searchInput')){$('searchInput').value='';$('searchResult').hidden=true;$('searchInput').focus()};break;
- case'showPlace':
-   state.layer=null;layer.classList.remove('active');layer.hidden=true;
-   if(sheetState().level==='closed')window.__demo.open('demo-pingjiang');
-   else window.__demo.snap('peek');renderDock();break;
+  case'clearSearch':if(state.layer==='search'){
+    const input=$('searchInput');state.searchQuery='';
+    if(input){input.value='';input.focus({preventScroll:true})}
+    updateSearchResults();
+  }break;
+  case'showPlace':{
+    if(state.layer==='search' && !searchMatches(state.searchQuery)){
+      toast('当前演示仅提供平江路这一地点');break;
+    }
+    const fromSearch=state.layer==='search';
+    $('searchInput')?.blur();document.body.classList.remove('search-keyboard-open');
+    layer.classList.remove('active');state.layer=null;
+    if(fromSearch){
+      renderDock();
+      setTimeout(()=>{
+        if(state.layer)return;
+        layer.hidden=true;
+        if(sheetState().level==='closed')window.__demo.open('demo-pingjiang');
+        else window.__demo.snap('peek');
+        const star=$('savedStar');star.classList.remove('search-selected');
+        void star.offsetWidth;star.classList.add('search-selected');
+        setTimeout(()=>star.classList.remove('search-selected'),760);
+        renderDock();
+      },445);
+    } else {
+      layer.hidden=true;
+      if(sheetState().level==='closed')window.__demo.open('demo-pingjiang');
+      else window.__demo.snap('peek');renderDock();
+    }
+    break;}
+
  }
 }
 dock.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(b)action(b.dataset.action)});
 layer.addEventListener('click',e=>{
- const actionButton=e.target.closest('[data-action]');if(actionButton){action(actionButton.dataset.action);return}
+  const chip=e.target.closest('[data-search-term]');
+  if(chip&&state.layer==='search'){
+    state.searchQuery=chip.dataset.searchTerm;
+    const input=$('searchInput');if(input)input.value=state.searchQuery;
+    updateSearchResults();input?.focus({preventScroll:true});return;
+  }
+  const actionButton=e.target.closest('[data-action]');if(actionButton){action(actionButton.dataset.action);return}
  const guide=e.target.closest('.guide-toggle');if(guide){const card=guide.closest('.guide-card');card.classList.toggle('expanded');guide.textContent=card.classList.contains('expanded')?'收起内容':'展开内容'}
 });
 $('layerBack').addEventListener('click',back);
@@ -607,6 +730,14 @@ if(tool){tool.setAttribute('aria-label','演示层级快速切换');tool.addEven
  })}
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('#demoMenu,.topbar .tool'))$('demoMenu').hidden=true});
 document.querySelector('.topbar .search')?.addEventListener('click',()=>layerOpen('search'));
+ document.querySelector('.topbar .search')?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();layerOpen('search')}});
+ body.addEventListener('keydown',e=>{
+   if(state.layer==='search'&&e.key==='Enter'&&e.target?.id==='searchInput'){
+     e.preventDefault();e.target.blur();
+     if(searchMatches(state.searchQuery))action('showPlace');else updateSearchResults();
+   }
+   if(state.layer==='search'&&e.key==='Escape'){e.preventDefault();mapReset()}
+ });
 // Contextual rows can open the same depth as Dock tabs, but don't spawn a Dock.
 $('sheet').querySelector('.photos')?.addEventListener('click',()=>layerOpen('media'));
 $('sheet').querySelector('.brief')?.addEventListener('click',()=>layerOpen('brief'));
@@ -625,7 +756,7 @@ $('photoPicker').addEventListener('change',e=>{
  if(state.layer==='media')renderLayer();toast(fs.length?'已添加本地预览（不会上传）':'未选择图片');
 });
 window.addEventListener('beforeunload',()=>state.photos.forEach(url=>URL.revokeObjectURL(url)));
-window.__dockDemo={jump,action,back,mode:()=>dock.dataset.mode,layer:()=>state.layer,labels:()=>Array.from(dock.querySelectorAll('button')).map(b=>b.innerText.trim()),getState:()=>({sheet:sheetState(),layer:state.layer,mode:dock.dataset.mode})};
+window.__dockDemo={jump,action,back,mode:()=>dock.dataset.mode,layer:()=>state.layer,labels:()=>Array.from(dock.querySelectorAll('button')).map(b=>b.innerText.trim()),getState:()=>({sheet:sheetState(),layer:state.layer,mode:dock.dataset.mode,searchQuery:state.searchQuery})};
 renderDock();
 })();
 </script>
