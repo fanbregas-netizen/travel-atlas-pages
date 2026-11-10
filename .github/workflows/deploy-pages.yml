@@ -44,6 +44,8 @@ jobs:
           cp -R stage1-32 _site/stage1-32
           # Isolated Stage1.34 repair preview; official homepage unchanged.
           cp -R stage1-34 _site/stage1-34
+          # Isolated Stage1.36 complete iPhone acceptance preview; does not replace production homepage.
+          cp -R stage1-36-review _site/stage1-36-review
           # Interaction-only demo; never overwrites the approved live product
           cp -R demo-two-bubbles _site/demo-two-bubbles
           touch _site/.nojekyll
