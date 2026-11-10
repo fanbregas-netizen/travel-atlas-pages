@@ -1,0 +1,70 @@
+/* Footprint Map · isolated acceptance motion layer, on top of the actual homepage. */
+/* The single shared surface is the ONLY visible object while it changes shape. */
+body.fp-search-ux-flight #appDock,
+body.fp-search-ux-flight #fpSearchSheet,
+body.fp-search-ux-prepare #appDock,
+body.fp-search-ux-prepare #fpSearchSheet {
+  opacity:0!important;
+  animation:none!important;
+  transition:none!important;
+  pointer-events:none!important;
+}
+/* Legacy Stage1.34 uses a higher-specificity opening selector that forces Dock opacity:1. */
+body.fp34-searching.fp-search-open.fp-search-ux-flight #appDock,
+body.fp34-searching.fp-search-open.fp-search-ux-prepare #appDock,
+body.fp34-searching.fp-search-open.fp-search-ux-flight #fpSearchSheet,
+body.fp34-searching.fp-search-open.fp-search-ux-prepare #fpSearchSheet {
+  opacity:0!important;animation:none!important;transition:none!important;pointer-events:none!important;
+}
+/* Disable the legacy two-element crossfade/clip. The new geometry owns transitions. */
+body.fp34-searching.fp-search-open #appDock,
+body.fp34-searching.fp-search-open #fpSearchSheet,
+body.fp34-search-returning #appDock {
+  animation:none!important;
+}
+body.fp-search-open:not(.fp-search-ux-flight):not(.fp-search-ux-prepare) #fpSearchSheet {
+  opacity:1!important;
+  transform:translate(-50%,0) scale(1)!important;
+}
+body.fp-search-ux-flight #fpSearchSheet,
+body.fp-search-ux-prepare #fpSearchSheet {
+  transform:translate(-50%,0) scale(1)!important;
+}
+/* Keep the map visible while search input has no history or results. */
+#fpSearchSheet .fp-search-body:empty{display:none!important}
+#fp-search-shared-surface {
+  position:fixed;z-index:9000;box-sizing:border-box;pointer-events:none;overflow:hidden;
+  background:rgba(249,251,249,.975);border:1px solid rgba(223,226,218,.92);
+  box-shadow:0 9px 26px rgba(25,42,46,.13);
+  -webkit-backdrop-filter:blur(17px);backdrop-filter:blur(17px);
+  contain:layout paint;isolation:isolate;
+  will-change:left,top,width,height,border-radius;
+}
+#fp-search-shared-surface .ux-asset {
+  position:absolute;object-fit:contain;pointer-events:none;will-change:left,top,opacity,transform;
+}
+#fp-search-shared-surface .ux-lens {width:23px;height:23px}
+#fp-search-shared-surface .ux-other {width:23px;height:23px}
+#fp-search-shared-surface .ux-label {
+  position:absolute;color:#536765;white-space:nowrap;font:500 11px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;
+}
+#fp-search-shared-surface .ux-placeholder {
+  position:absolute;color:#839393;white-space:nowrap;font:480 16px/26px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;
+  letter-spacing:-.01em;max-width:calc(100% - 108px);overflow:hidden;
+}
+#fp-search-shared-surface .ux-cancel {
+  position:absolute;white-space:nowrap;font:580 13px/26px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;
+  color:#40575a;
+}
+@keyframes fp-ux-reveal-results {
+  from {opacity:0;transform:translate3d(0,12px,0) scale(.987)}
+  to {opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+body.fp-ux-results-enter #fpSearchSheet .fp-search-body:not(:empty) {
+  animation:fp-ux-reveal-results .31s cubic-bezier(.16,.8,.22,1) both;
+  transform-origin:bottom center;
+}
+@media(prefers-reduced-motion:reduce){
+  #fp-search-shared-surface{display:none!important}
+  body.fp-ux-results-enter #fpSearchSheet .fp-search-body{animation:none!important}
+}
