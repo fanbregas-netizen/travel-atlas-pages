@@ -70,6 +70,8 @@ jobs:
           cp -R interaction-b-v4-polish-review _site/interaction-b-v4-polish-review
           # V4 17-step interactive acceptance review; production unchanged.
           cp -R interaction-b-v4-complete-review _site/interaction-b-v4-complete-review
+          # Second V4 interaction acceptance batch A, isolated demo data only.
+          cp -R interaction-b-v4-batch-a-review _site/interaction-b-v4-batch-a-review
           # Original V4 map / card / Dock rubber-band review, independent of production and existing demo.
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
