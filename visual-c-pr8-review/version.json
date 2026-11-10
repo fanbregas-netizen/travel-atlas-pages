@@ -1,0 +1,7 @@
+{
+  "version": "V4.Stage1.20261110.CardRestore.Integration.1",
+  "base": "V4.Stage1.20261110.34.7",
+  "date": "2026-11-10",
+  "interaction": "swipe-card",
+  "review": "single anchored star, bottom-sheet restore; local candidate; not iPhone-approved"
+}
