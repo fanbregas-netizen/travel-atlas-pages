@@ -4800,7 +4800,7 @@ class Map{
     focusMapPlaceIfNeeded(p);
     window.__atlasPoiFeedback?.(p.lat,p.lng);stopInlineVideos(true);
     setPicking(false);hideDestination();closeSearchResults();closeMapPopup();selectedId=id;if(window.__atlasInteractionMode!=='swipe-card')pulseStar(id);
-    for(const [key,m] of markers.entries())updateMarkerIcon(m,key===id);if(isOfficial()){paintOfficialBookmarks();updateOfficialSelectionPin({lat:+p.lat,lng:+p.lng,name:p.title||p.name||'已收藏地点'})}
+    for(const [key,m] of markers.entries())updateMarkerIcon(m,key===id);if(isOfficial()){paintOfficialBookmarks();if(window.__atlasInteractionMode==='swipe-card')updateOfficialSelectionPin(null);else updateOfficialSelectionPin({lat:+p.lat,lng:+p.lng,name:p.title||p.name||'已收藏地点'})}
     // Tapping a saved star must not suddenly pan or zoom the map. The card handles its own safe area.
     const items=mediaItems(p),rightCount=items.length>=5?3:Math.min(2,items.length),vertical=items.slice(0,rightCount),horizontal=items.slice(rightCount);
     const itemButton=(item,i,band)=>item.kind==='video'?`<button class="atlas-photo atlas-video ${band==='bottom'?'atlas-strip-photo':''}" type="button" data-action="photo" data-id="${escape(p.id)}" data-idx="${i}" aria-label="放大第 ${i+1} 项视频"><span class="video-face"><b class="video-play">▶</b><span>${escape(item.name||'旅行视频')}</span></span><video class="atlas-inline-video" muted playsinline autoplay loop preload="none" aria-label="旅行视频静音预览"></video><span class="photo-number">${String(i+1).padStart(2,'0')} · 视频 ↗</span></button>`:
