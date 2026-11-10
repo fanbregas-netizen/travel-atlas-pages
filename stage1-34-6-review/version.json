@@ -1,0 +1,11 @@
+{
+  "version": "V4.Stage1.20261110.34.6",
+  "base": "V4.Stage1.20261110.34.5",
+  "date": "2026-11-10",
+  "preview": true,
+  "changes": [
+    "Only the existing map star remains visible",
+    "Top card SVG tails down and bottom card tails up",
+    "Reduced star motion; second tap closes orbit"
+  ]
+}
