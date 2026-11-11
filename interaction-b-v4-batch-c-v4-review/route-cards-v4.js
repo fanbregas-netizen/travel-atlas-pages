@@ -585,6 +585,7 @@ window.__batchC={version:'V3-card-first',show:showReview,open:openFor,exit:close
         row.querySelector('.rc-pick-check').textContent=selected?'＋':'✓';
       }
       const counter=body.querySelector('#rc-select-count');if(counter)counter.textContent=`已选 ${state.selected.length} 处`;
+      mapRender();
       return;
     }
     if(cmd.startsWith('pin-')&&state.stage==='preview'){
@@ -723,6 +724,24 @@ window.__batchC={version:'V3-card-first',show:showReview,open:openFor,exit:close
     const sc=body.scrollTop,kind=state.stage;
     priorRender();
     if(kind==='select'||kind==='order')body.scrollTop=sc;
+  };
+
+  // The map-select source has its own green demo POI pins tied to fixed place IDs.
+  const selectionMapRender=mapRender;
+  mapRender=function(){
+    if(state.stage==='select'&&state.source==='map'){
+      const label=routeMap.querySelector('.rc-map-caption span');
+      const svg=routeMap.querySelector('svg.rc-route'),pins=routeMap.querySelector('#rc-map-pins');
+      label.textContent='地图选点 · 点击绿色地点即可勾选 / 取消';
+      svg.innerHTML='';
+      pins.innerHTML=allPlaces.slice(3).map(spot=>{
+        const p=at(spot);if(!p)return '';
+        const selected=state.selected.includes(spot.id);
+        return `<button type="button" class="rc-pin rc-choice-pin ${selected?'selected':''}" data-place-id="${spot.id}" data-rc="pick-${spot.id}" style="left:${p[0]}%;top:${p[1]}%" aria-pressed="${selected}" aria-label="${safe(spot.name)}${selected?' 已选中':''}">＋</button>`;
+      }).join('');
+      return;
+    }
+    selectionMapRender();
   };
   // Ensure selection review doesn't overwrite the already approved C01.
   renderReview();
