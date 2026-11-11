@@ -98,6 +98,7 @@ jobs:
           node --check interaction-b-v4-batch-c-v3-review/route-cards-v3.js
           node --check interaction-b-v4-batch-c-v4-review/route-cards-v4.js
           node --check interaction-b-v4-batch-c-v5-review/route-cards-v5.js
+          node interaction-b-v4-batch-c-v5-review/route-cards-v5-smoke.cjs
           test -s interaction-b-v4-batch-c-v5-review/index.html
           test -s interaction-b-v4-batch-c-v5-review/route-cards-v5.css
           grep -q 'route-cards-v5.js' interaction-b-v4-batch-c-v5-review/index.html
