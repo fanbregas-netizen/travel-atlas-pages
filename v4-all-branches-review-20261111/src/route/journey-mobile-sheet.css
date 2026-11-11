@@ -1,0 +1,48 @@
+/* Approved C V5's map + bottom sheet rhythm, displaying REAL journey data. */
+@media(max-width:700px){
+ body.journey-page.journey-live-sheet{overflow:hidden;height:100dvh}
+ body.journey-live-sheet .topbar{height:68px;position:relative;z-index:42;padding:0 13px;gap:8px}
+ body.journey-live-sheet .topbar .brand{font-size:15px}
+ body.journey-live-sheet .topbar .brand small{display:none}
+ body.journey-live-sheet .top-actions{gap:5px}
+ body.journey-live-sheet .topaction{font-size:11px;padding:9px 10px;min-height:38px}
+ body.journey-live-sheet .layout{position:relative;height:calc(100dvh - 68px);min-height:0;max-width:none;display:block;overflow:hidden}
+ body.journey-live-sheet .atlas-view{position:absolute;inset:0;padding:12px 13px 14px;overflow:auto;background:radial-gradient(ellipse at 50% 25%,#e8eee3,#f6f8f2)}
+ body.journey-live-sheet .atlas-heading{padding-top:6px;align-items:flex-start}
+ body.journey-live-sheet .atlas-heading h2{font-size:18px}
+ body.journey-live-sheet .atlas-heading p{font-size:10px}
+ body.journey-live-sheet .atlas-heading .print{display:none}
+ body.journey-live-sheet #journey{min-height:calc(100dvh - 190px);margin:10px 0 0;background:#e8efe5;border-color:#dce6da}
+ body.journey-live-sheet .builder{
+  position:fixed;left:0;right:0;bottom:0;z-index:62;
+  display:block;max-height:calc(100dvh - 80px);
+  min-height:0;overflow-y:auto;overscroll-behavior-y:contain;
+  margin:0;padding:50px 18px calc(32px + env(safe-area-inset-bottom));
+  border:1px solid #d9e4d7;border-bottom:0;border-radius:28px 28px 0 0;
+  background:#fffefa;box-shadow:0 -14px 46px rgba(28,54,35,.19);
+  -webkit-overflow-scrolling:touch;animation:none!important;transition:none!important;
+  will-change:transform,height
+ }
+ body.journey-live-sheet .builder[hidden]{display:none!important}
+ body.journey-live-sheet .builder>.eyebrow{display:none}
+ body.journey-live-sheet .builder>h1{font-size:21px;margin:7px 0 7px}
+ body.journey-live-sheet .builder>.intro{font-size:11px;margin:0 0 14px}
+ body.journey-live-sheet .builder .block{padding:15px 0}
+ body.journey-live-sheet .builder .place-list{max-height:none}
+ body.journey-live-sheet .builder .chosen-list{max-height:none}
+ body.journey-live-sheet .builder .block input:not([type=file]){font-size:16px}
+ .journey-sheet-toolbar{position:sticky;z-index:5;top:-50px;margin:-50px -18px 9px;padding:0 16px 8px;
+  min-height:51px;background:#fffefaed;display:flex;align-items:center;gap:8px;border-radius:28px 28px 0 0;
+  border-bottom:1px solid #e8ecdf;backdrop-filter:blur(14px);touch-action:none;cursor:grab}
+ .journey-sheet-grip{border:0;background:transparent;min-width:55px;height:46px;margin:0;padding:0;touch-action:none;cursor:grab}
+ .journey-sheet-grip span{display:block;width:41px;height:5px;background:#cbd4c9;border-radius:8px;margin:auto}
+ .journey-sheet-summary{display:flex;flex-direction:column;flex:1;gap:2px;color:#355b41}
+ .journey-sheet-summary strong{font-size:13px;font-weight:750}
+ .journey-sheet-summary small{font-size:10px;color:#8ba18d}
+ .journey-sheet-minimize{border:0;width:34px;height:34px;border-radius:12px;background:#edf3e9;color:#56715b;font-size:20px}
+ #journeySheetOpen{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
+  z-index:61;background:#365f45;color:white;padding:13px 19px;border:0;border-radius:16px;
+  font:730 13px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;box-shadow:0 7px 25px #28493140}
+ #journeySheetOpen[hidden]{display:none}
+}
+@media(min-width:701px){.journey-sheet-toolbar,#journeySheetOpen{display:none!important}}
