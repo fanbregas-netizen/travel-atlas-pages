@@ -1,16 +1,16 @@
 <!doctype html>
 <html lang="zh-CN"><head>
-<base href="/travel-atlas-pages/integration-v4-real-e2e-review/" />
-<script id="atlas-isolated-preview-storage">(()=>{'use strict';
-const prefix='atlas-realqa-20261111-';window.__atlasPreviewNamespace=prefix;
-const idb=IDBFactory.prototype,originalOpen=idb.open,originalDelete=idb.deleteDatabase;
-idb.open=function(name,...rest){return originalOpen.call(this,prefix+String(name),...rest)};
-idb.deleteDatabase=function(name){return originalDelete.call(this,prefix+String(name))};
-const st=Storage.prototype,get=st.getItem,set=st.setItem,remove=st.removeItem,clear=st.clear,key=st.key;
-st.getItem=function(name){return get.call(this,prefix+String(name))};
-st.setItem=function(name,value){return set.call(this,prefix+String(name),value)};
-st.removeItem=function(name){return remove.call(this,prefix+String(name))};
-st.clear=function(){const matching=[];for(let i=0;i<this.length;i++){const k=key.call(this,i);if(k?.startsWith(prefix))matching.push(k)}matching.forEach(k=>remove.call(this,k))};
+<base href="/travel-atlas-pages/v4-all-branches-review-20261111/">
+<script id="atlas-isolated-four-branch-review">(()=>{'use strict';
+const ns='atlas-v4-final-four-20261111-';window.__atlasPreviewNamespace=ns;
+const factory=IDBFactory.prototype,open=factory.open,del=factory.deleteDatabase;
+factory.open=function(name,...args){return open.call(this,ns+String(name),...args)};
+factory.deleteDatabase=function(name){return del.call(this,ns+String(name))};
+const st=Storage.prototype,get=st.getItem,set=st.setItem,rm=st.removeItem,key=st.key;
+st.getItem=function(name){return get.call(this,ns+String(name))};
+st.setItem=function(name,v){return set.call(this,ns+String(name),v)};
+st.removeItem=function(name){return rm.call(this,ns+String(name))};
+st.clear=function(){const a=[];for(let i=0;i<this.length;i++){const k=key.call(this,i);if(k?.startsWith(ns))a.push(k)}a.forEach(k=>rm.call(this,k))};
 })();</script>
 
 <meta charset="utf-8">
@@ -163,7 +163,7 @@ async function saveRoute(e){e?.preventDefault();if(saveBusy)return;const title=$
  if(!allowedDays){$('saveRouteError').textContent='请确认日期有效，结束不早于开始，行程不超过 60 天';return}
  const normalizedDays=clampRouteDays(stopDays,allowedDays);
  const hadOverflow=normalizedDays.some((d,i)=>d!==Number(stopDays[i]));
- saveBusy=true;$('routeSaveConfirm').disabled=true;const now=new Date().toISOString();const id=savedId||(crypto?.randomUUID?.()||'trip-'+Date.now());const ids=places.map(p=>String(p.id));const item={id,title,placeIds:ids,selected:ids.map((pid,i)=>({id:pid,day:normalizedDays[i],time:'',order:i+1})),startDate:start,endDate:end,origin:origin.slice(0,70),destination:destination.slice(0,70),createdAt:createdAt||now,updatedAt:now,version:2,mapStyle:'black-white-plan',source:'footprint-map'};try{await writeSavedPlan(item);savedId=id;createdAt=item.createdAt;stopDays=normalizedDays;if(hadOverflow){showStopRail();buildRouteLayers();document.dispatchEvent(new CustomEvent('atlas:route-stops-changed'));}routePayload.title=title;routePayload.startDate=start;routePayload.endDate=end;routePayload.origin=item.origin;routePayload.destination=item.destination;$('tripName').textContent=title;$('travelDates').textContent=[start,end].join(' — ');$('saveRoute').textContent='✓ 已保存';$('saveRouteDialog').close();history.replaceState(null,'','/travel-atlas-pages/integration-v4-real-e2e-review/route-view.html?saved='+encodeURIComponent(id));notice('路线已保存到「我的路线」；地点图文将与主页同步更新')}catch(err){$('saveRouteError').textContent='保存失败：'+err.message}finally{saveBusy=false;$('routeSaveConfirm').disabled=false}}
+ saveBusy=true;$('routeSaveConfirm').disabled=true;const now=new Date().toISOString();const id=savedId||(crypto?.randomUUID?.()||'trip-'+Date.now());const ids=places.map(p=>String(p.id));const item={id,title,placeIds:ids,selected:ids.map((pid,i)=>({id:pid,day:normalizedDays[i],time:'',order:i+1})),startDate:start,endDate:end,origin:origin.slice(0,70),destination:destination.slice(0,70),createdAt:createdAt||now,updatedAt:now,version:2,mapStyle:'black-white-plan',source:'footprint-map'};try{await writeSavedPlan(item);savedId=id;createdAt=item.createdAt;stopDays=normalizedDays;if(hadOverflow){showStopRail();buildRouteLayers();document.dispatchEvent(new CustomEvent('atlas:route-stops-changed'));}routePayload.title=title;routePayload.startDate=start;routePayload.endDate=end;routePayload.origin=item.origin;routePayload.destination=item.destination;$('tripName').textContent=title;$('travelDates').textContent=[start,end].join(' — ');$('saveRoute').textContent='✓ 已保存';$('saveRouteDialog').close();history.replaceState(null,'','./route-view.html?saved='+encodeURIComponent(id));notice('路线已保存到「我的路线」；地点图文将与主页同步更新')}catch(err){$('saveRouteError').textContent='保存失败：'+err.message}finally{saveBusy=false;$('routeSaveConfirm').disabled=false}}
 function setSnap(state){const b=$('stopBubble');b.dataset.snap=state;if(state==='peek')b.scrollTop=0}
 function setupCardGestures(){
  const grip=$('bubbleGrip');let press=null,lastSwipe=0;
@@ -201,6 +201,7 @@ const run=()=>init().catch(e=>empty('路线加载异常：'+e.message));if(docum
 <link rel="stylesheet" href="./stage1-32-design.css?v=132"/>
 <link rel="stylesheet" href="./stage1-34-3-premium.css?v=1343"/>
 <link rel="stylesheet" href="./src/route/route-detail-sheet.css">
+<link rel="stylesheet" href="./src/visual/route-v5-integrated.css">
 </head><body class="route-page">
 <div id="atlasMap" role="application" aria-label="真实地理底图和本次旅行的地点路线"></div>
 <aside id="routeBootNotice" role="status" aria-live="polite"><span class="route-boot-orbit" aria-hidden="true">✦</span><strong>正在打开你的旅行路线</strong><small>站点和日期先呈现，地图随后绘制</small><button type="button" id="routeBootRetry" hidden>重试地图</button></aside>
@@ -549,4 +550,5 @@ function init(){
 <script src="./stage1-32-ui.js?v=132"></script>
 <script src="./src/interaction/sheet-controller.js"></script>
 <script src="./src/route/route-detail-sheet.js"></script>
+
 </body></html>

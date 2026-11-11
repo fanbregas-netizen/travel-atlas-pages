@@ -1,6 +1,19 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><base href="/travel-atlas-pages/integration-v4-real-e2e-review/">
+<head>
+<base href="/travel-atlas-pages/v4-all-branches-review-20261111/">
+<script id="atlas-isolated-four-branch-review">(()=>{'use strict';
+const ns='atlas-v4-final-four-20261111-';window.__atlasPreviewNamespace=ns;
+const factory=IDBFactory.prototype,open=factory.open,del=factory.deleteDatabase;
+factory.open=function(name,...args){return open.call(this,ns+String(name),...args)};
+factory.deleteDatabase=function(name){return del.call(this,ns+String(name))};
+const st=Storage.prototype,get=st.getItem,set=st.setItem,rm=st.removeItem,key=st.key;
+st.getItem=function(name){return get.call(this,ns+String(name))};
+st.setItem=function(name,v){return set.call(this,ns+String(name),v)};
+st.removeItem=function(name){return rm.call(this,ns+String(name))};
+st.clear=function(){const a=[];for(let i=0;i<this.length;i++){const k=key.call(this,i);if(k?.startsWith(ns))a.push(k)}a.forEach(k=>rm.call(this,k))};
+})();</script>
+
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>高德星标导入 · Travel Atlas</title>
 <style>
@@ -45,7 +58,7 @@ $('selectAccurate').onclick=()=>{items.forEach(x=>x.checked=(x.status==='ok'||x.
 $('clearChecked').onclick=()=>{items.forEach(x=>x.checked=false);render()};
 $('exportReview').onclick=()=>{const data={schema:'travel-atlas-amap-geocoded-v1',created:new Date().toISOString(),coordinate_system:'WGS84',items:items.map(p=>({...p}))};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='高德收藏_坐标审核结果.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2500)};
 function distance(a,b){const R=6371000,p1=a.lat*Math.PI/180,p2=b.lat*Math.PI/180,d=p2-p1,dl=(b.lng-a.lng)*Math.PI/180;return R*2*Math.asin(Math.sqrt(Math.sin(d/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2))}
-function openDb(){return new Promise((resolve,reject)=>{const r=indexedDB.open('private-travel-footprints-v1-v4-real-e2e-review',1);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('places'))db.createObjectStore('places',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta',{keyPath:'key'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function openDb(){return new Promise((resolve,reject)=>{const r=indexedDB.open('private-travel-footprints-v1',1);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('places'))db.createObjectStore('places',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta',{keyPath:'key'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
 function allSaved(db){return new Promise((resolve,reject)=>{const t=db.transaction('places','readonly'),r=t.objectStore('places').getAll();r.onsuccess=()=>resolve(r.result||[]);r.onerror=()=>reject(r.error);t.onerror=()=>reject(t.error)})}
 function writeSaved(db,records){return new Promise((resolve,reject)=>{if(!records.length)return resolve();const t=db.transaction('places','readwrite');t.oncomplete=()=>resolve();t.onabort=()=>reject(t.error||Error('写入中止'));t.onerror=()=>reject(t.error||Error('写入失败'));for(const r of records)t.objectStore('places').put(r)})}
 $('commit').onclick=async()=>{const chosen=items.filter(p=>p.checked&&p.lat!==null&&p.lng!==null);if(!chosen.length)return;if(!confirm('将 '+chosen.length+' 个经你确认的星标保存到当前浏览器的 Travel Atlas？现有照片和 Brief 不会被覆盖。'))return;processing=true;count();let db;try{db=await openDb();const current=await allSaved(db),add=[];let skipped=0;for(const p of chosen){const same=current.some(old=>old.id===p.id||(String(old.title||'').trim()===p.name&&bounded(old.lat,-90,90)&&bounded(old.lng,-180,180)&&distance({lat:+old.lat,lng:+old.lng},p)<100))||add.some(old=>old.id===p.id||(old.title===p.name&&distance(old,p)<100));if(same){skipped++;continue}add.push({id:p.id,title:p.name,lat:p.lat,lng:p.lng,poiId:'',note:p.note||'',date:new Date().toISOString().slice(0,10),rank:2,stage:'plan',starred:true,photos:[],videos:[],references:[],demo:false})}await writeSaved(db,add);msg('已实际保存 '+add.length+' 个黄色星标；跳过 '+skipped+' 个重复地点。返回地图刷新即可查看。');$('commit').disabled=true;window.scrollTo({top:0,behavior:'smooth'})}catch(e){msg('导入失败：'+e.message+'。原有收藏未被主动覆盖；请先在地图导出 ZIP 备份。')}finally{db?.close();processing=false;count()}};
