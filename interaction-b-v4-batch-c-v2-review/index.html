@@ -1956,7 +1956,7 @@ const screen=document.querySelector('.screen');if(!screen||!window.__batchB||win
 const defs=[
  ['C01','路线入口方式','地图选点／从收藏选择、退出和重选'],
  ['C02','日期与起终点','选择旅行日期、编辑起终点、字段校验'],
- ['C03','路线站点排序','按天安排、逐站排序、自动建议与撤销'],
+ ['C03','路线站点排序','抓手拖动排序、按天安排、撤销上次调整'],
  ['C04','路线地图站点详情','编号地点、Brief、媒体来源、回到收藏'],
  ['C05','保存路线／添加停靠点','保存表单、加点、日期与错误提示'],
  ['C06','失败、权限与空状态','离线／加载失败／权限拒绝／空路线、重试反馈']
@@ -2140,7 +2140,7 @@ window.__batchC={open,show:showPanel,hide:hidePanel,exit:closeScene,items:defs.m
   state.justAdded='';
   state.undoStops=null;
   let calendarType=null,calendarMonth=null,calendarCloseTimer=0;
-  let sheetLevel='peek',sheetGesture=null,orderDrag=null,swipeStart=null;
+  let sheetLevel='peek',sheetGesture=null,orderDrag=null,swipeStart=null,sheetTapUntil=0;
   function iso(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
   function today(){return iso(new Date())}
   function labelDate(v){if(!v)return '选择日期';const p=v.split('-');return Number(p[1])+'月'+Number(p[2])+'日'}
@@ -2312,6 +2312,7 @@ window.__batchC={open,show:showPanel,hide:hidePanel,exit:closeScene,items:defs.m
     const primary=layer.querySelector('.c-bottom .primary');
     if(primary){primary.dataset.c=state.formTab==='save'?'save-route':'add-stop';primary.textContent=state.formTab==='save'?'确认保存路线':'确认加入站点'}
   };
+  layer.addEventListener('click',e=>{if(e.target.closest('[data-c="sheet-next"]')&&performance.now()<sheetTapUntil){e.preventDefault();e.stopImmediatePropagation()}},true);
   const oldAction=action;
   action=function(cmd){
     if(cmd==='calendar-start'||cmd==='calendar-end'){calendarOpen(cmd.slice(9));return}
@@ -2327,7 +2328,7 @@ window.__batchC={open,show:showPanel,hide:hidePanel,exit:closeScene,items:defs.m
       if(v<today()||(calendarType==='end'&&v<state.start))return;
       state[calendarType]=v;
       if(state.end<state.start)state.end=state.start;
-      calendarClose();renderScene();return;
+      calendarClose();setTimeout(()=>{if(state.mode==='C02')renderScene()},390);return;
     }
     if(cmd.startsWith('edge-')){
       const [,which,mode]=cmd.split('-');
@@ -2461,6 +2462,7 @@ window.__batchC={open,show:showPanel,hide:hidePanel,exit:closeScene,items:defs.m
       e.stopPropagation();e.preventDefault();
       const g=sheetGesture;sheetGesture=null;
       if(cancel){snapSheet(sheetLevel);return}
+      if(Math.abs(e.clientY-g.startY)<9){sheetTapUntil=performance.now()+400;snapSheet(sheetLevel==='peek'?'half':sheetLevel==='half'?'full':'peek');return}
       const current=Math.max(170,Math.min(sheetSize('full'),g.height+g.startY-e.clientY));
       const choices=['peek','half','full'];let best='peek',distance=Infinity;
       for(const level of choices){const n=Math.abs(sheetSize(level)-current);if(n<distance){distance=n;best=level}}
