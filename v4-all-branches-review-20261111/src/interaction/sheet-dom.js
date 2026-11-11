@@ -35,7 +35,11 @@
       sheet.dataset.atlasSnap = state.sheet;
       if (state.selectedPlaceId) sheet.dataset.placeId = state.selectedPlaceId;
       else delete sheet.dataset.placeId;
-      if (state.sheet==='closed') {
+      if (config.physicalMotion) {
+        // V3 movement engine owns element visibility, dimensions and dismissal timing.
+        // Keep its geometry intact while the shared controller updates state/ARIA.
+        if (state.sheet!=='closed') sheet.hidden=false;
+      } else if (state.sheet==='closed') {
         if (!sheet.hidden && sheet.classList && typeof setTimeout==='function') {
           sheet.classList.add('atlas-sheet-closing');
           if(hideTimer!==null)clearTimeout(hideTimer);
@@ -96,6 +100,7 @@
         requestAnimationFrame(()=>sheet.style.removeProperty('height'));
       else sheet.style.removeProperty('height');
     }
+    if(!config.physicalMotion){
     listen(header,'pointerdown',e=>{
       if(controller.getState().sheet==='closed' ||
          (e.button!==undefined && e.button!==0) ||
@@ -159,6 +164,7 @@
         touch=null;
       },{passive:true});
       listen(scroll,'touchcancel',()=>{touch=null},{passive:true});
+    }
     }
     listen(closeButton,'click',()=>controller.close());
     // Tap to dismiss, but do not dismiss on map drag, zoom or actual star.

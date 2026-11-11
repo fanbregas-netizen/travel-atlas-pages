@@ -7,7 +7,7 @@
  const api=window.TravelAtlasSheet,dom=window.TravelAtlasSheetDOM;
  if(!api||!dom){console.error('Unified sheet controller is unavailable');return}
  const cardCtrl=api.createSheetController(),searchCtrl=api.createSheetController();
- let card=null,cardHead=null,cardBinding=null,cardObserver=null;
+ let card=null,cardHead=null,cardBinding=null,cardMotion=null,cardObserver=null;
  let search=null,searchBinding=null,searchObserver=null,closingTimer=null;
  const find=id=>document.getElementById(id);
  const ensureGrip=(header)=>{
@@ -27,7 +27,7 @@
  function mountCard(){
   const node=find('fpPlaceCard');if(!node)return;
   if(card!==node){
-   cardObserver?.disconnect();cardBinding?.destroy();cardBinding=null;cardHead=null;
+   cardObserver?.disconnect();cardMotion?.destroy();cardMotion=null;cardBinding?.destroy();cardBinding=null;cardHead=null;
    card=node;cardObserver=new MutationObserver(()=>{bindCard();syncCard()});
    cardObserver.observe(card,{childList:true,attributes:true,attributeFilter:['hidden']});
   }
@@ -39,21 +39,22 @@
   if(!header||header===cardHead&&cardBinding)return;
   // Capture the real place before the initial closed-state render clears its dataset.
   const pendingId=!card.hidden ? card.dataset.placeId : null;
-  cardBinding?.destroy();cardBinding=null;cardHead=header;
+  cardMotion?.destroy();cardMotion=null;cardBinding?.destroy();cardBinding=null;cardHead=header;
   const grip=ensureGrip(header);
   cardBinding=dom.connectSheetDOM({
-   controller:cardCtrl,sheet:card,header,grip,scroll,
+   controller:cardCtrl,sheet:card,header,grip,scroll,physicalMotion:true,
    onRender:next=>{
     if(next.sheet!=='closed'){if(closingTimer)clearTimeout(closingTimer);return}
     // Preserve the legacy close routine for video teardown/Dock state,
     // but let the approved closing motion finish first.
     if(closingTimer)clearTimeout(closingTimer);
     closingTimer=setTimeout(()=>{
-      if(cardCtrl.getState().sheet==='closed'&&!card?.hidden)
+      if(cardCtrl.getState().sheet==='closed')
         window.__atlasClosePlace?.();
-    },310);
+    },440);
    }
   });
+  cardMotion=window.TravelAtlasPhysicalSheet?.connect({sheet:card,controller:cardCtrl,header,grip,scroll})||null;
   if(pendingId&&cardCtrl.getState().sheet==='closed'){
     card.dataset.placeId=pendingId;cardCtrl.open(pendingId);
   }
@@ -106,7 +107,7 @@
       const levels=['peek','half','full'];if(c.getState().sheet!=='closed')
         c.snapTo(levels[Math.max(0,Math.min(2,Number(index)||0))]);
     }};
-  window.__atlasSheetIntegration={card:cardCtrl,search:searchCtrl,version:'B-real-product'};
+  window.__atlasSheetIntegration={card:cardCtrl,search:searchCtrl,get motion(){return cardMotion},version:'B-V3-real-product'};
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
