@@ -1,0 +1,40 @@
+name: Travel Atlas V4 isolated real-preview browser QA
+on:
+  push:
+    branches: [preview/v4-real-e2e-20261111]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  full-product-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Check scoped preview resources and storage namespace
+        run: |
+          test -s integration-v4-real-e2e-review/index.html
+          test -s integration-v4-real-e2e-review/journey.html
+          test -s integration-v4-real-e2e-review/route-view.html
+          test -s integration-v4-real-e2e-review/icons/03_star.svg
+          grep -q 'atlas-e2e-preview-20261111' integration-v4-real-e2e-review/index.html
+          grep -q 'private-travel-footprints-v1-v4-real-e2e-review' integration-v4-real-e2e-review/index.html
+          grep -q 'travel-atlas-journeys-v1-v4-real-e2e-review' integration-v4-real-e2e-review/route-view.html
+          node --check integration-v4-real-e2e-review/src/media/media-core.js
+          node --check integration-v4-real-e2e-review/src/route/date-confirm.js
+          node --check integration-v4-real-e2e-review/journey.js
+      - name: Install browser QA runtime
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Exercise real pages and isolated stores
+        run: node integration-v4-real-e2e-review/tests/integration/real-e2e.cjs
+      - name: Save browser captures and functional results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v4-pages-isolated-full-e2e
+          path: v4-real-e2e-evidence/
+          if-no-files-found: ignore
