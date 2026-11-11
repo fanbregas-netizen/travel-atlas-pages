@@ -150,3 +150,10 @@ body.rc-v3-on #dock,body.rc-v3-on #qaToggle,body.rc-v3-on #aToggle,body.rc-v3-on
 #rc-mini .rc-cal button:disabled{opacity:.55}
 #rc-main .rc-stop{scroll-margin-block:14px}
 @media(prefers-reduced-motion:reduce){#rc-mini .rc-dates-complete{transition:none}}
+
+#rc-body .rc-day-chip{border:1px solid #dae5d5;border-radius:11px;background:#eaf2e7;color:#476b50;font-size:11px;min-width:39px;height:34px;padding:0 7px;font-weight:770;touch-action:manipulation}
+#rc-body .rc-day-chip.is-invalid{background:#fff0e4;border-color:#dfb695;color:#a46c4a}
+#rc-body .rc-day-warn{font-size:11px;line-height:1.7;padding:11px 12px;background:#fff2e7;color:#9f714e;border-radius:12px;margin:0 0 11px}
+#rc-mini .rc-day-picker{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:11px 0 17px}
+#rc-mini .rc-day-picker button{border:1px solid #dfe9d8;border-radius:13px;background:#edf4e9;color:#537a59;min-height:43px;font-size:12px;font-weight:710}
+#rc-mini .rc-day-picker button.selected{background:#376448;color:#fffefa;border-color:#376448}
