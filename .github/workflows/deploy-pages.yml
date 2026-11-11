@@ -86,6 +86,8 @@ jobs:
           cp -R interaction-b-v4-batch-c-v3-review _site/interaction-b-v4-batch-c-v3-review
           # C V4 stable location selection, date-range interaction, and crossing-aware suggestions.
           cp -R interaction-b-v4-batch-c-v4-review _site/interaction-b-v4-batch-c-v4-review
+          # C V5: manual date confirmation and automatically reconciled day labels; isolated preview.
+          cp -R interaction-b-v4-batch-c-v5-review _site/interaction-b-v4-batch-c-v5-review
           # Original V4 map / card / Dock rubber-band review, independent of production and existing demo.
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
@@ -95,6 +97,11 @@ jobs:
         run: |
           node --check interaction-b-v4-batch-c-v3-review/route-cards-v3.js
           node --check interaction-b-v4-batch-c-v4-review/route-cards-v4.js
+          node --check interaction-b-v4-batch-c-v5-review/route-cards-v5.js
+          test -s interaction-b-v4-batch-c-v5-review/index.html
+          test -s interaction-b-v4-batch-c-v5-review/route-cards-v5.css
+          grep -q 'route-cards-v5.js' interaction-b-v4-batch-c-v5-review/index.html
+          grep -q 'cmd===.date-undo.' interaction-b-v4-batch-c-v5-review/route-cards-v5.js
           test -s interaction-b-v4-batch-c-v4-review/index.html
           test -s interaction-b-v4-batch-c-v4-review/route-cards-v4.css
           grep -q 'route-cards-v4.js' interaction-b-v4-batch-c-v4-review/index.html
