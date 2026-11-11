@@ -6,11 +6,9 @@ const {chromium}=require('playwright-core');
 const root=path.resolve(__dirname,'../..'),out=path.resolve(process.cwd(),'v4-real-e2e-evidence');
 fs.mkdirSync(out,{recursive:true});
 const mime={'.html':'text/html;charset=utf-8','.js':'application/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.webmanifest':'application/manifest+json','.woff2':'font/woff2'};
-const server=http.createServer((req,res)=>{const url=new URL(req.url||'/','http://127.0.0.1');
- const routed=decodeURIComponent(url.pathname).replace(/^\/travel-atlas-pages\/integration-v4-real-e2e-review(?=\/|$)/,'')||'/';
- const file=path.resolve(root,'.'+(routed==='/'?'/index.html':routed));
+const server=http.createServer((req,res)=>{const url=new URL(req.url||'/','http://127.0.0.1'),file=path.resolve(root,'.'+((url.pathname.replace(/^\/travel-atlas-pages\/integration-v4-real-e2e-review(?=\/|$)/,'')||'/')==='/'?'/index.html':decodeURIComponent(url.pathname.replace(/^\/travel-atlas-pages\/integration-v4-real-e2e-review(?=\/|$)/,'')||'/')));
  if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return}
- try{const data=fs.readFileSync(file);res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream'});res.end(data)}
+ try{res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream'});res.end(fs.readFileSync(file))}
  catch{res.writeHead(404);res.end('Not found')}});
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function main(){
@@ -28,7 +26,7 @@ async function main(){
   const add=async(name,lat,lng,note)=>{
    if(await page.locator('#fpPlaceCard').isVisible())await page.locator('#fpPlaceCard .fp-card-close').click();
    await page.evaluate(({name,lat,lng})=>window.__atlasDemo.select(name,lat,lng),{name,lat,lng});
-   await page.locator('#destinationStar').evaluate(el=>el.click()); // invoke real action; previous saved-place card may cover the test helper's destination overlay
+   await page.locator('#destinationStar').click();
    await page.locator('#placeName').fill(name);
    await page.locator('#placeNote').fill(note);
    await page.locator('#savePlace').click();
@@ -41,6 +39,11 @@ async function main(){
   assert.equal(new Set([first,second,third]).size,3);ok('three original geolocated places persisted',{first,second,third});
   await page.evaluate(id=>window.__atlasDemo.openSaved(id),first);
   await page.waitForFunction(id=>document.querySelector('#fpPlaceCard')?.dataset.placeId===id&&document.querySelector('#fpPlaceCard')?.hidden===false,first);
+  console.log('SHEET_STATE',JSON.stringify(await page.evaluate(()=>({bridge:!!window.__atlasSheetIntegration,ctrl:window.__atlasSheetIntegration?.card.getState(),card:{id:document.getElementById('fpPlaceCard')?.dataset.placeId,hidden:document.getElementById('fpPlaceCard')?.hidden,grip:!!document.querySelector('#fpPlaceCard .atlas-card-grip')},errors:window.__atlasSheetBridgeError||null}))));
+  console.log('SHEET_PAGE_ERRORS',JSON.stringify(report.errors));
+  await page.waitForFunction(id=>window.__atlasSheetIntegration?.card.getState().selectedPlaceId===id&&window.__atlasSheetIntegration?.card.getState().sheet!=='closed',first);
+  assert.equal(await page.locator('#fpPlaceCard .atlas-card-grip').count(),1,'only one live card grip');
+  ok('real sheet controller owns existing card and reuses geographic star');
   const png=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=4;canvas.height=4;canvas.getContext('2d').fillRect(0,0,4,4);return canvas.toDataURL('image/png').split(',')[1]});
   const picker=page.locator('#fpPlaceCard input[type="file"]');
   await picker.setInputFiles({name:'sample.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
@@ -55,23 +58,37 @@ async function main(){
   await card.locator('button', {hasText:'保存链接'}).click();
   await page.waitForFunction(async id=>{
    const p=await window.FootprintMediaCore.createRepository(indexedDB).read(id);
-   return !!p?.references?.length;
+   return !!(p?.references?.length||p?.guides?.length);
   },first);
   const repoState=await page.evaluate(async id=>{
    const media=window.FootprintMediaCore.createRepository(indexedDB);
    await media.addMedia(id,[{kind:'video',name:'sample.mp4',type:'video/mp4',bytes:new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50,0,0,0,0])}]);
    const p=await media.read(id);
-   return {photos:p.photos.length,videos:p.videos.length,references:p.references?.length||0,videoLength:p.videos[0]?.bytes?.byteLength||0,
+   return {photos:p.photos.length,videos:p.videos.length,references:(p.references?.length||0)+(p.guides?.length||0),guideCount:p.guides?.length||0,videoLength:p.videos[0]?.bytes?.byteLength||0,
      brief:p.note,originId:p.id};
   },first);
   assert.equal(repoState.photos,1);assert.equal(repoState.videos,1);
   assert.equal(repoState.references,1);assert.ok(repoState.videoLength>0);
   assert.match(repoState.brief,/甲地点 Brief/);report.media=repoState;ok('photo/video/reference/Brief bind to one place ID',repoState);
+  // B real-world unified card ownership: assert only one controller is mounted
+  // and moving between the three approved snap levels preserves the actual place ID.
+  const sheetCheck=await page.evaluate(id=>{
+    const adapter=window.__atlasSheetIntegration?.card;
+    if(!adapter)throw Error('B real product card controller missing');
+    const levels=[],capture=()=>levels.push(adapter.getState().sheet);
+    capture();adapter.snapTo('half');capture();adapter.snapTo('full');capture();
+    adapter.snapTo('peek');capture();
+    return {levels,placeId:adapter.getState().selectedPlaceId,legacy:window.AtlasPhase1?.version};
+  },first);
+  assert.deepEqual(sheetCheck.levels,['peek','half','full','peek']);
+  assert.equal(sheetCheck.placeId,first);
+  assert.match(sheetCheck.legacy||'',/unified-sheet-B/);
+  ok('B unified sheet is sole real place card owner',sheetCheck);
   await page.screenshot({path:path.join(out,'01-real-place-card.png'),fullPage:false});
   await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(id=>window.__atlasDemo?.getSaved?.()?.some(x=>x.id===id),first);
   const preserved=await page.evaluate(async id=>{
    const p=await window.FootprintMediaCore.createRepository(indexedDB).read(id);
-   return {photos:p.photos.length,videos:p.videos.length,refs:p.references.length,brief:p.note};
+   return {photos:p.photos.length,videos:p.videos.length,refs:(p.references?.length||0)+(p.guides?.length||0),guides:p.guides?.length||0,brief:p.note};
   },first);
   assert.equal(preserved.photos,1);assert.equal(preserved.videos,1);assert.equal(preserved.refs,1);
   ok('media and Brief persist after reload',preserved);
@@ -105,7 +122,7 @@ async function main(){
   await page.locator('#savePlan').click();
   await page.waitForFunction(()=>document.querySelector('#savedPlans')?.querySelectorAll('option').length>=2,{timeout:12000});
   const route=await page.evaluate(async()=>{
-   const db=await new Promise((res,rej)=>{const r=indexedDB.open('travel-atlas-journeys-v1-v4-real-e2e-review',1);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+   const db=await new Promise((res,rej)=>{const r=indexedDB.open('travel-atlas-journeys-v1',1);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
    const rows=await new Promise((res,rej)=>{const tx=db.transaction('plans','readonly');const r=tx.objectStore('plans').getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
    db.close();return rows.find(r=>r.title==='联调测试路线');
   });
@@ -130,12 +147,35 @@ async function main(){
   await page.locator('#routeSaveConfirm').click();
   await page.waitForFunction(()=>!document.getElementById('saveRouteDialog').open,{timeout:12000});
   const checkRoute=await page.evaluate(async id=>{
-   const db=await new Promise((res,rej)=>{const x=indexedDB.open('travel-atlas-journeys-v1-v4-real-e2e-review',1);x.onsuccess=()=>res(x.result);x.onerror=()=>rej(x.error)});
+   const db=await new Promise((res,rej)=>{const x=indexedDB.open('travel-atlas-journeys-v1',1);x.onsuccess=()=>res(x.result);x.onerror=()=>rej(x.error)});
    const plan=await new Promise((res,rej)=>{const tx=db.transaction('plans','readonly'),req=tx.objectStore('plans').get(id);req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error)});
    db.close();return {count:plan.selected?.length,days:plan.selected?.map(s=>s.day),end:plan.endDate,ids:plan.selected?.map(s=>s.id)};
   },route.id);
   assert.equal(checkRoute.count,3);assert.ok(checkRoute.days.every(x=>x<=2));assert.equal(checkRoute.end,fmt(shortEnd));
   ok('route add stop + date shortening persists proper D labels',checkRoute);
+  // C04 approved route location detail with real place/media and B three-level state.
+  // The map may finish styling after the rail appears; wait for the real place-pin.
+  await page.waitForFunction(()=>!!window.__atlasRouteDetailSheet&&document.querySelectorAll('.route-pin').length>0,{timeout:20000});
+  await page.locator('#stopRail .stop-chip').first().click();
+  await page.waitForFunction(()=>!document.getElementById('stopBubble').hidden,{timeout:9000});
+  const selectedRouteId=await page.locator('#stopBubble').getAttribute('data-place-id');
+  assert.ok(selectedRouteId,'route bubble has no stable placeId');
+  await page.locator('.rv-callout').click();
+  await page.waitForFunction(()=>document.querySelector('#rvDetail')?.classList.contains('open'),{timeout:9000});
+  const detailCheck=await page.evaluate(()=>{
+    const c=window.__atlasRouteDetailSheet;
+    const levels=[],capture=()=>levels.push(c.state().sheet);
+    capture();c.snapTo('half');capture();c.snapTo('full');capture();c.snapTo('peek');capture();
+    const d=document.getElementById('rvDetail'),videos=d.querySelectorAll('.rv-media video').length,
+      imgs=d.querySelectorAll('.rv-media img').length;
+    const id=c.state().selectedPlaceId;
+    c.close();
+    return {levels,placeId:id,hasPhotos:imgs,hasVideo:videos,closed:!d.classList.contains('open')};
+  });
+  assert.deepEqual(detailCheck.levels,['peek','half','full','peek']);
+  assert.equal(detailCheck.placeId,selectedRouteId);
+  assert.equal(detailCheck.closed,true);
+  ok('route detail true placeId + shared B three-stage controller + media',detailCheck);
   await page.screenshot({path:path.join(out,'03-real-route-view.png'),fullPage:false});
   // A damaged archive must be rejected without destroying the three original saved places.
   await page.goto(base+'/',{waitUntil:'domcontentloaded'});
