@@ -105,7 +105,7 @@ async function main(){
   await page.locator('#savePlan').click();
   await page.waitForFunction(()=>document.querySelector('#savedPlans')?.querySelectorAll('option').length>=2,{timeout:12000});
   const route=await page.evaluate(async()=>{
-   const db=await new Promise((res,rej)=>{const r=indexedDB.open('travel-atlas-journeys-v1',1);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+   const db=await new Promise((res,rej)=>{const r=indexedDB.open('travel-atlas-journeys-v1-v4-real-e2e-review',1);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
    const rows=await new Promise((res,rej)=>{const tx=db.transaction('plans','readonly');const r=tx.objectStore('plans').getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
    db.close();return rows.find(r=>r.title==='联调测试路线');
   });
@@ -130,7 +130,7 @@ async function main(){
   await page.locator('#routeSaveConfirm').click();
   await page.waitForFunction(()=>!document.getElementById('saveRouteDialog').open,{timeout:12000});
   const checkRoute=await page.evaluate(async id=>{
-   const db=await new Promise((res,rej)=>{const x=indexedDB.open('travel-atlas-journeys-v1',1);x.onsuccess=()=>res(x.result);x.onerror=()=>rej(x.error)});
+   const db=await new Promise((res,rej)=>{const x=indexedDB.open('travel-atlas-journeys-v1-v4-real-e2e-review',1);x.onsuccess=()=>res(x.result);x.onerror=()=>rej(x.error)});
    const plan=await new Promise((res,rej)=>{const tx=db.transaction('plans','readonly'),req=tx.objectStore('plans').get(id);req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error)});
    db.close();return {count:plan.selected?.length,days:plan.selected?.map(s=>s.day),end:plan.endDate,ids:plan.selected?.map(s=>s.id)};
   },route.id);
