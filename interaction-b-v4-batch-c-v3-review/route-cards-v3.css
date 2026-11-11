@@ -118,3 +118,9 @@
 #rc-review footer button:last-child{background:#355f45;color:#fff}
 body.rc-v3-on #dock,body.rc-v3-on #qaToggle,body.rc-v3-on #aToggle,body.rc-v3-on #bToggle{opacity:.1;pointer-events:none}
 @media(prefers-reduced-motion:reduce){#rc-shell,#rc-main,#rc-mini,#rc-mini-mask,#rc-review,#rc-toast{transition:none!important}}
+
+#rc-mini .rc-mini-map{position:relative;height:175px;margin:12px 0;border-radius:18px;overflow:hidden;background:repeating-linear-gradient(45deg,#e6efe3,#e6efe3 22px,#dce8de 22px,#dce8de 27px)}
+#rc-mini .rc-mini-map .map-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.78}
+#rc-mini .rc-mini-map button{position:absolute;transform:translate(-50%,-50%);border:2px solid #fffefa;border-radius:13px;padding:8px 9px;font-size:10px;font-weight:750;white-space:nowrap;background:#406b4d;color:#fffefa;box-shadow:0 5px 12px #1f3b2d40}
+#rc-mini .rc-mini-map button:active{transform:translate(-50%,-50%) scale(.95)}
+#rc-mini button:disabled{opacity:.5;cursor:not-allowed}
