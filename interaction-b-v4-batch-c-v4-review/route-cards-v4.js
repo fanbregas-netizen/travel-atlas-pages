@@ -456,7 +456,9 @@ function finish(e,cancel){
   if(!cancel&&d.target!==d.index){
    const oldRects=new Map(d.items.map(it=>[it.dataset.stopId,it.getBoundingClientRect().top-(it===d.node?e.clientY-d.startY:0)]));
    state.undo=d.original;
+   const activeId=state.stops[state.activeStop]?.id;
    const [move]=state.stops.splice(d.index,1);state.stops.splice(d.target,0,move);
+   state.activeStop=Math.max(0,state.stops.findIndex(p=>p.id===activeId));
    renderStage();
    const rows=[...body.querySelectorAll('[data-stop-id]')];
    rows.forEach(it=>{
@@ -573,10 +575,11 @@ window.__batchC={version:'V3-card-first',show:showReview,open:openFor,exit:close
       const selected=state.selected.includes(id);
       if(selected)state.selected=state.selected.filter(s=>s!==id);
       else state.selected=[...state.selected,id];
+      const activeId=state.stops[state.activeStop]?.id;
       const prev=new Map(state.stops.map(p=>[p.id,p]));
       state.stops=state.selected.map(k=>prev.get(k)||allPlaces.find(p=>p.id===k)).filter(Boolean).map(p=>({...p}));
       state.undo=null;state.saved=false;
-      if(state.activeStop>=state.stops.length)state.activeStop=Math.max(0,state.stops.length-1);
+      state.activeStop=Math.max(0,state.stops.findIndex(p=>p.id===activeId));
       const row=[...body.querySelectorAll('[data-place-id]')].find(x=>x.dataset.placeId===id);
       if(row){
         row.classList.toggle('selected',!selected);
@@ -607,10 +610,11 @@ window.__batchC={version:'V3-card-first',show:showReview,open:openFor,exit:close
       state.routeSuggestion=candidate.map(p=>({...p}));
       state.routeBefore=state.stops.map(p=>({...p}));
       const changes=candidate.map(p=>p.name).join(' → ');
+      const dayOrderChanged=candidate.some((p,i)=>p.day!==state.stops[i]?.day);
       openMini('suggest');
       miniBase('减少绕路的排序建议','不使用 AI，也不会擅自覆盖你设定的顺序',
         `<div class="rc-summary">${safe(changes)}</div>
-        <p class="rc-note">${after?`仍有 ${after} 处交叉，需要再手动调整。`:'此建议消除了示意连线交叉。'}<br>真实路线需使用道路数据计算，不能将示意直线当作导航路线。</p>`,
+        <p class="rc-note">${after?`仍有 ${after} 处交叉，需要再手动调整。`:'此建议消除了示意连线交叉。'}<br>${dayOrderChanged?'建议可能调整跨天站点顺序，采用后请检查每日安排。':''}真实路线需使用道路数据计算，不能将示意直线当作导航路线。</p>`,
         button('保持原顺序','mini-close')+button('采用建议','route-accept','rc-primary'));
       return;
     }
