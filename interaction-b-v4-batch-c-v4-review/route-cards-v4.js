@@ -488,7 +488,7 @@ function finish(e,cancel){
 shell.addEventListener('pointerup',e=>finish(e,false));
 shell.addEventListener('pointercancel',e=>finish(e,true));
 shell.addEventListener('lostpointercapture',e=>finish(e,true));
-window.__batchC={version:'V3-card-first',show:showReview,open:openFor,exit:closeAll,report,summary:counts,items:defs,state:()=>({active:state.active,stage:state.stage,mini:state.mini,stops:state.stops.map(p=>p.id),starCount:document.querySelectorAll('#savedStar').length,dockCount:document.querySelectorAll('#dock').length}),mark(id){if(id==='C01')return;checks[id]='ok';persist();renderReview()}};
+window.__batchC={version:'V4-stable-place-and-route-advice',show:showReview,open:openFor,exit:closeAll,report,summary:counts,items:defs,state:()=>({active:state.active,stage:state.stage,mini:state.mini,stops:state.stops.map(p=>p.id),starCount:document.querySelectorAll('#savedStar').length,dockCount:document.querySelectorAll('#dock').length}),mark(id){if(id==='C01')return;checks[id]='ok';persist();renderReview()}};
 (function fixRouteV4(){
   const coord=new Map(allPlaces.map((p,i)=>[p.id,pointPositions[i]]));
   const at=p=>coord.get(p.id)||null;
