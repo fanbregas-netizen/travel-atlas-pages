@@ -82,6 +82,8 @@ jobs:
           cp -R interaction-b-v4-batch-c-review _site/interaction-b-v4-batch-c-review
           # Isolated C V2 acceptance: calendar, drag reorder, slide sheet and instant add; production untouched.
           cp -R interaction-b-v4-batch-c-v2-review _site/interaction-b-v4-batch-c-v2-review
+          # C V3 standalone rubber-band card UI preview; root index remains unchanged.
+          cp -R interaction-b-v4-batch-c-v3-review _site/interaction-b-v4-batch-c-v3-review
           # Original V4 map / card / Dock rubber-band review, independent of production and existing demo.
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
@@ -89,6 +91,11 @@ jobs:
           touch _site/.nojekyll
       - name: Validate static deployment assets
         run: |
+          node --check interaction-b-v4-batch-c-v3-review/route-cards-v3.js
+          test -s interaction-b-v4-batch-c-v3-review/index.html
+          test -s interaction-b-v4-batch-c-v3-review/route-cards-v3.css
+          grep -q 'route-cards-v3.js' interaction-b-v4-batch-c-v3-review/index.html
+          grep -q 'rc-mini-layer' interaction-b-v4-batch-c-v3-review/route-cards-v3.js
           node --check atlas-orbit.js
           node --check atlas-stage5.js
           node --check atlas-services.js
