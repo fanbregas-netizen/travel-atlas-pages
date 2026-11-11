@@ -1,0 +1,1899 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"/>
+<meta name="theme-color" content="#edf1e9"/>
+<title>Footprint Map｜C 批 V4 · 地点选点与路线优化</title>
+<style>
+:root { --ink:#27362f; --muted:#7c897c; --paper:#fffefa; --line:#e8e9df; --gold:#f2c84e; --ease:cubic-bezier(.2,.8,.22,1); }
+*{box-sizing:border-box}html,body{margin:0;height:100%;width:100%;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;background:#e8eae2;color:var(--ink);overflow:hidden;-webkit-tap-highlight-color:transparent}button{font:inherit;cursor:pointer}button:focus-visible{outline:2px solid #b58e39;outline-offset:2px}
+.frame{height:100dvh;display:flex;align-items:center;justify-content:center;gap:52px;padding:16px}.explainer{width:300px;flex:none}.eyebrow{font-size:11px;letter-spacing:.2em;font-weight:800;color:#849485}.explainer h1{font-size:34px;line-height:1.18;letter-spacing:-.055em;margin:17px 0 12px}.explainer p{font-size:13px;line-height:1.85;color:#69796d}.guide{margin-top:24px;display:grid;gap:13px}.guide div{display:flex;gap:12px;align-items:flex-start;font-size:12px;color:#455b4b;line-height:1.6}.guide b{display:grid;place-items:center;width:27px;height:27px;flex:none;border:1px solid #bfc8b9;border-radius:50%;font-size:10px}.footnote{margin-top:24px;font-size:11px;color:#849288}
+.phone{position:relative;width:min(390px,calc(100vw - 20px));height:min(844px,calc(100dvh - 24px));border:7px solid #262b29;border-radius:47px;box-shadow:0 35px 60px #28342a39;overflow:hidden;background:#edf1e9;isolation:isolate}.screen{position:relative;width:100%;height:100%;border-radius:40px;overflow:hidden}.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:103px;height:28px;border-radius:20px;background:#262b29;z-index:30}.status{position:absolute;z-index:20;left:24px;top:18px;font-size:11px;font-weight:700}.network{position:absolute;z-index:20;right:24px;top:18px;font-size:12px;font-weight:800}
+#map{position:absolute;inset:0;overflow:hidden;touch-action:none;background:#edf1e9}#world{position:absolute;width:175%;height:175%;left:-37.5%;top:-37.5%;transform:translate3d(0,0,0);will-change:transform;user-select:none}.map-art{width:100%;height:100%;display:block}#starLayer{position:absolute;inset:0;pointer-events:none}.atlas-bookmark-hit{position:absolute;left:50%;top:50%;width:60px;height:60px;transform:translate(-50%,-50%);border:0;background:transparent;display:grid;place-items:center;pointer-events:auto;touch-action:manipulation}.atlas-bookmark-hit svg{width:45px;height:45px;filter:drop-shadow(0 3px 6px #483c2245);transition:scale .16s}.atlas-bookmark-hit:active svg{scale:.89}
+.topbar{position:absolute;top:63px;left:13px;right:13px;z-index:8;display:flex;gap:9px}.search{flex:1;display:flex;align-items:center;gap:12px;background:#fffef9f5;border:1px solid #fff;height:52px;border-radius:18px;box-shadow:0 5px 25px #25322519;padding:0 16px;font-size:13px;font-weight:600}.search svg{width:20px;height:20px}.tool{height:52px;width:52px;border:1px solid #fff;border-radius:18px;background:#fffefa;box-shadow:0 5px 25px #25322519;display:grid;place-items:center}.tool svg{width:20px;height:20px}.brand{position:absolute;z-index:6;top:127px;left:18px;letter-spacing:.16em;font-size:10px;font-weight:750;color:#788679;pointer-events:none}.watermark{position:absolute;z-index:6;top:147px;right:19px;color:#9baba0;font-size:10px;pointer-events:none}.hint{position:absolute;top:calc(50% + 47px);left:50%;transform:translateX(-50%);z-index:7;background:#fffefaf5;padding:8px 12px;border:1px solid #ffffffad;border-radius:22px;box-shadow:0 3px 15px #24322819;font-size:11px;font-weight:650;white-space:nowrap;pointer-events:none;transition:opacity .2s}.hint.hide{opacity:0}.reset{position:absolute;bottom:116px;right:13px;z-index:7;background:#fffefa;width:43px;height:43px;border:1px solid #fff;border-radius:15px;box-shadow:0 4px 19px #25322519;font-size:18px}
+.dock{position:absolute;bottom:8px;left:10px;right:10px;height:65px;border-radius:22px;background:#fffefaed;border:1px solid #fff;box-shadow:0 4px 24px #2b3b2b26;display:flex;align-items:center;justify-content:space-around;z-index:10;backdrop-filter:blur(14px)}.nav{border:0;background:none;color:#8b998d;font-size:10px;display:grid;justify-items:center;gap:4px;width:60px}.nav svg{height:19px;width:19px}.nav.active{color:#2d4d3c;font-weight:700}
+.sheet{position:absolute;left:11px;right:11px;bottom:84px;z-index:12;height:248px;overflow:hidden;display:flex;flex-direction:column;border-radius:27px;background:#fffefa;border:1px solid #fbf8f1;box-shadow:0 15px 47px #28392942;transition:height .46s cubic-bezier(.18,.84,.23,1),transform .37s cubic-bezier(.18,.88,.25,1),opacity .26s ease;transform:translate3d(0,0,0);will-change:height,transform}.sheet[hidden]{display:none}.sheet[data-level="half"]{height:52%}.sheet[data-level="full"]{height:calc(100% - 122px)}.sheet.dragging{transition:none!important}.sheet.closing{transform:translate3d(0,calc(100% + 125px),0);opacity:.7;pointer-events:none}.sheet.entering{transform:translate3d(0,calc(100% + 125px),0);opacity:.86}.sheet-header{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}.sheet-header.drag-active{cursor:grabbing}.sheet-header .close{touch-action:manipulation;cursor:pointer}.sheet-header .grip{touch-action:none}.sheet-header .place-heading{touch-action:none}.sheet-header{flex:none;padding:0 18px 10px}.grip{display:block;width:100%;height:34px;min-height:34px;touch-action:none;position:relative;background:none;border:0}.grip:after{content:'';position:absolute;width:43px;height:5px;background:#d6d5cc;left:50%;top:12px;transform:translateX(-50%);border-radius:5px}.place-heading{display:flex;gap:10px;align-items:center}.star-small{width:25px;height:25px;border-radius:8px;display:grid;place-items:center;background:#f7e6af;color:#856619}.place-copy{flex:1}.subtitle{font-size:10px;letter-spacing:.14em;color:#aaa08b;font-weight:800}.place-copy h2{margin:4px 0 0;font-size:20px;letter-spacing:-.035em}.close{border:0;background:#f2f1eb;border-radius:12px;color:#7a8275;height:40px;width:40px;font-weight:300;font-size:22px}.content{min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;padding:3px 18px 22px}.rule{height:1px;background:var(--line);margin:5px 0 14px}.kicker{font-size:10px;font-weight:800;letter-spacing:.15em;color:#a98f4e}.brief{font-size:13px;line-height:1.85;color:#526056;letter-spacing:.007em;margin:10px 0 15px}.section-heading{display:flex;justify-content:space-between;margin:20px 0 10px;font-size:13px;font-weight:700}.section-heading span{font-size:11px;font-weight:400;color:#a5afa5}.photos{display:grid;grid-template-columns:1.1fr .9fr;gap:8px}.photo{position:relative;height:130px;overflow:hidden;border-radius:14px;background:#a0b5a4}.photo svg{width:100%;height:100%}.photo label{position:absolute;left:9px;bottom:9px;border-radius:14px;padding:4px 8px;background:#20392ab0;color:white;font-size:9px}.other{border:1px solid #e9eadd;border-radius:13px;background:#fffefc;padding:13px;margin-top:13px;display:flex;justify-content:space-between;font-size:12px;font-weight:650}.other span{font-weight:400;color:#9ba397}.endline{font-size:11px;line-height:1.7;color:#95a195;margin-top:14px}.sheet[data-level="peek"] .photos,.sheet[data-level="peek"] .section-heading,.sheet[data-level="peek"] .other,.sheet[data-level="peek"] .endline{display:none}.sheet[data-level="peek"] .content{overflow:hidden}.stage{position:absolute;z-index:8;left:50%;bottom:92px;transform:translateX(-50%);background:#fffefaed;border:1px solid #fff;border-radius:20px;padding:8px 13px;font-size:10px;color:#68786a;white-space:nowrap;box-shadow:0 2px 9px #28392918;pointer-events:none}.stage strong{color:#b09048}.small-help{position:absolute;z-index:5;bottom:162px;width:100%;left:0;text-align:center;color:#7a8a7b;font-size:11px;line-height:1.6;pointer-events:none}.small-help.hide{opacity:0}
+@media(max-width:720px){.frame{display:block;padding:0}.explainer{display:none}.phone{width:100vw;height:100dvh;border:0;border-radius:0;box-shadow:none}.screen{border-radius:0}.notch{display:none}.status,.network{top:max(16px,env(safe-area-inset-top))}.topbar{top:calc(48px + env(safe-area-inset-top))}.brand{top:calc(113px + env(safe-area-inset-top))}.watermark{top:calc(132px + env(safe-area-inset-top))}.dock{bottom:max(8px,env(safe-area-inset-bottom))}.sheet{bottom:calc(82px + env(safe-area-inset-bottom))}.sheet[data-level="full"]{height:calc(100% - 119px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}.reset{bottom:calc(113px + env(safe-area-inset-bottom))}.stage{bottom:calc(91px + env(safe-area-inset-bottom))}.small-help{bottom:calc(160px + env(safe-area-inset-bottom))}}@media(prefers-reduced-motion:reduce){.sheet,.hint,.atlas-bookmark-hit svg{transition:none!important}}
+
+/* Apple Maps-inspired physical sheet: JS spring owns geometry. */
+.sheet{transition:none!important;contain:layout paint;backface-visibility:hidden}
+.sheet.dragging{transition:none!important;cursor:grabbing}
+.sheet[data-level="peek"] .photos,.sheet[data-level="peek"] .section-heading,.sheet[data-level="peek"] .other,.sheet[data-level="peek"] .endline{display:initial}
+.sheet[data-level="peek"] .photos{display:grid}
+.sheet[data-level="peek"] .section-heading{display:flex}
+.sheet[data-level="peek"] .other{display:flex}
+.sheet[data-level="peek"] .content{overflow:hidden}
+.sheet-header{min-height:99px;touch-action:none;cursor:grab}
+.sheet-header.drag-active{cursor:grabbing}
+.content{touch-action:none;overscroll-behavior-y:contain}
+.sheet[data-level="full"] .content{overflow-y:auto}
+.grip{min-height:35px}
+@media (prefers-reduced-motion:reduce){.sheet{transition:none!important}}
+
+/* V4 proposed relationship: one global/action/context Dock, never overlapping two Docks. */
+.explainer{width:335px}.explainer h1{font-size:31px;line-height:1.24}.explainer p{line-height:1.75}
+.logic-flow{border-left:1px solid #d6d9cd;margin:23px 0 17px 12px;padding:0 0 0 17px;display:grid;gap:7px}
+.logic-flow>div{display:flex;gap:11px;align-items:center;font-size:12px;font-weight:700;color:#33473c}
+.logic-flow b{width:25px;height:25px;border-radius:9px;background:#e5e8dd;color:#627365;display:grid;place-items:center;font-size:10px}
+.logic-flow em{font-size:11px;color:#a0aaa1;margin-left:36px;font-style:normal}
+.side-caption{font-size:12px!important;color:#899289!important;margin:16px 0 8px!important}
+.side-jumps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.side-jumps button{border:1px solid #dadfd5;border-radius:11px;background:#fffefb;padding:10px 2px;font-size:11px;font-weight:650;color:#617064;transition:background .2s,color .2s}
+.side-jumps button:hover,.side-jumps button.active{background:#315545;color:#fefdf8;border-color:#315545}
+.side-sign{margin-top:16px;color:#a2aaa0;font-size:10px}
+.dock{z-index:30!important;bottom:8px;display:flex;gap:3px;padding:5px 6px;justify-content:space-around;align-items:center;transition:background .28s ease,box-shadow .28s ease,border-color .28s ease;max-width:none}
+.dock[data-mode="place"]{background:rgba(255,254,248,.98);box-shadow:0 5px 30px #263b302a;border-color:#fff7ed}
+.dock[data-mode="detail"]{background:rgba(252,251,246,.98);box-shadow:0 3px 25px #1f302727}
+.dock .nav{height:54px;min-width:0;flex:1;max-width:95px;width:auto;border-radius:16px;padding:6px 2px;gap:4px;display:flex;align-items:center;flex-direction:column;justify-content:center;transition:background .2s,color .2s,transform .16s}
+.dock .nav svg{width:19px;height:19px;flex:none}.dock .nav.active{background:#f1f3e9;color:#2f6045;font-weight:750}
+.dock .nav.primary{background:#315846;color:#fff;font-weight:720;max-width:105px}
+.dock .nav:active{transform:scale(.96)}
+.dock-stage{position:absolute;z-index:11;left:50%;bottom:calc(84px + 10px);transform:translateX(-50%);pointer-events:none;background:#fbfcf7e8;border:1px solid #ffffffa8;padding:6px 11px;border-radius:22px;font-size:10px;font-weight:680;color:#68806d;box-shadow:0 4px 20px #1d30200f;white-space:nowrap;opacity:.95}
+body:has(.sheet:not([hidden])) .dock-stage{opacity:0}\n.atlas-bookmark-hit.selected svg{filter:drop-shadow(0 0 4px #e7bf5c77) drop-shadow(0 3px 6px #34443836)}\n.media-grid.list{display:flex;flex-direction:column}\n.media-grid.list .grid-photo,.media-grid.list .grid-photo.main{width:100%;height:195px;flex:none}
+.demo-menu{position:absolute;top:121px;right:14px;width:260px;z-index:32;background:#fffefa;box-shadow:0 20px 60px #263a303a;border:1px solid #fff;border-radius:23px;padding:17px;backdrop-filter:blur(16px)}
+.demo-menu[hidden]{display:none}.demo-menu-heading{font-size:14px;font-weight:800;display:flex;justify-content:space-between;margin-bottom:13px}.demo-menu-heading span{color:#a0a99e;font-size:10px;font-weight:600}
+.menu-jumps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.menu-jumps button{background:#f2f3ed;color:#4e6554;border:1px solid #e9eee3;border-radius:10px;padding:10px 0;font-size:11px;font-weight:700}
+.menu-jumps button.active{background:#355c46;color:white}.tool{position:relative;z-index:40}
+.layer{position:absolute;inset:0;z-index:23;background:#fbfaf5;opacity:0;transform:translate3d(0,3%,0);transition:transform .36s cubic-bezier(.2,.81,.2,1),opacity .3s ease;pointer-events:none}
+.layer:not([hidden]){display:block}.layer.active{opacity:1;transform:translate3d(0,0,0);pointer-events:auto}
+.layer-surface{height:100%;display:flex;flex-direction:column;padding-top:55px}
+.layer-header{height:68px;display:flex;align-items:center;padding:0 15px;gap:12px;flex:none;border-bottom:1px solid #edece5;background:#fbfaf7}
+.layer-header>div{flex:1;min-width:0}.layer-tiny{display:block;color:#9aa79b;font-size:10px;font-weight:640;letter-spacing:.05em;margin-bottom:4px}
+.layer-header strong{font-size:19px;font-weight:760;letter-spacing:-.035em}
+.layer-back,.layer-exit{border:0;background:#eeefe8;width:40px;height:40px;display:grid;place-items:center;border-radius:14px;color:#435b4a;flex:none}
+.layer-back svg{height:22px;width:22px}.layer-exit{font-size:25px;font-weight:340}
+.layer-body{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;flex:1;padding:22px 18px 112px}
+.layer-overline{font-size:10px;letter-spacing:.16em;font-weight:800;color:#a3986e;display:flex;gap:8px;align-items:center}
+.layer-overline:before{content:'';width:17px;height:1px;background:#bca66a}
+.layer-title{font-size:29px;font-weight:750;letter-spacing:-.055em;line-height:1.28;margin:12px 0}
+.layer-sub{font-size:13px;color:#818e83;line-height:1.65;margin:6px 0 20px}
+.hero-photo{height:193px;border-radius:20px;position:relative;overflow:hidden;background:linear-gradient(145deg,#afbea5,#657e66);margin:16px 0 22px}
+.hero-photo svg,.grid-photo svg{width:100%;height:100%;display:block}.hero-photo span{position:absolute;bottom:14px;left:13px;background:#223b30a8;color:#fff;padding:6px 11px;border-radius:50px;font-size:10px;font-weight:700}
+.quote{font-size:17px;line-height:1.94;font-weight:520;color:#4f5d53;padding:23px 20px 23px 21px;background:#f1f2e9;border:1px solid #e9ecdf;border-radius:20px;margin:20px 0}
+.mini-label{font-size:12px;color:#40564a;font-weight:780;margin:27px 0 12px}
+.mini-tags{display:flex;gap:8px;flex-wrap:wrap}.mini-tags span{background:#eeefe7;border:1px solid #e6e9df;color:#748375;padding:8px 12px;border-radius:13px;font-size:11px}
+.note-field{width:100%;padding:15px;min-height:145px;line-height:1.7;font-size:14px;resize:vertical;color:#384b3e;border:1px solid #d5dfd5;border-radius:15px;background:#fffdf7;font-family:inherit}
+.dock-caption{font-size:11px;color:#98a294;margin:19px 0 9px;line-height:1.6}
+.media-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid-photo{height:160px;position:relative;border-radius:17px;overflow:hidden;background:#a4b4a6}
+.grid-photo:nth-child(3){height:140px}.grid-photo:nth-child(4){height:190px}.grid-photo>span{position:absolute;bottom:10px;left:10px;color:white;font-size:10px;text-shadow:0 1px 4px #233c37;background:#233c3884;padding:5px 8px;border-radius:8px}
+.grid-photo.main{grid-column:span 2;height:180px}.grid-photo[data-extra]{background:#f0f1ea;border:1px dashed #bacbbd;color:#6f886f;display:flex;align-items:center;justify-content:center;font-size:11px}
+.guide-card{background:#fffefa;border:1px solid #ebece4;border-radius:20px;padding:17px;display:grid;gap:8px;box-shadow:0 4px 22px #22332507;margin:12px 0}
+.guide-card .tag{font-size:10px;color:#a6a16f;font-weight:780;letter-spacing:.09em}.guide-card strong{font-size:16px;letter-spacing:-.02em}.guide-card p{font-size:12px;color:#808d81;line-height:1.8;margin:0}
+.guide-card .guide-extra{display:none;border-top:1px solid #e9ece3;padding-top:12px;margin-top:5px}.guide-card.expanded .guide-extra{display:block}.guide-toggle{justify-self:start;border:0;background:#eff2e9;padding:8px 12px;border-radius:10px;color:#5e755f;font-size:11px;font-weight:720}
+.nearby-row{display:flex;align-items:center;gap:13px;border-bottom:1px solid #e8eae1;padding:16px 0}.nearby-img{border-radius:14px;width:72px;height:72px;background:linear-gradient(125deg,#c8d0bc,#809f8d);display:grid;place-items:center;font-size:25px;flex:none}.nearby-row .details{flex:1}.nearby-row b{font-size:14px}.nearby-row p{font-size:11px;color:#839285;margin:7px 0 0}.nearby-row button{border:0;background:#e9ede2;color:#58745c;border-radius:11px;padding:9px 12px;font-size:11px;font-weight:750}
+.searchbox{height:53px;display:flex;gap:9px;align-items:center;background:#eff1e9;border:1px solid #e4e8df;border-radius:17px;padding:0 13px;margin-bottom:17px}.searchbox svg{width:17px}.searchbox input{border:0;outline:none;background:none;flex:1;font:inherit;color:#3a4a3e;min-width:0;font-size:13px}
+.preview-row{background:#fffefa;border:1px solid #e8ebe1;border-radius:17px;padding:15px;margin:12px 0;display:flex;align-items:center;gap:12px}
+.preview-row .blurb{flex:1}.preview-row strong{font-size:13px}.preview-row p{font-size:11px;color:#91a093;margin:4px 0 0}
+.preview-row button{border:0;background:#355a47;color:white;border-radius:11px;padding:10px;font-size:11px;font-weight:730}
+.toast{position:absolute;z-index:80;bottom:95px;left:50%;transform:translate(-50%,14px);max-width:calc(100% - 40px);pointer-events:none;background:#284b3b;color:white;border-radius:15px;padding:11px 16px;font-size:11px;box-shadow:0 10px 25px #243b306b;opacity:0;transition:opacity .25s,transform .25s;white-space:nowrap}.toast.show{opacity:1;transform:translate(-50%,0)}
+#sheet .section-heading,#sheet .other,#sheet .photos,#sheet .brief{cursor:pointer}
+#sheet .section-heading:active,#sheet .other:active,#sheet .photos:active{opacity:.75}
+@media(max-width:720px){.layer-surface{padding-top:max(47px,env(safe-area-inset-top))}.demo-menu{top:calc(107px + env(safe-area-inset-top))}.dock{bottom:max(8px,env(safe-area-inset-bottom))}.dock-stage{bottom:calc(95px + env(safe-area-inset-bottom))}}
+@media(prefers-reduced-motion:reduce){.layer,.dock,.toast{transition:none!important}}
+
+/* Search interaction V5: a single map-owned search workspace slides in from the Dock. */
+.layer.search-layer{background:#fafaf6;opacity:1;transform:translate3d(0,102%,0);transition:transform .54s cubic-bezier(.17,.86,.23,1),opacity .26s ease;box-shadow:0 -14px 42px #1d362417}
+.layer.search-layer.active{transform:translate3d(0,0,0)}
+.layer.search-layer .layer-header{background:#fafaf6;border-bottom:1px solid #e8ebe4}
+.layer.search-layer .layer-body{padding:24px 18px calc(113px + env(safe-area-inset-bottom));background:linear-gradient(170deg,#fafaf6 0%,#f5f7ef 100%)}
+.search-intro{margin:5px 0 25px}
+.search-intro .search-overline{font-size:10px;font-weight:800;letter-spacing:.15em;color:#a2a98c;display:flex;gap:9px;align-items:center}
+.search-intro .search-overline:before{content:'';height:1px;width:17px;background:#b3be9f}
+.search-intro h2{font-size:30px;font-weight:750;line-height:1.22;letter-spacing:-.05em;margin:11px 0 5px;color:#2c4236}
+.search-intro p{font-size:12px;line-height:1.7;color:#8c9b8c;margin:0}
+.search-input-wrap{height:58px;display:flex;gap:10px;align-items:center;background:#fffefa;border:1.5px solid #e6eae1;border-radius:19px;padding:0 13px;box-shadow:0 4px 24px #304e3508;transition:box-shadow .2s,border-color .2s}
+.search-input-wrap:focus-within{border-color:#9cb49e;box-shadow:0 0 0 3px #87a58d1b,0 4px 24px #304e350a}
+.search-input-wrap svg{width:19px;height:19px;flex:none;color:#67836d}
+.search-input-wrap input{flex:1;min-width:0;font-size:15px;font-weight:530;font-family:inherit;color:#32473a;background:transparent;border:0;outline:0;caret-color:#55755e}
+.search-input-wrap input::placeholder{color:#a4b0a4;font-weight:430}
+.search-clear-inline{height:29px;width:29px;border:0;border-radius:50%;background:#edf1e9;display:grid;place-items:center;color:#7f9182;opacity:1;transition:opacity .15s}
+.search-clear-inline[hidden]{display:none}
+.search-clear-inline svg{height:14px;width:14px;color:#7f9182}
+.search-chip-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:13px 0 25px;padding-bottom:4px}
+.search-chip-row::-webkit-scrollbar{display:none}
+.search-chip{flex:none;border:1px solid #e6eae0;background:#fcfcf7;color:#647967;border-radius:13px;padding:9px 13px;font-size:11px;font-weight:680;white-space:nowrap;transition:transform .15s,background .15s}
+.search-chip:active{transform:scale(.97);background:#e8eee2}
+.search-section-title{font-size:11px;font-weight:760;letter-spacing:.1em;color:#869785;display:flex;justify-content:space-between;align-items:center;margin:24px 0 11px}
+.search-section-title span:last-child{font-size:10px;letter-spacing:normal;font-weight:530;color:#abb4a7}
+.search-row{display:flex;gap:13px;align-items:center;width:100%;text-align:left;border:1px solid #e8ece2;background:#fffefa;border-radius:19px;padding:15px 14px;box-shadow:0 5px 20px #2d4a3308;color:#355141;animation:searchRowIn .31s both cubic-bezier(.17,.86,.23,1)}
+.search-row:active{transform:scale(.99);background:#f4f6ef}
+.search-row-icon{width:43px;height:43px;display:grid;place-items:center;background:#eef3e9;border-radius:14px;flex:none;color:#527662}
+.search-row-icon svg{width:21px;height:21px}
+.search-row-copy{min-width:0;flex:1}.search-row-copy b{display:block;font-size:15px;font-weight:760;letter-spacing:-.025em;color:#314a3a}
+.search-row-copy small{font-size:11px;line-height:1.5;color:#9daa9e;display:block;margin-top:4px}
+.search-row-next{font-size:20px;line-height:1;color:#96aa9b;margin-right:3px}
+.search-saved-tag{display:inline-block;margin-left:7px;font-size:9px;letter-spacing:0;font-weight:700;color:#967633;background:#f7efda;border-radius:6px;padding:3px 5px;vertical-align:2px}
+.search-empty{padding:32px 21px;margin:2px 0 4px;background:#fffefa;border:1px dashed #dce4d9;border-radius:21px;text-align:center;color:#899c8b}
+.search-empty-symbol{font-size:26px;line-height:1.2;color:#9bb3a1}
+.search-empty strong{display:block;font-size:14px;color:#557061;margin:10px 0 7px}
+.search-empty p{font-size:11px;line-height:1.8;margin:0}
+.search-scope-note{padding:17px 5px;color:#a1ad9f;font-size:11px;line-height:1.75}
+.search-scope-note b{color:#718a76}
+.search-keyboard-open .dock{opacity:0;pointer-events:none;transform:translate3d(0,105%,0)}
+.search-keyboard-open .layer.search-layer .layer-body{padding-bottom:30px}
+.search-keyboard-open .search-intro{margin-bottom:12px}
+.search-keyboard-open .search-intro h2{font-size:24px}
+.search-keyboard-open .search-intro p{display:none}
+.search-active-indicator{display:inline-flex;align-items:center;gap:5px;color:#9aa99b;font-size:10px;font-weight:550}
+.search-active-indicator i{width:5px;height:5px;background:#88a791;border-radius:50%;display:inline-block}
+.atlas-bookmark-hit.search-selected svg{animation:searchPinPulse .72s cubic-bezier(.14,.85,.23,1) both}
+@keyframes searchRowIn{from{opacity:0;transform:translate3d(0,12px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes searchPinPulse{0%{scale:.83}47%{scale:1.12}100%{scale:1}}
+@media(prefers-reduced-motion:reduce){.layer.search-layer,.search-row,.atlas-bookmark-hit.search-selected svg{transition:none!important;animation:none!important}}
+</style>
+<style id="fp-v4-rubber-style">
+/* Accepted V4 illustration and four-item Dock are unchanged; spring motion is additive. */
+.search-input-wrap input::-webkit-search-cancel-button{-webkit-appearance:none;display:none!important}
+.dock{transform-origin:50% 60%;will-change:scale;}
+.dock.rubber-energized{transition:background .24s ease,box-shadow .24s ease,border-color .24s ease!important;}
+.layer.search-layer.rubber-sheet-moving{
+ transition:none!important;
+ transform:translate3d(0,var(--rubber-sheet-y,0px),0)!important;
+ opacity:1!important;
+ will-change:transform;
+}
+@media(prefers-reduced-motion:reduce){
+ .dock{scale:1 1!important}
+ .layer.search-layer.rubber-sheet-moving{transition:none!important;transform:translate3d(0,0,0)!important}
+}
+</style>
+<style id="fp-interaction-polish-v2">
+/* V4 approved UI preserved. Visual feedback is confined to existing real nodes. */
+#savedStar svg {transform-origin:50% 50%; will-change:transform;}
+#savedStar.fp-star-touch svg {transform:scale(.91);transition:transform 90ms ease-out;}
+#sheet {transition:box-shadow 260ms ease-out!important;}
+#sheet[data-level="half"] {box-shadow:0 17px 46px rgba(38,57,41,.26);}
+#sheet[data-level="full"] {box-shadow:0 20px 54px rgba(38,57,41,.29);}
+#grip:after {transition:width 330ms cubic-bezier(.16,1.23,.25,1),background-color 200ms ease,transform 330ms cubic-bezier(.16,1.23,.25,1)!important;}
+#sheet[data-level="half"] #grip:after {width:49px;}
+#sheet[data-level="full"] #grip:after {width:53px;}
+#sheet.dragging #grip:after {width:60px;background:#adbaaa;transform:translateX(-50%) scaleY(.85);}
+#sheet .place-heading {transform-origin:center bottom;will-change:transform;}
+#dock .nav {backface-visibility:hidden;}
+.layer:not(.search-layer) .layer-header {will-change:transform;}
+.layer:not(.search-layer) .layer-body>* {backface-visibility:hidden;}
+#dock .nav:focus-visible,#layerBack:focus-visible,#layerClose:focus-visible {outline:2px solid #91a98f;outline-offset:2px;}
+@media(prefers-reduced-motion:reduce){
+  #savedStar svg,#grip:after,#sheet {transition:none!important;animation:none!important;}
+}
+</style>
+
+<style id="fp-v4-review-nav-style">
+/* Independent interaction acceptance navigation; never changes V4 app shell. */
+#qaToggle{position:absolute;z-index:95;top:calc(175px + env(safe-area-inset-top,0px));right:10px;min-width:46px;height:32px;padding:0 9px;border-radius:14px;border:1px solid #fdfcf5;background:rgba(255,254,249,.95);color:#536b55;box-shadow:0 4px 19px #213f2827;backdrop-filter:blur(14px);font-size:11px;font-weight:800;letter-spacing:.04em;touch-action:manipulation}
+#qaToggle:active{transform:scale(.96)}
+#qaShade{position:absolute;inset:0;z-index:120;background:rgba(20,36,26,.29);opacity:0;pointer-events:none;transition:opacity .2s ease}
+#qaShade.open{opacity:1;pointer-events:auto}
+#qaPanel{position:absolute;z-index:121;bottom:0;left:0;right:0;height:min(82%,760px);display:flex;flex-direction:column;background:#fcfcf7;border:1px solid #fffef7;border-radius:28px 28px 0 0;box-shadow:0 -15px 45px #213c2740;transform:translate3d(0,103%,0);opacity:0;pointer-events:none;transition:transform .38s cubic-bezier(.17,.82,.26,1),opacity .2s ease;overscroll-behavior:contain;color:#2f4637}
+#qaPanel.open{transform:translate3d(0,0,0);opacity:1;pointer-events:auto}
+.qa-head{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 19px 12px;gap:14px;border-bottom:1px solid #e9ede5;flex:none}
+.qa-head small{display:block;font-size:10px;letter-spacing:.15em;color:#8da18e;font-weight:800}
+.qa-head h2{font-size:21px;line-height:1.1;margin:8px 0 7px;letter-spacing:-.035em}
+.qa-head p{font-size:11px;color:#879488;line-height:1.6;margin:0}
+.qa-close{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:13px;background:#eff2ea;border:0;color:#5b715f;font-size:23px}
+.qa-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px 15px 19px}
+.qa-group{margin:16px 3px 8px;display:flex;align-items:center;gap:9px;color:#879c89;font-size:10px;font-weight:850;letter-spacing:.08em}
+.qa-group:before{content:'';width:19px;height:1px;background:#a9b9a6}
+.qa-item{margin:9px 0;display:flex;align-items:center;gap:10px;border:1px solid #e6ebe2;border-radius:17px;padding:12px 10px 12px 13px;background:#fffefa;box-shadow:0 3px 12px #38543c07}
+.qa-copy{flex:1;min-width:0}.qa-copy b{font-size:13px;letter-spacing:-.025em}.qa-copy p{font-size:10px;line-height:1.55;color:#909c90;margin:4px 0 0}
+.qa-copy small{display:block;color:#87a089;font-size:10px;margin-top:4px}
+.qa-open{flex:none;min-width:45px;height:37px;padding:0 8px;background:#355b45;color:#fffdf8;font-size:11px;font-weight:750;border-radius:12px;border:0}
+.qa-state{flex:none;width:31px;height:36px;border-radius:11px;border:1px solid #dce6d9;background:#f4f6ef;color:#78927a;font-size:16px;font-weight:800}
+.qa-state[data-state=ok]{background:#e2ede2;color:#386a48;border-color:#c5dcc8}
+.qa-state[data-state=issue]{background:#fff0db;color:#9d7233;border-color:#edcf9e}
+.qa-foot{flex:none;border-top:1px solid #e9ede5;padding:11px 16px calc(13px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:9px}
+.qa-foot button{flex:1;height:42px;font-size:11px;border-radius:13px;border:1px solid #e3e8dd;background:#fffefa;color:#415a48;font-weight:750}
+.qa-foot button.primary{background:#355b45;color:#fff;border:0}
+.qa-cross{padding:11px 13px;border-radius:16px;background:#f1f3ec;border:1px solid #e7e9e2;margin:9px 0}
+.qa-cross strong{font-size:12px}.qa-cross p{margin:6px 0 0;font-size:10px;line-height:1.7;color:#859689}
+#qaHint{position:absolute;z-index:94;top:calc(216px + env(safe-area-inset-top,0px));left:15px;right:62px;max-width:300px;background:rgba(252,253,247,.96);border:1px solid #fff;border-radius:14px;box-shadow:0 4px 22px #283c2c20;padding:9px 11px;color:#4d6751;font-size:11px;line-height:1.45;opacity:0;transform:translateY(-4px);pointer-events:none;transition:opacity .25s ease,transform .25s ease}
+#qaHint.show{opacity:1;transform:translateY(0)}
+/* Extend detail interactions with motion while keeping all original V4 data/actions. */
+.guide-card .guide-extra{display:grid!important;grid-template-rows:0fr;opacity:0;overflow:hidden;border-top-color:transparent;padding-top:0;margin-top:0;transition:grid-template-rows .37s cubic-bezier(.19,.8,.22,1),opacity .28s ease,padding-top .3s ease,margin-top .3s ease,border-color .3s ease}
+.guide-card .guide-extra p{min-height:0;overflow:hidden}
+.guide-card.expanded .guide-extra{grid-template-rows:1fr;opacity:1;padding-top:12px;margin-top:5px;border-top-color:#e9ece3}
+.nearby-row button.qa-wanted{background:#e3eee3;color:#3d7552}
+@media(max-width:720px){#qaPanel{height:85%;border-radius:26px 26px 0 0}}
+@media(prefers-reduced-motion:reduce){#qaShade,#qaPanel,#qaHint,.guide-card .guide-extra{transition:none!important}}
+</style>
+<style id="fp-batch-a-styles">
+/* Batch A is isolated. Approved V4 map/star/card/Dock styles and handlers remain intact. */
+#aToggle{position:absolute;z-index:96;right:10px;top:calc(213px + env(safe-area-inset-top,0px));background:#315746;color:#fffefa;border:1px solid #4e725c;border-radius:14px;height:32px;min-width:76px;padding:0 10px;font-size:11px;font-weight:750;box-shadow:0 5px 15px #213e292e;touch-action:manipulation}
+#aToggle:active{scale:.97}
+#aMask{position:absolute;inset:0;z-index:101;background:#162d21a8;backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .2s ease}
+#aMask.active{opacity:1;pointer-events:auto}
+#aLayer{position:absolute;inset:0;z-index:102;pointer-events:none;overflow:hidden}
+#aLayer .a-sheet{position:absolute;bottom:0;left:0;right:0;max-height:calc(95% - env(safe-area-inset-top,0px));padding:0 0 max(20px,env(safe-area-inset-bottom,0px));border-radius:29px 29px 0 0;display:flex;flex-direction:column;background:#fffefa;box-shadow:0 -20px 52px #1c332738;border:1px solid #fffdf8;overflow:hidden;pointer-events:auto;transform:translate3d(0,105%,0);will-change:transform}
+#aLayer .a-sheet.a-open{transform:translate3d(0,0,0)}
+#aLayer .a-sheet.a-medium{height:min(67%,585px)}
+#aLayer .a-sheet.a-editor{height:min(86%,780px)}
+#aLayer .a-grip{width:43px;height:5px;background:#d8dfd4;border-radius:5px;margin:11px auto 10px;flex:none}
+#aLayer .a-head{padding:2px 18px 15px;display:flex;gap:12px;align-items:center;border-bottom:1px solid #edf0e9;flex:none}
+#aLayer .a-head .a-title{flex:1;min-width:0}
+#aLayer .a-kicker{display:block;color:#91a08f;font-size:10px;letter-spacing:.13em;font-weight:760;margin-bottom:5px}
+#aLayer h2{margin:0;font-size:22px;letter-spacing:-.04em;color:#2d4736;line-height:1.24}
+#aLayer .a-close{height:39px;width:39px;border:0;background:#edf1e9;border-radius:13px;font-size:22px;color:#5c745f;flex:none}
+#aLayer .a-body{min-height:0;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:17px 18px 22px}
+#aLayer .a-sub{font-size:12px;color:#87978a;line-height:1.7;margin:2px 0 16px}
+#aLayer .a-filters{display:flex;gap:7px;overflow-x:auto;padding:2px 1px 10px;scrollbar-width:none}
+#aLayer .a-filters button{flex:none;border:1px solid #e1e9dd;background:#f0f3eb;border-radius:13px;padding:10px 13px;font-size:12px;font-weight:700;color:#718773}
+#aLayer .a-filters button.selected{background:#355944;color:#fff;border-color:#355944;box-shadow:0 4px 12px #35644722}
+#aLayer .a-poi{display:flex;align-items:center;gap:12px;margin:10px 0;padding:14px;background:#f7f8f2;border:1px solid #e9eee5;border-radius:18px;color:#36523e}
+#aLayer .a-poi-icon{display:grid;place-items:center;width:43px;height:43px;background:#e3ede1;border-radius:14px;font-size:18px;flex:none}
+#aLayer .a-poi-copy{min-width:0;flex:1}.a-poi-copy b{font-size:13px}.a-poi-copy small{display:block;margin-top:6px;font-size:11px;color:#96a396}
+#aLayer .a-poi button{border:0;border-radius:11px;padding:9px 10px;background:#e6ebe0;color:#4b6956;font-size:11px;font-weight:730}
+#aLayer .a-empty{border:1px dashed #d8e2d6;border-radius:20px;background:#f7f8f3;text-align:center;padding:29px 14px;font-size:12px;color:#88988a;line-height:1.8}
+#aLayer .a-note{font-size:11px;color:#9ea99b;line-height:1.65;margin-top:16px}
+#aLayer .a-footer{padding:12px 18px;display:flex;gap:10px;border-top:1px solid #eef0e8;flex:none}
+#aLayer .a-footer button,#aLayer .a-action{border:0;min-height:45px;padding:11px 17px;border-radius:14px;font-weight:730;font-size:12px}
+#aLayer .a-footer button{flex:1;background:#eef1e8;color:#556e58}
+#aLayer .a-footer .primary,#aLayer .a-action.primary{background:#355947;color:#fffefa}
+#aLayer .a-footer .danger,#aLayer .a-action.danger{background:#a44c48;color:#fff}
+#aLayer .a-form{display:grid;gap:12px}
+#aLayer .a-form label{display:grid;gap:7px;color:#728574;font-size:11px;font-weight:700}
+#aLayer .a-form input,.a-form textarea{width:100%;font:inherit;min-height:45px;border:1px solid #dae4d8;border-radius:14px;background:#f9faf4;padding:11px 13px;color:#344c3d;font-size:13px;outline:none}
+#aLayer .a-form input:focus,.a-form textarea:focus{border-color:#91ad92;box-shadow:0 0 0 3px #91ae8e26}
+#aLayer .a-form textarea{min-height:108px;resize:vertical;line-height:1.65}
+#aLayer .a-form .a-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#aLayer .a-pillrow{display:flex;gap:8px;margin-bottom:15px}.a-pillrow button{border:1px solid #e2e8db;border-radius:12px;background:#f4f5ef;padding:9px 12px;color:#657c68;font-size:11px;font-weight:730}.a-pillrow button.selected{background:#e3efe2;border-color:#b9d2b9;color:#355a44}
+#aLayer .a-dialog-backdrop{position:absolute;inset:0;background:#14271c70;backdrop-filter:blur(4px);pointer-events:auto;display:grid;place-items:center;padding:20px;z-index:2}
+#aLayer .a-dialog{width:min(350px,100%);border-radius:25px;padding:24px 22px 20px;background:#fffefa;box-shadow:0 22px 80px #18312150;text-align:center;color:#344d3d;transform:scale(.9);opacity:0;will-change:transform}
+#aLayer .a-dialog.a-open{opacity:1;transform:scale(1)}
+#aLayer .a-symbol{font-size:25px;width:53px;height:53px;display:grid;place-items:center;background:#eef2e7;border-radius:18px;margin:0 auto 16px;color:#59785c}
+#aLayer .a-symbol.danger{background:#f9edeb;color:#a65650}
+#aLayer .a-dialog h2{font-size:21px;margin:0 0 12px}
+#aLayer .a-dialog p{font-size:12px;line-height:1.75;color:#7b8f7c;margin:0 0 20px}
+#aLayer .a-dialog-actions{display:grid;gap:9px}
+#aLayer .a-dialog-actions button{width:100%;border:0;border-radius:14px;padding:13px 12px;font-size:12px;font-weight:760;background:#eaf0e7;color:#536e55}
+#aLayer .a-dialog-actions button.primary{background:#355944;color:white}.a-dialog-actions button.danger{background:#a85450;color:white}
+#aLayer .a-result{padding:13px;margin:12px 0;border-radius:15px;background:#eaf3e7;color:#456b4f;font-size:12px;line-height:1.7}
+#aPick{display:none;position:absolute;z-index:100;inset:0;pointer-events:none}
+#aPick.active{display:block}
+#aPick .a-cross{position:absolute;top:50%;left:50%;width:49px;height:49px;transform:translate(-50%,-56%);border:2px solid #355e49;border-radius:50%;background:#ffffff99;box-shadow:0 4px 22px #17322123}
+#aPick .a-cross:before,#aPick .a-cross:after{content:'';position:absolute;background:#355e49;left:50%;top:50%;transform:translate(-50%,-50%)}
+#aPick .a-cross:before{height:2px;width:24px}.a-cross:after{height:24px;width:2px}
+#aPick .a-label{position:absolute;left:50%;top:calc(50% + 41px);transform:translateX(-50%);border-radius:14px;padding:8px 11px;background:#fffefaf2;color:#4d6553;font-size:11px;box-shadow:0 4px 16px #213e2920;white-space:nowrap}
+#aPick .a-pickbar{position:absolute;bottom:calc(91px + env(safe-area-inset-bottom,0px));left:11px;right:11px;pointer-events:auto;background:#fffefa;border:1px solid #fff;border-radius:21px;padding:15px;box-shadow:0 10px 34px #1e352434;display:grid;gap:11px}
+#aPick .a-pickbar strong{font-size:13px}.a-pickbar small{font-size:11px;line-height:1.7;color:#889b8a}.a-pickbar .a-buttons{display:flex;gap:8px}.a-buttons button{flex:1;border:0;border-radius:13px;background:#edf1e8;color:#55705a;padding:11px;font-size:12px;font-weight:740}.a-buttons button.primary{background:#355944;color:white}
+#aNotice{position:absolute;bottom:calc(107px + env(safe-area-inset-bottom,0px));left:50%;width:calc(100% - 32px);max-width:340px;transform:translate(-50%,12px);background:#2d5440;color:#fff;padding:12px 14px;border-radius:15px;box-shadow:0 10px 28px #16301d33;font-size:11px;line-height:1.55;z-index:110;opacity:0;pointer-events:none;transition:opacity .22s,transform .22s}
+#aNotice.visible{opacity:1;transform:translate(-50%,0)}
+#aPanel{position:absolute;z-index:125;bottom:0;left:0;right:0;height:min(80%,680px);border-radius:28px 28px 0 0;box-shadow:0 -14px 50px #1c382a41;background:#fbfcf7;border:1px solid #fff;display:flex;flex-direction:column;transform:translateY(110%);transition:transform .4s cubic-bezier(.18,.81,.2,1);pointer-events:none}
+#aPanel.open{transform:translateY(0);pointer-events:auto}
+#aPanel .a-panel-header{display:flex;justify-content:space-between;align-items:start;gap:12px;padding:19px 19px 12px;border-bottom:1px solid #e6ece4}
+#aPanel .a-panel-header small{font-size:10px;color:#96a89a;letter-spacing:.13em;font-weight:800}
+#aPanel .a-panel-header h2{font-size:21px;letter-spacing:-.045em;margin:6px 0}
+#aPanel .a-panel-header p{font-size:11px;color:#7c9380;margin:0}
+#aPanel .a-panel-header button{height:35px;width:35px;border:0;border-radius:12px;background:#edf1e8;color:#60745e;font-size:21px}
+#aPanel .a-list{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:11px 14px 15px}
+#aPanel .a-row{display:flex;gap:10px;align-items:center;background:#fffefa;padding:13px 10px;border:1px solid #ebeee5;border-radius:16px;margin-bottom:9px}
+#aPanel .a-row .a-num{width:29px;flex:none;color:#89a18c;font-size:10px;font-weight:820}
+#aPanel .a-row .a-copy{flex:1;min-width:0}.a-row .a-copy b{font-size:12px;color:#3e5745}.a-row .a-copy p{margin:4px 0 0;font-size:10px;color:#95a697;line-height:1.5}
+#aPanel .a-row button{border:0;border-radius:10px;padding:9px 10px;font-size:11px;font-weight:750;background:#e8efe5;color:#476b4e}
+#aPanel .a-row button.a-mark{min-width:31px;background:#f1f3ed;color:#819583}
+#aPanel .a-row button.a-mark[data-state=ok]{background:#e4efdf;color:#31714e}
+#aPanel .a-row button.a-mark[data-state=issue]{background:#fae7e3;color:#a4554a}
+#aPanel .a-panel-foot{padding:12px 16px calc(13px + env(safe-area-inset-bottom,0px));border-top:1px solid #e7eee4;display:flex;gap:9px}
+#aPanel .a-panel-foot button{flex:1;border:0;border-radius:12px;background:#e6ede2;color:#60775f;padding:12px;font-size:12px;font-weight:750}
+#aPanel .a-panel-foot button.primary{background:#345a44;color:#fff}
+.a-batch-active #dock{opacity:.25;pointer-events:none}
+.a-batch-active #qaToggle{opacity:.4;pointer-events:none}
+.a-batch-active #aToggle{opacity:.3;pointer-events:none}
+.a-batch-picking #dock{opacity:1;pointer-events:auto}
+.a-star-hidden #savedStar{visibility:hidden!important}
+@media(prefers-reduced-motion:reduce){#aMask,#aPanel,#aNotice{transition:none!important}#aLayer .a-sheet,#aLayer .a-dialog{transform:none!important;opacity:1!important}}
+</style>
+<style id="fp-batch-b-styles">
+/* V4 batch B: an isolated UI preview. Approved map, star, sheet and Dock are unchanged. */
+#bToggle{position:absolute;right:10px;top:calc(251px + env(safe-area-inset-top,0px));z-index:97;height:32px;min-width:76px;border:1px solid #e1d8b8;border-radius:14px;padding:0 10px;background:#f2ead5;color:#496651;box-shadow:0 5px 18px #243f302a;font-size:11px;font-weight:800;touch-action:manipulation}
+#bToggle:active{scale:.97}
+#bShade{position:absolute;inset:0;z-index:140;background:#13241ba3;backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .22s}
+#bShade.b-active{opacity:1;pointer-events:auto}
+#bLayer{position:absolute;inset:0;z-index:141;pointer-events:none;overflow:hidden}
+#bLayer.b-active{pointer-events:auto}
+#bLayer .b-page{position:absolute;inset:0;background:#fbfaf5;display:flex;flex-direction:column;box-shadow:0 -18px 50px #142b1a40;transform:translateY(104%);border-radius:25px 25px 0 0;overflow:hidden;will-change:transform}
+#bLayer .b-page.b-open{transform:translateY(0)}
+#bLayer .b-page.medium{top:20%;border-radius:28px 28px 0 0}
+#bLayer .b-page.viewer{background:#17261d;color:#fff;border-radius:0}
+#bLayer .b-grip{background:#d9e0d3;border-radius:6px;width:42px;height:5px;margin:10px auto;flex:none}
+#bLayer .b-header{height:64px;display:flex;gap:12px;align-items:center;border-bottom:1px solid #e8ece2;padding:0 16px;flex:none}
+#bLayer .viewer .b-header{border-color:#405547}
+#bLayer .b-header b{font-size:18px;letter-spacing:-.035em;flex:1}
+#bLayer .b-header small{display:block;font-size:10px;letter-spacing:.11em;color:#96a494;font-weight:750;margin-bottom:5px}
+#bLayer .b-close{border:0;border-radius:13px;background:#e8ede4;color:#4e6a53;height:40px;width:40px;font-size:23px;flex:none}
+#bLayer .viewer .b-close{background:#3a4e40;color:#fff}
+#bLayer .b-body{flex:1;min-height:0;padding:18px 18px 24px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#bLayer .b-sub{font-size:12px;line-height:1.7;color:#819486;margin:0 0 16px}
+#bLayer .b-badge{display:inline-flex;background:#e7efe2;color:#57785e;font-size:10px;font-weight:760;border-radius:9px;padding:6px 9px;margin:0 0 9px}
+#bLayer .b-foot{display:flex;gap:9px;flex:none;padding:12px 16px calc(15px + env(safe-area-inset-bottom,0px));background:#fbfaf5;border-top:1px solid #e8ece2}
+#bLayer .b-foot button{flex:1;border:0;border-radius:13px;padding:13px 10px;min-height:44px;font-size:12px;font-weight:760;background:#eaf0e7;color:#526e59}
+#bLayer button.primary,#bLayer .b-foot button.primary{background:#345a45;color:#fffefa}
+#bLayer button:active{scale:.976}
+#bLayer .b-photo{border:0;border-radius:19px;background:#d6e2d6;overflow:hidden;min-width:0;position:relative;display:block;min-height:115px;width:100%;padding:0;text-align:left}
+#bLayer .b-photo svg{display:block;width:100%;height:100%;object-fit:cover}
+#bLayer .b-photo .b-photo-label{position:absolute;left:10px;bottom:9px;padding:5px 8px;border-radius:9px;background:#233d31ba;color:white;font-size:11px;font-weight:700}
+#bLayer .b-gallery{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#bLayer .b-gallery .b-photo:first-child{grid-column:span 2;height:190px}
+#bLayer .b-gallery .b-photo:not(:first-child){height:150px}
+#bLayer .b-view-art{width:100%;height:100%;min-height:0;flex:1;display:grid;place-items:center;padding:13px 0;overflow:hidden}
+#bLayer .b-view-art svg{height:100%;width:100%;max-height:70vh;object-fit:contain}
+#bLayer .b-view-art .b-video{width:100%;max-height:61vh;display:block}
+#bLayer .b-view-art .b-play{border:1px solid #ffffff66;background:#315a48;color:white;border-radius:18px;padding:14px 17px;font-size:13px;font-weight:740}
+#bLayer .b-view-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px calc(21px + env(safe-area-inset-bottom,0px));background:#24382c}
+#bLayer .b-view-controls button{width:49px;height:43px;border-radius:14px;border:0;background:#385343;color:white;font-size:25px}
+#bLayer .b-view-controls span{text-align:center;font-size:11px;color:#d1e0d1;line-height:1.6}
+#bLayer .b-row{padding:14px 13px;background:#fffefa;border:1px solid #e8ece2;border-radius:18px;display:flex;align-items:center;gap:12px;margin:10px 0}
+#bLayer .b-row-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#e5eee2;color:#607f63;font-size:20px;flex:none}
+#bLayer .b-row-text{flex:1;min-width:0;color:#395543}
+#bLayer .b-row-text b{font-size:13px;display:block}
+#bLayer .b-row-text small{font-size:11px;line-height:1.5;display:block;color:#94a397;margin-top:5px}
+#bLayer .b-row button{padding:9px 12px;background:#e6eee2;color:#4b6d54;border:0;border-radius:11px;font-size:11px;font-weight:780;flex:none}
+#bLayer .b-tabset{display:flex;gap:8px;background:#edf1e9;border-radius:16px;padding:4px;margin:10px 0 15px}
+#bLayer .b-tabset button{flex:1;padding:10px 7px;border:0;border-radius:12px;background:transparent;color:#819481;font-size:12px;font-weight:760}
+#bLayer .b-tabset button.selected{background:#fffefa;color:#345944;box-shadow:0 3px 10px #1a301c14}
+#bLayer .b-input{width:100%;padding:13px 14px;border:1px solid #d9e4d7;border-radius:15px;background:#fffefa;color:#35523e;font:inherit;font-size:13px;outline:none}
+#bLayer .b-input:focus{border-color:#92b295;box-shadow:0 0 0 3px #92b29530}
+#bLayer .b-share-card{background:#fffefa;border:1px solid #e8ece1;border-radius:22px;padding:20px;margin:8px 0 16px;box-shadow:0 7px 26px #1a341c0d}
+#bLayer .b-share-card h2{margin:10px 0 7px;font-size:25px;letter-spacing:-.055em}
+#bLayer .b-share-card p{font-size:12px;line-height:1.8;color:#879686;margin:5px 0}
+#bLayer .b-safe{border:1px solid #e0eadb;background:#f1f5eb;border-radius:14px;padding:13px;font-size:11px;line-height:1.7;color:#657e67;margin:13px 0}
+#bLayer .b-upload-box{border:1.5px dashed #bbd0b7;background:#f4f8f0;border-radius:20px;padding:25px 13px;text-align:center;color:#729176;font-size:12px;line-height:1.8;margin-bottom:14px}
+#bLayer .b-upload-box b{display:block;color:#3d5f46;font-size:14px}
+#bLayer .b-upload-box button{margin-top:11px;border:0;border-radius:13px;background:#345c47;color:white;padding:11px 18px;font-size:12px;font-weight:760}
+#bLayer .b-collection{margin-top:13px}
+#bLayer .b-media-list{display:grid;gap:9px}
+#bLayer .b-file-entry{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:#fffefa;border:1px solid #e8eee3;min-width:0}
+#bLayer .b-file-entry img,#bLayer .b-file-entry video{height:53px;width:56px;object-fit:cover;border-radius:9px;background:#e4eee1}
+#bLayer .b-file-entry .name{flex:1;min-width:0;font-size:11px;color:#4a634e;overflow-wrap:anywhere}
+#bLayer .b-file-entry button{border:0;background:#f5ebe9;border-radius:10px;padding:8px;color:#98645c;font-size:11px}
+#bLayer .b-empty{background:#f5f6f0;border:1px dashed #dce6d6;border-radius:17px;padding:30px 17px;text-align:center;color:#8b9e8c;font-size:12px;line-height:1.8}
+#bLayer .b-state{font-size:11px;line-height:1.7;background:#eef3e9;border-radius:13px;color:#4e7357;padding:12px;margin:11px 0}
+#bLayer .b-state.warn{background:#f8efea;color:#966e5b}
+#bLayer .b-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+#bLayer .b-actions button{border:0;border-radius:12px;background:#e8f0e4;color:#52715b;padding:11px 13px;font-size:12px;font-weight:750}
+#bToast{position:absolute;z-index:170;left:16px;right:16px;bottom:calc(97px + env(safe-area-inset-bottom,0px));background:#2c523d;color:#fff;border-radius:14px;padding:13px;font-size:12px;pointer-events:none;opacity:0;transform:translateY(12px);transition:opacity .22s,transform .22s;text-align:center}
+#bToast.visible{opacity:1;transform:translateY(0)}
+#bPanel{position:absolute;z-index:162;bottom:0;left:0;right:0;height:min(82%,700px);background:#fbfcf7;border-radius:28px 28px 0 0;box-shadow:0 -20px 55px #1b342333;display:flex;flex-direction:column;transform:translateY(110%);transition:transform .4s cubic-bezier(.17,.84,.24,1);pointer-events:none}
+#bPanel.open{transform:translateY(0);pointer-events:auto}
+#bPanel .b-panel-head{display:flex;align-items:start;gap:10px;padding:19px 17px 13px;border-bottom:1px solid #e8eee3}
+#bPanel .b-panel-head>div{flex:1}
+#bPanel .b-panel-head small{font-size:10px;letter-spacing:.13em;font-weight:750;color:#92a293}
+#bPanel .b-panel-head h2{font-size:21px;letter-spacing:-.04em;margin:7px 0 5px;color:#355541}
+#bPanel .b-panel-head p{font-size:11px;line-height:1.6;margin:0;color:#8b9a8c}
+#bPanel .b-panel-head button{height:35px;width:35px;border:0;border-radius:12px;background:#edf1e8;color:#6b866c;font-size:22px}
+#bPanel .b-panel-list{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:13px}
+#bPanel .b-review-row{display:flex;align-items:center;gap:10px;background:#fffefa;border:1px solid #e6ecdf;border-radius:16px;padding:12px 10px;margin-bottom:9px}
+#bPanel .b-review-row small{font-size:10px;color:#93a495;font-weight:750}
+#bPanel .b-review-row>div{flex:1;min-width:0}
+#bPanel .b-review-row b{font-size:12px;color:#3d5a44}
+#bPanel .b-review-row p{font-size:10px;color:#93a294;line-height:1.5;margin:5px 0 0}
+#bPanel .b-review-row button{border:0;border-radius:11px;background:#e8efe5;color:#547257;padding:9px 11px;font-size:11px;font-weight:760}
+#bPanel .b-review-row button.mark{min-width:32px;background:#eef2eb;color:#718673;font-size:15px}
+#bPanel .b-review-row button.mark[data-state=ok]{background:#e1efdf;color:#307049}
+#bPanel .b-review-row button.mark[data-state=issue]{background:#fae6e3;color:#a1554d}
+#bPanel .b-panel-foot{display:flex;gap:8px;padding:12px 15px calc(15px + env(safe-area-inset-bottom,0px));border-top:1px solid #e6ede2}
+#bPanel .b-panel-foot button{flex:1;border:0;border-radius:12px;padding:13px 10px;background:#e7eee3;color:#58725d;font-size:12px;font-weight:760}
+#bPanel .b-panel-foot button.primary{background:#315943;color:#fff}
+.b-batch-active #dock,.b-batch-active #aToggle,.b-batch-active #qaToggle{opacity:.15;pointer-events:none}
+.b-batch-active #bToggle{opacity:.5;pointer-events:none}
+@media(prefers-reduced-motion:reduce){#bShade,#bPanel,#bToast{transition:none!important}#bLayer .b-page{will-change:auto}}
+
+/* B01 revision: iPhone Photos-inspired stable, full-screen interactive viewer. */
+#bLayer .b-photo-viewer{position:absolute;inset:0;z-index:8;background:rgba(19,32,25,.98);color:#fff;display:flex;flex-direction:column;overflow:hidden;touch-action:none;transform:translate3d(0,102%,0) scale(.98);opacity:.35;will-change:transform,opacity;backface-visibility:hidden;contain:layout paint}
+#bLayer .b-photo-viewer.is-visible{transform:translate3d(0,0,0) scale(1);opacity:1;transition:transform .52s cubic-bezier(.17,.9,.22,1),opacity .32s ease}
+#bLayer .b-photo-viewer.is-dragging{transition:none!important}
+#bLayer .b-photo-viewer.is-closing{transform:translate3d(0,100%,0) scale(.93);opacity:0;transition:transform .34s cubic-bezier(.26,.68,.2,1),opacity .27s ease}
+#bLayer .b-photo-viewer button{touch-action:manipulation}
+#bLayer .b-photo-viewer-top{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none;min-height:80px;padding:calc(22px + env(safe-area-inset-top,0px)) 15px 10px;background:linear-gradient(180deg,#0f1c16b3,transparent)}
+#bLayer .b-photo-viewer-top span{font-size:13px;font-weight:650;text-align:center;color:#ebf2e9;flex:1}
+#bLayer .b-photo-viewer-top button{min-width:42px;height:42px;border:0;border-radius:14px;color:white;background:#ffffff1d;font-size:25px}
+#bLayer .b-photo-viewer-stage{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+#bLayer .b-photo-viewer-track{display:flex;width:100%;height:100%;will-change:transform;transform:translate3d(0,0,0);transition:transform .43s cubic-bezier(.18,.86,.26,1);backface-visibility:hidden}
+#bLayer .b-photo-viewer-track.dragging{transition:none!important}
+#bLayer .b-photo-slide{flex:0 0 100%;width:100%;height:100%;display:grid;place-items:center;overflow:hidden;padding:8px 4px 16px;touch-action:none}
+#bLayer .b-photo-slide svg{width:100%;height:100%;max-height:75vh;object-fit:contain;pointer-events:none}
+#bLayer .b-photo-slide-video{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:17px;padding:15px}
+#bLayer .b-video-frame{width:min(320px,86vw);height:min(320px,44vh);border-radius:23px;background:linear-gradient(138deg,#82b19b,#345b45 68%,#1f372c);box-shadow:0 20px 45px #0005;display:grid;place-items:center}
+#bLayer .b-video-frame button{background:#ffffff26;border:1px solid #ffffff83;border-radius:16px;color:white;padding:15px 20px;font-size:15px;font-weight:750}
+#bLayer .b-video-note{font-size:11px;text-align:center;color:#c7d9ce;line-height:1.6}
+#bLayer .b-photo-viewer-bottom{position:relative;z-index:2;flex:none;min-height:84px;display:flex;align-items:center;justify-content:space-between;padding:12px 19px calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(0deg,#0c1911d9,transparent)}
+#bLayer .b-photo-viewer-bottom button{height:42px;min-width:44px;border:0;background:#ffffff1b;border-radius:13px;color:#fff;font-size:25px}
+#bLayer .b-photo-viewer-bottom span{font-size:11px;line-height:1.65;color:#e4f0e6;text-align:center}
+#bLayer .b-photo-viewer-bottom span small{color:#aac2b0;display:block}
+
+/* B01 v3 — Photos-like shared-element opening/closing, not a sliding modal. */
+#bLayer .b-photo-viewer,
+#bLayer .b-photo-viewer.is-visible,
+#bLayer .b-photo-viewer.is-closing{
+ transform:none!important;opacity:1!important;transition:none!important;
+ background:rgba(14,25,18,1);contain:layout paint;
+}
+#bLayer .b-photo-viewer-track{opacity:1;transition-property:transform;}
+#bLayer .b-photo-slide svg{width:100%;height:auto;max-height:calc(100% - 16px);aspect-ratio:390/320;object-fit:contain;}
+#bLayer .b-gallery .b-photo.b-origin-hidden{visibility:hidden;}
+#bLayer #bHeroMorph{position:absolute;z-index:16;overflow:hidden;pointer-events:none;
+ display:block;background:#668f79;transform-origin:center center;will-change:transform,opacity;
+ backface-visibility:hidden;isolation:isolate;box-shadow:0 12px 35px rgba(0,0,0,.17);}
+#bLayer #bHeroMorph svg{width:100%;height:100%;display:block;}
+#bLayer #bHeroMorph .b-hero-video{width:100%;height:100%;display:grid;place-items:center;
+ background:linear-gradient(145deg,#a5bead,#4a745e);color:white;font-size:32px;}
+#bLayer .b-photo-viewer .b-photo-viewer-top,#bLayer .b-photo-viewer .b-photo-viewer-bottom{
+ will-change:opacity,transform;}
+@media(prefers-reduced-motion:reduce){#bLayer #bHeroMorph{display:none!important;}}
+
+/* B05 revision: never re-create the entire page when switching collection tabs. */
+#bLayer .b-tabset{position:relative;isolation:isolate}
+#bLayer .b-tab-indicator{position:absolute;left:4px;top:4px;width:calc(50% - 4px);bottom:4px;z-index:0;border-radius:12px;background:#fffefa;box-shadow:0 3px 10px #1a301c14;transform:translateX(0);transition:transform .36s cubic-bezier(.18,1.18,.25,1);pointer-events:none}
+#bLayer .b-tabset[data-active="routes"] .b-tab-indicator{transform:translateX(100%)}
+#bLayer .b-tabset button{position:relative;z-index:1}
+#bLayer .b-tabset button.selected{background:transparent;box-shadow:none}
+#bLayer #bCollectionList{contain:layout style}
+#bLayer #bCollectionList.b-rows-change .b-row{animation:b-row-settle .25s cubic-bezier(.2,.8,.26,1) both}
+@keyframes b-row-settle{from{opacity:.72;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){#bLayer .b-photo-viewer,#bLayer .b-photo-viewer.is-visible,#bLayer .b-photo-viewer.is-closing,#bLayer .b-photo-viewer-track,#bLayer .b-tab-indicator{transition:none!important}#bLayer #bCollectionList.b-rows-change .b-row{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="frame"><aside class="explainer"><div class="eyebrow">FOOTPRINT MAP / LAYER & DOCK</div><h1>地点是核心，<br>卡片是容器，<br>Dock 是操作。</h1><p>这份演示把 V4 的层级关系变成可操作界面：地图上的真实星标始终只有一颗；卡片负责展开内容；底部始终只有一条 Dock，随界面层级改变功能。</p><div class="logic-flow"><div><b>01</b><span>地图 / 全局 Dock</span></div><em>↓ 点击地点星标</em><div><b>02</b><span>地点卡片 / 地点 Dock</span></div><em>↓ 选择 Brief、照片、攻略、附近</em><div><b>03</b><span>内容详情 / 上下文 Dock</span></div></div><p class="side-caption">点右侧任一层级，可快速检查 Dock 如何切换；也可以直接在手机里正常操作。</p><div class="side-jumps"><button data-jump="map">地图首页</button><button data-jump="peek">卡片预览</button><button data-jump="half">卡片半屏</button><button data-jump="full">卡片全屏</button><button data-jump="brief">Brief</button><button data-jump="media">照片视频</button><button data-jump="guides">相关攻略</button><button data-jump="nearby">附近地点</button></div><div class="side-sign">示意地点与媒体 · 独立交互原型 · 不改动正式网站</div></aside>
+<div class="phone"><div class="screen">
+<div class="notch"></div><div class="status">9:41</div><div class="network">◖ ▰</div>
+<div id="map" aria-label="示意地图，不是真实地理底图"><div id="world">
+<svg class="map-art" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="1000" height="1000" fill="#edf1e9"/><g fill="none" stroke="#fffefa" stroke-width="39"><path d="M0 160 1000 280M-20 440 1020 560M0 755 1000 875M162-10-50 1010M444-10 220 1010M765-10 570 1010M1010-10 880 1010"/></g><g fill="none" stroke="#d7ddd2" stroke-width="1"><path d="M0 160 1000 280M-20 440 1020 560M0 755 1000 875M162-10-50 1010M444-10 220 1010M765-10 570 1010M1010-10 880 1010"/></g><path d="M664-50C629 130 530 290 543 445S660 670 590 1080" fill="none" stroke="#c7dfd8" stroke-width="79"/><path d="M664-50C629 130 530 290 543 445S660 670 590 1080" fill="none" stroke="#e8f5eb" stroke-width="15"/><g fill="#e3e7dd" stroke="#fcfdf8" stroke-width="2"><rect x="53" y="52" width="130" height="91" rx="7"/><rect x="206" y="62" width="129" height="74" rx="6"/><rect x="350" y="63" width="109" height="83" rx="6"/><rect x="773" y="54" width="120" height="152" rx="6"/><rect x="26" y="243" width="152" height="130" rx="8"/><rect x="214" y="270" width="110" height="110" rx="6"/><rect x="348" y="269" width="98" height="104" rx="6"/><rect x="734" y="328" width="143" height="125" rx="6"/><rect x="31" y="539" width="144" height="130" rx="6"/><rect x="202" y="558" width="109" height="109" rx="6"/><rect x="347" y="550" width="112" height="119" rx="6"/><rect x="744" y="612" width="135" height="140" rx="7"/><rect x="22" y="839" width="140" height="114" rx="7"/><rect x="250" y="844" width="130" height="107" rx="7"/><rect x="403" y="858" width="106" height="104" rx="7"/><rect x="696" y="861" width="164" height="117" rx="7"/></g><g fill="#fdfefa" stroke="#e4e8de" stroke-width="2"><rect x="67" y="65" width="40" height="64" rx="2"/><rect x="118" y="66" width="54" height="38" rx="2"/><rect x="220" y="76" width="94" height="36" rx="2"/><rect x="39" y="256" width="69" height="107" rx="2"/><rect x="119" y="257" width="47" height="81" rx="2"/><rect x="226" y="282" width="84" height="69" rx="2"/><rect x="752" y="345" width="49" height="92" rx="2"/><rect x="811" y="345" width="52" height="54" rx="2"/><rect x="51" y="552" width="102" height="39" rx="2"/><rect x="48" y="604" width="92" height="52" rx="2"/><rect x="221" y="570" width="74" height="85" rx="2"/><rect x="368" y="566" width="73" height="80" rx="2"/><rect x="765" y="631" width="91" height="50" rx="2"/><rect x="764" y="691" width="71" height="49" rx="2"/><rect x="43" y="860" width="105" height="40" rx="2"/><rect x="269" y="858" width="95" height="74" rx="2"/></g><g font-family="sans-serif" fill="#92a192" font-size="14" font-weight="600"><text x="210" y="224">青石巷</text><text x="765" y="280">旧城街区</text><text x="187" y="729">河畔步道</text><text x="709" y="813">石桥街</text></g></svg>
+<div id="starLayer"><button class="atlas-bookmark-hit" id="savedStar" type="button" data-place-id="demo-pingjiang" aria-label="打开或关闭平江路收藏卡片"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><path fill="#f6c94a" stroke="#26362f" stroke-width="3.4" stroke-linejoin="round" d="M32 6.7l8.1 16.4 18.1 2.6-13.1 12.8 3.1 18.1L32 48 15.8 56.6l3.1-18.1L5.8 25.7l18.1-2.6z"/><path d="M24.5 23.5l5-8.4" fill="none" stroke="#fff3bf" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
+</div></div>
+<div class="topbar"><div class="search" role="button" tabindex="0" aria-label="打开搜索界面"><svg viewBox="0 0 24 24" fill="none" stroke="#718073" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg><span>搜索你想去的地方</span></div><button class="tool" aria-label="图层" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="#394b40" stroke-width="1.7"><path d="m12 2 9 5-9 5-9-5zM3 12l9 5 9-5M3 17l9 5 9-5"/></svg></button></div>
+<div class="brand">FOOTPRINT MAP</div><div class="watermark">示意地图 · 非真实数据</div><div id="hint" class="hint">点击黄色星标，打开卡片</div>
+<button class="reset" id="reset" type="button" aria-label="地图复位">⌖</button>
+<div id="sheet" class="sheet" data-level="closed" hidden aria-label="地点卡片"><div class="sheet-header" id="sheetHeader"><button class="grip" id="grip" type="button" role="slider" tabindex="0" aria-label="向上或向下拖动卡片" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1" aria-valuetext="预览"></button><div class="place-heading"><div class="star-small">⌖</div><div class="place-copy"><div class="subtitle">苏州 · 收藏地点</div><h2>平江路</h2></div><button id="close" class="close" type="button" aria-label="关闭卡片">×</button></div></div><div id="content" class="content"><div class="rule"></div><div class="kicker">为什么想去</div><p class="brief">想趁清晨沿着河道慢慢走，在石桥边停一停，看看临水的老房子和安静的街巷。</p><div class="section-heading">照片与视频<span>演示内容 · 2</span></div><div class="photos"><div class="photo"><svg viewBox="0 0 220 140" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="photo1" x2="1" y2="1"><stop stop-color="#849f8c"/><stop offset="1" stop-color="#c7c3ab"/></linearGradient></defs><rect width="220" height="140" fill="url(#photo1)"/><path d="M0 100 75 63 141 120 220 67v73H0" fill="#506d5a"/><path d="M0 123 75 84 145 140" fill="#d1cbb0"/><rect x="140" y="18" width="24" height="97" fill="#e7dcc6" opacity=".7"/></svg><label>景色 · 示例</label></div><div class="photo"><svg viewBox="0 0 220 140" preserveAspectRatio="xMidYMid slice"><rect width="220" height="140" fill="#9fb6a3"/><path d="M0 69q60-39 116 6t104-16v81H0" fill="#709083"/><path d="M0 106q49-17 103 13t117-24v45H0" fill="#45675a"/><path d="M50 0v140M146 0v140" stroke="#466d53" stroke-width="12"/></svg><label>街巷 · 示例</label></div></div><div class="other">相关攻略 <span>2 条示意收藏 ›</span></div><div class="other">附近地点 <span>示意区域 ›</span></div><div class="endline">仅展示交互。不保存或上传内容，不影响正式产品与个人旅行数据。</div>
+<div class="section-heading">我的行程便签<span>示例内容 · 3</span></div>
+<div class="other">清晨沿河慢走 <span>路线记录 ›</span></div>
+<div class="other">找一家安静的小店 <span>私藏笔记 ›</span></div>
+<div class="other">带上相机，拍一组光影 <span>灵感清单 ›</span></div>
+<div class="section-heading">更多想去的理由<span>示例</span></div>
+<p class="brief">沿着巷子慢慢走，看看旧建筑的细部，记录路过的光线和墙面。把旅途中真正喜欢的照片，留在这个地点里。</p>
+<div class="endline">在全屏状态可自然滚动内容；滚回最顶部后，再向下拖动可以收起卡片。</div></div></div>
+<div id="stage" class="stage" aria-live="polite">卡片状态：<strong>关闭</strong></div><div id="smallHelp" class="small-help">点击星标查看变化<br/>眉头任意位置拖动 · 松手自然吸附 · 内容可继续滚动</div>
+<div id="dockStage" class="dock-stage" aria-live="polite">地图 · 全局导航</div>
+<div id="demoMenu" class="demo-menu" hidden><div class="demo-menu-heading">演示层级 <span>快速切换</span></div><div class="menu-jumps"><button data-jump="map">地图</button><button data-jump="peek">预览</button><button data-jump="half">半屏</button><button data-jump="full">全屏</button><button data-jump="brief">Brief</button><button data-jump="media">照片</button><button data-jump="guides">攻略</button><button data-jump="nearby">附近</button></div></div>
+<div id="layer" class="layer" hidden aria-label="当前内容层"><div class="layer-surface"><header class="layer-header"><button id="layerBack" class="layer-back" type="button" aria-label="返回上一级"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m14.5 5-7 7 7 7"/></svg></button><div><span class="layer-tiny" id="layerParent">收藏地点 · 平江路</span><strong id="layerName">地点内容</strong></div><button id="layerClose" class="layer-exit" type="button" aria-label="返回地图">×</button></header><div id="layerBody" class="layer-body"></div></div></div>
+<input id="photoPicker" type="file" accept="image/*" multiple hidden/>
+<div class="toast" id="toast" aria-live="polite"></div>
+<nav class="dock" id="dock" data-mode="map" aria-label="全局导航"></nav>
+</div></div></div>
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const sheet = $('sheet'), screen = sheet.parentElement, header = $('sheetHeader');
+  const grip = $('grip'), scroller = $('content'), map = $('map'), world = $('world');
+  const stage = $('stage').querySelector('strong');
+  const label = {closed:'关闭', peek:'预览 · 1/3', half:'半屏 · 2/3', full:'全屏 · 3/3'};
+  const levels=['peek','half','full'];
+  const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let level='closed', placeId=null, revision=0;
+  let height=248, heightVelocity=0, translateY=0, translateVelocity=0;
+  let targetHeight=248,targetTranslate=0, frame=0, previousFrame=0;
+  let headerDrag=null, contentTouch=null, mapDrag=null, offsetX=0,offsetY=0;
+  let sheetAnimating=false, sheetDragging=false;
+  const pointerIdOf=e=>(e && e.pointerId!==undefined ? e.pointerId : null);
+
+  function detents() {
+    const v=screen.getBoundingClientRect().height||window.innerHeight;
+    const sheetBottom=parseFloat(getComputedStyle(sheet).bottom)||84;
+    const safeTop=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-top'))||0;
+    const full=Math.max(385,v-sheetBottom-Math.max(34,34+safeTop));
+    const peek=Math.min(248,Math.max(188,Math.round(v*.29)));
+    const half=Math.max(peek+90,Math.min(full-98,Math.round(v*.52)));
+    return {peek,half,full};
+  }
+  function currentHeight() {
+    if(!sheet.hidden) return sheet.getBoundingClientRect().height||height;
+    return height;
+  }
+  function paint() {
+    sheet.style.height=height.toFixed(2)+'px';
+    sheet.style.transform='translate3d(0,'+translateY.toFixed(2)+'px,0)';
+    const progress=Math.min(1,Math.max(0,translateY/(Math.max(height,1)+110)));
+    sheet.style.opacity=String(1-progress*.45);
+  }
+  function stopAnimation() {
+    if(frame) cancelAnimationFrame(frame);
+    frame=0;sheetAnimating=false;previousFrame=0;
+  }
+  // A damped spring rather than an eased CSS jump. Keeping velocity across re-targets
+  // makes flick-to-detent and interrupted gestures feel closer to native map sheets.
+  function spring(targetH,targetY=0, initialVelocity=0) {
+    stopAnimation();
+    targetHeight=targetH;targetTranslate=targetY;
+    if(reduceMotion.matches) {
+      height=targetHeight;translateY=targetTranslate;paint();finishSpring();return;
+    }
+    heightVelocity=Math.max(-2000,Math.min(2000,initialVelocity));
+    sheetAnimating=true;
+    const tick=now=>{
+      const dt=Math.min(.03,Math.max(.001,(previousFrame ? now-previousFrame : 16.67)/1000));
+      previousFrame=now;
+      // Semi-implicit integration, just below critical damping.
+      const stiffness=395,damping=38;
+      heightVelocity+=(stiffness*(targetHeight-height)-damping*heightVelocity)*dt;
+      height+=heightVelocity*dt;
+      translateVelocity+=(stiffness*(targetTranslate-translateY)-damping*translateVelocity)*dt;
+      translateY+=translateVelocity*dt;
+      paint();
+      if(Math.abs(height-targetHeight)<.5 && Math.abs(heightVelocity)<4 &&
+         Math.abs(translateY-targetTranslate)<.6 && Math.abs(translateVelocity)<4){
+        height=targetHeight;translateY=targetTranslate;
+        heightVelocity=0;translateVelocity=0;paint();
+        frame=0;finishSpring();
+      } else frame=requestAnimationFrame(tick);
+    };
+    frame=requestAnimationFrame(tick);
+  }
+  function finishSpring() {
+    sheetAnimating=false;
+    if(level==='closed' && !sheetDragging){
+      sheet.hidden=true;
+      sheet.style.removeProperty('opacity');
+      sheet.style.removeProperty('transform');
+      sheet.style.removeProperty('height');
+    }
+  }
+  function updateLevelUI() {
+    sheet.dataset.level=level;
+    stage.textContent=label[level];
+    document.dispatchEvent(new CustomEvent('atlas:sheetlevel',{detail:{level,placeId}}));
+    $('hint').classList.toggle('hide',level!=='closed');
+    $('smallHelp').classList.toggle('hide',level!=='closed');
+    grip.setAttribute('aria-valuenow',String(Math.max(1,levels.indexOf(level)+1)));
+    grip.setAttribute('aria-valuetext',label[level]);
+    sheet.setAttribute('aria-hidden',String(level==='closed'));
+    // Avoid dismissing the whole sheet when an expanded content list scrolls.
+    scroller.style.touchAction=(level==='full')?'pan-y':'none';
+    // The preview always clips naturally: content enters as the sheet expands,
+    // instead of popping in at the end of a gesture.
+  }
+  function open(id) {
+    if(!id)return;
+    if(level!== 'closed' && placeId===id){return;}
+    if(level==='closed' && sheet.hidden){
+      const snap=detents();height=snap.peek;translateY=height+96;
+      heightVelocity=0;translateVelocity=0;sheet.hidden=false;paint();
+    }
+    revision++;placeId=id;level='peek';scroller.scrollTop=0;updateLevelUI();
+    spring(detents().peek,0);
+  }
+  function close() {
+    if(level==='closed')return;
+    revision++;placeId=null;level='closed';updateLevelUI();
+    spring(currentHeight(),Math.max(height,200)+120);
+  }
+  function toggle(id){if(level!=='closed' && placeId===id)close();else open(id);}
+  function snap(next,velocity=0) {
+    if(level==='closed')return;
+    if(next==='closed'){close();return;}
+    if(!levels.includes(next))return;
+    level=next;updateLevelUI();
+    spring(detents()[next],0,velocity);
+  }
+  function useVelocity(samples) {
+    if(samples.length<2)return 0;
+    const last=samples[samples.length-1];
+    // Use a short tail instead of whole-gesture average, avoiding the sticky feel
+    // after a slow beginning followed by a fast release.
+    let first=samples[0];
+    for(let i=samples.length-2;i>=0;i--){first=samples[i];if(last.t-first.t>=65)break;}
+    return (last.y-first.y)/Math.max(1,last.t-first.t); // positive down, px/ms
+  }
+  function nearest(value,points) {
+    return Object.keys(points).reduce((best,k)=>
+      Math.abs(points[k]-value)<Math.abs(points[best]-value)?k:best,'peek');
+  }
+  function decideDetent(drag) {
+    const bounds=detents(), velocity=useVelocity(drag.samples);
+    const displacement=drag.lastY-drag.startY;
+    const speed=-velocity; // positive speed expands sheet
+    const projected=height+speed*165;
+    let target=nearest(projected,bounds);
+    const start=levels.indexOf(drag.levelAtStart);
+    let next=levels.indexOf(target);
+    // Fast deliberate flings advance at least one level, but not two from
+    // an ordinary short stroke. A long, directly dragged stroke can travel farther.
+    if(Math.abs(velocity)>.62 && Math.abs(displacement)>14){
+      const direction=velocity<0?1:-1;
+      if((next-start)*direction<=0)next=Math.max(0,Math.min(2,start+direction));
+    }
+    if(Math.abs(displacement)<14 && Math.abs(velocity)<.35)next=start;
+    // Only a real downward pull from peek dismisses; slight jitter springs back.
+    if(drag.levelAtStart==='peek' && displacement>60 &&
+      (height<bounds.peek-14 || velocity>.58 || displacement>100))return {target:'closed',velocity};
+    return {target:levels[Math.max(0,Math.min(2,next))],velocity};
+  }
+  function beginGesture(type,id,x,y,t) {
+    if(level==='closed' || sheetDragging)return null;
+    stopAnimation();
+    const initial=currentHeight();height=initial;translateY=0;paint();
+    const drag={type,id,startX:x,startY:y,lastY:y,lastX:x,
+      started:t,levelAtStart:level,startHeight:initial,
+      moved:false,samples:[{y,t}],bounds:detents()};
+    return drag;
+  }
+  function moveGesture(g,x,y,t) {
+    if(!g)return false;
+    const dx=x-g.startX,dy=y-g.startY;
+    if(!g.moved){
+      if(Math.abs(dx)>Math.abs(dy)*1.25 && Math.abs(dx)>8)return false;
+      if(Math.abs(dy)<4)return false;
+      g.moved=true;sheetDragging=true;sheet.classList.add('dragging');
+      header.classList.add('drag-active');
+    }
+    g.lastX=x;g.lastY=y;
+    g.samples.push({y,t});
+    while(g.samples.length>2 && t-g.samples[0].t>105)g.samples.shift();
+    const raw=g.startHeight-dy;
+    const b=g.bounds;
+    // Soft rubber-band at the first and final detents; do not leave hard clipping.
+    height=raw<b.peek?b.peek-(b.peek-raw)*.28:
+      raw>b.full?b.full+(raw-b.full)*.2:raw;
+    height=Math.max(132,height);
+    paint();return true;
+  }
+  function endGesture(g,cancelled=false) {
+    if(!g)return;
+    sheetDragging=false;sheet.classList.remove('dragging');
+    header.classList.remove('drag-active');
+    if(cancelled || !g.moved){spring(detents()[level],0);return;}
+    const decision=decideDetent(g);
+    if(decision.target==='closed') {close();return;}
+    snap(decision.target,-decision.velocity*650);
+  }
+  function sendDrag(dy,durationMs=190) {
+    if(level==='closed')return;
+    const g=beginGesture('test',-9,0,0,0);
+    if(!g)return;
+    const segments=6;
+    for(let i=1;i<=segments;i++)moveGesture(g,0,dy*i/segments,durationMs*i/segments);
+    endGesture(g,false);
+  }
+  $('savedStar').addEventListener('click',e=>{
+    e.stopPropagation();e.preventDefault();toggle(e.currentTarget.dataset.placeId);
+  });
+  $('close').addEventListener('click',e=>{e.stopPropagation();close();});
+  let headerGesture=null;
+  header.addEventListener('pointerdown',e=>{
+    if((e.button!==undefined && e.button!==0) ||
+      e.target.closest('.close,a,input,textarea,select,video'))return;
+    if(headerGesture)return;
+    headerGesture=beginGesture('header',pointerIdOf(e),e.clientX,e.clientY,e.timeStamp);
+    if(headerGesture)headerGesture.fromGrabber=!!e.target.closest('#grip');
+    if(headerGesture){try{header.setPointerCapture(e.pointerId)}catch(_){}}
+  });
+  header.addEventListener('pointermove',e=>{
+    if(headerGesture && e.pointerId===headerGesture.id)
+      moveGesture(headerGesture,e.clientX,e.clientY,e.timeStamp);
+  });
+  function stopHeader(e,cancelled=false) {
+    if(!headerGesture || (e && headerGesture.id!==e.pointerId))return;
+    const g=headerGesture;headerGesture=null;
+    if(!cancelled && !g.moved && g.fromGrabber){
+      endGesture(g,true);
+      const i=levels.indexOf(level);
+      snap(levels[i===2?1:i+1]);return;
+    }
+    endGesture(g,cancelled);
+  }
+  header.addEventListener('pointerup',e=>stopHeader(e,false));
+  header.addEventListener('pointercancel',e=>stopHeader(e,true));
+  header.addEventListener('lostpointercapture',e=>{if(headerGesture)stopHeader(e,true)});
+  grip.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){e.preventDefault();close();}
+    if(e.key==='ArrowUp' || e.key==='ArrowDown'){
+      e.preventDefault();const i=levels.indexOf(level);
+      const target=i+(e.key==='ArrowUp'?1:-1);
+      if(target<0)close();else snap(levels[Math.min(2,target)]);
+    }
+  });
+  // Below full height, swipe the content to change detents. At full height,
+  // retain native vertical content scrolling and only intercept downward pulls
+  // when scrollTop reaches zero. This matches the scroll/resize handoff model.
+  scroller.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1 || e.target.closest('button,a,input,textarea,select,video')){
+      contentTouch=null;return;
+    }
+    const touch=e.touches[0];
+    contentTouch={id:touch.identifier,x:touch.clientX,y:touch.clientY,
+      lastX:touch.clientX,lastY:touch.clientY,lastT:e.timeStamp,
+      engaged:false,drag:null};
+  },{passive:true});
+  scroller.addEventListener('touchmove',e=>{
+    if(!contentTouch || e.touches.length!==1)return;
+    const t=e.touches[0],c=contentTouch;
+    const dx=t.clientX-c.x,dy=t.clientY-c.y;
+    const atTop=scroller.scrollTop<=1;
+    if(!c.engaged && level==='full' && !atTop){
+      // Let native scrolling run. Begin measuring the resize gesture only
+      // after the scroll view actually reaches its top edge.
+      c.x=t.clientX;c.y=t.clientY;return;
+    }
+    if(!c.engaged){
+      const canResize=level!=='full' || (atTop && dy>7);
+      if(!canResize || Math.abs(dy)<7 || Math.abs(dx)>Math.abs(dy)*1.15)return;
+      c.engaged=true;c.drag=beginGesture('content',c.id,c.x,c.y,e.timeStamp-16);
+    }
+    if(c.drag){e.preventDefault();moveGesture(c.drag,t.clientX,t.clientY,e.timeStamp);}
+  },{passive:false});
+  scroller.addEventListener('touchend',e=>{
+    if(!contentTouch)return;
+    const c=contentTouch;contentTouch=null;
+    if(c.drag){
+      const t=[...e.changedTouches].find(x=>x.identifier===c.id);
+      if(t)moveGesture(c.drag,t.clientX,t.clientY,e.timeStamp);
+      endGesture(c.drag,false);
+    }
+  },{passive:true});
+  scroller.addEventListener('touchcancel',()=>{
+    if(contentTouch?.drag)endGesture(contentTouch.drag,true);
+    contentTouch=null;
+  },{passive:true});
+  // Desktop pointer fallback for content (touch devices use the touch path).
+  let contentPointer=null;
+  scroller.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='touch' || e.button!==0 ||
+       e.target.closest('button,a,input,textarea,select,video'))return;
+    if(level!=='full' || scroller.scrollTop<=1){
+      contentPointer=beginGesture('content-pointer',e.pointerId,e.clientX,e.clientY,e.timeStamp);
+      if(contentPointer){try{scroller.setPointerCapture(e.pointerId)}catch(_){}}
+    }
+  });
+  scroller.addEventListener('pointermove',e=>{
+    if(contentPointer && contentPointer.id===e.pointerId){
+      if(level==='full' && scroller.scrollTop>1)return;
+      moveGesture(contentPointer,e.clientX,e.clientY,e.timeStamp);
+    }
+  });
+  scroller.addEventListener('pointerup',e=>{
+    if(contentPointer && contentPointer.id===e.pointerId){const g=contentPointer;contentPointer=null;endGesture(g,false);}
+  });
+  scroller.addEventListener('pointercancel',()=>{
+    if(contentPointer){endGesture(contentPointer,true);contentPointer=null;}
+  });
+  function paintMap(){world.style.transform='translate3d('+offsetX+'px,'+offsetY+'px,0)';}
+  map.addEventListener('pointerdown',e=>{
+    if(e.target.closest('.atlas-bookmark-hit'))return;
+    mapDrag={id:e.pointerId,x:e.clientX,y:e.clientY,ox:offsetX,oy:offsetY,moved:false};
+    try{map.setPointerCapture(e.pointerId)}catch(_){ }
+  });
+  map.addEventListener('pointermove',e=>{
+    if(!mapDrag || mapDrag.id!==e.pointerId)return;
+    const dx=e.clientX-mapDrag.x,dy=e.clientY-mapDrag.y;
+    if(Math.hypot(dx,dy)>10)mapDrag.moved=true;
+    offsetX=Math.max(-145,Math.min(145,mapDrag.ox+dx));
+    offsetY=Math.max(-185,Math.min(185,mapDrag.oy+dy));paintMap();
+  });
+  map.addEventListener('pointerup',e=>{
+    if(!mapDrag || mapDrag.id!==e.pointerId)return;
+    const moved=mapDrag.moved;mapDrag=null;if(!moved)close();
+  });
+  map.addEventListener('pointercancel',()=>mapDrag=null);
+  $('reset').addEventListener('click',()=>{offsetX=0;offsetY=0;paintMap();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+  window.addEventListener('resize',()=>{
+    if(level==='closed')return;
+    stopAnimation();height=detents()[level];translateY=0;paint();
+  });
+  window.__demo={
+    open,close,toggle,snap,swipe:({dy=0,duration=190}={})=>sendDrag(dy,duration),
+    getState:()=>({placeId,level,revision,height,translateY,animating:sheetAnimating}),
+    reset:()=>{offsetX=0;offsetY=0;paintMap();},
+    getDetents:detents
+  };
+  updateLevelUI();
+})();
+
+</script>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id), dock=$('dock'),layer=$('layer'),body=$('layerBody');
+const tabIcon={
+  map:'<path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16M15 5v16"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/>',
+  bookmark:'<path d="M6 3h12v18l-6-4-6 4z"/>',
+  route:'<circle cx="6" cy="19" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 19h4a5 5 0 0 0 0-10h-3"/>',
+  layout:'<rect x="3.5" y="4" width="17" height="16" rx="3"/><path d="M4 9h16"/>',
+  photo:'<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8" cy="9" r="1.7"/><path d="m4 18 6-6 4 3 2-2 4 4"/>',
+  guide:'<path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/>',
+  nearby:'<path d="M12 21s7-6.4 7-12A7 7 0 0 0 5 9c0 5.6 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/>',
+  back:'<path d="m14 5-7 7 7 7M7 12h14"/>',
+  edit:'<path d="m15 5 4 4M4 20l4.5-1 11-11-3.5-3.5-11 11Z"/>',
+  save:'<path d="m4 4 15 0 1 2v14H4zM8 4v6h8V4M8 20v-7h8v7"/>',
+  plus:'<path d="M12 4v16M4 12h16"/>',
+  grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  view:'<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+  heart:'<path d="M20.8 8.5c0 4.9-8.8 10.4-8.8 10.4S3.2 13.4 3.2 8.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8.8 1.5Z"/>',
+  close:'<path d="M5 5l14 14M19 5 5 19"/>'
+};
+const icon=(name)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(tabIcon[name]||tabIcon.layout)+'</svg>';
+const keys={map:'地图',peek:'预览',half:'半屏',full:'全屏',brief:'Brief',media:'照片视频',guides:'相关攻略',nearby:'附近地点'};
+const state={searchQuery:'',searchRecent:['平江路'],layer:null,editing:false,note:'想趁清晨沿着河道慢慢走，在石桥边停一停，看看临水的老房子和安静的街巷。',savedGuide:false,likedNearby:false,layout:'grid',photos:[],menu:false};
+const mapItems=[['map','地图','map'],['search','搜索','search'],['saved','收藏','bookmark'],['route','路线','route']];
+const placeItems=[['overview','概览','layout'],['media','照片','photo'],['guides','攻略','guide'],['nearby','附近','nearby']];
+const subItems={
+  brief:[['back','地点','back'],['edit','编辑','edit'],['save','保存','save','primary']],
+  media:[['back','地点','back'],['layout','切换排版','grid'],['upload','添加照片','plus','primary']],
+  guides:[['back','地点','back'],['readGuide','阅读','view'],['saveGuide','收藏攻略','bookmark','primary']],
+  nearby:[['back','地点','back'],['seeMap','地图定位','map'],['keepNearby','加入想去','heart','primary']],
+  search:[['backMap','地图','map'],['clearSearch','清空','close'],['showPlace','打开地点','nearby','primary']],
+  saved:[['backMap','地图','map'],['showPlace','打开地点','nearby','primary']],
+  route:[['backMap','地图','map'],['showPlace','回到地点','nearby','primary']]
+};
+const sceneIcon='<svg viewBox="0 0 300 180" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="imgA" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c6c7a2"/><stop offset=".7" stop-color="#789887"/><stop offset="1" stop-color="#587061"/></linearGradient></defs><rect width="300" height="180" fill="url(#imgA)"/><path d="M0 105 Q52 60 105 92T300 91 V180H0Z" fill="#496a56" opacity=".65"/><path d="M0 150 L110 97 190 152 300 91v90H0Z" fill="#e5dec2" opacity=".65"/><path d="M170 28h37v98h-37z" fill="#eee5c7" opacity=".72"/><path d="M162 21h54v12h-54z" fill="#dcd5b9" opacity=".9"/><path d="M0 126 Q118 72 300 120" stroke="#dfe7da" stroke-width="13" fill="none" opacity=".52"/></svg>';
+const sceneB='<svg viewBox="0 0 300 180" preserveAspectRatio="xMidYMid slice"><rect width="300" height="180" fill="#9db7a7"/><path d="M0 80q68-55 122-1t178-11v112H0" fill="#668b79"/><path d="M0 140q85-41 155 0t145-32v72H0" fill="#45695c"/><path d="M52 0v180M218 0v180" stroke="#40624c" stroke-width="15" opacity=".7"/><path d="M0 163Q150 114 300 165" fill="none" stroke="#ced5bc" stroke-width="14"/></svg>';
+let toastTimer=0,hideTimer=0;
+function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1800)}
+function sheetState(){return window.__demo.getState();}
+function renderDock(){
+ const s=sheetState(); const mode=state.layer?'detail':s.level==='closed'?'map':'place';
+ const items=state.layer?subItems[state.layer]:s.level==='closed'?mapItems:placeItems;
+ dock.dataset.mode=mode;
+ dock.setAttribute('aria-label',mode==='map'?'地图全局导航':mode==='place'?'地点内容导航':'当前内容操作');
+ dock.innerHTML=items.map(([key,label,ic,primary])=>{
+ const active=(mode==='map'&&key==='map')||(mode==='place'&&key==='overview');
+ return `<button type="button" class="nav ${active?'active':''} ${primary?'primary':''}" data-action="${key}" aria-label="${label}">${icon(ic)}<span>${label}</span></button>`;
+ }).join('');
+ const names={brief:'地点简介',media:'照片与视频',guides:'攻略内容',nearby:'附近地点',search:'搜索',saved:'收藏',route:'路线'};
+ $('dockStage').textContent=state.layer?(names[state.layer]+' · 上下文 Dock'):s.level==='closed'?'地图 · 全局 Dock':'地点'+({peek:'预览',half:'半屏',full:'全屏'})[s.level]+' · 地点 Dock';
+ document.querySelectorAll('[data-jump]').forEach(el=>el.classList.toggle('active',el.dataset.jump===(state.layer|| (s.level==='closed'?'map':s.level))));
+ $('savedStar').classList.toggle('selected',s.level!=='closed');
+}
+const escapeHtml=value=>String(value).replace(/[&"'<>]/g,char=>({'&':'&amp;','"':'&quot;',"'":'&#39;','<':'&lt;','>':'&gt;'}[char]));
+const searchMatches=value=>{
+  const q=(value||'').trim().toLowerCase().replace(/\s+/g,'');
+  return !q || ['平江路','平江','苏州','古街','建筑','街巷','pingjiang','suzhou'].some(word=>word.toLowerCase().includes(q)||q.includes(word.toLowerCase()));
+};
+function updateSearchResults(){
+  if(state.layer!=='search')return;
+  const area=$('searchResults'),clear=$('searchClearInline');
+  if(!area)return;
+  const q=state.searchQuery.trim();
+  if(clear)clear.hidden=!q;
+  if(q&&!searchMatches(q)) {
+    area.innerHTML=`<div class="search-section-title">搜索结果 <span>0 个地点</span></div><div class="search-empty"><div class="search-empty-symbol">⌕</div><strong>暂时没有找到匹配地点</strong><p>这是独立交互原型，尚未连接真实地点搜索。<br/>可试试「平江路」或「苏州」。</p></div>`;
+  } else {
+    const heading=q?'搜索结果':'最近搜索';
+    area.innerHTML=`<div class="search-section-title">${heading}<span>${q?'1 个示例地点':'已保存 1 项'}</span></div><button type="button" class="search-row" data-action="showPlace" aria-label="选择平江路并回到地图"><span class="search-row-icon">${icon(q?'nearby':'search')}</span><span class="search-row-copy"><b>平江路<span class="search-saved-tag">已收藏</span></b><small>苏州 · 旧城街区 · 地点示意</small></span><span class="search-row-next" aria-hidden="true">›</span></button>`;
+  }
+}
+function updateKeyboardVisibility(){
+  const v=window.visualViewport;
+  const delta=Math.max(0,window.innerHeight-(v?.height || window.innerHeight));
+  document.body.classList.toggle('search-keyboard-open',state.layer==='search' && delta>130);
+}
+window.visualViewport?.addEventListener('resize',updateKeyboardVisibility);
+function renderLayer(){
+ const kind=state.layer;if(!kind)return;
+ const titles={brief:'为什么想去',media:'照片与视频',guides:'相关攻略',nearby:'附近地点',search:'搜索地点',saved:'我的收藏',route:'规划路线'};
+ $('layerName').textContent=titles[kind];
+ $('layerParent').textContent=['search','saved','route'].includes(kind)?'Footprint Map · 全局层':'平江路 · 地点内容';
+ const hero=`<div class="hero-photo">${sceneIcon}<span>地点灵感 · 示意图片</span></div>`;
+ const brief=`<div class="layer-overline">我的旅行 Brief</div><h2 class="layer-title">一个想慢下来走的地方。</h2>${hero}<div class="mini-label">我为什么想去这里</div>${state.editing?`<textarea id="briefTextarea" class="note-field" aria-label="编辑 Brief">${state.note.replaceAll('&','&amp;').replaceAll('<','&lt;')}</textarea>`:`<div class="quote" id="savedBrief">${state.note}</div>`}<div class="mini-label">关于这个地点的记录</div><div class="mini-tags"><span>想去的地方</span><span>街巷与建筑</span><span>清晨散步</span></div><p class="dock-caption">底部 Dock 变为「返回地点 / 编辑 / 保存」；不出现第二条导航。</p>`;
+ const photoNodes=[`<div class="grid-photo main">${sceneIcon}<span>平江路 · 示例</span></div>`,`<div class="grid-photo">${sceneB}<span>街巷</span></div>`,`<div class="grid-photo">${sceneIcon}<span>建筑</span></div>`,`<div class="grid-photo">${sceneB}<span>河岸</span></div>`];
+ photoNodes.push(...state.photos.map((u,i)=>`<div class="grid-photo"><img src="${u}" style="width:100%;height:100%;object-fit:cover" alt="本地选择的照片"/><span>本地临时照片 ${i+1}</span></div>`));
+ const media=`<div class="layer-overline">与地点绑定的媒体</div><h2 class="layer-title">收藏的画面，<br>也记录在这里。</h2><p class="layer-sub">所有照片都归属同一个地点。演示页仅保存在本次打开状态，不上传服务器。</p><div class="media-grid ${state.layout==='list'?'list':''}">${photoNodes.join('')}</div><p class="dock-caption">底部 Dock 变为「返回地点 / 切换排版 / 添加照片」。</p>`;
+ const guides=`<div class="layer-overline">地点相关内容</div><h2 class="layer-title">关于这条街，<br>收藏过的攻略。</h2><p class="layer-sub">点击卡片里的「展开内容」，查看一条示例攻略；底部可以进行收藏操作。</p><div class="guide-card"><span class="tag">攻略 01 / 示意</span><strong>沿河慢走 · 街巷观察</strong><p>从一条安静的小巷开始，沿着河道慢慢走，注意桥、街角和建筑立面的变化。</p><button type="button" class="guide-toggle">展开内容</button><div class="guide-extra"><p>建议把路线留得松一些，路过喜欢的店就停下来。示意内容不包含真实路径。</p></div></div><div class="guide-card"><span class="tag">攻略 02 / 示意</span><strong>清晨拍照 · 光影备忘</strong><p>记录树影、墙面、河水和老建筑之间的光线关系。</p><button type="button" class="guide-toggle">展开内容</button><div class="guide-extra"><p>优先观察沿街立面和桥边的层次变化，具体地点需以实际地图为准。</p></div></div><p class="dock-caption">底部 Dock 变为「返回地点 / 阅读 / 收藏攻略」。</p>`;
+ const nearby=`<div class="layer-overline">从这个地点出发</div><h2 class="layer-title">附近还有什么<br>值得停留。</h2><p class="layer-sub">这里只展示附近内容的交互排版。不是实际 POI 数据，也不生成额外黄色星标。</p><div class="nearby-row"><div class="nearby-img">⌖</div><div class="details"><b>河边石桥 · 示意</b><p>建筑细节 · 街巷摄影</p></div><button data-action="keepNearby" type="button">想去</button></div><div class="nearby-row"><div class="nearby-img">♧</div><div class="details"><b>沿河小巷 · 示意</b><p>步行探索 · 地点灵感</p></div><button data-action="seeMap" type="button">地图</button></div><div class="nearby-row"><div class="nearby-img">▤</div><div class="details"><b>小书店 · 示意</b><p>在地文化 · 慢慢逛</p></div><button data-action="keepNearby" type="button">想去</button></div><p class="dock-caption">底部 Dock 变为「返回地点 / 地图定位 / 加入想去」。</p>`;
+ const search=`<div class="search-intro"><div class="search-overline">地点搜索 · 演示模式</div><h2>发现下一站。</h2><p>从地图出发，找到感兴趣的地点。</p></div>
+ <div class="search-input-wrap">${icon('search')}<input id="searchInput" type="search" inputmode="search" enterkeyhint="search" aria-label="搜索地点" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="搜索地点、城市或建筑" value="${escapeHtml(state.searchQuery)}"/><button type="button" id="searchClearInline" class="search-clear-inline" data-action="clearSearch" aria-label="清除搜索词" hidden>${icon('close')}</button></div>
+ <div class="search-chip-row" aria-label="搜索推荐"><button type="button" class="search-chip" data-search-term="平江路">平江路</button><button type="button" class="search-chip" data-search-term="苏州">苏州</button><button type="button" class="search-chip" data-search-term="古街">古街</button><button type="button" class="search-chip" data-search-term="建筑">建筑</button></div>
+ <div id="searchResults" class="search-results" aria-live="polite"></div>
+ <div class="search-scope-note">本页仅模拟 <b>平江路</b> 这一收藏地点。选择结果会回到地图，在原有黄色星标上打开地点卡片。真实搜索与地图数据将在集成阶段接入。</div>`
+ const saved=`<div class="layer-overline">全局收藏</div><h2 class="layer-title">所有想去的地方。</h2><p class="layer-sub">从这里可返回地点卡片，地点仍使用地图上的同一颗黄色星标。</p><div class="preview-row"><span>⭐</span><div class="blurb"><strong>平江路</strong><p>苏州 · 已记录 Brief、照片、攻略</p></div><button data-action="showPlace">查看</button></div><p class="dock-caption">全局收藏页的 Dock 提供返回地图和打开地点，不复制地图星标。</p>`;
+ const route=`<div class="layer-overline">地图全局能力</div><h2 class="layer-title">路线规划</h2><p class="layer-sub">这里展示 Dock 路线入口的层级行为。真实导航需要未来接入地图模块，不在本演示中模拟距离或行驶时间。</p><div class="guide-card"><span class="tag">示意路线</span><strong>从当前位置 → 平江路</strong><p>真实定位、路径计算与路况信息尚未接入。</p></div><p class="dock-caption">底部 Dock：返回地图 / 回到地点。</p>`;
+ body.innerHTML={brief,media,guides,nearby,search,saved,route}[kind];
+ if(kind==='media')body.querySelector('.media-grid').classList.toggle('list',state.layout==='list');
+ if(kind==='search'){
+   const input=$('searchInput');
+   input.addEventListener('input',()=>{state.searchQuery=input.value;updateSearchResults()});
+   input.addEventListener('search',()=>{state.searchQuery=input.value;updateSearchResults();input.blur()});
+   updateSearchResults();
+ }
+ body.scrollTop=0;
+}
+function layerOpen(kind){
+ if(sheetState().level==='closed' && ['brief','media','guides','nearby'].includes(kind))window.__demo.open('demo-pingjiang');
+ clearTimeout(hideTimer);
+ state.layer=kind;state.menu=false;$('demoMenu').hidden=true;
+ layer.classList.toggle('search-layer',kind==='search');
+ if(kind==='search')state.searchQuery='';
+ layer.hidden=false;renderLayer();renderDock();
+ if(kind==='search')window.__rubberV4?.openSearch?.();
+ requestAnimationFrame(()=>layer.classList.add('active'));
+ if(kind==='search'){
+   const input=$('searchInput');
+   // Synchronous user-gesture focus is the iPhone Safari-friendly path to the keyboard.
+   try{input?.focus({preventScroll:true})}catch(_){input?.focus()}
+   updateKeyboardVisibility();
+ }
+}
+function back(){
+ if(!state.layer)return;
+ const leavingSearch=state.layer==='search';
+  if(leavingSearch)window.__rubberV4?.closeSearch?.();
+  if(state.layer==='search')$('searchInput')?.blur();
+  document.body.classList.remove('search-keyboard-open');
+  const detail=['brief','media','guides','nearby'].includes(state.layer);
+ layer.classList.remove('active');state.layer=null;renderDock();
+ clearTimeout(hideTimer);hideTimer=setTimeout(()=>{if(!state.layer)layer.hidden=true},leavingSearch?560:320);
+ if(!detail)window.__demo.close();
+}
+function mapReset(){
+  const leavingSearch=state.layer==='search';
+  if(leavingSearch)window.__rubberV4?.closeSearch?.();
+  $('searchInput')?.blur();document.body.classList.remove('search-keyboard-open');
+  state.layer=null;layer.classList.remove('active');layer.hidden=!leavingSearch;
+  if(leavingSearch){clearTimeout(hideTimer);hideTimer=setTimeout(()=>{if(!state.layer)layer.hidden=true},560)}
+ state.menu=false;$('demoMenu').hidden=true;
+ window.__demo.close();renderDock();
+}
+function jump(key){
+ state.menu=false;$('demoMenu').hidden=true;
+ if(key==='map'){mapReset();return}
+ if(['peek','half','full'].includes(key)){
+   $('searchInput')?.blur();document.body.classList.remove('search-keyboard-open');
+    state.layer=null;layer.classList.remove('active');layer.hidden=true;
+   if(sheetState().level==='closed')window.__demo.open('demo-pingjiang');
+   if(key!=='peek')window.__demo.snap(key);
+   else if(sheetState().level!=='closed')window.__demo.snap('peek');
+   renderDock();return;
+ }
+ layerOpen(key);
+}
+function action(key){
+ switch(key){
+ case'map':case'backMap':mapReset();break;
+ case'overview':
+   if(state.layer)back();
+   window.__demo.snap('full');break;
+ case'search':case'saved':case'route':case'brief':case'media':case'guides':case'nearby':layerOpen(key);break;
+ case'back':back();break;
+ case'edit':
+   if(state.layer!=='brief')break;
+   state.editing=!state.editing;renderLayer();toast(state.editing?'现在可以编辑 Brief':'已退出编辑');break;
+ case'save':{
+   if(state.layer!=='brief')break;
+   const field=$('briefTextarea');if(field)state.note=field.value||state.note;
+   state.editing=false;renderLayer();toast('Brief 已保存到演示状态');break;}
+ case'layout':state.layout=state.layout==='grid'?'list':'grid';renderLayer();toast(state.layout==='grid'?'已切换网格':'已切换列表');break;
+ case'upload':$('photoPicker').click();break;
+ case'readGuide':{
+   const card=body.querySelector('.guide-card');if(card){card.classList.toggle('expanded');const btn=card.querySelector('.guide-toggle');btn.textContent=card.classList.contains('expanded')?'收起内容':'展开内容';}
+   break;}
+ case'saveGuide':state.savedGuide=!state.savedGuide;toast(state.savedGuide?'已收藏示例攻略':'已取消收藏');break;
+ case'seeMap':mapReset();toast('返回原地图（附近点位均为示意）');break;
+ case'keepNearby':state.likedNearby=!state.likedNearby;toast(state.likedNearby?'已标记想去（仅演示）':'已取消标记');break;
+  case'clearSearch':if(state.layer==='search'){
+    const input=$('searchInput');state.searchQuery='';
+    if(input){input.value='';input.focus({preventScroll:true})}
+    updateSearchResults();
+  }break;
+  case'showPlace':{
+    if(state.layer==='search' && !searchMatches(state.searchQuery)){      toast('当前演示仅提供平江路这一地点');break;
+    }
+     const fromSearch=state.layer==='search';
+     if(fromSearch)window.__rubberV4?.closeSearch?.();
+     $('searchInput')?.blur();document.body.classList.remove('search-keyboard-open');
+    layer.classList.remove('active');state.layer=null;
+    if(fromSearch){
+      renderDock();
+      setTimeout(()=>{
+        if(state.layer)return;
+        layer.hidden=true;
+        if(sheetState().level==='closed')window.__demo.open('demo-pingjiang');
+        else window.__demo.snap('peek');
+        const star=$('savedStar');star.classList.remove('search-selected');
+        void star.offsetWidth;star.classList.add('search-selected');
+        setTimeout(()=>star.classList.remove('search-selected'),760);
+        renderDock();
+      },445);
+    } else {
+      layer.hidden=true;
+      if(sheetState().level==='closed')window.__demo.open('demo-pingjiang');
+      else window.__demo.snap('peek');renderDock();
+    }
+    break;}
+
+ }
+}
+dock.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(b)action(b.dataset.action)});
+layer.addEventListener('click',e=>{
+  const chip=e.target.closest('[data-search-term]');
+  if(chip&&state.layer==='search'){
+    state.searchQuery=chip.dataset.searchTerm;
+    const input=$('searchInput');if(input)input.value=state.searchQuery;
+    updateSearchResults();input?.focus({preventScroll:true});return;
+  }
+  const actionButton=e.target.closest('[data-action]');if(actionButton){action(actionButton.dataset.action);return}
+ const guide=e.target.closest('.guide-toggle');if(guide){const card=guide.closest('.guide-card');card.classList.toggle('expanded');guide.textContent=card.classList.contains('expanded')?'收起内容':'展开内容'}
+});
+$('layerBack').addEventListener('click',back);
+$('layerClose').addEventListener('click',mapReset);
+// The existing V3 overlay remains the single authoritative sheet.
+document.addEventListener('atlas:sheetlevel',()=>{if(!state.layer)renderDock()});
+document.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>jump(b.dataset.jump)));
+const tool=document.querySelector('.topbar .tool');
+if(tool){tool.setAttribute('aria-label','演示层级快速切换');tool.addEventListener('click',e=>{
+  e.stopPropagation();$('demoMenu').hidden=!$('demoMenu').hidden;
+ })}
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#demoMenu,.topbar .tool'))$('demoMenu').hidden=true});
+document.querySelector('.topbar .search')?.addEventListener('click',()=>layerOpen('search'));
+ document.querySelector('.topbar .search')?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();layerOpen('search')}});
+ body.addEventListener('keydown',e=>{
+   if(state.layer==='search'&&e.key==='Enter'&&e.target?.id==='searchInput'){
+     e.preventDefault();e.target.blur();
+     if(searchMatches(state.searchQuery))action('showPlace');else updateSearchResults();
+   }
+   if(state.layer==='search'&&e.key==='Escape'){e.preventDefault();mapReset()}
+ });
+// Contextual rows can open the same depth as Dock tabs, but don't spawn a Dock.
+$('sheet').querySelector('.photos')?.addEventListener('click',()=>layerOpen('media'));
+$('sheet').querySelector('.brief')?.addEventListener('click',()=>layerOpen('brief'));
+$('sheet').querySelectorAll('.section-heading,.other').forEach(el=>{
+ el.addEventListener('click',()=>{
+   const t=el.textContent;
+   if(t.includes('照片'))layerOpen('media');
+   else if(t.includes('攻略'))layerOpen('guides');
+   else if(t.includes('附近'))layerOpen('nearby');
+   else layerOpen('brief');
+ });
+});
+$('photoPicker').addEventListener('change',e=>{
+ const fs=Array.from(e.target.files||[]).slice(0,5);
+ fs.forEach(f=>{if(f.type.startsWith('image/'))state.photos.push(URL.createObjectURL(f))});
+ if(state.layer==='media')renderLayer();toast(fs.length?'已添加本地预览（不会上传）':'未选择图片');
+});
+window.addEventListener('beforeunload',()=>state.photos.forEach(url=>URL.revokeObjectURL(url)));
+window.__dockDemo={jump,action,back,mode:()=>dock.dataset.mode,layer:()=>state.layer,labels:()=>Array.from(dock.querySelectorAll('button')).map(b=>b.innerText.trim()),getState:()=>({sheet:sheetState(),layer:state.layer,mode:dock.dataset.mode,searchQuery:state.searchQuery})};
+renderDock();
+})();
+</script>
+<script id="fp-v4-rubber-motion">
+/* Elastic feedback attached to the EXISTING Footprint Map V4 Dock and search layer.
+   Other components (map projection, yellow star, three-detent sheet) remain untouched. */
+(()=>{'use strict';
+const dock=document.getElementById('dock');
+const layer=document.getElementById('layer');
+const screen=document.querySelector('.screen');
+if(!dock||!layer||!screen||window.__rubberV4)return;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+let dockRun=null,layerRun=null,lastMode=dock.dataset.mode;
+function visualDock(amount){
+ const x=clamp(amount,-.018,.052);
+ dock.style.scale=`${(1+x).toFixed(5)} ${(1-Math.max(0,x)*.38+Math.max(0,-x)*.15).toFixed(5)}`;
+ dock.style.borderRadius=(22+Math.max(0,x)*64).toFixed(2)+'px';
+ const nav=[...dock.querySelectorAll('.nav')];
+ const count=nav.length;
+ nav.forEach((n,i)=>{
+  const separation=(i-(count-1)/2)*x*92;
+  n.style.translate=`${separation.toFixed(2)}px 0px`;
+ });
+}
+function resetDock(){
+ dock.style.scale='';dock.style.borderRadius='';
+ dock.classList.remove('rubber-energized');
+ dock.querySelectorAll('.nav').forEach(n=>n.style.translate='');
+}
+function stretchDock(){
+ if(reduce.matches){resetDock();return;}
+ if(dockRun){cancelAnimationFrame(dockRun.id);resetDock();}
+ const state={id:0,started:0,previous:0,phase:'pull',x:0,v:0};dockRun=state;
+ dock.classList.add('rubber-energized');
+ const frame=now=>{
+  if(dockRun!==state)return;
+  if(!state.started)state.started=now;
+  const elapsed=now-state.started;
+  if(elapsed<=96){
+    const t=clamp(elapsed/96,0,1);
+    state.x=.047*(1-(1-t)**2.2);
+    visualDock(state.x);
+  }else{
+    if(state.phase==='pull'){state.phase='release';state.previous=now;state.v=0;}
+    const dt=clamp((now-state.previous)/1000,.001,.034);state.previous=now;
+    state.v+=(-235*state.x-15.5*state.v)*dt;
+    state.x+=state.v*dt;
+    visualDock(state.x);
+    if((Math.abs(state.x)<.00045 && Math.abs(state.v)<.012)||elapsed>790){
+      resetDock();dockRun=null;return;
+    }
+  }
+  state.id=requestAnimationFrame(frame);
+ };
+ state.id=requestAnimationFrame(frame);
+}
+function resetLayer(){
+ if(layerRun){cancelAnimationFrame(layerRun.id);layerRun=null;}
+ layer.classList.remove('rubber-sheet-moving');
+ layer.style.removeProperty('--rubber-sheet-y');
+}
+function moveLayer(direction){
+ if(reduce.matches){resetLayer();return;}
+ const height=screen.getBoundingClientRect().height||window.innerHeight;
+ const goal=direction==='open'?0:height*.91;
+ const start=direction==='open'?height*.92:0;
+ const prev=layerRun;
+ const position=prev?.y??start;
+ const velocity=prev?.v??(direction==='open'?-260:230);
+ if(prev)cancelAnimationFrame(prev.id);
+ const a={direction,y:position,v:velocity,id:0,prev:0,start:0,target:goal};
+ layerRun=a;
+ layer.classList.add('rubber-sheet-moving');
+ layer.style.setProperty('--rubber-sheet-y',`${position.toFixed(2)}px`);
+ const tick=now=>{
+   if(layerRun!==a)return;
+   if(!a.start)a.start=now;
+   const dt=a.prev?clamp((now-a.prev)/1000,.001,.034):1/60;
+   a.prev=now;
+   // Underdamped spring intentionally crosses zero once (rubber-band recoil).
+   a.v+=(250*(a.target-a.y)-21*a.v)*dt;
+   a.y+=a.v*dt;
+   layer.style.setProperty('--rubber-sheet-y',`${a.y.toFixed(2)}px`);
+   if((Math.abs(a.y-a.target)<1.7&&Math.abs(a.v)<20)||(now-a.start>610)){
+      resetLayer();return;
+   }
+   a.id=requestAnimationFrame(tick);
+ };
+ a.id=requestAnimationFrame(tick);
+}
+// Elastic Dock response on all real actions, not an invented second toolbar.
+dock.addEventListener('pointerdown',event=>{
+ if(event.target.closest('button.nav'))stretchDock();
+},{passive:true,capture:true});
+dock.addEventListener('click',event=>{
+ if(event.detail===0 && event.target.closest('button.nav'))stretchDock();
+},true);
+const modeObserver=new MutationObserver(()=>{
+ const current=dock.dataset.mode;
+ if(current!==lastMode){lastMode=current;if(!dockRun)stretchDock();}
+});
+modeObserver.observe(dock,{attributes:true,attributeFilter:['data-mode']});
+window.__rubberV4={
+ openSearch(){moveLayer('open')},
+ closeSearch(){if(!layer.hidden)moveLayer('close')},
+ stretchDock,
+ getState(){return{
+   layer:layer.hidden?'closed':layer.classList.contains('active')?'open':'transition',
+   dockMode:dock.dataset.mode,
+   dockScale:parseFloat(dock.style.scale)||1,
+   sheetTravel:parseFloat(layer.style.getPropertyValue('--rubber-sheet-y'))||0,
+   animatingDock:!!dockRun,animatingSearch:!!layerRun
+ }}
+};
+window.addEventListener('pagehide',()=>{modeObserver.disconnect();if(dockRun)cancelAnimationFrame(dockRun.id);resetDock();resetLayer()});
+})();
+</script>
+<script id="fp-v4-microinteractions">
+/* Detail microinteractions: one real star, one real sheet, one real Dock. */
+(()=>{'use strict';
+const $=id=>document.getElementById(id), star=$('savedStar'),sheet=$('sheet'),dock=$('dock'),layer=$('layer');
+const layerBody=$('layerBody'),grip=$('grip');
+if(!star||!sheet||!dock||!layer||window.__fpMotionPolish)return;
+const reduce=window.matchMedia('(prefers-reduced-motion:reduce)');
+const canAnimate=()=>!reduce.matches&&typeof Element.prototype.animate==='function';
+const animations=new Set(), timers=new Set();
+function run(el,frames,opts){
+ if(!el||!canAnimate())return null;
+ const motion=el.animate(frames,{fill:'none',...opts});animations.add(motion);
+ motion.finished.catch(()=>{}).finally(()=>animations.delete(motion));
+ return motion;
+}
+function later(fn,delay){const id=setTimeout(()=>{timers.delete(id);fn()},delay);timers.add(id);return id;}
+let starWasOpen=false,lastLevel='closed',lastDockKey='map';
+let starMotion=null,headerMotion=null;
+function pulseStar(kind){
+ if(!canAnimate())return;
+ starMotion?.cancel();
+ const svg=star.querySelector('svg');
+ const open=kind==='open';
+ // Upright SVG throughout; no detached marker, no position/rotation animation.
+ starMotion=run(svg,open?[
+  {transform:'scale(.91)',offset:0},
+  {transform:'scale(1.18)',offset:.41},
+  {transform:'scale(.97)',offset:.73},
+  {transform:'scale(1.035)',offset:.90},
+  {transform:'scale(1)',offset:1}
+ ]:[{transform:'scale(1)',offset:0},{transform:'scale(.91)',offset:.33},{transform:'scale(1.025)',offset:.71},{transform:'scale(1)',offset:1}],
+ {duration:open?490:330,easing:'cubic-bezier(.18,.78,.24,1)'});
+}
+function arriveSheet(level,prev){
+ if(!canAnimate())return;
+ if(level==='closed')return;
+ const heading=sheet.querySelector('.place-heading');
+ if(!heading)return;
+ headerMotion?.cancel();
+ if(level==='peek'&&prev==='closed'){
+  headerMotion=run(heading,[
+   {opacity:.72,transform:'translateY(10px) scale(.982)',offset:0},
+   {opacity:1,transform:'translateY(-2px) scale(1.011)',offset:.63},
+   {opacity:1,transform:'translateY(0) scale(1)',offset:1}
+  ],{duration:420,easing:'cubic-bezier(.17,.88,.24,1)'});
+ }else{
+  headerMotion=run(heading,[
+   {transform:'translateY(0) scale(1)',offset:0},
+   {transform:'translateY(-3px) scale(1.007)',offset:.45},
+   {transform:'translateY(0) scale(1)',offset:1}
+  ],{duration:300,easing:'cubic-bezier(.17,.88,.24,1)'});
+ }
+}
+star.addEventListener('pointerdown',()=>star.classList.add('fp-star-touch'),{passive:true});
+for(const evt of ['pointerup','pointercancel','pointerleave'])star.addEventListener(evt,()=>star.classList.remove('fp-star-touch'),{passive:true});
+function onSheet(evt){
+ const level=evt.detail?.level||'closed';
+ if(level===lastLevel)return;
+ const prev=lastLevel;lastLevel=level;
+ if(level==='peek'&&prev==='closed')pulseStar('open');
+ if(level==='closed'&&prev!=='closed')pulseStar('close');
+ arriveSheet(level,prev);
+}
+document.addEventListener('atlas:sheetlevel',onSheet);
+// The existing rubber Dock animation stays in charge of its outer geometry.
+// Only its child items receive a short stagger when context actually changes.
+let lastDockSignature=[...dock.querySelectorAll('.nav')].map(n=>n.dataset.action).join('|');
+let dockTransitions=0;
+const dockObserver=new MutationObserver(records=>{
+ if(!records.some(r=>r.type==='childList'))return;
+ const children=[...dock.querySelectorAll('.nav')];
+ const sig=children.map(n=>n.dataset.action).join('|');
+ if(!sig||sig===lastDockSignature)return;
+ lastDockSignature=sig;dockTransitions++;
+ if(!canAnimate())return;
+ children.forEach((el,i)=>{
+  run(el,[
+   {opacity:.15,transform:'translate3d(0,10px,0) scale(.91)',offset:0},
+   {opacity:.88,transform:'translate3d(0,-2px,0) scale(1.018)',offset:.67},
+   {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:1}
+  ],{duration:290,delay:Math.min(i*24,80),easing:'cubic-bezier(.18,.78,.25,1)'});
+ });
+});
+dockObserver.observe(dock,{childList:true});
+// Inward detail motion: maintain one contextual Dock and the same original layer.
+let entering=false,layerTransitions=0,bodyTransitions=0;
+function animateLayer(){
+ if(layer.hidden||!layer.classList.contains('active')||layer.classList.contains('search-layer')||!canAnimate())return;
+ layerTransitions++;
+ run(layer.querySelector('.layer-header'),[
+  {opacity:.75,transform:'translateY(10px)',offset:0},
+  {opacity:1,transform:'translateY(-2px)',offset:.72},
+  {opacity:1,transform:'translateY(0)',offset:1}
+ ],{duration:390,easing:'cubic-bezier(.18,.81,.25,1)'});
+ const nodes=[...layerBody.children].slice(0,5);
+ nodes.forEach((el,i)=>run(el,[
+  {opacity:.15,transform:'translate3d(0,16px,0)',offset:0},
+  {opacity:1,transform:'translate3d(0,-2px,0)',offset:.72},
+  {opacity:1,transform:'translate3d(0,0,0)',offset:1}
+ ],{duration:390,delay:Math.min(i*35,120),easing:'cubic-bezier(.18,.87,.23,1)'}));
+}
+const layerObserver=new MutationObserver(records=>{
+ if(!records.some(r=>r.type==='attributes'))return;
+ const now=layer.classList.contains('active')&&!layer.hidden;
+ if(now&&!entering)animateLayer();
+ entering=now;
+});
+layerObserver.observe(layer,{attributes:true,attributeFilter:['class','hidden']});
+const bodyObserver=new MutationObserver(records=>{
+ if(!records.some(r=>r.addedNodes.length))return;
+ if(layer.hidden||!layer.classList.contains('active')||layer.classList.contains('search-layer'))return;
+ bodyTransitions++;
+ // Content may re-render during editing/media layout changes; animate new content only.
+ [...layerBody.children].slice(0,4).forEach((el,i)=>run(el,
+  [{opacity:.5,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],
+  {duration:250,delay:i*22,easing:'cubic-bezier(.19,.9,.28,1)'}));
+});
+bodyObserver.observe(layerBody,{childList:true});
+window.__fpMotionPolish={version:2,getState:()=>({sheet:lastLevel,dockSignature:lastDockSignature,dockTransitions,layerTransitions,bodyTransitions,starCount:document.querySelectorAll('#savedStar').length})};
+window.addEventListener('pagehide',()=>{
+ dockObserver.disconnect();layerObserver.disconnect();bodyObserver.disconnect();
+ document.removeEventListener('atlas:sheetlevel',onSheet);
+ for(const id of timers)clearTimeout(id);
+ for(const a of animations)a.cancel();
+ star.classList.remove('fp-star-touch');
+},{once:true});
+})();
+</script>
+
+<script id="fp-v4-review-nav-script">
+(()=>{'use strict';
+const $=s=>document.querySelector(s),screen=$('.screen'),dock=$('#dock'),layer=$('#layer');
+if(!screen||!dock||!layer||!window.__dockDemo||window.__acceptanceV4)return;
+const noop=()=>{};
+const items=[
+ {id:'home',group:'01 地图与地点',name:'地图首页',info:'俯视地图、单颗黄色星标、四项全局 Dock',go:()=>window.__dockDemo.jump('map')},
+ {id:'star',group:'01 地图与地点',name:'点击星标打开卡片',info:'星标原地回弹；只展开同一个地点的卡片',go:()=>{window.__dockDemo.jump('map');$('#savedStar')?.click()}},
+ {id:'peek',group:'01 地图与地点',name:'地点卡片 · 预览',info:'卡片从底部进入；黄色星标仍锚在地图',go:()=>window.__dockDemo.jump('peek')},
+ {id:'half',group:'01 地图与地点',name:'地点卡片 · 半屏',info:'从顶部抓手拖动；停靠时自然回弹',go:()=>window.__dockDemo.jump('half')},
+ {id:'full',group:'01 地图与地点',name:'地点卡片 · 全屏',info:'半屏→全屏；内容滚动与下滑手势不冲突',go:()=>window.__dockDemo.jump('full')},
+ {id:'dismiss',group:'01 地图与地点',name:'地图空白关闭卡片',info:'先打开预览卡片，再点击地图空白收起',go:()=>window.__dockDemo.jump('peek')},
+ {id:'brief',group:'02 地点内容',name:'Brief 阅读',info:'地点理由与详情层进入；底部变为上下文 Dock',go:()=>window.__dockDemo.jump('brief')},
+ {id:'brief-edit',group:'02 地点内容',name:'Brief 编辑／保存',info:'修改内容后点击底部「保存」，再返回地点',go:()=>{window.__dockDemo.jump('brief');if(!$('#briefTextarea'))window.__dockDemo.action('edit')}},
+ {id:'media',group:'02 地点内容',name:'照片与视频页面',info:'媒体网格、上传入口和返回地点操作',go:()=>window.__dockDemo.jump('media')},
+ {id:'media-list',group:'02 地点内容',name:'照片布局切换',info:'网格↔列表；同一组内容连续排版',go:()=>{window.__dockDemo.jump('media');if(!$('.media-grid.list'))window.__dockDemo.action('layout')}},
+ {id:'guides',group:'02 地点内容',name:'相关攻略',info:'点击「展开内容」；信息平滑舒展',go:()=>window.__dockDemo.jump('guides')},
+ {id:'nearby',group:'02 地点内容',name:'附近地点',info:'附近条目、想去反馈与返回地图',go:()=>window.__dockDemo.jump('nearby')},
+ {id:'search',group:'03 全局工具',name:'主页 Dock 搜索',info:'已认可的皮筋拉伸与搜索界面回弹',go:()=>window.__dockDemo.jump('search')},
+ {id:'search-empty',group:'03 全局工具',name:'搜索没有结果',info:'搜索输入无匹配；验证空状态与清除按钮',go:()=>{window.__dockDemo.jump('search');let f=$('#searchInput');if(f){f.value='不存在的测试地点';f.dispatchEvent(new Event('input',{bubbles:true}));f.blur()}}},
+ {id:'search-return',group:'03 全局工具',name:'选中结果→地点卡片',info:'选择「平江路」；原地图和原星标不复制',go:()=>{window.__dockDemo.jump('search');let f=$('#searchInput');if(f){f.value='平江路';f.dispatchEvent(new Event('input',{bubbles:true}));f.blur()}}},
+ {id:'saved',group:'03 全局工具',name:'我的收藏',info:'从收藏列表打开地点，恢复原卡片',go:()=>window.__dockDemo.jump('saved')},
+ {id:'route',group:'03 全局工具',name:'路线入口',info:'只确认界面层级与返回动作，不模拟真实路径',go:()=>window.__dockDemo.jump('route')}
+];
+const outside=[
+ ['真实地图、地点检索与 POI','地图 A｜需要联网地图和真实地点数据'],
+ ['新增地点、编辑星标、地理定位','地图 A＋集成｜需真实位置／稳定 placeId'],
+ ['媒体上传、视频播放与去过记录','媒体 D｜需真实文件与地点关联'],
+ ['Brief 与媒体刷新后持久保存','媒体 D｜需 IndexedDB 回归'],
+ ['路线生成、日程、日期选择','地图 A＋集成｜需路径和规划系统'],
+ ['导出备份、导入恢复、删除确认','媒体 D＋集成｜需真实数据安全验证'],
+ ['离线、失败重试、权限、空状态','主集成｜需异常场景真机测试']
+];
+const k='__fp_v4_interaction_review_v1';
+let saved={};try{saved=JSON.parse(localStorage.getItem(k)||'{}')||{}}catch(_){}
+let visited=new Set();let active=null,noticeTimer=0;
+const toggle=document.createElement('button');toggle.id='qaToggle';toggle.type='button';toggle.textContent='验收';toggle.setAttribute('aria-label','打开完整交互验收清单');
+const shade=document.createElement('div');shade.id='qaShade';
+const panel=document.createElement('section');panel.id='qaPanel';panel.setAttribute('aria-label','V4 完整交互验收导航');
+const hint=document.createElement('div');hint.id='qaHint';
+screen.append(toggle,shade,panel,hint);
+function persist(){try{localStorage.setItem(k,JSON.stringify(saved))}catch(_){}}
+function icon(state){return state==='ok'?'✓':state==='issue'?'!':'○'}
+function summary(){const ok=items.filter(x=>saved[x.id]==='ok').length,issue=items.filter(x=>saved[x.id]==='issue').length;
+ return {total:items.length,visited:visited.size,ok,issue,remaining:items.length-ok-issue};}
+function paint(){const count=summary();toggle.textContent=`验收 ${count.ok}/${count.total}`;
+ const groups=[...new Set(items.map(x=>x.group))];
+ const sections=groups.map(group=>`<div class="qa-group">${group}</div>`+items.filter(x=>x.group===group).map(x=>{
+  const s=saved[x.id]||'todo';const v=visited.has(x.id)?'已打开体验':'待查看';
+  return `<div class="qa-item"><div class="qa-copy"><b>${x.name}</b><p>${x.info}</p><small>${v}${s==='ok'?' · 已确认':s==='issue'?' · 需修改':''}</small></div><button class="qa-open" type="button" data-qa-open="${x.id}">打开</button><button class="qa-state" type="button" data-qa-state="${x.id}" data-state="${s}" aria-label="标记 ${x.name}：${s==='ok'?'已确认':s==='issue'?'需修改':'待验收'}" title="○ 待验收 / ✓ 通过 / ! 需改">${icon(s)}</button></div>`}).join('')).join('');
+ panel.innerHTML=`<div class="qa-head"><div><small>FOOTPRINT MAP / V4 ACCEPTANCE</small><h2>交互总验收 · ${items.length} 项</h2><p>已查看 ${count.visited} 项　通过 ${count.ok}　需修改 ${count.issue}<br/>右侧圆点可切换：待验收 → 通过 → 需修改</p></div><button type="button" class="qa-close" data-qa-close aria-label="收起验收导航">×</button></div><div class="qa-scroll">${sections}<div class="qa-group">04 完整产品 · 跨模块待验收</div>${outside.map(x=>`<div class="qa-cross"><strong>${x[0]}</strong><p>${x[1]} · 当前原型未模拟成功</p></div>`).join('')}</div><div class="qa-foot"><button type="button" data-qa-reset>重置标记</button><button type="button" class="primary" data-qa-copy>复制验收结果</button></div>`;
+}
+function openPanel(){paint();shade.classList.add('open');panel.classList.add('open');toggle.setAttribute('aria-expanded','true')}
+function closePanel(){shade.classList.remove('open');panel.classList.remove('open');toggle.setAttribute('aria-expanded','false')}
+function showHint(x){clearTimeout(noticeTimer);hint.textContent=`${x.name} · ${x.info}`;hint.classList.add('show');noticeTimer=setTimeout(()=>hint.classList.remove('show'),3200)}
+function openItem(id){const x=items.find(x=>x.id===id);if(!x)return false;
+ closePanel();visited.add(id);active=id;
+ try{x.go();showHint(x)}catch(err){console.error('QA navigation:',err);showHint({name:'未能跳转',info:String(err).slice(0,90)});return false}
+ return true;
+}
+function mark(id){const current=saved[id]||'todo';const next=current==='todo'?'ok':current==='ok'?'issue':'todo';if(next==='todo')delete saved[id];else saved[id]=next;persist();paint()}
+function report(){const c=summary();return `Footprint Map V4｜交互验收结果\n已确认：${c.ok}/${c.total}；需修改：${c.issue}；未标记：${c.remaining}\n`+items.map((x,i)=>`${i+1}. ${x.name}：${saved[x.id]==='ok'?'通过':saved[x.id]==='issue'?'需要修改':'待验收'}`).join('\n')+`\n\n另需完整产品跨模块验证：\n`+outside.map(x=>`- ${x[0]}`).join('\n')}
+shade.addEventListener('click',closePanel);
+toggle.addEventListener('click',()=>panel.classList.contains('open')?closePanel():openPanel());
+panel.addEventListener('click',async e=>{
+ const t=e.target.closest('button');if(!t)return;
+ if(t.hasAttribute('data-qa-close')){closePanel();return}
+ if(t.dataset.qaOpen){openItem(t.dataset.qaOpen);return}
+ if(t.dataset.qaState){mark(t.dataset.qaState);return}
+ if(t.hasAttribute('data-qa-reset')){saved={};visited.clear();persist();paint();return}
+ if(t.hasAttribute('data-qa-copy')){
+  const out=report();try{await navigator.clipboard.writeText(out);t.textContent='已复制';setTimeout(()=>{if(t.isConnected)t.textContent='复制验收结果'},1400)}catch(err){
+    const box=document.createElement('textarea');box.value=out;document.body.append(box);box.select();
+    try{document.execCommand('copy');t.textContent='已复制'}catch(_){t.textContent='复制失败'}box.remove();
+  }
+ }
+});
+// Natural FLIP on photo layout switch: no duplicate media nodes or business state.
+const prefersReduced=matchMedia('(prefers-reduced-motion: reduce)');
+let oldBoxes=null;
+dock.addEventListener('click',e=>{
+ if(prefersReduced.matches||!e.target.closest('[data-action="layout"]'))return;
+ const cards=[...document.querySelectorAll('.media-grid .grid-photo')];
+ oldBoxes=cards.map(el=>({el,rect:el.getBoundingClientRect()}));
+ queueMicrotask(()=>{
+  if(!oldBoxes)return;
+  for(const {el,rect} of oldBoxes){if(!el.isConnected)continue;const r=el.getBoundingClientRect();
+   const dx=rect.left-r.left,dy=rect.top-r.top;
+   if(Math.abs(dx)+Math.abs(dy)>1){el.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'translate(0,0)'}],{duration:390,easing:'cubic-bezier(.18,.78,.25,1)'})}
+  }
+  oldBoxes=null;
+ });
+},true);
+// Nearby item feedback is independent per demo row. No extra stars or fake data persistence.
+layer.addEventListener('click',e=>{
+ const b=e.target.closest('.nearby-row [data-action="keepNearby"]');if(!b)return;
+ const selected=b.classList.toggle('qa-wanted');b.textContent=selected?'已想去':'想去';b.setAttribute('aria-pressed',String(selected));
+ if(!prefersReduced.matches)b.animate([{transform:'scale(.94)'},{transform:'scale(1.035)'},{transform:'scale(1)'}],{duration:300,easing:'cubic-bezier(.2,.8,.3,1)'});
+});
+window.__acceptanceV4={items:items.map(x=>({id:x.id,group:x.group,name:x.name,info:x.info})),outside:outside.map(x=>x[0]),open:openItem,mark,summary,report,show:openPanel,hide:closePanel,reset(){saved={};visited.clear();persist();paint()},active:()=>active};
+paint();
+})();
+</script>
+<script id="fp-batch-a-script">
+(()=>{'use strict';
+const $=sel=>document.querySelector(sel),screen=$('.screen'),existing=window.__dockDemo,oldQA=window.__acceptanceV4;
+if(!screen||!existing||window.__batchA)return;
+const reduce=matchMedia('(prefers-reduced-motion:reduce)');
+const defs=[
+ ['A01','POI 类别筛选','景点、餐饮、住宿、其他；切换筛选及空状态'],
+ ['A02','地图选点加星','地图拖动、中心定位、确认或取消'],
+ ['A03','新建／编辑地点','名称、日期、Brief、资料；保存反馈'],
+ ['A04','放弃未保存修改','继续编辑或放弃修改的二次确认'],
+ ['A05','取消星标（保留内容）','星标取消与数据保留是两种不同动作'],
+ ['A06','彻底删除地点','危险操作确认、演示恢复和防误触']
+];
+const spots=[
+ {id:'scenic',group:'attraction',symbol:'⌂',name:'街巷与石桥',kind:'景点',detail:'街巷文化 · 演示地点'},
+ {id:'garden',group:'attraction',symbol:'♧',name:'古园林庭院',kind:'景点',detail:'建筑漫游 · 演示地点'},
+ {id:'cafe',group:'food',symbol:'◡',name:'沿河小食',kind:'餐饮',detail:'当地饮食 · 演示地点'},
+ {id:'stay',group:'stay',symbol:'▤',name:'临水小住',kind:'住宿',detail:'休息落脚 · 演示地点'}
+];
+const categories=[['all','全部'],['attraction','景点'],['food','餐饮'],['stay','住宿'],['other','其他']];
+const tempKey='__footprint_v4_batch_a_review_20261111';
+let marks={};try{marks=JSON.parse(localStorage.getItem(tempKey)||'{}')||{}}catch(_){ }
+let current=null,mode=null,editorDirty=false,editorKind='edit',filter='all',dialog=null,activeReview=null;
+let demoSaved={name:'平江路',area:'苏州 · 旧城街区',date:'',brief:'想趁清晨沿着河道慢慢走，在石桥边停一停。',source:''};
+let demoPresent=true,demoStarred=true,noticeTimer=0;
+const toggle=document.createElement('button');toggle.id='aToggle';toggle.type='button';toggle.textContent='A批 0/6';toggle.setAttribute('aria-label','打开地点管理交互验收');
+const mask=document.createElement('div');mask.id='aMask';
+const layer=document.createElement('div');layer.id='aLayer';
+const pick=document.createElement('div');pick.id='aPick';
+const notice=document.createElement('div');notice.id='aNotice';notice.setAttribute('role','status');
+const panel=document.createElement('section');panel.id='aPanel';panel.setAttribute('aria-label','A批地点管理交互验收');
+screen.append(toggle,mask,layer,pick,notice,panel);
+const esc=s=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+function notify(message){notice.textContent=message;notice.classList.add('visible');clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>notice.classList.remove('visible'),2400)}
+function animate(el,frames,opt){if(reduce.matches||!el?.animate)return;el.animate(frames,{duration:440,easing:'cubic-bezier(.17,.83,.22,1)',...opt})}
+function elasticEnter(el){el?.classList.add('a-open');animate(el,[{transform:'translateY(105%)',offset:0},{transform:'translateY(-13px)',offset:.73},{transform:'translateY(3px)',offset:.9},{transform:'translateY(0)',offset:1}],{duration:515})}
+function elasticDialog(el){if(!el)return;el.classList.add('a-open');animate(el,[{opacity:0,transform:'scale(.83) translateY(13px)',offset:0},{opacity:1,transform:'scale(1.035) translateY(-2px)',offset:.76},{opacity:1,transform:'scale(1)',offset:1}],{duration:375})}
+function syncStar(){document.body.classList.toggle('a-star-hidden',!demoPresent||!demoStarred)}
+function resetState(){demoSaved={name:'平江路',area:'苏州 · 旧城街区',date:'',brief:'想趁清晨沿着河道慢慢走，在石桥边停一停。',source:''};demoPresent=true;demoStarred=true;syncStar()}
+function closeUI(silent=false){
+ const had=!!mode;mode=null;current=null;dialog=null;editorDirty=false;
+ layer.innerHTML='';layer.style.pointerEvents='none';mask.classList.remove('active');pick.classList.remove('active');pick.innerHTML='';
+ document.body.classList.remove('a-batch-active','a-batch-picking');resetState();
+ if(had&&!silent)notify('已退出 A 批演示 · 原 V4 地图已恢复');
+}
+function applyActive(type,showMask=true){
+ mode=type;document.body.classList.add('a-batch-active');document.body.classList.toggle('a-batch-picking',type==='pick');
+ if(type!=='pick'){pick.classList.remove('active');pick.innerHTML='';syncStar()}
+ mask.classList.toggle('active',showMask);layer.style.pointerEvents='none';
+}
+function enter(name,bodyHtml,opts={}){
+ layer.innerHTML=`<section class="a-sheet ${opts.editor?'a-editor':'a-medium'}" role="dialog" aria-label="${esc(name)}"><div class="a-grip"></div><header class="a-head"><div class="a-title"><small class="a-kicker">FOOTPRINT MAP / 地点管理</small><h2>${esc(name)}</h2></div><button class="a-close" type="button" data-a="close" aria-label="关闭">×</button></header><div class="a-body">${bodyHtml}</div>${opts.footer||''}</section>`;
+ requestAnimationFrame(()=>elasticEnter(layer.querySelector('.a-sheet')));
+}
+function footer(leftName,leftAction,rightName,rightAction,danger=false){return `<footer class="a-footer"><button type="button" data-a="${leftAction}">${leftName}</button><button type="button" class="${danger?'danger':'primary'}" data-a="${rightAction}">${rightName}</button></footer>`}
+function openFilter(){
+ applyActive('filter');filter='all';
+ enter('探索附近',`<p class="a-sub">筛选同一片地图附近的地点类型。此处为界面交互示例，不新增地图星标。</p><div class="a-filters" role="group" aria-label="附近地点类型">${categories.map(([id,name])=>`<button type="button" data-filter="${id}" ${id===filter?'class="selected"':''}>${name}</button>`).join('')}</div><div id="aFilterList" aria-live="polite"></div><p class="a-note">演示数据仅用于确认分类、列表与空状态。真实地点和距离由地图系统提供。</p>`,{footer:footer('返回地图','close','地图选点','go-pick')});
+ paintFilter();
+}
+function paintFilter(){
+ const area=$('#aFilterList');if(!area)return;
+ const list=spots.filter(x=>filter==='all'||x.group===filter);
+ area.innerHTML=list.length?list.map(x=>`<div class="a-poi"><span class="a-poi-icon">${x.symbol}</span><span class="a-poi-copy"><b>${x.name}</b><small>${x.kind} · ${x.detail}</small></span><button type="button" data-poi="${x.id}" aria-label="查看${x.name}">查看</button></div>`).join(''):`<div class="a-empty"><strong>该分类暂时没有地点</strong><div>可选择其他类型继续探索。<br/>真实 POI 需要联网地图支持。</div></div>`;
+}
+function openPick(){
+ existing.jump('map');closeUI(true);resetState();applyActive('pick',false); // map remains draggable
+ pick.innerHTML=`<div class="a-cross" aria-hidden="true"></div><div class="a-label">拖动地图 · 将目的地对准中心</div><div class="a-pickbar"><strong>在地图上标记地点</strong><small>中心十字是选点工具，不是第二颗星。拖动示意地图后点击确认，进入新建地点。</small><div class="a-buttons"><button type="button" data-a="close">取消</button><button type="button" class="primary" data-a="confirm-pick">确认此处</button></div></div>`;
+ pick.classList.add('active');
+ // The existing yellow marker is covered only during preview selection.
+ document.body.classList.add('a-star-hidden');
+}
+function values(){
+ const form=$('#aForm');if(!form)return demoSaved;
+ return {name:form.elements.aName.value.trim(),area:form.elements.aArea.value.trim(),date:form.elements.aDate.value,brief:form.elements.aBrief.value.trim(),source:form.elements.aSource.value.trim()};
+}
+function openEditor(kind='edit'){
+ if(!demoPresent)resetState();
+ editorKind=kind;editorDirty=false;applyActive('editor');
+ const x=kind==='new'?{name:'',area:'地图中心 · 位置示意',date:'',brief:'',source:''}:demoSaved;
+ enter(kind==='new'?'新建地点':'编辑地点',`<p class="a-sub">地点信息与收藏资料都归属同一个地点。此页只保存当前演示状态，不覆盖真实收藏。</p><div class="a-pillrow"><button type="button" class="${kind==='edit'?'selected':''}" data-a="edit-existing">编辑已存地点</button><button type="button" class="${kind==='new'?'selected':''}" data-a="edit-new">新建地点</button></div><form id="aForm" class="a-form" autocomplete="off"><label>地点名称<input name="aName" maxlength="60" required value="${esc(x.name)}" placeholder="例如：清晨想去的街巷"></label><label>地点或地址<input name="aArea" maxlength="90" value="${esc(x.area)}" placeholder="选择地图位置"></label><div class="a-cols"><label>计划日期<input type="date" name="aDate" value="${esc(x.date)}"></label><label>分类<input name="aCategory" value="想去" readonly aria-label="收藏类别"></label></div><label>为什么想去 · Brief<textarea name="aBrief" placeholder="写下吸引你的原因…">${esc(x.brief)}</textarea></label><label>攻略／参考来源<input name="aSource" type="url" value="${esc(x.source)}" placeholder="https://…"></label><div class="a-result">影像入口将在媒体 B 批中验收；此处不上传或删除真实文件。</div></form>`,{editor:true,footer:footer('取消','editor-close','保存地点','editor-save')});
+ const form=$('#aForm');form.addEventListener('input',()=>{editorDirty=true});
+}
+function dialogView({symbol='✳',title,description,primaryText,primaryAction,secondaryText='取消',secondaryAction='dialog-cancel',danger=false}){
+ dialog=primaryAction;
+ const blocker=document.createElement('div');blocker.className='a-dialog-backdrop';
+ blocker.innerHTML=`<div class="a-dialog" role="alertdialog" aria-modal="true" aria-label="${esc(title)}"><div class="a-symbol ${danger?'danger':''}">${symbol}</div><h2>${esc(title)}</h2><p>${description}</p><div class="a-dialog-actions"><button type="button" class="${danger?'danger':'primary'}" data-a="${primaryAction}">${primaryText}</button><button type="button" data-a="${secondaryAction}">${secondaryText}</button></div></div>`;
+ layer.append(blocker);requestAnimationFrame(()=>elasticDialog(blocker.querySelector('.a-dialog')));
+}
+function closeDialog(){layer.querySelector('.a-dialog-backdrop')?.remove();dialog=null}
+function openDiscard(){
+ if(mode!=='editor'){openEditor('edit');const form=$('#aForm');form.elements.aBrief.value+=' 这里有一段尚未保存的文字。';editorDirty=true}
+ dialogView({title:'放弃这次修改？',description:'你编辑的地点资料尚未保存。继续编辑可以保留输入；放弃后返回地图。',primaryText:'继续编辑',primaryAction:'keep-editing',secondaryText:'放弃修改',secondaryAction:'discard-changes'});
+}
+function openUnstar(){
+ existing.jump('map');closeUI(true);resetState();applyActive('unstar');
+ dialogView({symbol:'☆',title:'取消这颗星标？',description:'地点从地图收藏中隐藏，但 Brief、照片和视频仍会保留。重新收藏即可恢复。',primaryText:'保留星标',primaryAction:'keep-star',secondaryText:'取消星标',secondaryAction:'confirm-unstar'});
+}
+function openDelete(){
+ existing.jump('map');closeUI(true);resetState();applyActive('delete');
+ dialogView({symbol:'✳',title:'彻底删除这个地点？',description:'与取消星标不同：地点、Brief 和关联媒体都将删除。真实产品中此操作不可撤销；本页只模拟结果。',primaryText:'彻底删除',primaryAction:'confirm-delete',secondaryText:'保留地点',secondaryAction:'keep-place',danger:true});
+}
+function outcome(title,bodyText,restoreText='恢复演示地点'){
+ layer.innerHTML='';closeDialog();applyActive('outcome');
+ enter(title,`<div class="a-result">${bodyText}</div><p class="a-sub">所有操作仅发生在本次独立交互演示中，不触碰你浏览器里正式产品的收藏、照片或 IndexedDB。</p>`,{footer:footer('返回地图','close',restoreText,'restore')});
+}
+function openItem(id){
+ if(!defs.some(v=>v[0]===id))return false;
+ oldQA?.hide?.();closePanel();if(id!=='A02')existing.jump('map');activeReview=id;
+ if(id==='A01')openFilter();if(id==='A02')openPick();if(id==='A03'){closeUI(true);openEditor('edit')};if(id==='A04'){closeUI(true);openDiscard()};if(id==='A05')openUnstar();if(id==='A06')openDelete();
+ return true;
+}
+function handle(action){
+ switch(action){
+ case'close':if(mode==='editor'&&editorDirty){openDiscard();return}closeUI();break;
+ case'editor-close':if(editorDirty){openDiscard();return}closeUI();break;
+ case'confirm-pick':openEditor('new');break;
+ case'go-pick':openPick();break;
+ case'edit-existing':openEditor('edit');break;
+ case'edit-new':openEditor('new');break;
+ case'editor-save':{
+   const form=$('#aForm');if(!form?.reportValidity())return;
+   const saved=values();if(!saved.name){notify('请填写地点名称');return}
+   demoSaved=saved;demoPresent=true;demoStarred=true;syncStar();editorDirty=false;
+   outcome('地点已保存',`<strong>${esc(saved.name)}</strong><br/>已保存到演示会话；正式地点与媒体数据未写入。`,'继续编辑');
+   break;}
+ case'keep-editing':closeDialog();break;
+ case'discard-changes':editorDirty=false;closeUI();notify('未保存的修改已放弃');break;
+ case'dialog-cancel':closeDialog();closeUI();break;
+ case'keep-star':closeUI();notify('星标已保留');break;
+ case'confirm-unstar':demoStarred=false;syncStar();outcome('已取消星标','此地点已从地图星标中隐藏，Brief 与媒体仍保留在演示模型中。','恢复星标');syncStar();break;
+ case'keep-place':closeUI();notify('地点与内容均已保留');break;
+ case'confirm-delete':demoPresent=false;demoStarred=false;syncStar();outcome('地点已从演示中删除','演示地点及其关联的内容已被清空。你可以重置演示，恢复原本的 V4 场景。','重置演示');syncStar();break;
+ case'restore':if(activeReview==='A03'||(activeReview==='A02'&&demoPresent)){openEditor('edit')}else{resetState();closeUI()}break;
+ }
+}
+layer.addEventListener('click',e=>{const action=e.target.closest('[data-a]')?.dataset.a;if(action)handle(action);
+ const cat=e.target.closest('[data-filter]');if(cat){filter=cat.dataset.filter;layer.querySelectorAll('[data-filter]').forEach(n=>n.classList.toggle('selected',n===cat));paintFilter();animate($('#aFilterList'),[{opacity:.45,transform:'translateY(7px)'},{opacity:1,transform:'translateY(0)'}],{duration:260})}
+ const poi=e.target.closest('[data-poi]');if(poi){const x=spots.find(s=>s.id===poi.dataset.poi);if(x)notify(x.name+' · '+x.kind+' · 演示地点详情')}
+});
+pick.addEventListener('click',e=>{const action=e.target.closest('[data-a]')?.dataset.a;if(action)handle(action)});
+mask.addEventListener('click',()=>{if(mode==='editor'&&editorDirty){openDiscard();return}if(dialog)return;closeUI()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&mode){e.stopPropagation();e.preventDefault();if(mode==='editor'&&editorDirty)openDiscard();else closeUI()}},true);
+const headings={'A01':'地点发现','A02':'地图选点','A03':'新建与编辑','A04':'编辑保护','A05':'收藏管理','A06':'删除确认'};
+function summary(){const ok=defs.filter(d=>marks[d[0]]==='ok').length,issue=defs.filter(d=>marks[d[0]]==='issue').length;return{ok,issue,total:6,remaining:6-ok-issue}}
+function persist(){try{localStorage.setItem(tempKey,JSON.stringify(marks))}catch(_){}}
+function paint(){const n=summary();toggle.textContent=`A批 ${n.ok}/${n.total}`;panel.innerHTML=`<div class="a-panel-header"><div><small>FOOTPRINT MAP / SECOND REVIEW</small><h2>第二轮 · 地点管理</h2><p>通过 ${n.ok}/6　需修改 ${n.issue}　未确认 ${n.remaining}<br/>逐项打开体验，再点圆点标记结果</p></div><button type="button" data-review="close" aria-label="关闭验收列表">×</button></div><div class="a-list">${defs.map(([id,name,desc])=>`<div class="a-row"><span class="a-num">${id}</span><div class="a-copy"><b>${headings[id]} · ${name}</b><p>${desc}</p></div><button type="button" data-open="${id}">打开</button><button type="button" class="a-mark" data-mark="${id}" data-state="${marks[id]||'todo'}" aria-label="标记${name}">${marks[id]==='ok'?'✓':marks[id]==='issue'?'!':'○'}</button></div>`).join('')}<p class="a-note">A 批仅确认 UI 与动作；真实新增地点、位置存储和删除数据仍在完整产品 7 类联调中。</p></div><footer class="a-panel-foot"><button type="button" data-review="reset">重置标记</button><button type="button" class="primary" data-review="copy">复制 A 批结果</button></footer>`}
+function openPanel(){paint();panel.classList.add('open');mask.classList.add('active');mask.style.zIndex='124';mask.style.pointerEvents='auto'}
+function closePanel(){panel.classList.remove('open');mask.style.zIndex='';mask.style.pointerEvents='';mask.classList.toggle('active',!!mode&&mode!=='pick')}
+function cycle(id){const v=marks[id]||'todo';const next=v==='todo'?'ok':v==='ok'?'issue':'todo';if(next==='todo')delete marks[id];else marks[id]=next;persist();paint()}
+function report(){const c=summary();return `Footprint Map V4｜第二轮 A 批地点管理验收\n已确认：${c.ok}/6；需修改：${c.issue}；未标记：${c.remaining}\n`+defs.map(([id,name],i)=>`${i+1}. ${name}：${marks[id]==='ok'?'通过':marks[id]==='issue'?'需要修改':'待验收'}`).join('\n')+'\n\n说明：第一轮 V4 基础交互 17/17 已通过；跨模块真实功能仍需验证。'}
+panel.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.open){openItem(b.dataset.open);return}
+ if(b.dataset.mark){cycle(b.dataset.mark);return}
+ if(b.dataset.review==='close'){closePanel();return}
+ if(b.dataset.review==='reset'){marks={};persist();paint();return}
+ if(b.dataset.review==='copy'){
+   const value=report();try{await navigator.clipboard.writeText(value);b.textContent='已复制'}catch(_){const node=document.createElement('textarea');node.value=value;document.body.append(node);node.select();document.execCommand('copy');node.remove();b.textContent='已复制'}
+ }
+});
+toggle.addEventListener('click',()=>panel.classList.contains('open')?closePanel():openPanel());
+// Keep old QA navigator intact and independent. The new A navigator is the only new interactive layer.
+window.__batchA={items:defs.map(([id,name,desc])=>({id,name,desc})),open:openItem,show:openPanel,hide:closePanel,summary,report,reset(){marks={};persist();paint()},state:()=>({mode,filter,dialog,editorDirty,demoStarred,demoPresent,activeReview,starCount:document.querySelectorAll('#savedStar').length,dockCount:document.querySelectorAll('#dock').length}),exit:closeUI};
+paint();
+})();
+</script>
+<script id="fp-batch-b-script">
+(()=>{'use strict';
+const screen=document.querySelector('.screen');
+if(!screen||window.__batchB||!window.__dockDemo||!window.__batchA)return;
+const reduce=matchMedia('(prefers-reduced-motion:reduce)');
+const qa=window.__acceptanceV4, a=window.__batchA, demo=window.__dockDemo;
+const defs=[
+ ['B01','照片／视频全屏浏览','iPhone 式缩略图放大、左右翻页、下滑缩回当前缩略图'],
+ ['B02','旅行后添加影像','关联平江路、选择照片视频、去过标记、权限反馈'],
+ ['B03','地点分享预览','分享卡片、复制演示链接、隐私提示'],
+ ['B04','选择导航软件','高德／Apple／Google 地图与取消反馈'],
+ ['B05','收藏管理中心','地点／路线无闪屏切换、搜索、空状态、返回卡片'],
+ ['B06','备份与恢复界面','导出演示 JSON、导入校验、确认与错误反馈']
+];
+const key='__footprint_v4_batch_b_review_20261111_v3';
+let checks={B01:'ok',B02:'ok',B03:'ok',B04:'ok',B05:'ok',B06:'ok'};try{checks={...checks,...JSON.parse(localStorage.getItem(key)||'{}')}}catch(_){ }
+const toggle=document.createElement('button'),shade=document.createElement('div'),layer=document.createElement('div'),panel=document.createElement('section'),toast=document.createElement('div');
+toggle.id='bToggle';toggle.type='button';toggle.textContent='B批 0/6';toggle.setAttribute('aria-label','打开媒体与个人内容交互验收');
+shade.id='bShade';layer.id='bLayer';panel.id='bPanel';toast.id='bToast';toast.setAttribute('role','status');
+screen.append(toggle,shade,layer,panel,toast);
+const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+let mode=null,activeId=null,noticeTimeout=0,mediaIndex=0,mediaViewer=null,mediaDrag=null,mediaCloseTimer=0,heroMorph=null,heroAnimation=null,viewerClosing=false,played=false,visited=false,chosenNav=null,collectionTab='places',collectionQuery='',backupPreview=null,backupState='',mediaFiles=[],videoUrl=null;
+const scenes=[
+ `<svg viewBox="0 0 390 320" preserveAspectRatio="xMidYMid slice" aria-label="平江河岸示意"><rect width="390" height="320" fill="#cbdad0"/><path d="M0 65 390 40v90L0 150" fill="#e9eddf"/><path d="M0 220 390 138v182H0" fill="#809c8d"/><path d="M0 250Q180 208 390 246" stroke="#c7e1d9" stroke-width="57" fill="none"/><path d="M0 244Q180 202 390 238" stroke="#ebf6ed" stroke-width="9" fill="none"/><rect x="29" y="110" width="100" height="96" fill="#fafbf3" rx="5"/><rect x="138" y="86" width="88" height="114" fill="#edf0e4" rx="3"/><path d="m17 109 125-16m-4-7 102-18" stroke="#a8afa2" stroke-width="12"/><g stroke="#728d7b" stroke-width="3"><path d="m58 147 0 58m31-63v60m76-76v70m36-74v75"/></g><path d="M200 255q42-58 83 0" fill="none" stroke="#e8eddf" stroke-width="13"/></svg>`,
+ `<svg viewBox="0 0 390 320" preserveAspectRatio="xMidYMid slice" aria-label="旧城街巷示意"><rect width="390" height="320" fill="#dce5d9"/><path d="m0 135 390-80v130L0 285" fill="#b9cfc1"/><path d="M34 85 150 53v218L35 290Z" fill="#f6f8ef"/><path d="m0 85 180-52-27 22L5 103" fill="#7d9b89"/><path d="m211 85 144-34v192l-144 31" fill="#f0f3e9"/><path d="m200 84 160-45 20 15-161 44" fill="#8ba497"/><g fill="#b8cabc"><rect x="67" y="121" width="39" height="70" rx="4"/><rect x="260" y="111" width="51" height="71" rx="4"/></g><path d="M142 320q49-113 129-123" fill="none" stroke="#edf2e8" stroke-width="66"/></svg>`,
+ `<svg viewBox="0 0 390 320" preserveAspectRatio="xMidYMid slice" aria-label="古桥与河道示意"><rect width="390" height="320" fill="#b8d3c9"/><path d="M0 10 390 0v65L0 107" fill="#edf0e7"/><path d="m-17 217 420-35" stroke="#e5ece2" stroke-width="44"/><path d="m-10 196q199-138 410-4" fill="none" stroke="#667f71" stroke-width="28"/><path d="m-10 193q199-138 410-4" fill="none" stroke="#f3f4eb" stroke-width="16"/><path d="M0 260q150-20 390 8" fill="none" stroke="#d7e9db" stroke-width="4"/><path d="M0 300q170-20 390 0" fill="none" stroke="#a9c8ba" stroke-width="5"/></svg>`
+];
+const notify=text=>{toast.textContent=text;toast.classList.add('visible');clearTimeout(noticeTimeout);noticeTimeout=setTimeout(()=>toast.classList.remove('visible'),2550)};
+const animate=(el,frames,opt={})=>{if(!reduce.matches&&el?.animate)el.animate(frames,{duration:460,easing:'cubic-bezier(.18,.82,.22,1)',...opt})};
+function clearMedia(){for(const item of mediaFiles)URL.revokeObjectURL(item.url);mediaFiles=[]}
+function closeUI(){cancelHero();mediaDrag=null;mediaViewer=null;viewerClosing=false;mode=null;activeId=null;layer.innerHTML='';layer.classList.remove('b-active');shade.classList.remove('b-active');document.body.classList.remove('b-batch-active');backupPreview=null;videoUrl=null;}
+function closePanel(){panel.classList.remove('open');if(!mode)shade.classList.remove('b-active')}
+function showPanel(){qa.hide?.();a.hide?.();a.exit?.(true);closeUI();renderPanel();panel.classList.add('open');shade.classList.add('b-active')}
+function baseMode(kind){closePanel();a.exit?.(true);qa.hide?.();demo.jump('map');mode=kind;document.body.classList.add('b-batch-active');shade.classList.add('b-active');layer.classList.add('b-active')}
+function page(title,body,options={}){layer.innerHTML=`<section class="b-page ${options.viewer?'viewer':''} ${options.medium?'medium':''}"><div class="b-grip"></div><header class="b-header"><div style="flex:1;min-width:0"><small>FOOTPRINT MAP / V4</small><b>${esc(title)}</b></div><button type="button" class="b-close" data-b="close" aria-label="关闭">×</button></header><div class="b-body">${body}</div>${options.foot?`<footer class="b-foot">${options.foot}</footer>`:''}</section>`;
+ const el=layer.querySelector('.b-page');requestAnimationFrame(()=>{el.classList.add('b-open');animate(el,[{transform:'translateY(102%)',offset:0},{transform:'translateY(-10px)',offset:.78},{transform:'translateY(2px)',offset:.91},{transform:'translateY(0)',offset:1}],{duration:510})});}
+const foot=(a,aa,b,bb)=>`<button type="button" data-b="${aa}">${a}</button><button type="button" class="primary" data-b="${bb}">${b}</button>`;
+function thumb(i){return `<button type="button" class="b-photo" data-b="view" data-index="${i}" aria-label="查看第 ${i+1} 个媒体">${scenes[i]}<span class="b-photo-label">${['河岸','街巷','石桥'][i]} · 示例</span></button>`}
+function gallery(){page('平江路 · 媒体库',`<span class="b-badge">B01 · 照片与视频</span><p class="b-sub">点缩略图，它会沿原位置展开为全屏；左右翻页，向下拖动缩回当前对应的缩略图。第四项为视频控件演示。</p><div class="b-gallery">${scenes.map((_,i)=>thumb(i)).join('')}<button class="b-photo" type="button" data-b="view" data-index="3" aria-label="打开示例视频播放界面"><div style="height:150px;display:grid;place-items:center;background:linear-gradient(145deg,#a5bead,#4a745e);color:white;font-size:31px">▷</div><span class="b-photo-label">视频 · 播放界面示意</span></button></div><p class="b-safe">图片均为示意插画。真实视频文件、解码、播放与缓存由完整产品媒体模块负责。</p>`,{foot:foot('返回地图','close','从第一张查看','view-first')})}
+// Keep the gallery DOM mounted behind the fullscreen viewer. No page() rebuild on swipes.
+function mediaSlideHTML(i){
+ if(i===3)return `<div class="b-photo-slide b-photo-slide-video"><div class="b-video-frame"><button type="button" data-b="video-toggle" id="bViewerPlay">▷ 播放示意</button></div><p class="b-video-note">视频播放的手势与控件示意；真实视频文件须在媒体模块验收。</p></div>`;
+ return `<div class="b-photo-slide">${scenes[i]}</div>`;
+}
+function syncViewer(animateTrack=true){
+ if(!mediaViewer)return;
+ const track=mediaViewer.querySelector('.b-photo-viewer-track');
+ if(!track)return;
+ track.style.transition=animateTrack&&!reduce.matches?'transform .43s cubic-bezier(.18,.86,.26,1)':'none';
+ track.style.transform=`translate3d(${-mediaIndex*100}%,0,0)`;
+ mediaViewer.querySelector('#bViewerCounter').innerHTML=`${mediaIndex+1} / 4<small>${['平江路河岸','旧城街巷','石桥','视频界面'][mediaIndex]}</small>`;
+ const play=mediaViewer.querySelector('#bViewerPlay');if(play)play.textContent=played?'Ⅱ 暂停':'▷ 播放示意';
+}
+// A single matching image/mask travels from its original thumbnail to the fullscreen media.
+const xy=(r)=>({x:r.left,y:r.top,w:r.width,h:r.height});
+const easeSpring='cubic-bezier(.19,.88,.23,1)';
+const targetThumb=i=>layer.querySelector('.b-gallery .b-photo[data-index="'+i+'"]');
+function sourceMediaRect(index){
+ const current=mediaViewer?.querySelectorAll('.b-photo-slide')[index];
+ const art=index===3?current?.querySelector('.b-video-frame'):current?.querySelector('svg');
+ return art?.getBoundingClientRect()||mediaViewer?.querySelector('.b-photo-viewer-stage')?.getBoundingClientRect();
+}
+function settleThumbVisibility(){layer.querySelectorAll('.b-origin-hidden').forEach(n=>n.classList.remove('b-origin-hidden'))}
+function cancelHero(){
+ if(heroAnimation){try{heroAnimation.cancel()}catch(_){ }heroAnimation=null}
+ heroMorph?.remove();heroMorph=null;settleThumbVisibility();
+}
+function ensureThumbVisible(thumb){
+ const scroll=layer.querySelector('.b-page .b-body');if(!scroll||!thumb)return;
+ const v=scroll.getBoundingClientRect(),t=thumb.getBoundingClientRect();
+ if(t.top<v.top+12)scroll.scrollTop+=t.top-(v.top+12);
+ else if(t.bottom>v.bottom-12)scroll.scrollTop+=t.bottom-(v.bottom-12);
+}
+function createHero(index){
+ const hero=document.createElement('div');hero.id='bHeroMorph';
+ hero.innerHTML=index===3?'<div class="b-hero-video">▷</div>':scenes[index];
+ layer.append(hero);heroMorph=hero;return hero;
+}
+function toLocal(rect){const base=layer.getBoundingClientRect();return{x:rect.left-base.left,y:rect.top-base.top,w:rect.width,h:rect.height}}
+function setRect(el,rect){el.style.left=rect.x+'px';el.style.top=rect.y+'px';el.style.width=rect.w+'px';el.style.height=rect.h+'px'}
+function morphBox(el,from,to,open,duration){
+ const a=toLocal(from),b=toLocal(to),scX=a.w/Math.max(1,b.w),scY=a.h/Math.max(1,b.h);
+ // Compute the source centre as a translation relative to the fixed destination centre.
+ const dx=(a.x+a.w/2)-(b.x+b.w/2),dy=(a.y+a.h/2)-(b.y+b.h/2);
+ setRect(el,b);el.style.borderRadius=(open?'3px':'19px');el.style.transform='none';
+ const frames=[
+  {transform:`translate3d(${dx}px,${dy}px,0) scale(${scX},${scY})`,borderRadius:open?'23px':'4px'},
+  {transform:'translate3d(0,0,0) scale(1,1)',borderRadius:open?'3px':'19px'}
+ ];
+ const animation=el.animate(frames,{duration,easing:easeSpring,fill:'forwards'});
+ heroAnimation=animation;return animation;
+}
+function viewerControls(viewer){return[viewer.querySelector('.b-photo-viewer-top'),viewer.querySelector('.b-photo-viewer-bottom')].filter(Boolean)}
+function showViewerContent(viewer,visible){
+ const track=viewer.querySelector('.b-photo-viewer-track');if(track)track.style.opacity=visible?'1':'0';
+ for(const n of viewerControls(viewer))n.style.opacity=visible?'1':'0';
+}
+function animateBackdrop(viewer,from,to,duration){
+ const rgb=v=>'rgba(14,25,18,'+v+')';
+ viewer.style.backgroundColor=rgb(from);
+ if(reduce.matches){viewer.style.backgroundColor=rgb(to);return}
+ const a=viewer.animate([{backgroundColor:rgb(from)},{backgroundColor:rgb(to)}],{duration,easing:'ease-out'});
+ a.finished.then(()=>{if(viewer.isConnected)viewer.style.backgroundColor=rgb(to)}).catch(()=>{});
+}
+function openMediaViewer(index){
+ mediaIndex=Math.max(0,Math.min(3,Number(index)||0));played=false;
+ if(mediaViewer){syncViewer(true);return}
+ viewerClosing=false;cancelHero();
+ const thumb=targetThumb(mediaIndex);
+ const from=thumb?.getBoundingClientRect();
+ const el=document.createElement('section');el.id='bMediaViewer';el.className='b-photo-viewer';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','照片与视频全屏浏览');
+ el.innerHTML=`<header class="b-photo-viewer-top"><button type="button" data-b="viewer-back" aria-label="返回媒体网格">‹</button><span>平江路 · 照片与视频</span><button type="button" data-b="viewer-close" aria-label="关闭全屏媒体">×</button></header><div class="b-photo-viewer-stage" aria-label="左右滑动切换媒体，下滑退出全屏"><div class="b-photo-viewer-track">${[0,1,2,3].map(mediaSlideHTML).join('')}</div></div><footer class="b-photo-viewer-bottom"><button type="button" data-b="previous" aria-label="上一张">‹</button><span id="bViewerCounter"></span><button type="button" data-b="next">›</button></footer>`;
+ mediaViewer=el;layer.append(el);syncViewer(false);el.classList.add('is-visible');
+ if(reduce.matches||!thumb||!from||from.width<5){showViewerContent(el,true);el.style.backgroundColor='rgba(14,25,18,1)';return}
+ showViewerContent(el,false);
+ el.style.backgroundColor='rgba(14,25,18,0)';
+ const to=sourceMediaRect(mediaIndex);
+ const hero=createHero(mediaIndex);thumb.classList.add('b-origin-hidden');
+ animateBackdrop(el,0,1,440);
+ const animation=morphBox(hero,from,to,true,460);
+ for(const c of viewerControls(el))c.animate([{opacity:0,transform:'translateY(7px)'},{opacity:1,transform:'translateY(0)'}],{duration:220,delay:240,easing:'ease-out',fill:'forwards'});
+ animation.finished.then(()=>{
+  if(mediaViewer!==el||viewerClosing)return;
+  showViewerContent(el,true);cancelHero();el.style.backgroundColor='rgba(14,25,18,1)';
+ }).catch(()=>{});
+}
+function stepMedia(direction){
+ if(!mediaViewer||viewerClosing)return;
+ if(mediaIndex+direction<0||mediaIndex+direction>3){syncViewer(true);return}
+ if(heroMorph){cancelHero();showViewerContent(mediaViewer,true)}
+ mediaIndex+=direction;played=false;syncViewer(true)
+}
+function closeMediaViewer(existingGesture=false){
+ if(!mediaViewer||viewerClosing)return;
+ const el=mediaViewer;viewerClosing=true;mediaDrag=null;
+ if(reduce.matches){cancelHero();el.remove();mediaViewer=null;viewerClosing=false;return}
+ const from=heroMorph?.getBoundingClientRect()||sourceMediaRect(mediaIndex);
+ // Scroll the underlying gallery while opaque, so dismissal lands on the correct thumbnail.
+ const thumb=targetThumb(mediaIndex);ensureThumbVisible(thumb);
+ const to=thumb?.getBoundingClientRect();
+ if(!to||!from||to.width<5){cancelHero();el.remove();mediaViewer=null;viewerClosing=false;return}
+ if(!existingGesture){cancelHero();createHero(mediaIndex)}
+ else if(!heroMorph)createHero(mediaIndex);
+ const hero=heroMorph;
+ thumb.classList.add('b-origin-hidden');
+ showViewerContent(el,false);
+ animateBackdrop(el,parseFloat(el.style.backgroundColor.match(/,\s*([\d.]+)\s*\)/)?.[1]||'1'),0,350);
+ for(const c of viewerControls(el))c.animate([{opacity:parseFloat(c.style.opacity)||0},{opacity:0}],{duration:140,fill:'forwards'});
+ const animation=morphBox(hero,from,to,false,410);
+ animation.finished.then(()=>{
+  if(mediaViewer!==el)return;
+  cancelHero();el.remove();mediaViewer=null;viewerClosing=false;
+ }).catch(()=>{});
+}
+function preparePullHero(){
+ if(!mediaViewer||viewerClosing||heroMorph)return;
+ const rect=sourceMediaRect(mediaIndex);
+ if(!rect)return;
+ const hero=createHero(mediaIndex);setRect(hero,toLocal(rect));hero.style.borderRadius=mediaIndex===3?'23px':'3px';
+ showViewerContent(mediaViewer,false);
+}
+function resetViewerPull(){
+ if(!mediaViewer||!heroMorph||viewerClosing)return;
+ const el=mediaViewer,h=heroMorph;
+ const initial=h.style.transform||'none';
+ const bg=el.style.backgroundColor;
+ const a=h.animate([{transform:initial,borderRadius:h.style.borderRadius},{transform:'none',borderRadius:'3px'}],{duration:310,easing:easeSpring,fill:'forwards'});
+ el.animate([{backgroundColor:bg},{backgroundColor:'rgba(14,25,18,1)'}],{duration:260,easing:'ease-out'});
+ a.finished.then(()=>{if(mediaViewer!==el||viewerClosing)return;cancelHero();showViewerContent(el,true);el.style.backgroundColor='rgba(14,25,18,1)';for(const c of viewerControls(el))c.style.opacity='1'}).catch(()=>{});
+}
+function swipeViewerMove(dx,dy){
+ if(!mediaViewer||viewerClosing)return;
+ const track=mediaViewer.querySelector('.b-photo-viewer-track');
+ if(mediaDrag?.axis==='x'){
+  const edge=(mediaIndex===0&&dx>0)||(mediaIndex===3&&dx<0);
+  const follow=edge?dx*.24:dx;
+  track.style.transition='none';track.style.transform=`translate3d(calc(${-mediaIndex*100}% + ${follow.toFixed(1)}px),0,0)`;
+ }else if(mediaDrag?.axis==='y'){
+  preparePullHero();if(!heroMorph)return;
+  const t=Math.max(0,dy),scale=1-Math.min(.35,t/720);
+  heroMorph.style.transform=`translate3d(${(dx*.22).toFixed(1)}px,${(t*.91).toFixed(1)}px,0) scale(${scale.toFixed(4)})`;
+  heroMorph.style.borderRadius=(3+Math.min(21,t*.065)).toFixed(1)+'px';
+  mediaViewer.style.backgroundColor='rgba(14,25,18,'+Math.max(.10,1-t/425).toFixed(3)+')';
+  for(const c of viewerControls(mediaViewer))c.style.opacity=Math.max(0,1-t/105).toFixed(3);
+ }
+}
+function endMediaDrag(pointerCancelled=false){
+ const drag=mediaDrag;if(!drag||!mediaViewer)return;
+ mediaDrag=null;
+ const dx=drag.x-drag.x0,dy=drag.y-drag.y0,dt=Math.max(16,performance.now()-drag.start);
+ const vx=dx/dt,vy=dy/dt;
+ if(drag.axis==='y'){
+  if(!pointerCancelled&&dy>0&&(dy>110||vy>.60)){closeMediaViewer(true);return}
+  resetViewerPull();return;
+ }
+ if(drag.axis==='x'){
+  if(!pointerCancelled&&(Math.abs(dx)>Math.min(104,drag.width*.22)||Math.abs(vx)>.58))stepMedia(dx<0?1:-1);
+  else syncViewer(true);
+ }
+}
+// Locked axis: horizontal swipes are page scroll; downward swipes move the photo itself.
+layer.addEventListener('pointerdown',event=>{
+ if(!mediaViewer||viewerClosing||heroAnimation||!event.target.closest('#bMediaViewer .b-photo-viewer-stage')||event.target.closest('button')||!event.isPrimary)return;
+ const stage=mediaViewer.querySelector('.b-photo-viewer-stage');
+ mediaDrag={id:event.pointerId,axis:null,x0:event.clientX,y0:event.clientY,x:event.clientX,y:event.clientY,start:performance.now(),width:stage.getBoundingClientRect().width};
+ try{stage.setPointerCapture(event.pointerId)}catch(_){ }
+});
+layer.addEventListener('pointermove',event=>{
+ const d=mediaDrag;if(!d||!mediaViewer||event.pointerId!==d.id)return;
+ d.x=event.clientX;d.y=event.clientY;
+ const dx=d.x-d.x0,dy=d.y-d.y0;
+ if(!d.axis&&Math.hypot(dx,dy)>9)d.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':dy>0?'y':'none';
+ if(d.axis==='x'||d.axis==='y'){event.preventDefault();swipeViewerMove(dx,dy)}
+},{passive:false});
+layer.addEventListener('pointerup',event=>{if(mediaDrag?.id===event.pointerId){mediaDrag.x=event.clientX;mediaDrag.y=event.clientY;endMediaDrag()}});
+layer.addEventListener('pointercancel',event=>{if(mediaDrag?.id===event.pointerId)endMediaDrag(true)});
+function capture(){const list=mediaFiles.length?mediaFiles.map((f,i)=>`<div class="b-file-entry">${f.type.startsWith('image/')?`<img src="${esc(f.url)}" alt="本地上传图片">`:f.type.startsWith('video/')?`<video src="${esc(f.url)}" muted playsinline controls preload="metadata"></video>`:'<span>▤</span>'}<div class="name">${esc(f.name)}<br/><small>${f.type.startsWith('video/')?'视频':'照片'} · 当前会话</small></div><button type="button" data-b="remove-upload" data-index="${i}">移除</button></div>`).join(''):'<div class="b-empty">还没有添加旅行后拍摄的影像。<br/>点击上方按钮选择本机文件。</div>';
+ page('去过 · 添加影像',`<span class="b-badge">B02 · 地点媒体</span><div class="b-share-card"><h2>平江路</h2><p>去过的地方，也值得好好保存。</p><label style="font-size:12px;color:#59735e;display:flex;gap:9px;align-items:center"><input type="checkbox" id="bVisited" ${visited?'checked':''} style="accent-color:#315b43;width:18px;height:18px"> 标记「我去过这里」</label></div><div class="b-upload-box"><b>＋ 添加照片或视频</b>选择本机文件，将它们关联到演示地点。<br/><button type="button" data-b="choose-file">选择照片 / 视频</button></div><div class="b-media-list">${list}</div><p class="b-safe">文件只在当前演示页面预览，不上传服务器、不写入正式 IndexedDB；刷新会清空。真实上传和持久存储仍须集成验收。</p>`,{foot:foot('返回地点','close','完成','capture-done')});}
+function share(){page('分享地点',`<span class="b-badge">B03 · 地点分享预览</span><div class="b-share-card"><small style="color:#91a38f;letter-spacing:.14em;font-size:10px;font-weight:800">FOOTPRINT MAP / LOCATION</small><h2>平江路</h2><p>苏州 · 旧城街区</p><div style="height:143px;border-radius:17px;overflow:hidden;margin-top:13px">${scenes[0]}</div><p style="margin-top:15px">想趁清晨沿着河道慢慢走，看看石桥、老房子与安静的街巷。</p></div><div class="b-safe">隐私提示：这里分享的是演示链接与地点简介。你的真实照片、视频、个人收藏和本地数据库不会自动上传或共享。</div><div class="b-actions"><button type="button" data-b="copy-share">复制演示链接</button><button type="button" data-b="native-share">使用系统分享</button></div>`,{foot:foot('返回地图','close','选择导航','goto-nav')})}
+function navigation(){page('选择导航软件',`<span class="b-badge">B04 · 从地点出发</span><p class="b-sub">从平江路出发，选择熟悉的地图工具。此处演示选择反馈，不会真正打开外部导航或获取当前位置。</p>${[['amap','高德地图','步行 · 驾车 · 公共交通','⌖'],['apple','Apple 地图','iPhone 原生地图','▧'],['google','Google Maps','地图与路线预览','◎']].map(([id,name,desc,ic])=>`<div class="b-row"><span class="b-row-icon">${ic}</span><div class="b-row-text"><b>${name}</b><small>${desc}</small></div><button type="button" data-b="nav-select" data-id="${id}">${chosenNav===id?'已选择':'选择'}</button></div>`).join('')}<div class="b-state" id="bNavStatus">${chosenNav?'已选择 '+({amap:'高德地图',apple:'Apple 地图',google:'Google Maps'}[chosenNav]):'尚未选择导航应用'}</div><p class="b-safe">实际地点坐标、导航模式、第三方链接与系统应用唤起，待完整产品联调确认。</p>`,{foot:foot('取消','close','开始导航（演示）','nav-go')})}
+// B05: retain the page DOM, input and scroll; only change tab indicator and rows.
+function collectionRows(){return collectionTab==='places'?[['平江路','苏州 · 已收藏 Brief、照片与攻略','view-place'],['石桥旁的清晨','街巷灵感 · 示例收藏','view-place']]:[['苏州慢行计划','2 天 · 3 个停靠点 · 示例路线','view-route']]}
+function updateCollectionContents(){
+ const root=layer.querySelector('.b-page');if(!root)return;
+ const tabset=root.querySelector('.b-tabset'),input=root.querySelector('#bCollectionQuery'),list=root.querySelector('#bCollectionList');
+ if(!tabset||!list)return;
+ const names={places:'地点',routes:'路线'};
+ tabset.dataset.active=collectionTab;
+ tabset.querySelectorAll('button[data-tab]').forEach(b=>{const active=b.dataset.tab===collectionTab;b.classList.toggle('selected',active);b.setAttribute('aria-selected',String(active))});
+ if(input){input.placeholder='搜索已收藏的'+names[collectionTab];if(input.value!==collectionQuery)input.value=collectionQuery}
+ const q=collectionQuery.trim();const rows=collectionRows().filter(x=>!q||x[0].includes(q)||x[1].includes(q));
+ list.innerHTML=rows.length?rows.map(x=>`<div class="b-row"><span class="b-row-icon">${collectionTab==='places'?'☆':'⌁'}</span><div class="b-row-text"><b>${esc(x[0])}</b><small>${esc(x[1])}</small></div><button type="button" data-b="${x[2]}">查看</button></div>`).join(''):`<div class="b-empty">没有找到匹配的${names[collectionTab]}<br/>试试其他关键词或清除搜索。</div>`;
+ list.classList.remove('b-rows-change');if(!reduce.matches){void list.offsetHeight;list.classList.add('b-rows-change')}
+}
+function collections(){
+ const existing=layer.querySelector('.b-page #bCollectionList');
+ if(existing){updateCollectionContents();return;}
+ page('我的收藏',`<span class="b-badge">B05 · 收藏管理</span><p class="b-sub">收藏地点与路线分别管理。点击地点可返回原地图的同一颗黄色星标。</p><div class="b-tabset" data-active="${collectionTab}" role="tablist"><span class="b-tab-indicator" aria-hidden="true"></span><button type="button" data-b="collection-tab" data-tab="places" class="${collectionTab==='places'?'selected':''}" role="tab" aria-selected="${collectionTab==='places'}">地点</button><button type="button" data-b="collection-tab" data-tab="routes" class="${collectionTab==='routes'?'selected':''}" role="tab" aria-selected="${collectionTab==='routes'}">路线</button></div><input type="search" class="b-input" id="bCollectionQuery" placeholder="搜索已收藏内容" value="${esc(collectionQuery)}" aria-label="搜索收藏"><div class="b-collection" id="bCollectionList" aria-live="polite"></div><p class="b-safe">当前为独立演示数据。你的真实收藏和已保存路线不会在此显示，也不会改变。</p>`,{foot:foot('返回地图','close','备份与恢复','goto-backup')});
+ updateCollectionContents();
+}
+function leaveCollectionsTo(target){
+ if(mode!=='B05'){closeUI();demo.jump(target);return;}
+ // Prepare the underlying V4 destination before moving the existing sheet away.
+ demo.jump(target);
+ const el=layer.querySelector('.b-page');if(reduce.matches||!el){closeUI();return;}
+ el.style.transition='transform .34s cubic-bezier(.3,.74,.2,1),opacity .25s ease';
+ el.style.transform='translate3d(0,100%,0)';el.style.opacity='.75';
+ shade.classList.remove('b-active');
+ setTimeout(()=>{if(mode==='B05')closeUI()},340);
+}
+function backups(){page('备份与恢复',`<span class="b-badge">B06 · 数据安全</span><p class="b-sub">备份前确认所包含的数据，导入前检查文件，避免直接覆盖已有内容。</p><div class="b-row"><span class="b-row-icon">⇩</span><div class="b-row-text"><b>导出演示备份</b><small>下载一份仅含演示收藏的 JSON 样本</small></div><button type="button" data-b="backup-export">导出</button></div><div class="b-row"><span class="b-row-icon">⇧</span><div class="b-row-text"><b>导入演示备份</b><small>选择本机 JSON，校验后预览内容</small></div><button type="button" data-b="backup-choose">选择文件</button></div><div id="bBackupStatus" class="b-state ${backupState.startsWith('失败')?'warn':''}">${esc(backupState||'目前没有导入文件；可先导出演示样本，再选择该文件进行恢复预览。')}</div>${backupPreview?`<div class="b-share-card"><b>等待确认的演示备份</b><p>地点：${esc(backupPreview.place.name)}<br/>备注：${esc(backupPreview.place.brief)}</p><div class="b-actions"><button type="button" data-b="backup-cancel">取消恢复</button><button type="button" data-b="backup-confirm">确认导入演示数据</button></div></div>`:''}<div class="b-safe">安全边界：这里不访问正式 Footprint Map 数据库，不会覆盖你真实的照片、视频或地点。真实 ZIP 备份与原子恢复必须在完整产品联调。</div>`,{foot:foot('返回地图','close','查看收藏','goto-collections')});}
+const format='footprint-map-v4-ui-demo';
+const previewData=()=>({format,version:1,place:{name:'平江路',brief:'清晨沿河散步',id:'demo-pingjiang'},timestamp:'demo-only'});
+function backupExport(){const content=JSON.stringify(previewData(),null,2);const url=URL.createObjectURL(new Blob([content],{type:'application/json'}));const el=document.createElement('a');el.href=url;el.download='footprint-v4-demo-backup.json';document.body.append(el);el.click();el.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);backupState='已导出演示 JSON（不包含任何真实收藏）';backups()}
+function openItem(id){if(!defs.some(x=>x[0]===id))return false;activeId=id;baseMode(id);if(id==='B01')gallery();if(id==='B02')capture();if(id==='B03')share();if(id==='B04')navigation();if(id==='B05')collections();if(id==='B06')backups();return true}
+async function action(name,el){switch(name){
+ case'close':if(mediaViewer){closeMediaViewer();return}closeUI();return;
+ case'viewer-back':case'viewer-close':closeMediaViewer();return;
+ case'view':openMediaViewer(el.dataset.index);return;
+ case'view-first':openMediaViewer(0);return;
+ case'previous':stepMedia(-1);return;
+ case'next':stepMedia(1);return;
+ case'video-toggle':played=!played;syncViewer(false);notify(played?'播放界面状态已启动（示意）':'播放界面状态已暂停');return;
+ case'choose-file':document.querySelector('#bFilePicker')?.click();return;
+ case'remove-upload':{let n=Number(el.dataset.index);if(Number.isInteger(n)&&mediaFiles[n]){URL.revokeObjectURL(mediaFiles[n].url);mediaFiles.splice(n,1);capture();notify('已从本次演示中移除')};return}
+ case'capture-done':notify('影像关联交互已确认 · 演示未持久保存');return;
+ case'copy-share':try{await navigator.clipboard.writeText(location.href);notify('已复制演示链接')}catch(_){notify('当前浏览器无法复制，请使用系统分享')};return;
+ case'native-share':if(navigator.share){try{await navigator.share({title:'Footprint Map · 平江路（演示）',text:'独立交互演示链接，不包含真实个人数据',url:location.href})}catch(_){}}else notify('此浏览器未提供系统分享，可复制链接');return;
+ case'goto-nav':navigation();return;
+ case'nav-select':chosenNav=el.dataset.id;navigation();return;
+ case'nav-go':notify(chosenNav?'已选择导航工具 · 演示不跳出网页':'请先选择一个导航工具');return;
+ case'collection-tab':if(collectionTab===el.dataset.tab)return;collectionTab=el.dataset.tab;collectionQuery='';collections();return;
+ case'view-place':leaveCollectionsTo('peek');notify('已返回原地图的同一颗黄色星标');return;
+ case'view-route':leaveCollectionsTo('route');notify('已打开原 V4 路线入口示意');return;
+ case'goto-collections':collectionTab='places';collectionQuery='';collections();return;
+ case'goto-backup':backups();return;
+ case'backup-export':backupExport();return;
+ case'backup-choose':document.querySelector('#bBackupPicker')?.click();return;
+ case'backup-cancel':backupPreview=null;backupState='已取消导入，原演示数据未改变';backups();return;
+ case'backup-confirm':if(backupPreview){backupState='演示备份验证通过；已模拟恢复 '+backupPreview.place.name+'，未写入正式数据库';backupPreview=null;backups()};return;
+ }}
+function summary(){const ok=defs.filter(x=>checks[x[0]]==='ok').length,issue=defs.filter(x=>checks[x[0]]==='issue').length;return{ok,issue,remaining:6-ok-issue,total:6}}
+function saveChecks(){try{localStorage.setItem(key,JSON.stringify(checks))}catch(_){}}
+function renderPanel(){const s=summary();toggle.textContent=`B批 ${s.ok}/6`;panel.innerHTML=`<header class="b-panel-head"><div><small>FOOTPRINT MAP / SECOND REVIEW</small><h2>第二轮 · 媒体与个人内容</h2><p>通过 ${s.ok}/6　需修改 ${s.issue}　未标记 ${s.remaining}<br/>逐项点「打开」，体验后点圆点确认</p></div><button data-b-review="hide" type="button" aria-label="关闭清单">×</button></header><div class="b-panel-list">${defs.map(([id,name,desc])=>`<div class="b-review-row"><small>${id}</small><div><b>${name}</b><p>${desc}</p></div><button data-b-open="${id}" type="button">打开</button><button class="mark" data-b-mark="${id}" data-state="${checks[id]||'todo'}" aria-label="标记 ${name}">${checks[id]==='ok'?'✓':checks[id]==='issue'?'!':'○'}</button></div>`).join('')}<p style="color:#93a693;font-size:11px;line-height:1.7">已批准的第一轮 17 项和第二轮 A 批 6 项不会因此改变。真实存储、视频与分享链路仍需产品联调。</p></div><footer class="b-panel-foot"><button data-b-review="reset" type="button">重置标记</button><button class="primary" data-b-review="copy" type="button">复制 B 批结果</button></footer>`}
+function cycle(id){const s=checks[id]||'todo';checks[id]=s==='todo'?'ok':s==='ok'?'issue':'todo';if(checks[id]==='todo')delete checks[id];saveChecks();renderPanel()}
+function report(){const s=summary();return`Footprint Map V4｜第二轮 B 批媒体与个人内容验收\n已确认：${s.ok}/6；需修改：${s.issue}；未标记：${s.remaining}\n`+defs.map((x,i)=>`${i+1}. ${x[1]}：${checks[x[0]]==='ok'?'通过':checks[x[0]]==='issue'?'需要修改':'待验收'}`).join('\n')+'\n\n说明：第一轮 17/17 与 A 批 6/6 已通过；跨模块真实功能仍需验证。'}
+layer.addEventListener('click',e=>{const b=e.target.closest('button[data-b]');if(b)action(b.dataset.b,b)});
+layer.addEventListener('input',e=>{if(e.target?.id!=='bCollectionQuery')return;collectionQuery=e.target.value;updateCollectionContents()});
+layer.addEventListener('change',e=>{if(e.target?.id==='bVisited'){visited=e.target.checked;notify(visited?'已标记去过（本次演示）':'已取消去过标记')}});
+const picker=document.createElement('input');picker.id='bFilePicker';picker.type='file';picker.accept='image/*,video/*';picker.multiple=true;picker.hidden=true;screen.append(picker);
+picker.addEventListener('change',()=>{const files=[...picker.files].slice(0,5);for(const f of files){if(f.type.startsWith('image/')||f.type.startsWith('video/'))mediaFiles.push({name:f.name,type:f.type,url:URL.createObjectURL(f)})}if(mode==='B02')capture();notify(files.length?`已选择 ${files.length} 个本地文件（未上传）`:'未选择文件');picker.value=''});
+const backupFile=document.createElement('input');backupFile.id='bBackupPicker';backupFile.type='file';backupFile.accept='.json,application/json';backupFile.hidden=true;screen.append(backupFile);
+backupFile.addEventListener('change',async()=>{const file=backupFile.files?.[0];backupFile.value='';if(!file)return;if(file.size>1024*1024){backupState='失败：演示文件超过 1 MB';backupPreview=null;backups();return}try{const parsed=JSON.parse(await file.text());if(parsed?.format!==format||parsed.version!==1||typeof parsed.place?.name!=='string'||typeof parsed.place?.brief!=='string'||parsed.place.name.length>100||parsed.place.brief.length>2000)throw Error('格式或字段不符合演示备份');backupPreview={place:{name:parsed.place.name,brief:parsed.place.brief}};backupState='JSON 结构校验通过，待你确认演示导入';}catch(err){backupPreview=null;backupState=err instanceof SyntaxError?'失败：文件不是有效的 JSON，请重新选择演示备份。':'失败：格式不匹配，请使用本页导出的演示备份。'}backups()});
+panel.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.bOpen){openItem(b.dataset.bOpen);return}if(b.dataset.bMark){cycle(b.dataset.bMark);return}const act=b.dataset.bReview;if(act==='hide'){closePanel();return}if(act==='reset'){checks={};saveChecks();renderPanel();return}if(act==='copy'){const out=report();try{await navigator.clipboard.writeText(out);b.textContent='已复制'}catch(_){const n=document.createElement('textarea');n.value=out;document.body.append(n);n.select();document.execCommand('copy');n.remove();b.textContent='已复制'}}});
+toggle.addEventListener('click',()=>panel.classList.contains('open')?closePanel():showPanel());
+shade.addEventListener('click',()=>{if(panel.classList.contains('open'))closePanel();else closeUI()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&mode){e.preventDefault();e.stopPropagation();closeUI()}},true);
+window.addEventListener('pagehide',()=>{clearMedia()});
+window.__batchB={version:'B01-photos-shared-element-v3',items:defs.map(([id,name,desc])=>({id,name,desc})),open:openItem,show:showPanel,hide:closePanel,exit:closeUI,summary,report,state:()=>({mode,mediaIndex,viewerOpen:!!mediaViewer,uploaded:mediaFiles.length,visited,chosenNav,collectionTab,backupPending:!!backupPreview,backupState,starCount:document.querySelectorAll('#savedStar').length,dockCount:document.querySelectorAll('#dock').length}),reset(){checks={};saveChecks();renderPanel()}};
+renderPanel();
+})();
+</script>
+
+<!-- Footprint Map C V3: card-first route review, independent of official site -->
+<link rel="stylesheet" href="./route-cards-v4.css">
+<script src="./route-cards-v4.js"></script>
+</body>
+</html>
