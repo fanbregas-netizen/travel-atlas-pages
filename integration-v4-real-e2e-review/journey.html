@@ -1,5 +1,18 @@
 <!doctype html>
-<html lang="zh-CN"><head><base href="/travel-atlas-pages/integration-v4-real-e2e-review/"><script id="atlas-preview-storage-isolation">(function(){if(window.__atlasPreviewIsolation)return;window.__atlasPreviewIsolation=true;const prefix='atlas-e2e-preview-20261111:';for(const op of ['getItem','setItem','removeItem']){const old=Storage.prototype[op];Storage.prototype[op]=function(k,...rest){return old.call(this,prefix+String(k),...rest)}}})();</script>
+<html lang="zh-CN"><head>
+<base href="/travel-atlas-pages/" />
+<script id="atlas-isolated-preview-storage">(()=>{'use strict';
+const prefix='atlas-realqa-20261111-';window.__atlasPreviewNamespace=prefix;
+const idb=IDBFactory.prototype,originalOpen=idb.open,originalDelete=idb.deleteDatabase;
+idb.open=function(name,...rest){return originalOpen.call(this,prefix+String(name),...rest)};
+idb.deleteDatabase=function(name){return originalDelete.call(this,prefix+String(name))};
+const st=Storage.prototype,get=st.getItem,set=st.setItem,remove=st.removeItem,clear=st.clear,key=st.key;
+st.getItem=function(name){return get.call(this,prefix+String(name))};
+st.setItem=function(name,value){return set.call(this,prefix+String(name),value)};
+st.removeItem=function(name){return remove.call(this,prefix+String(name))};
+st.clear=function(){const matching=[];for(let i=0;i<this.length;i++){const k=key.call(this,i);if(k?.startsWith(prefix))matching.push(k)}matching.forEach(k=>remove.call(this,k))};
+})();</script>
+
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#f6f6f2"/>
@@ -8,9 +21,9 @@
 <link rel="icon" href="./icon.svg" type="image/svg+xml"/>
 <link rel="stylesheet" href="./journey.css"/>
 <link rel="stylesheet" href="./atlas-icons.css"/>
-<script defer src="./journey.js"></script>
-<link rel="stylesheet" href="./src/route/date-confirm.css">
-<script defer src="./src/route/date-confirm.js"></script>
+<script defer src="/travel-atlas-pages/integration-v4-real-e2e-review/journey.js"></script>
+<link rel="stylesheet" href="/travel-atlas-pages/integration-v4-real-e2e-review/src/route/date-confirm.css">
+<script defer src="/travel-atlas-pages/integration-v4-real-e2e-review/src/route/date-confirm.js"></script>
 <link rel="stylesheet" href="./stage1-polish.css">
 <link rel="stylesheet" href="./stage1-finish.css">
 <link rel="stylesheet" href="./stage1-detail.css?v=stage126">
@@ -18,7 +31,7 @@
 <link rel="stylesheet" href="./stage1-34-1-ux.css"/><link rel="stylesheet" href="./stage1-34-2-ux.css"/><link rel="stylesheet" href="./stage1-34-3-premium.css?v=1343"/>
 </head><body class="journey-page">
 <header class="topbar">
-  <a class="back-link" href="./index.html" aria-label="返回地图"><span class="back-arrow" aria-hidden="true">←</span> <span>旅行地图</span></a>
+  <a class="back-link" href="/travel-atlas-pages/integration-v4-real-e2e-review/index.html" aria-label="返回地图"><span class="back-arrow" aria-hidden="true">←</span> <span>旅行地图</span></a>
   <div class="brand"><span class="brand-mark">✦</span> 旅行地图 <small>路线叙事</small></div>
   <div class="top-actions"><button type="button" id="newPlan" class="quiet topaction">新路线</button><button type="button" id="savePlan" class="dark topaction">保存路线</button></div>
 </header>
@@ -56,7 +69,7 @@
   <div id="journey" class="journey" aria-label="旅程路线与每日站点">
     <div class="route-empty"><div class="route-empty-icon">✦</div><h3>从一颗星开始</h3><p>先从左侧选择你收藏的地点，再生成旅程。</p><button id="demo" type="button" class="outline">看看手绘路线的交互示例</button></div>
   </div>
-  <div class="atlas-foot"><span>✦ 地图上的记忆，成为旅途上的章节。</span><a href="./index.html">返回地图 ↗</a></div>
+  <div class="atlas-foot"><span>✦ 地图上的记忆，成为旅途上的章节。</span><a href="/travel-atlas-pages/integration-v4-real-e2e-review/index.html">返回地图 ↗</a></div>
  </section>
 </main>
 <dialog id="aiDialog" class="ai-dialog" aria-label="AI 规划助手">

@@ -1,5 +1,18 @@
 <!doctype html>
-<html lang="zh-CN"><head><base href="/travel-atlas-pages/integration-v4-real-e2e-review/"><script id="atlas-preview-storage-isolation">(function(){if(window.__atlasPreviewIsolation)return;window.__atlasPreviewIsolation=true;const prefix='atlas-e2e-preview-20261111:';for(const op of ['getItem','setItem','removeItem']){const old=Storage.prototype[op];Storage.prototype[op]=function(k,...rest){return old.call(this,prefix+String(k),...rest)}}})();</script>
+<html lang="zh-CN"><head>
+<base href="/travel-atlas-pages/" />
+<script id="atlas-isolated-preview-storage">(()=>{'use strict';
+const prefix='atlas-realqa-20261111-';window.__atlasPreviewNamespace=prefix;
+const idb=IDBFactory.prototype,originalOpen=idb.open,originalDelete=idb.deleteDatabase;
+idb.open=function(name,...rest){return originalOpen.call(this,prefix+String(name),...rest)};
+idb.deleteDatabase=function(name){return originalDelete.call(this,prefix+String(name))};
+const st=Storage.prototype,get=st.getItem,set=st.setItem,remove=st.removeItem,clear=st.clear,key=st.key;
+st.getItem=function(name){return get.call(this,prefix+String(name))};
+st.setItem=function(name,value){return set.call(this,prefix+String(name),value)};
+st.removeItem=function(name){return remove.call(this,prefix+String(name))};
+st.clear=function(){const matching=[];for(let i=0;i<this.length;i++){const k=key.call(this,i);if(k?.startsWith(prefix))matching.push(k)}matching.forEach(k=>remove.call(this,k))};
+})();</script>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f3f1e9">
@@ -78,7 +91,7 @@
  * Renders saved private places, not AI-generated or fetched social-media bodies.
  * The curved connecting line is a VISUAL ORDER GUIDE, not a road routing result. */
 (()=>{'use strict';
-const KEY='footprint-to-travel-atlas-selection-v1-v4-real-e2e-review',ACTIVE='footprint-to-travel-atlas-active-v1',DB='private-travel-footprints-v1-v4-real-e2e-review';
+const KEY='footprint-to-travel-atlas-selection-v1',ACTIVE='footprint-to-travel-atlas-active-v1',DB='private-travel-footprints-v1';
 const $=id=>document.getElementById(id),make=(tag,className,t)=>{const el=document.createElement(tag);if(className)el.className=className;if(t!==undefined)el.textContent=t;return el};
 const coord=v=>Number.isFinite(+v)&&v!==null&&v!==undefined&&v!=='';
 const text=(v,max=400)=>String(v??'').slice(0,max);
@@ -89,7 +102,7 @@ function notice(t,keep=false){const box=$('atlasStatus');box.textContent=t;box.c
 function empty(t){$('emptyMessage').textContent=t;$('emptyState').hidden=false;notice('',false)}
 function readSelection(){let handoff=null;try{handoff=sessionStorage.getItem(KEY);if(handoff){sessionStorage.removeItem(KEY);sessionStorage.setItem(ACTIVE,handoff)}else handoff=sessionStorage.getItem(ACTIVE)}catch{}if(!handoff)return null;let p;try{p=JSON.parse(handoff)}catch{return null}if(p.schema!==KEY||!Array.isArray(p.placeIds)||!p.placeIds.length||p.placeIds.length>100||!p.placeIds.every(x=>typeof x==='string'&&x.length<200))return null;if(!p.createdAt||Date.now()-p.createdAt>7*86400000||p.createdAt>Date.now()+60000)return null;return p}
 function getRecords(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB,1);req.onerror=()=>reject(req.error||Error('数据库读取失败'));req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('places'))db.createObjectStore('places',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta',{keyPath:'key'})};req.onsuccess=()=>{const db=req.result;let request;try{request=db.transaction('places','readonly').objectStore('places').getAll()}catch(e){db.close();reject(e);return}request.onsuccess=()=>{resolve(request.result||[]);db.close()};request.onerror=()=>{reject(request.error);db.close()}}})}
-async function loadPlaces(ids){let all=[];try{all=await getRecords()}catch(err){try{all=JSON.parse(localStorage.getItem('travel-places-v4-real-e2e-review')||'[]')}catch{}if(!Array.isArray(all))all=[];if(!all.length)throw err}const lookup=new Map(all.filter(p=>p?.starred!==false&&!p?.demo&&coord(p.lat)&&coord(p.lng)&&Math.abs(+p.lat)<=85.05&&Math.abs(+p.lng)<=180).map(p=>[String(p.id),p]));const missing=ids.filter(id=>!lookup.has(id));if(missing.length)notice(`其中 ${missing.length} 个收藏点已删除或缺少坐标，已跳过`,true);return ids.map(id=>lookup.get(id)).filter(Boolean)}
+async function loadPlaces(ids){let all=[];try{all=await getRecords()}catch(err){try{all=JSON.parse(localStorage.getItem('travel-places')||'[]')}catch{}if(!Array.isArray(all))all=[];if(!all.length)throw err}const lookup=new Map(all.filter(p=>p?.starred!==false&&!p?.demo&&coord(p.lat)&&coord(p.lng)&&Math.abs(+p.lat)<=85.05&&Math.abs(+p.lng)<=180).map(p=>[String(p.id),p]));const missing=ids.filter(id=>!lookup.has(id));if(missing.length)notice(`其中 ${missing.length} 个收藏点已删除或缺少坐标，已跳过`,true);return ids.map(id=>lookup.get(id)).filter(Boolean)}
 function clamp(v,a,b){return Math.min(b,Math.max(a,v))}
 function outlinePath(points){if(!points.length)return '';let d=`M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;const off=Math.min(25,len*.105)*(i%2?-1:1),midX=(a.x+b.x)/2+(-dy/len)*off,midY=(a.y+b.y)/2+(dx/len)*off;d+=` Q ${midX.toFixed(1)} ${midY.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`}return d}
 function pointPositions(){return routeCoords.map(x=>map.project([+x.lng,+x.lat]))}
@@ -131,7 +144,7 @@ function positionBubble(i){if(active!==i||!map||$('stopBubble').hidden)return;if
 function activate(i,move){if(i<0||i>=places.length)return;active=i;selectVisual();fillBubble(i);$('stopBubble').hidden=false;setSnap('peek');if(move&&map){const p=places[i];map.easeTo({center:[+p.lng,+p.lat],zoom:Math.max(11,Math.min(14,map.getZoom())),duration:480,essential:true})}positionBubble(i);const rail=$('stopRail'),node=rail?.children[i];if(rail&&node){const left=node.offsetLeft-rail.offsetLeft-(rail.clientWidth-node.clientWidth)/2;rail.scrollTo?.({left:Math.max(0,left),behavior:'smooth'})}}
 function dismissBubble(){for(const v of $('bubbleMedia').querySelectorAll('video'))v.pause();active=-1;$('stopBubble').hidden=true;selectVisual()}
 
-const PLAN_DB='travel-atlas-journeys-v1-v4-real-e2e-review';let savedId=null,createdAt=null,saveBusy=false;
+const PLAN_DB='travel-atlas-journeys-v1';let savedId=null,createdAt=null,saveBusy=false;
 function validCalendarDays(start,end) {
  const isDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(new Date(v+'T12:00:00').getTime());
  if(!isDate(start)||!isDate(end)||end<start)return 0;
@@ -150,7 +163,7 @@ async function saveRoute(e){e?.preventDefault();if(saveBusy)return;const title=$
  if(!allowedDays){$('saveRouteError').textContent='请确认日期有效，结束不早于开始，行程不超过 60 天';return}
  const normalizedDays=clampRouteDays(stopDays,allowedDays);
  const hadOverflow=normalizedDays.some((d,i)=>d!==Number(stopDays[i]));
- saveBusy=true;$('routeSaveConfirm').disabled=true;const now=new Date().toISOString();const id=savedId||(crypto?.randomUUID?.()||'trip-'+Date.now());const ids=places.map(p=>String(p.id));const item={id,title,placeIds:ids,selected:ids.map((pid,i)=>({id:pid,day:normalizedDays[i],time:'',order:i+1})),startDate:start,endDate:end,origin:origin.slice(0,70),destination:destination.slice(0,70),createdAt:createdAt||now,updatedAt:now,version:2,mapStyle:'black-white-plan',source:'footprint-map'};try{await writeSavedPlan(item);savedId=id;createdAt=item.createdAt;stopDays=normalizedDays;if(hadOverflow){showStopRail();buildRouteLayers();document.dispatchEvent(new CustomEvent('atlas:route-stops-changed'));}routePayload.title=title;routePayload.startDate=start;routePayload.endDate=end;routePayload.origin=item.origin;routePayload.destination=item.destination;$('tripName').textContent=title;$('travelDates').textContent=[start,end].join(' — ');$('saveRoute').textContent='✓ 已保存';$('saveRouteDialog').close();history.replaceState(null,'','./route-view.html?saved='+encodeURIComponent(id));notice('路线已保存到「我的路线」；地点图文将与主页同步更新')}catch(err){$('saveRouteError').textContent='保存失败：'+err.message}finally{saveBusy=false;$('routeSaveConfirm').disabled=false}}
+ saveBusy=true;$('routeSaveConfirm').disabled=true;const now=new Date().toISOString();const id=savedId||(crypto?.randomUUID?.()||'trip-'+Date.now());const ids=places.map(p=>String(p.id));const item={id,title,placeIds:ids,selected:ids.map((pid,i)=>({id:pid,day:normalizedDays[i],time:'',order:i+1})),startDate:start,endDate:end,origin:origin.slice(0,70),destination:destination.slice(0,70),createdAt:createdAt||now,updatedAt:now,version:2,mapStyle:'black-white-plan',source:'footprint-map'};try{await writeSavedPlan(item);savedId=id;createdAt=item.createdAt;stopDays=normalizedDays;if(hadOverflow){showStopRail();buildRouteLayers();document.dispatchEvent(new CustomEvent('atlas:route-stops-changed'));}routePayload.title=title;routePayload.startDate=start;routePayload.endDate=end;routePayload.origin=item.origin;routePayload.destination=item.destination;$('tripName').textContent=title;$('travelDates').textContent=[start,end].join(' — ');$('saveRoute').textContent='✓ 已保存';$('saveRouteDialog').close();history.replaceState(null,'','/travel-atlas-pages/integration-v4-real-e2e-review/route-view.html?saved='+encodeURIComponent(id));notice('路线已保存到「我的路线」；地点图文将与主页同步更新')}catch(err){$('saveRouteError').textContent='保存失败：'+err.message}finally{saveBusy=false;$('routeSaveConfirm').disabled=false}}
 function setSnap(state){const b=$('stopBubble');b.dataset.snap=state;if(state==='peek')b.scrollTop=0}
 function setupCardGestures(){
  const grip=$('bubbleGrip');let press=null,lastSwipe=0;

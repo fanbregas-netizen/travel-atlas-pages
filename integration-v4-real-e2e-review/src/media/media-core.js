@@ -1,7 +1,7 @@
 /* Footprint Map V4 / Media D.
  * Self-contained, opt-in media persistence core. No changes to map, sheet or
  * production bootstrapping. Load before calling window.FootprintMediaCore.
- * Retains IndexedDB v1: private-travel-footprints-v1-v4-real-e2e-review/{places,meta}.
+ * Retains IndexedDB v1: private-travel-footprints-v1/{places,meta}.
  */
 (function(root, factory) {
   'use strict';
@@ -10,7 +10,7 @@
   else root.FootprintMediaCore = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function() {
   'use strict';
-  const DB_NAME = 'private-travel-footprints-v1-v4-real-e2e-review';
+  const DB_NAME = 'private-travel-footprints-v1';
   const MAX_BACKUP = 1024 * 1024 * 1024;
   const MAX_PLACES = 1000;
   const encoder = () => new TextEncoder();
@@ -179,7 +179,7 @@
       }
       places.push(copy);
     }
-    files.unshift({name:'travel-places-v4-real-e2e-review.json',data:encoder().encode(JSON.stringify({
+    files.unshift({name:'travel-places.json',data:encoder().encode(JSON.stringify({
       format:'travel-footprints-v10',schemaVersion:2,exportedAt:new Date().toISOString(),places
     }))});
     return zipWrite(files);
@@ -190,8 +190,8 @@
     if(!bytes || bytes.length>MAX_BACKUP)throw error('BAD_BACKUP','备份文件无效或过大');
     const isZip=bytes[0]===0x50 && bytes[1]===0x4b,files=isZip?zipRead(bytes):null;
     let payload;
-    try {payload=JSON.parse(decoder().decode(isZip?files.get('travel-places-v4-real-e2e-review.json'):bytes));}
-    catch(e){throw error('BAD_BACKUP','无法读取备份清单 travel-places-v4-real-e2e-review.json');}
+    try {payload=JSON.parse(decoder().decode(isZip?files.get('travel-places.json'):bytes));}
+    catch(e){throw error('BAD_BACKUP','无法读取备份清单 travel-places.json');}
     if(!payload || !['travel-footprints-v1','travel-footprints-v10'].includes(payload.format) ||
         !Array.isArray(payload.places) || payload.places.length>MAX_PLACES)
       throw error('BAD_BACKUP','备份版本或地点格式不兼容');
