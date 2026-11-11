@@ -2193,7 +2193,7 @@ window.__batchC={open,show:showPanel,hide:hidePanel,exit:closeScene,items:defs.m
     calendarMonth=new Date(t.getFullYear(),t.getMonth(),1);
     const box=document.createElement('div');
     box.id='cCalendar';box.className='c-calendar-overlay';
-    box.innerHTML=`<div class="c-calendar-curtain" data-c="calendar-close"></div><div class="c-calendar-drawer"><div class="c-calendar-head" style="margin:0"><span style="font-size:12px;color:#728f74;font-weight:750">${kind==='start'?'选择出发日期':'选择结束日期'}</span><button data-c="calendar-close" aria-label="关闭日期面板">×</button></div><div id="cCalendarGrid"></div></div>`;
+    box.innerHTML=`<button type="button" class="c-calendar-curtain" data-c="calendar-close" aria-label="关闭日期选择"></button><div class="c-calendar-drawer"><div class="c-calendar-head" style="margin:0"><span style="font-size:12px;color:#728f74;font-weight:750">${kind==='start'?'选择出发日期':'选择结束日期'}</span><button data-c="calendar-close" aria-label="关闭日期面板">×</button></div><div id="cCalendarGrid"></div></div>`;
     layer.querySelector('.c-page')?.append(box);
     calendarRender();
     requestAnimationFrame(()=>box.classList.add('is-open'));
@@ -2358,6 +2358,7 @@ window.__batchC={open,show:showPanel,hide:hidePanel,exit:closeScene,items:defs.m
       state.stops.push({...place,day:state.addDay,brief:'添加的行程地点；可继续完善 Brief 和图片。'});
       state.justAdded=place.id;state.selected=[...new Set([...state.selected,place.id])];
       syncEdges();formContent();
+      requestAnimationFrame(()=>layer.querySelector('.c-stop.is-new')?.scrollIntoView?.({behavior:'smooth',block:'center'}));
       if(node){node.className='c-status';node.textContent='✓ '+place.name+' 已加入第 '+state.addDay+' 天，下方路线已实时更新。'}
       notify('站点已加入路线（仅演示）');return;
     }
