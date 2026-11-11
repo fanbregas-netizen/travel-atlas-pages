@@ -80,6 +80,8 @@ jobs:
           cp -R interaction-b-v4-batch-b-v3-review _site/interaction-b-v4-batch-b-v3-review
           # Original V4 C batch route/error-state iPhone review with isolated demo data.
           cp -R interaction-b-v4-batch-c-review _site/interaction-b-v4-batch-c-review
+          # Isolated C V2 acceptance: calendar, drag reorder, slide sheet and instant add; production untouched.
+          cp -R interaction-b-v4-batch-c-v2-review _site/interaction-b-v4-batch-c-v2-review
           # Original V4 map / card / Dock rubber-band review, independent of production and existing demo.
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
