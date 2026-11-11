@@ -237,6 +237,7 @@ function addContent(){
  const pool=state.miniSource==='saved'?allPlaces.slice(3,6):allPlaces.slice(6,9);
  return `<div class="rc-tabs"><button data-rc="add-source-saved" class="${state.miniSource==='saved'?'is-active':''}">☆ 从收藏添加</button><button data-rc="add-source-map" class="${state.miniSource==='map'?'is-active':''}">⌖ 地图选点</button></div>
  <p class="rc-note">点击即加入当前路线，并在卡片和地图中即时显示。</p>
+ ${state.miniSource==='map'?`<div class="rc-mini-map">${document.querySelector('#map .map-art')?.outerHTML||''}${pool.map((p,i)=>`<button style="left:${[23,54,77][i]}%;top:${[65,38,69][i]}%" data-rc="add-${p.id}" aria-label="从地图加入${safe(p.name)}">${safe(p.name)}</button>`).join('')}</div>`:''}
  ${pool.map(p=>`<button class="rc-choice" data-rc="add-${p.id}" ${state.stops.some(x=>x.id===p.id)?'disabled':''}><span><b>${safe(p.name)}</b><br><small>${safe(p.sub)}</small></span><span class="rc-check">${state.stops.some(x=>x.id===p.id)?'已添加':'＋'}</span></button>`).join('')}
  <p class="rc-fineprint">这里展示示意地点，真实地图取点与 POI 搜索仍由地图模块集成。</p>`;
 }
