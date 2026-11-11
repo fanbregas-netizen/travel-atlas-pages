@@ -1,6 +1,6 @@
 /* Stage1.30 – one map-first navigation, no duplicate saved-place stores.
    Search uses the existing geocoder; overviews use the existing fit-all map API;
-   saved routes reuse travel-atlas-journeys-v1-v4-real-e2e-review via the existing route reader. */
+   saved routes reuse travel-atlas-journeys-v1 via the existing route reader. */
 (()=>{'use strict';
  const $=id=>document.getElementById(id);
  let drawerWasOpen=false, viewToken=0;

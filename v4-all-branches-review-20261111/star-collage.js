@@ -1,7 +1,7 @@
 /* Footprint Map V4 · Option A: mini POI callout first, saved star → collage.
    Original four-vector popover remains intact and can be restored in the preview. */
 (()=>{'use strict';
- const DB='private-travel-footprints-v1-v4-real-e2e-review';
+ const DB='private-travel-footprints-v1';
  const $=id=>document.getElementById(id);
  let root=null, panel=null, currentId='', viewer=null, videoUrls=[];
  let legacy=true;
@@ -11,7 +11,7 @@
  const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n};
  const num=p=>Array.isArray(p)?p:[];
  function getPlace(id){return new Promise(resolve=>{if(!id)return resolve(null);try{const r=indexedDB.open(DB,1);r.onerror=()=>resolve(null);r.onsuccess=()=>{const db=r.result;if(!db.objectStoreNames.contains('places')){db.close();resolve(null);return}const tx=db.transaction('places','readonly'),q=tx.objectStore('places').get(id);q.onsuccess=()=>{db.close();resolve(q.result||null)};q.onerror=()=>{db.close();resolve(null)}}}catch{resolve(null)}})}
- async function loadPlace(id){let found=await getPlace(id);if(found)return found;try{const a=JSON.parse(localStorage.getItem('travel-places-v4-real-e2e-review')||'[]');if(Array.isArray(a))found=a.find(p=>p.id===id)}catch{}return found||null}
+ async function loadPlace(id){let found=await getPlace(id);if(found)return found;try{const a=JSON.parse(localStorage.getItem('travel-places')||'[]');if(Array.isArray(a))found=a.find(p=>p.id===id)}catch{}return found||null}
  function decorate(){
   if(root)return;
   root=el('section','fp-collage-root');root.id='fpStarCollage';root.hidden=true;root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','星标地点拼贴详情');

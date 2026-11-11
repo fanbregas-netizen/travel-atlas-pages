@@ -4,7 +4,7 @@
  * 收藏选点走收藏列表：点地点→小卡浮到顶部托盘→托盘右侧 icon 制定路线。
  * Selected places are read-only references; Brief/media never overwritten here. */
 (()=>{'use strict';
-const DB='private-travel-footprints-v1-v4-real-e2e-review',HANDOFF='footprint-to-travel-atlas-selection-v1-v4-real-e2e-review';
+const DB='private-travel-footprints-v1',HANDOFF='footprint-to-travel-atlas-selection-v1';
 const $=id=>document.getElementById(id),make=(tag,cl,text)=>{const n=document.createElement(tag);if(cl)n.className=cl;if(text!==undefined)n.textContent=text;return n};
 const valid=p=>p&&p.id&&p.starred!==false&&!p.demo&&p.lat!=null&&p.lng!=null&&p.lat!==''&&p.lng!==''&&Number.isFinite(+p.lat)&&Number.isFinite(+p.lng)&&Math.abs(+p.lat)<=85.05&&Math.abs(+p.lng)<=180;
 const name=p=>String(p.title||p.name||'已收藏地点').slice(0,100);
@@ -14,7 +14,7 @@ let navigationEpoch=0; // Discard outdated async route entry operations.
 let autoOD={origin:'',destination:''};
 function openDB(name,store){return new Promise((resolve,reject)=>{const r=indexedDB.open(name,1);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains(store))db.createObjectStore(store,{keyPath:'id'});if(name===DB&&!db.objectStoreNames.contains('meta'))db.createObjectStore('meta',{keyPath:'key'})};r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error('数据库被占用'));r.onsuccess=()=>resolve(r.result)})}
 async function recordsFrom(dbName,store){const db=await openDB(dbName,store);return new Promise((resolve,reject)=>{let req;try{req=db.transaction(store,'readonly').objectStore(store).getAll()}catch(e){db.close();reject(e);return}req.onsuccess=()=>{db.close();resolve(req.result||[])};req.onerror=()=>{db.close();reject(req.error)}})}
-async function readPlaces(){try{return (await recordsFrom(DB,'places')).filter(valid)}catch(e){let l=[];try{l=JSON.parse(localStorage.getItem('travel-places-v4-real-e2e-review')||'[]')}catch{}if(!Array.isArray(l))throw e;return l.filter(valid)}}
+async function readPlaces(){try{return (await recordsFrom(DB,'places')).filter(valid)}catch(e){let l=[];try{l=JSON.parse(localStorage.getItem('travel-places')||'[]')}catch{}if(!Array.isArray(l))throw e;return l.filter(valid)}}
 let sayTimer=0;function say(v){const t=$('toast');if(!t)return;t.textContent=v;t.classList.add('visible');clearTimeout(sayTimer);sayTimer=setTimeout(()=>t.classList.remove('visible'),3000)}
 function build(){if(built)return;built=true;
  /* 条件弹卡（保留）：日期/起终点 */
