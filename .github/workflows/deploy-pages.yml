@@ -279,6 +279,15 @@ jobs:
           path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify new four-system preview returns HTTP 200 from public Pages
+        run: |
+          URL="https://fanbregas-netizen.github.io/travel-atlas-pages/v4-all-branches-review-20261111/"
+          curl -fsSL --retry 15 --retry-delay 3 --retry-all-errors --max-time 25 -H 'Cache-Control: no-cache' "$URL" -o /tmp/four-system-preview.html
+          grep -q 'atlas-v4-final-four-20261111-' /tmp/four-system-preview.html
+          curl -fsSL --retry 8 --retry-delay 2 --retry-all-errors --max-time 25 "${URL}src/interaction/physical-sheet.js" -o /tmp/four-system-motion.js
+          grep -q 'TravelAtlasPhysicalSheet' /tmp/four-system-motion.js
+          echo "Public four-system URL and dynamic sheet asset are accessible"
+
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
