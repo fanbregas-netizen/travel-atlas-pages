@@ -455,7 +455,7 @@ function finish(e,cancel){
   const d=drag;drag=null;e.preventDefault();
   if(!cancel&&d.target!==d.index){
    const oldRects=new Map(d.items.map(it=>[it.dataset.stopId,it.getBoundingClientRect().top-(it===d.node?e.clientY-d.startY:0)]));
-   state.undo=d.original;
+   state.undo=d.original;state.saved=false;
    const activeId=state.stops[state.activeStop]?.id;
    const [move]=state.stops.splice(d.index,1);state.stops.splice(d.target,0,move);
    state.activeStop=Math.max(0,state.stops.findIndex(p=>p.id===activeId));
@@ -576,8 +576,9 @@ window.__batchC={version:'V3-card-first',show:showReview,open:openFor,exit:close
       if(selected)state.selected=state.selected.filter(s=>s!==id);
       else state.selected=[...state.selected,id];
       const activeId=state.stops[state.activeStop]?.id;
-      const prev=new Map(state.stops.map(p=>[p.id,p]));
-      state.stops=state.selected.map(k=>prev.get(k)||allPlaces.find(p=>p.id===k)).filter(Boolean).map(p=>({...p}));
+      const retained=state.stops.filter(p=>state.selected.includes(p.id));
+      const appended=state.selected.filter(id=>!retained.some(p=>p.id===id)).map(id=>allPlaces.find(p=>p.id===id)).filter(Boolean);
+      state.stops=[...retained,...appended].map(p=>({...p}));
       state.undo=null;state.saved=false;
       state.activeStop=Math.max(0,state.stops.findIndex(p=>p.id===activeId));
       const row=[...body.querySelectorAll('[data-place-id]')].find(x=>x.dataset.placeId===id);
@@ -599,6 +600,20 @@ window.__batchC={version:'V3-card-first',show:showReview,open:openFor,exit:close
       body.scrollTop=pos;
       routeMap.querySelectorAll('.rc-pin').forEach((node,i)=>node.classList.toggle('rc-current',i===idx));
       return;
+    }
+    if(cmd.startsWith('mini-day-')){
+      const id=cmd.slice(9),p=state.stops.find(x=>x.id===id);if(!p)return;
+      state.editDayId=id;openMini('day');
+      const max=Math.min(30,Math.max(1,diffDays(state.start,state.end)));
+      miniBase('安排游览日期',p.name+' · 选择该地点属于第几天',
+        '<div class="rc-day-picker">'+Array.from({length:max},(_,i)=>'<button data-rc="day-set-'+(i+1)+'" class="'+(p.day===i+1?'selected':'')+'">第'+(i+1)+'天</button>').join('')+'</div>',
+        button('取消','mini-close','rc-soft'));
+      return;
+    }
+    if(cmd.startsWith('day-set-')){
+      const day=Number(cmd.slice(8)),p=state.stops.find(x=>x.id===state.editDayId);
+      if(!p||day<1||day>Math.max(1,diffDays(state.start,state.end)))return;
+      p.day=day;state.saved=false;closeMini();renderStage();toast(p.name+' 已安排到第 '+day+' 天');return;
     }
     if(cmd==='route-suggest'){
       const candidate=suggestedOrder(state.stops);
@@ -631,11 +646,12 @@ window.__batchC={version:'V3-card-first',show:showReview,open:openFor,exit:close
       if(!dateDraft?.start||!dateDraft?.end||dateDraft.end<dateDraft.start){toast('请选择有效的出发与结束日期');return}
       if(dateDraft.start<datePlus(0)){toast('过去日期不能选择');return}
       if(diffDays(dateDraft.start,dateDraft.end)>30){toast('演示最多选择30天');return}
-      state.start=dateDraft.start;state.end=dateDraft.end;
+      state.start=dateDraft.start;state.end=dateDraft.end;state.saved=false;
+      const invalidDays=state.stops.filter(p=>p.day>diffDays(state.start,state.end)).length;
       closeMini();
       // Let the secondary card retreat before refreshing the underlying card.
       setTimeout(()=>{if(state.active)renderStage()},220);
-      toast('旅行日期已更新');
+      toast(invalidDays?`日期已更新，${invalidDays} 个站点需重新安排天数`:'旅行日期已更新');
       return;
     }
     if(cmd==='date-cancel'){dateDraft=null;closeMini();return}
@@ -727,6 +743,16 @@ window.__batchC={version:'V3-card-first',show:showReview,open:openFor,exit:close
   renderStage=function(){
     const sc=body.scrollTop,kind=state.stage;
     priorRender();
+    if(kind==='order'){
+      const n=Math.min(30,Math.max(1,diffDays(state.start,state.end)));
+      body.querySelectorAll('#rc-order-list [data-stop-id]').forEach((row,i)=>{
+        const p=state.stops[i];if(!p)return;
+        const control=document.createElement('button');control.type='button';control.className='rc-day-chip'+(p.day>n?' is-invalid':'');
+        control.dataset.rc='mini-day-'+p.id;control.textContent='D'+p.day;control.setAttribute('aria-label','调整'+p.name+'安排的旅行日期');row.append(control);
+      });
+      const invalid=state.stops.filter(p=>p.day>n).length;
+      if(invalid){const warn=document.createElement('div');warn.className='rc-day-warn';warn.textContent=`${invalid} 个地点安排在行程日期之外，点击站点旁的 D 标签调整。`;body.prepend(warn)}
+    }
     if(kind==='select'||kind==='order')body.scrollTop=sc;
   };
 
