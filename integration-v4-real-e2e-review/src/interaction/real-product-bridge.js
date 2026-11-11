@@ -37,6 +37,8 @@
   if(!card)return;
   const header=card.querySelector('.fp-card-header'),scroll=card.querySelector('.fp-card-scroll');
   if(!header||header===cardHead&&cardBinding)return;
+  // Capture the real place before the initial closed-state render clears its dataset.
+  const pendingId=!card.hidden ? card.dataset.placeId : null;
   cardBinding?.destroy();cardBinding=null;cardHead=header;
   const grip=ensureGrip(header);
   cardBinding=dom.connectSheetDOM({
@@ -52,6 +54,9 @@
     },310);
    }
   });
+  if(pendingId&&cardCtrl.getState().sheet==='closed'){
+    card.dataset.placeId=pendingId;cardCtrl.open(pendingId);
+  }
  }
  function bindSearch(){
   const node=find('fpSearchSheet');

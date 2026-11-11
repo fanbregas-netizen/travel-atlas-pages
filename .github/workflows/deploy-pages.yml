@@ -104,8 +104,12 @@ jobs:
           test -s integration-v4-real-e2e-review/route-view.html
           test -s integration-v4-real-e2e-review/src/route/date-confirm.js
           test -s integration-v4-real-e2e-review/icons/03_star.svg
-          grep -q 'private-travel-footprints-v1-v4-real-e2e-review' integration-v4-real-e2e-review/index.html
-          grep -q 'travel-atlas-journeys-v1-v4-real-e2e-review' integration-v4-real-e2e-review/journey.js
+          # All pages use the same test-only IDB/Storage prefix via their early bootstrap.
+          grep -q 'atlas-realqa-20261111-' integration-v4-real-e2e-review/index.html
+          grep -q 'atlas-realqa-20261111-' integration-v4-real-e2e-review/journey.html
+          grep -q 'atlas-realqa-20261111-' integration-v4-real-e2e-review/route-view.html
+          node --check integration-v4-real-e2e-review/src/interaction/real-product-bridge.js
+          test -s integration-v4-real-e2e-review/src/interaction/real-product-bridge.css
           node --check integration-v4-real-e2e-review/src/route/date-confirm.js
           node --check integration-v4-real-e2e-review/src/media/media-core.js
           node --check integration-v4-real-e2e-review/journey.js
