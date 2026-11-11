@@ -243,4 +243,18 @@ jobs:
           path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Verify isolated V4 real product with Chrome at iPhone sizes
+        run: |
+          npm install --no-save --ignore-scripts playwright-core@1.58.2
+          node tests/approved35-pages-browser-smoke.cjs
+      - name: Upload isolated V4 browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: approved35-pages-browser-evidence
+          path: approved35-pages-evidence/
+          if-no-files-found: ignore
 
