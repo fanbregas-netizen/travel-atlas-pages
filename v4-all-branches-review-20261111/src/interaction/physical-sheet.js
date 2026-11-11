@@ -10,7 +10,7 @@ function connect({sheet,controller,header,grip,scroll}){
  const reduced=matchMedia('(prefers-reduced-motion:reduce)');
  let level=controller.getState().sheet,place=controller.getState().selectedPlaceId;
  let height=0,vertical=0,heightVelocity=0,verticalVelocity=0,frame=0,lastTick=0;
- let drag=null,touch=null,animating=false;
+ let drag=null,touch=null,animating=false,settleTimer=null;
  const listeners=[];
  const on=(el,type,cb,opt)=>{el?.addEventListener(type,cb,opt);listeners.push(()=>el?.removeEventListener(type,cb,opt))};
  const detents=()=>{
@@ -27,11 +27,19 @@ function connect({sheet,controller,header,grip,scroll}){
   sheet.style.transform='translate3d(0,'+vertical.toFixed(2)+'px,0)';
   sheet.style.opacity=String(1-Math.min(.48,Math.max(0,vertical/(height+120))*.4));
  };
- const stop=()=>{if(frame)cancelAnimationFrame(frame);frame=0;animating=false;lastTick=0};
+ const stop=()=>{if(frame)cancelAnimationFrame(frame);if(settleTimer!==null)clearTimeout(settleTimer);
+  settleTimer=null;frame=0;animating=false;lastTick=0};
  const target=(h,y=0,v=0)=>{
   stop();
   if(reduced.matches){height=h;vertical=y;paint();complete();return}
   heightVelocity=clamp(v,-2000,2000);animating=true;
+  // Safari/WebKit can pause rAF when map canvases reconfigure or a tab resumes.
+  // A bounded fail-safe makes the physical spring settle without leaving UI
+  // hit targets perpetually unstable; it is cancelled by any new gesture.
+  settleTimer=setTimeout(()=>{
+    if(animating&&!drag){stop();height=h;vertical=y;
+      heightVelocity=verticalVelocity=0;paint();complete()}
+  },840);
   const tick=now=>{
    const dt=clamp(lastTick?(now-lastTick)/1000:.0167,.001,.03);lastTick=now;
    // Matches Interaction B's original semi-implicit 395/38 spring.
@@ -42,7 +50,7 @@ function connect({sheet,controller,header,grip,scroll}){
    if(Math.abs(h-height)<.55&&Math.abs(heightVelocity)<4&&
       Math.abs(y-vertical)<.65&&Math.abs(verticalVelocity)<4){
     height=h;vertical=y;heightVelocity=verticalVelocity=0;paint();
-    frame=0;complete();
+    frame=0;if(settleTimer!==null)clearTimeout(settleTimer);settleTimer=null;complete();
    }else frame=requestAnimationFrame(tick);
   };
   frame=requestAnimationFrame(tick);
