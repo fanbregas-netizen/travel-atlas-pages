@@ -409,7 +409,7 @@ shell.addEventListener('pointerdown',e=>{
   e.preventDefault();try{handle.setPointerCapture(e.pointerId)}catch(_){}
   return;
  }
- const isMain=e.target.closest('#rc-grab'),isMini=e.target.closest('#rc-mini-grab');
+ const isMain=!e.target.closest('#rc-grab button')&&e.target.closest('#rc-grab'),isMini=e.target.closest('#rc-mini-grab');
  if(isMain&&!state.mini){
   cancelAnimationFrame(sheetMotion);
   gesture={id:e.pointerId,startY:e.clientY,startHeight:height,lastY:e.clientY,lastAt:performance.now(),velocity:0};
@@ -453,7 +453,7 @@ function finish(e,cancel){
  if(drag&&drag.id===e.pointerId){
   const d=drag;drag=null;e.preventDefault();
   if(!cancel&&d.target!==d.index){
-   const oldRects=new Map(d.items.map(it=>[it.dataset.stopId,it.getBoundingClientRect().top]));
+   const oldRects=new Map(d.items.map(it=>[it.dataset.stopId,it.getBoundingClientRect().top-(it===d.node?e.clientY-d.startY:0)]));
    state.undo=d.original;
    const [move]=state.stops.splice(d.index,1);state.stops.splice(d.target,0,move);
    renderStage();
