@@ -6,9 +6,11 @@ const {chromium}=require('playwright-core');
 const root=path.resolve(__dirname,'../..'),out=path.resolve(process.cwd(),'v4-real-e2e-evidence');
 fs.mkdirSync(out,{recursive:true});
 const mime={'.html':'text/html;charset=utf-8','.js':'application/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.webmanifest':'application/manifest+json','.woff2':'font/woff2'};
-const server=http.createServer((req,res)=>{const url=new URL(req.url||'/','http://127.0.0.1'),file=path.resolve(root,'.'+(url.pathname==='/'?'/index.html':decodeURIComponent(url.pathname)));
+const server=http.createServer((req,res)=>{const url=new URL(req.url||'/','http://127.0.0.1');
+ const routed=decodeURIComponent(url.pathname).replace(/^\/travel-atlas-pages\/integration-v4-real-e2e-review(?=\/|$)/,'')||'/';
+ const file=path.resolve(root,'.'+(routed==='/'?'/index.html':routed));
  if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return}
- try{res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream'});res.end(fs.readFileSync(file))}
+ try{const data=fs.readFileSync(file);res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream'});res.end(data)}
  catch{res.writeHead(404);res.end('Not found')}});
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function main(){
