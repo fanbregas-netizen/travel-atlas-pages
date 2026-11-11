@@ -28,7 +28,7 @@ async function main(){
   const add=async(name,lat,lng,note)=>{
    if(await page.locator('#fpPlaceCard').isVisible())await page.locator('#fpPlaceCard .fp-card-close').click();
    await page.evaluate(({name,lat,lng})=>window.__atlasDemo.select(name,lat,lng),{name,lat,lng});
-   await page.locator('#destinationStar').click();
+   await page.locator('#destinationStar').evaluate(el=>el.click()); // invoke real action; previous saved-place card may cover the test helper's destination overlay
    await page.locator('#placeName').fill(name);
    await page.locator('#placeNote').fill(note);
    await page.locator('#savePlace').click();
