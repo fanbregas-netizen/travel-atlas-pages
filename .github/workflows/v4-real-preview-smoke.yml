@@ -1,7 +1,7 @@
 name: Travel Atlas V4 isolated real-preview browser QA
 on:
   push:
-    branches: [preview/v4-real-e2e-20261111]
+    branches: [preview/v4-safari-complete-20261111]
   pull_request:
     branches: [main]
 permissions:
@@ -21,9 +21,21 @@ jobs:
           test -s integration-v4-real-e2e-review/journey.html
           test -s integration-v4-real-e2e-review/route-view.html
           test -s integration-v4-real-e2e-review/icons/03_star.svg
-          grep -q 'atlas-e2e-preview-20261111' integration-v4-real-e2e-review/index.html
-          grep -q 'private-travel-footprints-v1-v4-real-e2e-review' integration-v4-real-e2e-review/index.html
-          grep -q 'travel-atlas-journeys-v1-v4-real-e2e-review' integration-v4-real-e2e-review/route-view.html
+          grep -q 'atlas-realqa-20261111-' integration-v4-real-e2e-review/index.html
+          grep -q 'private-travel-footprints-v1' integration-v4-real-e2e-review/index.html
+          grep -q 'travel-atlas-journeys-v1' integration-v4-real-e2e-review/route-view.html
+          test -s integration-v4-real-e2e-review/src/interaction/sheet-controller.js
+          test -s integration-v4-real-e2e-review/src/interaction/sheet-dom.js
+          test -s integration-v4-real-e2e-review/src/interaction/sheet.css
+          test -s integration-v4-real-e2e-review/src/interaction/real-product-bridge.js
+          test -s integration-v4-real-e2e-review/src/interaction/real-product-bridge.css
+          test -s integration-v4-real-e2e-review/src/route/route-detail-sheet.js
+          test -s integration-v4-real-e2e-review/src/route/route-detail-sheet.css
+          grep -q '<base href="/travel-atlas-pages/integration-v4-real-e2e-review/"' integration-v4-real-e2e-review/index.html
+          grep -q '<base href="/travel-atlas-pages/integration-v4-real-e2e-review/"' integration-v4-real-e2e-review/journey.html
+          grep -q '<base href="/travel-atlas-pages/integration-v4-real-e2e-review/"' integration-v4-real-e2e-review/route-view.html
+          node --check integration-v4-real-e2e-review/src/interaction/real-product-bridge.js
+          node --check integration-v4-real-e2e-review/src/route/route-detail-sheet.js
           node --check integration-v4-real-e2e-review/src/media/media-core.js
           node --check integration-v4-real-e2e-review/src/route/date-confirm.js
           node --check integration-v4-real-e2e-review/journey.js

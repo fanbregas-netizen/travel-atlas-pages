@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN"><head>
-<base href="/travel-atlas-pages/" />
+<base href="/travel-atlas-pages/integration-v4-real-e2e-review/" />
 <script id="atlas-isolated-preview-storage">(()=>{'use strict';
 const prefix='atlas-realqa-20261111-';window.__atlasPreviewNamespace=prefix;
 const idb=IDBFactory.prototype,originalOpen=idb.open,originalDelete=idb.deleteDatabase;
@@ -139,7 +139,7 @@ function videoUrl(item){const src=typeof item==='string'?item:item?.src||item?.d
 function fillMedia(p){const box=$('bubbleMedia');for(const v of box.querySelectorAll('video'))v.pause();box.replaceChildren();const media=[];for(const item of p.photos||[]){const src=mediaUrl(item);if(src)media.push({type:'image',src})}for(const item of p.videos||[]){const src=videoUrl(item);if(src)media.push({type:'video',src,label:text(item?.name||'旅行视频',35)})}box.hidden=!media.length;if(!media.length)return;for(const [index,item] of media.slice(0,5).entries()){if(item.type==='image'){const el=make('button',index===0?'hero-media':'');el.type='button';el.setAttribute('aria-label','查看第 '+(index+1)+' 张图片');const image=make('img');image.alt='收藏的旅行照片';image.loading='lazy';image.src=item.src;el.append(image);el.onclick=()=>{window.open(item.src,'_blank','noopener,noreferrer')};box.append(el)}else{const el=make('div','dynamic-video'+(index===0?' hero-media':''));const video=make('video');video.src=item.src;video.muted=true;video.defaultMuted=true;video.autoplay=true;video.loop=true;video.playsInline=true;video.preload='metadata';video.controls=true;video.setAttribute('playsinline','');video.setAttribute('aria-label',item.label);el.append(video);box.append(el);video.play().catch(()=>{})}}}
 function wgsToGcj(lon,lat){if(lon<72.004||lon>137.8347||lat<0.8293||lat>55.8271)return[lon,lat];const x=lon-105,y=lat-35,rad=lat*Math.PI/180,ee=.006693421622965943,a=6378245,magic=1-ee*Math.sin(rad)**2;const dlat=-100+2*x+3*y+.2*y*y+.1*x*y+.2*Math.sqrt(Math.abs(x))+(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3+(20*Math.sin(y*Math.PI)+40*Math.sin(y/3*Math.PI))*2/3+(160*Math.sin(y/12*Math.PI)+320*Math.sin(y*Math.PI/30))*2/3;const dlng=300+x+2*y+.1*x*x+.1*x*y+.1*Math.sqrt(Math.abs(x))+(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3+(20*Math.sin(x*Math.PI)+40*Math.sin(x/3*Math.PI))*2/3+(150*Math.sin(x/12*Math.PI)+300*Math.sin(x/30*Math.PI))*2/3;return[lon+dlng*180/(a/Math.sqrt(magic)*Math.cos(rad)*Math.PI),lat+dlat*180/((a*(1-ee))/(magic*Math.sqrt(magic))*Math.PI)]}
 function navigateUrl(p){const [lon,lat]=wgsToGcj(+p.lng,+p.lat);return 'https://uri.amap.com/navigation?'+new URLSearchParams({to:lon.toFixed(6)+','+lat.toFixed(6)+','+text(p.title||p.name,60),mode:'car',src:'travel_atlas',callnative:'1'}).toString()}
-function fillBubble(i){const p=places[i];$('bubbleStep').textContent='第 '+(i+1)+' / '+places.length+' 站 · 第 '+(stopDays[i]||1)+' 天';$('bubbleTitle').textContent=text(p.title||p.name,120);const note=text(p.note||p.brief||p.description||'',800).replace(/^原高德地址[：:][^\n]*\n?/,'').trim();$('bubbleBrief').textContent=note||'还没写想去原因。可返回旅行地图，为这个地点补充为什么想去的记录。';$('bubbleAddr').textContent=text(p.address||'',120).replace(/^原高德地址[：:]\s*/,'');urls.splice(0).forEach(x=>URL.revokeObjectURL(x));$('amapNavigate').href=navigateUrl(p);$('backToSource').href='./?openPlace='+encodeURIComponent(p.id)}
+function fillBubble(i){const p=places[i];$('stopBubble').dataset.placeId=String(p.id);$('bubbleStep').textContent='第 '+(i+1)+' / '+places.length+' 站 · 第 '+(stopDays[i]||1)+' 天';$('bubbleTitle').textContent=text(p.title||p.name,120);const note=text(p.note||p.brief||p.description||'',800).replace(/^原高德地址[：:][^\n]*\n?/,'').trim();$('bubbleBrief').textContent=note||'还没写想去原因。可返回旅行地图，为这个地点补充为什么想去的记录。';$('bubbleAddr').textContent=text(p.address||'',120).replace(/^原高德地址[：:]\s*/,'');urls.splice(0).forEach(x=>URL.revokeObjectURL(x));$('amapNavigate').href=navigateUrl(p);$('backToSource').href='./?openPlace='+encodeURIComponent(p.id)}
 function positionBubble(i){if(active!==i||!map||$('stopBubble').hidden)return;if(matchMedia('(max-width:640px)').matches){const b=$('stopBubble');b.style.left='';b.style.top='';return;}const p=map.project([+places[i].lng,+places[i].lat]),bubble=$('stopBubble'),dock=$('stopsDock').getBoundingClientRect();const w=bubble.offsetWidth,h=bubble.offsetHeight;const left=clamp(p.x-w/2,13,innerWidth-w-13);const headerBottom=Math.max(90,innerHeight>780?105:83);const dockTop=dock.top;const fitsAbove=p.y-h-29>headerBottom,fitsBelow=p.y+30+h<dockTop-6;let top,orient='above';if(fitsAbove)top=p.y-h-22;else if(fitsBelow){top=p.y+29;orient='below'}else top=clamp(p.y-h-19,headerBottom,Math.max(headerBottom,dockTop-h-7));bubble.style.left=left+'px';bubble.style.top=top+'px';bubble.dataset.orient=orient;const arrow=bubble.querySelector('.bubble-pointer');if(arrow){arrow.style.left=clamp(p.x-left-7,22,w-25)+'px';arrow.style.top=orient==='above'?(h-8)+'px':'-6px'}}
 function activate(i,move){if(i<0||i>=places.length)return;active=i;selectVisual();fillBubble(i);$('stopBubble').hidden=false;setSnap('peek');if(move&&map){const p=places[i];map.easeTo({center:[+p.lng,+p.lat],zoom:Math.max(11,Math.min(14,map.getZoom())),duration:480,essential:true})}positionBubble(i);const rail=$('stopRail'),node=rail?.children[i];if(rail&&node){const left=node.offsetLeft-rail.offsetLeft-(rail.clientWidth-node.clientWidth)/2;rail.scrollTo?.({left:Math.max(0,left),behavior:'smooth'})}}
 function dismissBubble(){for(const v of $('bubbleMedia').querySelectorAll('video'))v.pause();active=-1;$('stopBubble').hidden=true;selectVisual()}
@@ -200,6 +200,7 @@ const run=()=>init().catch(e=>empty('路线加载异常：'+e.message));if(docum
 <link rel="stylesheet" href="./stage1-detail.css?v=stage126">
 <link rel="stylesheet" href="./stage1-32-design.css?v=132"/>
 <link rel="stylesheet" href="./stage1-34-3-premium.css?v=1343"/>
+<link rel="stylesheet" href="./src/route/route-detail-sheet.css">
 </head><body class="route-page">
 <div id="atlasMap" role="application" aria-label="真实地理底图和本次旅行的地点路线"></div>
 <aside id="routeBootNotice" role="status" aria-live="polite"><span class="route-boot-orbit" aria-hidden="true">✦</span><strong>正在打开你的旅行路线</strong><small>站点和日期先呈现，地图随后绘制</small><button type="button" id="routeBootRetry" hidden>重试地图</button></aside>
@@ -433,13 +434,14 @@ function init(){
   detail.innerHTML='<div class="grab"></div><button class="rv-x" aria-label="关闭"><img src="./icons/19_close.svg" alt=""></button><h2></h2><div class="addr"></div><div class="rv-sec"><small>01 / BRIEF · 为什么想去</small><div class="brief"></div></div><div class="rv-sec rv-media"><small>02 / PHOTOS &amp; VIDEOS</small><div class="photos"></div></div><div class="rv-sec rv-links"><small>03 / SAVED SOURCES · 社交资料</small><div class="links"></div></div><div class="ops"><button data-op="nav"><img src="./icons/40_direction.svg" alt=""><span>导航</span></button><button data-op="src"><img src="./icons/29_open_link.svg" alt=""><span>收藏详情</span></button></div>';
   document.body.appendChild(detail);
   detail.querySelector('.rv-x').onclick=()=>detail.classList.remove('open');
-  /* build .20 · 下滑关闭手势：捏住眉头或内容拉到顶后继续下拉，松手超阈值即收起 */
-  (function(){let sy=0,dy=0,on=false,engaged=false;detail.addEventListener('touchstart',e=>{if(detail.scrollTop>0)return;sy=e.touches[0].clientY;dy=0;on=true;engaged=!!e.target.closest('.sheet-grab,.rv-detail-head')},{passive:true});detail.addEventListener('touchmove',e=>{if(!on)return;const raw=e.touches[0].clientY-sy;if(!engaged){if(raw<26)return;engaged=true;sy=e.touches[0].clientY}dy=e.touches[0].clientY-sy;if(dy<=0){dy=0;return}if(dy>8)e.preventDefault();detail.style.transition='none';detail.style.transform='translateY('+Math.round(dy)+'px)'},{passive:false});const end=()=>{if(!on)return;on=false;engaged=false;detail.style.transition='';detail.style.transform='';if(dy>Math.min(120,detail.offsetHeight*0.28))detail.classList.remove('open');dy=0};detail.addEventListener('touchend',end,{passive:true});detail.addEventListener('touchcancel',end,{passive:true})})();
+  /* Route detail gestures now belong to the approved B sheet state machine.
+     The legacy competing touchstart/move/end listeners are intentionally removed. */
   detail.querySelector('[data-op="nav"]').onclick=()=>document.getElementById('amapNavigate').click();
   detail.querySelector('[data-op="src"]').onclick=()=>document.getElementById('backToSource').click();
   function curPlace(){
-    const t=document.getElementById('bubbleTitle').textContent;
-    return RV.places.find(p=>(p.title||p.name||'')===t)||null;
+    const id=bubble.dataset.placeId;
+    // Titles are not unique: always resolve route media, Brief and day by the saved placeId.
+    return RV.places.find(p=>String(p.id)===String(id))||null;
   }
   function fillHints(){
     if(bubble.querySelector('.rv-hints'))return;
@@ -460,10 +462,28 @@ function init(){
     detail.querySelector('.brief').textContent=(p.note||p.brief||'').replace(/^原高德地址[：:][^\n]*\n?/,'').trim()||'（还没有 Brief，回主页为这个地点补一段为什么想去）';
     /* build .19 · 只显示真实照片;没有照片就不再摆渐变色占位块(用户批注:像坏掉的按钮) */
     const strip=detail.querySelector('.photos');strip.replaceChildren();
-    const okImg=src=>typeof src==='string'&&(/^(data:image\/(png|jpeg|webp|gif);base64,)/i.test(src)||/^https?:\/\//i.test(src));
-    const shots=(p.photos||[]).map(x=>okImg(typeof x==='string'?x:x?.src||'')?(typeof x==='string'?x:x.src):null).filter(Boolean).slice(0,8);
-    detail.querySelector('.rv-media').hidden=!shots.length;
-    for(const s of shots){const d=document.createElement('div');const im=document.createElement('img');im.src=s;im.alt='旅行照片';im.style.cssText='width:100%;height:100%;object-fit:cover;opacity:1';d.append(im);strip.append(d)}
+    // Same place's real IndexedDB blobs, not a simulated image URL. Clean up on rerender.
+    detail.__mediaUrls?.forEach(u=>URL.revokeObjectURL(u));
+    detail.__mediaUrls=[];
+    const mediaSource=(item,kind)=>{
+      const src=typeof item==='string'?item:item?.src||item?.dataUrl||'';
+      if(typeof src==='string'&&(kind==='photo'?/^(data:image\/(png|jpeg|webp|gif);base64,|https:\/\/)/i.test(src):/^(data:video\/(mp4|webm|quicktime);base64,|https:\/\/)/i.test(src)))return src;
+      const blob=item?.blob instanceof Blob?item.blob:item?.bytes?new Blob([item.bytes],{type:item.type||(kind==='photo'?'image/jpeg':'video/mp4')}):null;
+      if(!blob)return null;
+      const url=URL.createObjectURL(blob);detail.__mediaUrls.push(url);return url;
+    };
+    let mediaCount=0;
+    for(const item of (p.photos||[]).slice(0,6)){
+      const src=mediaSource(item,'photo');if(!src)continue;
+      const cell=document.createElement('div'),im=document.createElement('img');im.src=src;im.alt='该地点的旅行照片';im.loading='lazy';im.style.cssText='width:100%;height:100%;object-fit:cover;opacity:1';
+      cell.append(im);strip.append(cell);mediaCount++;
+    }
+    for(const item of (p.videos||[]).slice(0,3)){
+      const src=mediaSource(item,'video');if(!src)continue;
+      const cell=document.createElement('div'),video=document.createElement('video');video.src=src;video.controls=true;video.playsInline=true;video.preload='metadata';video.setAttribute('playsinline','');video.setAttribute('aria-label',item?.name||'旅行视频');
+      video.style.cssText='width:100%;height:100%;object-fit:cover';cell.append(video);strip.append(cell);mediaCount++;
+    }
+    detail.querySelector('.rv-media').hidden=!mediaCount;
     /* build .20 · 社交资料与主页收藏卡一致：没有就显示空态文案 */
     const links=(window.__rvSourceLinks?window.__rvSourceLinks(p):[]),box=detail.querySelector('.links');box.replaceChildren();
     detail.querySelector('.rv-links').hidden=false;
@@ -527,4 +547,6 @@ function init(){
 </script>
 
 <script src="./stage1-32-ui.js?v=132"></script>
+<script src="./src/interaction/sheet-controller.js"></script>
+<script src="./src/route/route-detail-sheet.js"></script>
 </body></html>
