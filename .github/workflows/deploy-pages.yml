@@ -92,11 +92,28 @@ jobs:
           cp -R integration-v4-approved35-review _site/integration-v4-approved35-review
           # Full iPhone V4 E2E isolated review: does not replace homepage or older previews.
           cp -R integration-v4-real-e2e-review _site/integration-v4-real-e2e-review
+          # Four-branch final V4 real-product acceptance; keep production homepage untouched.
+          cp -R v4-all-branches-review-20261111 _site/v4-all-branches-review-20261111
           # Original V4 map / card / Dock rubber-band review, independent of production and existing demo.
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
           cp -R interaction-b-real-home-search-review _site/interaction-b-real-home-search-review
           touch _site/.nojekyll
+      - name: Validate newly published four-module acceptance bundle
+        run: |
+          test -s _site/v4-all-branches-review-20261111/index.html
+          test -s _site/v4-all-branches-review-20261111/journey.html
+          test -s _site/v4-all-branches-review-20261111/route-view.html
+          test -s _site/v4-all-branches-review-20261111/src/interaction/physical-sheet.js
+          test -s _site/v4-all-branches-review-20261111/src/visual/route-v5-integrated.css
+          test -s _site/v4-all-branches-review-20261111/src/route/journey-mobile-sheet.js
+          test -s _site/v4-all-branches-review-20261111/src/route/journey-mobile-sheet.css
+          test -s _site/v4-all-branches-review-20261111/src/media/media-core.js
+          grep -q 'atlas-v4-final-four-20261111-' _site/v4-all-branches-review-20261111/index.html
+          grep -q 'src/interaction/physical-sheet.js' _site/v4-all-branches-review-20261111/index.html
+          grep -q 'src/route/journey-mobile-sheet.js' _site/v4-all-branches-review-20261111/journey.html
+          node --check _site/v4-all-branches-review-20261111/src/interaction/physical-sheet.js
+          node --check _site/v4-all-branches-review-20261111/src/route/journey-mobile-sheet.js
       - name: Check isolated complete V4 E2E preview
         run: |
           test -s integration-v4-real-e2e-review/index.html
