@@ -2489,11 +2489,36 @@ window.__batchC={open,show:showPanel,hide:hidePanel,exit:closeScene,items:defs.m
     action('goto-'+next);
   },{passive:true});
   const previousOpen=open;
-  open=function(id){
-    if(state.mode==='C02'&&id!=='C02')calendarClose();
-    sheetLevel='peek';
-    previousOpen(id);
-  };
+  open=function transitionOpen(id){
+  if(state.mode==='C02'&&id!=='C02')calendarClose();
+  const prevId=state.mode;
+  const sequence=defs.map(d=>d[0]);
+  const offset=sequence.indexOf(id)-sequence.indexOf(prevId);
+  const outgoing=layer.querySelector('.c-page:not(.c-transition-ghost)');
+  layer.querySelectorAll('.c-transition-ghost').forEach(x=>x.remove());
+  sheetLevel='peek';
+  previousOpen(id);
+  const incoming=layer.querySelector('.c-page');
+  if(!outgoing||!incoming||!prevId||!offset||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const direction=offset>0?1:-1;
+  outgoing.classList.add('c-transition-ghost');
+  outgoing.setAttribute('aria-hidden','true');
+  Object.assign(outgoing.style,{position:'absolute',inset:'0',zIndex:'5',pointerEvents:'none',transition:'none'});
+  incoming.style.zIndex='6';
+  layer.append(outgoing);
+  const cleanup=()=>{outgoing.remove();incoming.style.zIndex=''};
+  if(typeof incoming.animate==='function'){
+    incoming.animate([{transform:`translateX(${direction*100}%)`,opacity:.97},{transform:'translateX(0)',opacity:1}],{duration:380,easing:'cubic-bezier(.2,.84,.2,1)'});
+    const anim=outgoing.animate([{transform:'translateX(0)',opacity:1},{transform:`translateX(${-direction*33}%)`,opacity:.6}],{duration:380,easing:'cubic-bezier(.2,.84,.2,1)'});
+    anim.onfinish=cleanup;
+    setTimeout(cleanup,460);
+  }else{
+    incoming.style.transform=`translateX(${direction*100}%)`;
+    incoming.style.transition='transform .38s cubic-bezier(.2,.84,.2,1)';
+    requestAnimationFrame(()=>{incoming.style.transform='translateX(0)'});
+    setTimeout(()=>{incoming.style.transition='';cleanup()},400);
+  }
+};
   renderPanel();
 })();
 renderPanel();
