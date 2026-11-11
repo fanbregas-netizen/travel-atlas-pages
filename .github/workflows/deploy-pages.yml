@@ -76,6 +76,8 @@ jobs:
           cp -R interaction-b-v4-batch-b-review _site/interaction-b-v4-batch-b-review
           # B V2: iPhone gallery swipe-dismiss and flicker-free collection tab review; production unchanged.
           cp -R interaction-b-v4-batch-b-v2-review _site/interaction-b-v4-batch-b-v2-review
+          # B01 Apple Photos shared-element thumbnail expansion review; B05 and approved flows locked.
+          cp -R interaction-b-v4-batch-b-v3-review _site/interaction-b-v4-batch-b-v3-review
           # Original V4 map / card / Dock rubber-band review, independent of production and existing demo.
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
