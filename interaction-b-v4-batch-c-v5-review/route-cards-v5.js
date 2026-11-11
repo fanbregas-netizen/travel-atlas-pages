@@ -63,7 +63,7 @@ const counts=()=>{const a=defs.map(([id])=>checks[id]||'todo');return {ok:a.filt
 function report(){const n=counts();return `Footprint Map V4｜第二轮 C 批路线与异常状态验收\n已确认：${n.ok}/6；需修改：${n.issue}；未标记：${n.remaining}\n`+defs.map((d,i)=>`${i+1}. ${d[1]}：${checks[d[0]]==='ok'?'通过':checks[d[0]]==='issue'?'需要修改':'待验收'}`).join('\n')+'\n\n说明：第一轮17/17 + A批6/6 + B批6/6 已通过；C批为独立交互原型，真实跨模块路线功能仍待验证。'}
 function renderReview(){
  const n=counts();toggle.textContent=`C批 ${n.ok}/6`;
- review.querySelector('#rc-review-list').innerHTML=defs.map(([id,name,desc])=>`<article class="rc-review-row"><small>${id}</small><div><b>${name}</b><p>${desc}</p></div><button data-review="open-${id}">打开</button><button class="mark" data-review="mark-${id}" data-mark="${checks[id]||'todo'}" ${id==='C01'?'disabled':''}>${checks[id]==='ok'?'✓':checks[id]==='issue'?'!':'○'}</button></article>`).join('')+`<p class="rc-fineprint" style="padding:9px">C01 已由用户确认。V3 仅改变隔离预览，不读取或覆盖真实 IndexedDB。所有真实地图路线计算与 iPhone Safari 手感仍需验收。</p>`;
+ review.querySelector('#rc-review-list').innerHTML=defs.map(([id,name,desc])=>`<article class="rc-review-row"><small>${id}</small><div><b>${name}</b><p>${desc}</p></div><button data-review="open-${id}">打开</button><button class="mark" data-review="mark-${id}" data-mark="${checks[id]||'todo'}" ${id==='C01'?'disabled':''}>${checks[id]==='ok'?'✓':checks[id]==='issue'?'!':'○'}</button></article>`).join('')+`<p class="rc-fineprint" style="padding:9px">C01 已由用户确认。V5 为隔离卡片交互预览，不读取或覆盖真实 IndexedDB。真实地图路线与 iPhone Safari 手势仍需独立验收。</p>`;
 }
 renderReview();
 function toast(msg){
@@ -306,7 +306,10 @@ function addStop(id){
  const p=allPlaces.find(x=>x.id===id);
  if(!p)return;
  if(state.stops.some(x=>x.id===id)){toast('此地点已经在路线中');return}
- state.stops.push({...p});state.newStop=p.id;state.activeStop=state.stops.length-1;
+ const days=Math.max(1,diffDays(state.start,state.end));
+ state.stops.push({...p,day:Math.max(1,Math.min(days,p.day))});
+ state.selected=[...new Set([...state.selected,p.id])];
+ state.newStop=p.id;state.activeStop=state.stops.length-1;state.saved=false;
  closeMini();renderStage();toast('已加入 '+p.name+' · 路线同步更新');
 }
 function handleAction(cmd){
@@ -332,7 +335,7 @@ function handleAction(cmd){
  if(cmd.startsWith('edge-')){
   const mode=cmd.slice(5),which=state.miniMode;
   if(!which)return;
-  state[which+'Mode']=mode;
+  state[which+'Mode']=mode;state.saved=false;
   if(mode==='current')state[which]='当前位置 · 待授权';
   if(mode==='manual'&&state[which]==='当前位置 · 待授权')state[which]='';
   refreshMini();
@@ -347,7 +350,7 @@ function handleAction(cmd){
    if(!v){toast('请先输入地址');return}
    state[which]=v;
   }
-  closeMini();renderStage();return;
+  state.saved=false;closeMini();renderStage();return;
  }
  if(cmd==='add-source-saved'||cmd==='add-source-map'){state.miniSource=cmd.slice(11);refreshMini();return}
  if(cmd.startsWith('add-')){addStop(cmd.slice(4));return}
@@ -489,7 +492,7 @@ function finish(e,cancel){
 shell.addEventListener('pointerup',e=>finish(e,false));
 shell.addEventListener('pointercancel',e=>finish(e,true));
 shell.addEventListener('lostpointercapture',e=>finish(e,true));
-window.__batchC={version:'V4-stable-place-and-route-advice',show:showReview,open:openFor,exit:closeAll,report,summary:counts,items:defs,state:()=>({active:state.active,stage:state.stage,mini:state.mini,stops:state.stops.map(p=>p.id),starCount:document.querySelectorAll('#savedStar').length,dockCount:document.querySelectorAll('#dock').length}),mark(id){if(id==='C01')return;checks[id]='ok';persist();renderReview()}};
+window.__batchC={version:'V5-confirmed-date-and-auto-days',show:showReview,open:openFor,exit:closeAll,report,summary:counts,items:defs,state:()=>({active:state.active,stage:state.stage,mini:state.mini,stops:state.stops.map(p=>p.id),starCount:document.querySelectorAll('#savedStar').length,dockCount:document.querySelectorAll('#dock').length}),mark(id){if(id==='C01')return;checks[id]='ok';persist();renderReview()}};
 (function fixRouteV4(){
   const coord=new Map(allPlaces.map((p,i)=>[p.id,pointPositions[i]]));
   const at=p=>coord.get(p.id)||null;
@@ -614,7 +617,9 @@ window.__batchC={version:'V4-stable-place-and-route-advice',show:showReview,open
     if(cmd.startsWith('day-set-')){
       const day=Number(cmd.slice(8)),p=state.stops.find(x=>x.id===state.editDayId);
       if(!p||day<1||day>Math.max(1,diffDays(state.start,state.end)))return;
-      p.day=day;state.saved=false;closeMini();renderStage();toast(p.name+' 已安排到第 '+day+' 天');return;
+      p.day=day;state.saved=false;
+      state.dateUndo=null;state.dateFeedback=null;
+      closeMini();renderStage();toast(p.name+' 已安排到第 '+day+' 天');return;
     }
     if(cmd==='route-suggest'){
       const candidate=suggestedOrder(state.stops);
