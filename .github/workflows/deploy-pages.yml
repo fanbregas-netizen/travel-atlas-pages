@@ -88,6 +88,8 @@ jobs:
           cp -R interaction-b-v4-batch-c-v4-review _site/interaction-b-v4-batch-c-v4-review
           # C V5: manual date confirmation and automatically reconciled day labels; isolated preview.
           cp -R interaction-b-v4-batch-c-v5-review _site/interaction-b-v4-batch-c-v5-review
+          # Full V4 approved-35 isolated *real product* integration preview, never overwrite public root.
+          cp -R integration-v4-approved35-review _site/integration-v4-approved35-review
           # Original V4 map / card / Dock rubber-band review, independent of production and existing demo.
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
@@ -95,6 +97,15 @@ jobs:
           touch _site/.nojekyll
       - name: Validate static deployment assets
         run: |
+          node --check integration-v4-approved35-review/src/media/media-core.js
+          node --check integration-v4-approved35-review/src/map/map-adapter.js
+          node --check integration-v4-approved35-review/src/map/registry.js
+          node --check integration-v4-approved35-review/journey.js
+          test -s integration-v4-approved35-review/index.html
+          test -s integration-v4-approved35-review/journey.html
+          test -s integration-v4-approved35-review/route-view.html
+          grep -q 'src/media/media-core.js' integration-v4-approved35-review/index.html
+          grep -q 'data-visual-integrated="pr15"' integration-v4-approved35-review/index.html
           node --check interaction-b-v4-batch-c-v3-review/route-cards-v3.js
           node --check interaction-b-v4-batch-c-v4-review/route-cards-v4.js
           node --check interaction-b-v4-batch-c-v5-review/route-cards-v5.js
