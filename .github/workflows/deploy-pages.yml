@@ -90,11 +90,26 @@ jobs:
           cp -R interaction-b-v4-batch-c-v5-review _site/interaction-b-v4-batch-c-v5-review
           # Full V4 approved-35 isolated *real product* integration preview, never overwrite public root.
           cp -R integration-v4-approved35-review _site/integration-v4-approved35-review
+          # Full iPhone V4 E2E isolated review: does not replace homepage or older previews.
+          cp -R integration-v4-real-e2e-review _site/integration-v4-real-e2e-review
           # Original V4 map / card / Dock rubber-band review, independent of production and existing demo.
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
           cp -R interaction-b-real-home-search-review _site/interaction-b-real-home-search-review
           touch _site/.nojekyll
+      - name: Check isolated complete V4 E2E preview
+        run: |
+          test -s integration-v4-real-e2e-review/index.html
+          test -s integration-v4-real-e2e-review/journey.html
+          test -s integration-v4-real-e2e-review/route-view.html
+          test -s integration-v4-real-e2e-review/src/route/date-confirm.js
+          test -s integration-v4-real-e2e-review/icons/03_star.svg
+          grep -q 'private-travel-footprints-v1-v4-real-e2e-review' integration-v4-real-e2e-review/index.html
+          grep -q 'travel-atlas-journeys-v1-v4-real-e2e-review' integration-v4-real-e2e-review/journey.js
+          node --check integration-v4-real-e2e-review/src/route/date-confirm.js
+          node --check integration-v4-real-e2e-review/src/media/media-core.js
+          node --check integration-v4-real-e2e-review/journey.js
+          node --check integration-v4-real-e2e-review/stage1-32-ui.js
       - name: Validate static deployment assets
         run: |
           node --check integration-v4-approved35-review/src/media/media-core.js
