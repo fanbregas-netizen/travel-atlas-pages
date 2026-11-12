@@ -42,8 +42,12 @@
   if(!card)return;
   const header=card.querySelector('.fp-card-header'),scroll=card.querySelector('.fp-card-scroll');
   if(!header||header===cardHead&&cardBinding)return;
-  // Capture the real place before the initial closed-state render clears its dataset.
-  const pendingId=!card.hidden ? card.dataset.placeId : null;
+  // Capture only an externally displayed card. During a physical close the
+  // outgoing card remains visible and may replace its header as media rerenders.
+  // Rebinding that DOM must never be treated as a new open request.
+  const closingInFlight=cardCtrl.getState().sheet==='closed'&&
+    (closingTimer!==null||cardMotion?.state()?.sheet==='closed');
+  const pendingId=!card.hidden&&!closingInFlight ? card.dataset.placeId : null;
   cardMotion?.destroy();cardMotion=null;cardBinding?.destroy();cardBinding=null;cardHead=header;
   const grip=ensureGrip(header);
   cardBinding=dom.connectSheetDOM({
