@@ -73,7 +73,7 @@ function feedback(msg){const e=$('fpCardFeedback');if(e)e.textContent=msg}
 function mountPlace(){if(placeCard)return;placeCard=h('article');placeCard.id='fpPlaceCard';placeCard.hidden=true;placeCard.setAttribute('role','dialog');placeCard.setAttribute('aria-modal','false');placeCard.setAttribute('aria-label','收藏地点详情');document.body.append(placeCard); /* V3 physical B owns all card swipes: no additional legacy touch handlers. */
  document.addEventListener('atlas:memory-open',e=>{if(window.__atlasPreferCollage!==false)showPlaceCard(e.detail?.id)});
  // Unified B controller owns backdrop dismissal after pointerup; map dragging must not close the card.
- document.addEventListener('atlas:source-updated',()=>{if(activePlaceId&&!editMode)renderPlace(activePlaceId)});
+ document.addEventListener('atlas:source-updated',()=>{if(activePlaceId&&!editMode&&!placeCard.classList.contains('fp-editing'))renderPlace(activePlaceId)});
  const originalSheet=$('memorySheet');if(originalSheet)new MutationObserver(()=>{if(activePlaceId&&!originalSheet.classList.contains('visible'))closePlace()}).observe(originalSheet,{attributes:true,attributeFilter:['class']});
  const qs=new URLSearchParams(location.search);const source=qs.get('sourcePlace'),media=qs.get('mediaPlace');if(source||media){const target=source||media;let count=0;const t=setInterval(()=>{count++;if(typeof window.__atlasDemo?.openSaved==='function'){clearInterval(t);window.__atlasDemo.openSaved(target);editMode=source?'link':'media';setTimeout(()=>renderPlace(target),120);history.replaceState(null,'',location.pathname)}if(count>32)clearInterval(t)},250)}
 }
@@ -199,10 +199,56 @@ function closeViewer(immediate=false){
  }catch(error){console.warn('Media closing motion fell back to immediate teardown',error);cleanup()}
 }
 function openViewer(items,index,originTile=null){closeViewer(true);const x=items[index];if(!x)return;const viewer=h('dialog');viewer.id='fpMediaViewer';viewer.setAttribute('role','dialog');viewer.setAttribute('aria-modal','true');viewer.setAttribute('aria-label','查看旅行照片或视频');viewer.append(btn('×',()=>closeViewer(),'fp-viewer-close'));if(x.kind==='photo'){const img=h('img');img.src=x.src;img.alt='旅行照片';viewer.append(img)}else{const blob=x.blob instanceof Blob?x.blob:new Blob([x.bytes],{type:x.type||'video/mp4'});viewer.__videoURL=URL.createObjectURL(blob);const v=h('video');v.src=viewer.__videoURL;v.controls=true;v.playsInline=true;v.autoplay=true;viewer.append(v)}viewer.append(h('div','fp-viewer-caption',`${index+1} / ${items.length} · ${x.name||'旅行影像'}`));viewer.addEventListener('click',e=>{if(e.target===viewer)closeViewer()});
- /* build .21 · 用户批注：全屏看图必须能左右滑切换 */
- let sx=null,sy2=0;viewer.addEventListener('touchstart',e=>{if(e.touches.length!==1||e.target.closest('video,button')){sx=null;return}sx=e.touches[0].clientX;sy2=e.touches[0].clientY},{passive:true});
- viewer.addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy2;sx=null;if(Math.abs(dx)<52||Math.abs(dx)<Math.abs(dy)*1.35)return;if(dx<0&&index<items.length-1)openViewer(items,index+1);else if(dx>0&&index>0)openViewer(items,index-1)},{passive:true});
- viewer.addEventListener('touchcancel',()=>{sx=null},{passive:true});
+ /* B01 final acceptance: horizontal gallery + iOS Photos-like downward drag.
+  * The existing source thumbnail owns the shared-element close animation.
+  * The background/media gesture must not steal native video controls. */
+ let swipe=null,resetTimer=null;
+ const motionMedia=()=>viewer.querySelector('img,video');
+ const resetViewerDrag=()=>{
+  const media=motionMedia();if(!media)return;
+  if(resetTimer!==null)clearTimeout(resetTimer);
+  media.style.transition='transform 260ms cubic-bezier(.2,.85,.3,1),opacity 260ms ease';
+  viewer.style.transition='background-color 260ms ease';
+  media.style.transform='none';media.style.opacity='';
+  viewer.style.backgroundColor='';
+  resetTimer=setTimeout(()=>{resetTimer=null;if(!viewer.isConnected)return;media.style.removeProperty('transition');media.style.removeProperty('transform');media.style.removeProperty('opacity');viewer.style.removeProperty('transition')},280);
+ };
+ viewer.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1||e.target.closest('video,button')){swipe=null;return}
+  const t=e.touches[0];swipe={x:t.clientX,y:t.clientY,mode:null};
+  if(resetTimer!==null){clearTimeout(resetTimer);resetTimer=null}
+ },{passive:true});
+ viewer.addEventListener('touchmove',e=>{
+  if(!swipe||e.touches.length!==1)return;
+  const t=e.touches[0],dx=t.clientX-swipe.x,dy=t.clientY-swipe.y;
+  if(!swipe.mode&&Math.max(Math.abs(dx),Math.abs(dy))>9)
+   swipe.mode=dy>0&&Math.abs(dy)>Math.abs(dx)*1.25?'down':'horizontal';
+  if(swipe.mode!=='down')return;
+  if(e.cancelable)e.preventDefault();
+  const media=motionMedia();if(!media)return;
+  media.getAnimations?.().forEach(a=>{try{a.cancel()}catch(_){}});
+  media.style.transition='none';viewer.style.transition='none';
+  media.style.transform='translate3d(0,'+Math.min(Math.max(dy,0),380)+'px,0) scale('+Math.max(.78,1-Math.max(0,dy)*.00065)+')';
+  const a=Math.max(.25,.93-Math.max(0,dy)*.002);
+  viewer.style.backgroundColor='rgba(19,20,21,'+a.toFixed(3)+')';
+ },{passive:false});
+ viewer.addEventListener('touchend',e=>{
+  if(!swipe||e.changedTouches.length!==1){swipe=null;return}
+  const dx=e.changedTouches[0].clientX-swipe.x,dy=e.changedTouches[0].clientY-swipe.y,mode=swipe.mode;
+  swipe=null;
+  if(mode==='down'){
+   if(dy>=110){
+    const media=motionMedia();if(media){media.style.removeProperty('transform');media.style.removeProperty('opacity');media.style.removeProperty('transition')}
+    viewer.style.removeProperty('background-color');viewer.style.removeProperty('transition');
+    closeViewer();return;
+   }
+   resetViewerDrag();return;
+  }
+  if(Math.abs(dx)<52||Math.abs(dx)<Math.abs(dy)*1.35)return;
+  if(dx<0&&index<items.length-1)openViewer(items,index+1);
+  else if(dx>0&&index>0)openViewer(items,index-1);
+ },{passive:true});
+ viewer.addEventListener('touchcancel',()=>{if(swipe?.mode==='down')resetViewerDrag();swipe=null},{passive:true});
  viewer.__origin=originTile&&originTile.isConnected?originTile:null;
  viewer.addEventListener('cancel',event=>{event.preventDefault();closeViewer()});
  document.body.append(viewer);
