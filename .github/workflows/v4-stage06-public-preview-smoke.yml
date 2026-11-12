@@ -30,7 +30,7 @@ jobs:
           const v=JSON.parse(read('version.json')),index=read('index.html');
           assert.equal(v.release_channel,'isolated-systematic-integration-acceptance');
           assert.equal(v.stage_checkpoint,'2026-11-12-stage15-editorial-visual-system');
-          assert.equal(v.stage_checkpoint_commit,'d9d3e5e1cd06f1186f408c4ba722761222066f02');
+          assert.equal(v.stage_checkpoint_commit,'8d2f9e9dd259ce08e530cf2aaa92e5f493dace2b');
           assert.equal(v.production_site_unchanged,true);
           assert.ok(index.includes('atlas-v4-systematic-20261112-'),'isolated storage must remain protected');
           assert.ok(index.includes('const confirmVectorTiles=()=>'),'Stage06 vector tile confirmation not served');
@@ -51,6 +51,10 @@ jobs:
           assert.ok(read('route-view.html').includes("$('routeBootNotice').hidden=true"));
           assert.ok(read('route-view.html').includes('rail.addEventListener(\'click\',e=>{'));
           assert.ok(read('route-view.html').includes('if(curPlace())openDetail()'));
+          assert.ok(read('route-view.html').includes('if(active<0)fit();drawOverlays()'),'late map load must preserve selected stop');
+          const routeBlob=fs.readFileSync(root+'route-view.html');
+          const routeSha=require('node:crypto').createHash('sha1').update(Buffer.from('blob '+routeBlob.length+'\0')).update(routeBlob).digest('hex');
+          assert.equal(routeSha,v.stage_checkpoint_route_script_sha,'public route script differs from Stage15 reviewed build');
           assert.ok(index.includes('id="fpvCollectionTabs"')&&index.includes('id="fpvPlacesTab"')&&index.includes('id="fpvRoutesTab"'));
           assert.ok(index.includes("$('fpvCollectionTabs').dataset.active=section"));
           assert.ok(index.includes('drawerWasOpen=visible;'));

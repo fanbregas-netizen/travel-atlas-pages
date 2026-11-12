@@ -18,17 +18,17 @@
   "stage_checkpoint": "2026-11-12-stage15-editorial-visual-system",
   "stage_checkpoint_pr": 25,
   "stage_checkpoint_source_branch": "review/v4-stage-checkpoint-20261112-search-focus",
-  "stage_checkpoint_commit": "d9d3e5e1cd06f1186f408c4ba722761222066f02",
-  "stage_checkpoint_patch": "Editorial hierarchy restored in real place card: full-width title, separate 44px action rail; Brief/media/guides/nearby, B05 collection, search, C V5 route planner/detail",
-  "stage_checkpoint_validation": "Stage15 real-product typography/layout + iPhone browser geometry assertions; source CI pending final result",
-  "stage_checkpoint_regression_ci": 43187895207,
-  "stage_checkpoint_regression_status": "Node static success; Chromium/WebKit full-product and live map currently running (not yet passed)",
+  "stage_checkpoint_commit": "8d2f9e9dd259ce08e530cf2aaa92e5f493dace2b",
+  "stage_checkpoint_patch": "Stage15 editorial hierarchy plus fixed C04 delayed map load: never auto-fit/dismiss a route stop selected before vector-map load",
+  "stage_checkpoint_validation": "Stage15 public HTTPS visual CSS verified; C04 map load fix in source and isolated preview under recheck",
+  "stage_checkpoint_regression_ci": 43189039495,
+  "stage_checkpoint_regression_status": "Queued: route load race regression and Chromium/WebKit full product; not yet validated",
   "current_interaction_mode": "swipe-card",
   "four_svg_bubbles": "cancelled by user; not mounted; swipe-card is final interaction model",
   "stage_checkpoint_public_deploy_ci": 43187614404,
   "stage_checkpoint_public_deploy_status": "success",
   "stage_checkpoint_public_https_ci": null,
-  "stage_checkpoint_public_https_status": "Stage15 smoke pending; Stage14 hash mismatch was correctly rejected",
+  "stage_checkpoint_public_https_status": "Stage15 visual CSS HTTP verified 43188344423; route C04 awaiting updated smoke",
   "stage07_live_map_ci": 43155442841,
   "stage07_live_map_check": "success: public HTTPS initial and Shanghai zoom17 real OpenFreeMap vector tiles + canvas + architecture status in Chromium and WebKit",
   "stage07_full_product_ci": "success in Chromium and WebKit at run 43155442841",
@@ -47,7 +47,7 @@
   "stage_checkpoint_public_script_sha": "4046b72abd3efec9c0856651a3aef1b99b8ceeda",
   "stage_checkpoint_physical_iphone_safari_verified": false,
   "stage_checkpoint_live_public_preview_verified": false,
-  "stage_checkpoint_route_script_sha": "8f575da46c109143c80542f3e2d874642a8ec75a",
+  "stage_checkpoint_route_script_sha": "51109adbdc5f7ccb15210c469b77d1ffc3b7d562",
   "user_visual_acceptance": "Stage13 interaction generally acceptable; Stage14 visual unapproved; Stage15 awaits explicit iPhone visual review",
   "stage_checkpoint_visual_css_sha": "62b3cd9f269a8d9a2b7eea2cc0d67c25ead8f8c8",
   "stage_checkpoint_visible_changes": [
@@ -55,7 +55,8 @@
     "Brief, real photo/video asymmetric mosaic, guides and nearby entries use a single editorial chapter rhythm",
     "Collection places/routes and search fields/results share Visual C ink-paper-gold typography and density",
     "C V5 journey builder and route saved-stop/detail views share controls and content hierarchy",
-    "Preserve real data handlers, media FLIP, B sheet detents, one Dock and retired four-SVG-bubble decision"
+    "Preserve real data handlers, media FLIP, B sheet detents, one Dock and retired four-SVG-bubble decision",
+    "After selecting a route stop, delayed map load no longer resets the user-selected stop card"
   ],
   "stage_checkpoint_visual_acceptance_css_sha": "525e43f8ad8c46d47fe8d203aa953b7230d20a78"
 }
