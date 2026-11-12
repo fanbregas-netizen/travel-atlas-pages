@@ -18,9 +18,9 @@
   "stage_checkpoint": "2026-11-12-search-and-card-dismissal",
   "stage_checkpoint_pr": 25,
   "stage_checkpoint_source_branch": "review/v4-stage-checkpoint-20261112-search-focus",
-  "stage_checkpoint_commit": "49a39c3b744f2967f7ee27808cdd21606c97384f",
-  "stage_checkpoint_patch": "Safari synchronous search focus plus card close routed through existing B V3 physical spring",
-  "stage_checkpoint_validation": "interaction regression CI passed; independent Pages deployment and physical Safari acceptance not verified",
-  "stage_checkpoint_regression_ci": 43147834586,
+  "stage_checkpoint_commit": "d14a03cedbf92136d600187876193245c0078e9c",
+  "stage_checkpoint_patch": "Safari synchronous search focus; unified B V3 card dismissal; defer card teardown until physical animation settles",
+  "stage_checkpoint_validation": "stage regression CI passed; physical iPhone Safari and latest Pages redeploy not separately verified",
+  "stage_checkpoint_regression_ci": 43148062230,
   "stage_checkpoint_regression_status": "success"
 }
