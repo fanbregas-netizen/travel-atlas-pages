@@ -28,5 +28,13 @@
   "stage_checkpoint_public_deploy_ci": 43153349901,
   "stage_checkpoint_public_deploy_status": "success",
   "stage_checkpoint_public_https_ci": 43153466512,
-  "stage_checkpoint_public_https_status": "success"
+  "stage_checkpoint_public_https_status": "success",
+  "stage07_live_map_ci": 43155442841,
+  "stage07_live_map_check": "success: public HTTPS initial and Shanghai zoom17 real OpenFreeMap vector tiles + canvas + architecture status in Chromium and WebKit",
+  "stage07_full_product_ci": "success in Chromium and WebKit at run 43155442841",
+  "stage07_map_flaky_issue": "https://github.com/fanbregas-netizen/travel-atlas/issues/26",
+  "stage07_map_qualification": "prior runs intermittently fell back to raster while zooming; no physical iPhone Safari, AMap commercial backend or visual approval",
+  "stage07_source_branch": "review/v4-stage-checkpoint-20261112-search-focus",
+  "stage07_source_commit": "f58513c7325d4d400edf7a188fc784ca26671033",
+  "stage07_public_artifact": "initial and urban map screenshots are CI artifacts, not user UI approval"
 }
