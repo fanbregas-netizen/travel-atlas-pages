@@ -33,7 +33,7 @@ function initSearch(){const dock=$('searchDock'),original=$('searchInput'),form=
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('fpMediaViewer')){if(activeSearch)closeSearch();else if(activePlaceId)closePlace()}});
  window.visualViewport?.addEventListener('resize',setViewport,{passive:true});window.visualViewport?.addEventListener('scroll',setViewport,{passive:true});window.addEventListener('resize',setViewport,{passive:true});
 }
-function openSearch(){if(activeSearch)return;if(activePlaceId)closePlace();searchReset();activeSearch=true;searchUsed=false;searchSheet.hidden=false;setViewport();document.body.classList.remove('fp34-search-returning');document.body.classList.add('fp34-searching','fp-search-open');searchInput.value='';drawSearchStart();
+function openSearch(){if(activeSearch)return;if(activePlaceId)closePlace(true);searchReset();activeSearch=true;searchUsed=false;searchSheet.hidden=false;setViewport();document.body.classList.remove('fp34-search-returning');document.body.classList.add('fp34-searching','fp-search-open');searchInput.value='';drawSearchStart();
  // Focus synchronously inside the user gesture: iOS Safari may reject keyboard
  // activation when focus is deferred until after the 380ms Dock transition.
  searchInput.focus({preventScroll:true});
@@ -77,7 +77,22 @@ function mountPlace(){if(placeCard)return;placeCard=h('article');placeCard.id='f
  const originalSheet=$('memorySheet');if(originalSheet)new MutationObserver(()=>{if(activePlaceId&&!originalSheet.classList.contains('visible'))closePlace()}).observe(originalSheet,{attributes:true,attributeFilter:['class']});
  const qs=new URLSearchParams(location.search);const source=qs.get('sourcePlace'),media=qs.get('mediaPlace');if(source||media){const target=source||media;let count=0;const t=setInterval(()=>{count++;if(typeof window.__atlasDemo?.openSaved==='function'){clearInterval(t);window.__atlasDemo.openSaved(target);editMode=source?'link':'media';setTimeout(()=>renderPlace(target),120);history.replaceState(null,'',location.pathname)}if(count>32)clearInterval(t)},250)}
 }
-function closePlace(){if(!activePlaceId)return;++selectionRevision;++renderRevision;closeViewer(true);stopTileVideos();activePlaceId='';editMode='';placeCard.hidden=true;window.__atlasSheetIntegration?.card.close();document.body.classList.remove('fp-place-open');const close=$('closeMemory');if(close)close.click();}
+function closePlace(immediate=false){
+ if(!activePlaceId)return;
+ const controller=window.__atlasSheetIntegration?.card;
+ // Regular dismissals follow the same V3 physical spring as a downward swipe.
+ // The unified bridge calls back after the animation and completes teardown.
+ // Switching to search is immediate so the old card cannot cover the keyboard.
+ if(!immediate&&controller&&controller.getState().sheet!=='closed'){
+  controller.close();
+  return;
+ }
+ ++selectionRevision;++renderRevision;
+ closeViewer(true);stopTileVideos();activePlaceId='';editMode='';
+ placeCard.hidden=true;controller?.close();
+ document.body.classList.remove('fp-place-open');
+ const close=$('closeMemory');if(close)close.click();
+}
 window.__atlasClosePlace=closePlace;
 /* build .21 · 用户批注：划卡片要有响应——捏住眉头/内容到顶继续下拉即随手势下滑，松手过阈值关闭（对齐抽屉与高德/苹果 sheet） */
 let selectionRevision=0,renderRevision=0;
@@ -99,7 +114,7 @@ async function showPlaceCard(id){
 }
 async function renderPlace(id){const revision=++renderRevision;const p=await readPlace(id);if(!p||id!==activePlaceId||revision!==renderRevision)return false;stopTileVideos();placeCard.replaceChildren();if(editMode)placeCard.classList.add('fp-editing');const grab=h('div','sheet-grab');grab.setAttribute('aria-hidden','true');placeCard.append(grab);const head=h('header','fp-card-header'),titlewrap=h('div','fp-card-title-wrap');titlewrap.append(h('h2','fp-card-name',p.title||'未命名地点'));const stageBtn=btn(p.stage==='visited'?'已到访 · 足迹':'想去 · 灵感',()=>window.__atlasEditPlace?.(id),'fp-place-stage');stageBtn.setAttribute('aria-label','更改地点状态，当前：'+(p.stage==='visited'?'已到访':'想去'));titlewrap.append(stageBtn);const editToggle=btn(placeCard.classList.contains('fp-editing')?'完成':'编辑',()=>{placeCard.classList.toggle('fp-editing');if(!placeCard.classList.contains('fp-editing'))editMode='';renderPlace(id)},'fp-subaction fp-edit-toggle');
  /* build .20 · 用户批注：收藏点卡片上始终要有「取消收藏」——金星即已收藏，点它取消（影像保留） */
- const unstarBtn=btn('',async()=>{const changed=await window.__atlasCancelBookmark?.(id);if(changed)closePlace()},'fp-unstar-btn');
+ const unstarBtn=btn('',async()=>{const changed=await window.__atlasCancelBookmark?.(id);if(changed)closePlace(true)},'fp-unstar-btn');
  unstarBtn.innerHTML='<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTYXZlZCI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0zMiA4IEwzOS4yIDIzLjIgTDU2IDI1LjQgTDQzLjIgMzcuMiBMNDYuMSA1NC40IEwzMS43IDQ1LjggTDE2LjggNTQuNCBMMjAgMzcuNCBMOC4xIDI1LjMgTDI0LjggMjNaIiBmaWxsPSIjRjZDQzNCIi8+CiAgPHBhdGggZD0iTTI1IDI1IEwzMCAxNCIgc3Ryb2tlLXdpZHRoPSIxLjMiLz4KIDwvZz4KPC9zdmc+" alt="" aria-hidden="true">';unstarBtn.setAttribute('aria-label','取消收藏这颗星');unstarBtn.title='已收藏 · 点按取消收藏';
  head.append(titlewrap,unstarBtn,editToggle,btn('×',closePlace,'fp-card-close'));placeCard.append(head);const sc=h('div','fp-card-scroll');
  /* build .16 · 详情大卡规整为三块卡片（参考苹果排版）：Brief / 影像 / 社交资料 */
