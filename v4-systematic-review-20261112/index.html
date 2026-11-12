@@ -5584,7 +5584,7 @@ class Map{
     $('selectionBack').onclick=hideDestination;$('selectionClose').onclick=hideDestination;
     $('btnStars').onclick=openDrawer;$('closePoiFilters').onclick=()=>{$('poiFilters').hidden=true};document.querySelectorAll('[data-poi-category]').forEach(btn=>btn.onclick=()=>setPoiFilter(btn.dataset.poiCategory));
     $('amapForm').addEventListener('submit',e=>{e.preventDefault();activateOfficial()});$('amapClose').onclick=()=>$('amapSetup').close();$('amapCancel').onclick=()=>$('amapSetup').close();
-    $('retryMap').onclick=()=>{hideMapWarning();mapConnection('',false);document.body.classList.add('map-booting');if(window.AtlasServices?.staticHost&&!isVector()){activateVectorMap(true);return}if(!map){location.reload();return}streetSource=0;installTileLayer('street',true)};
+    $('retryMap').onclick=()=>{hideMapWarning();mapConnection('',false);if(window.AtlasServices?.staticHost&&!isVector()){document.body.classList.add('map-booting');activateVectorMap(true);return}if(!map){location.reload();return}streetSource=0;installTileLayer('street',true)};
     $('btnZoomIn').onclick=()=>(map||isVector()||isOfficial())?zoomMap(1):toast('地图尚未加载');$('btnZoomOut').onclick=()=>(map||isVector()||isOfficial())?zoomMap(-1):toast('地图尚未加载');
     $('btnLocate').onclick=()=>{userHasMovedMap=false;requestCurrentLocation(true)};
     // AMap is the only displayed provider; initialize it automatically once controls are ready.
