@@ -30,9 +30,12 @@ jobs:
           const v=JSON.parse(read('version.json')),index=read('index.html');
           assert.equal(v.release_channel,'isolated-systematic-integration-acceptance');
           assert.equal(v.stage_checkpoint,'2026-11-12-stage16-map-resilience-and-mobile-clarity');
-          assert.equal(v.stage_checkpoint_commit,'9645680d9a213f6cc8f57b22131142974b2075ca');
+          assert.equal(v.stage_checkpoint_commit,'bc1238e762af698a9730b883152900b8103acf47');
           assert.equal(v.production_site_unchanged,true);
           assert.ok(index.includes('atlas-v4-systematic-20261112-'),'isolated storage must remain protected');
+          const indexBytes=fs.readFileSync(root+'index.html');
+          const indexSha=require('node:crypto').createHash('sha1').update(Buffer.from('blob '+indexBytes.length+'\0')).update(indexBytes).digest('hex');
+          assert.equal(indexSha,v.stage_checkpoint_public_index_sha,'Stage16 public index differs from reviewed preview');
           assert.ok(index.includes('const confirmVectorTiles=()=>'),'Stage06 vector tile confirmation not served');
           assert.ok(index.includes("if(!tilesReady&&mapMode==='vector')"),'Stage06 failover not served');
           assert.ok(index.includes('vectorHasRenderedOnce=true'),'Stage08 first map render gate not served');
