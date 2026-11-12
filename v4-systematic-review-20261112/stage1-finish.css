@@ -1,0 +1,174 @@
+/* Footprint Map V4 · Stage1.25 / visual & motion detail pass.
+   Additive layer on Stage1.24. Preserves V3 art, map, quadrant SVG geometry and data. */
+:root{
+  --fp25-type:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --fp25-ink:#282721;--fp25-secondary:#68665d;--fp25-tertiary:#868279;
+  --fp25-paper:#faf9f5;--fp25-surface:#fffefa;--fp25-divider:#e7e3d9;
+  --fp25-gold:#eac45b;--fp25-press:#f5f1e6;
+  --fp25-fast:150ms;--fp25-standard:270ms;--fp25-sheet:360ms;
+  --fp25-ease:cubic-bezier(.22,1,.36,1);
+  --fp25-shadow:0 14px 44px rgba(40,35,24,.14);
+}
+html,body,button,input,select,textarea{font-family:var(--fp25-type)}
+body{color:var(--fp25-ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,a{-webkit-tap-highlight-color:transparent}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.48}
+:where(button,a,input,textarea,select):focus-visible{outline:2px solid #a77d27!important;outline-offset:3px!important}
+/* 3 navigation actions, one V3 hand-drawn language, no additional controls. */
+#appDock{gap:7px!important;padding:7px!important;border-radius:23px!important;background:rgba(255,254,250,.965)!important;border:1px solid rgba(222,217,205,.92)!important;box-shadow:0 10px 34px #27241b23!important}
+#appDock .dock-btn{width:71px!important;height:65px!important;min-width:71px!important;min-height:65px!important;border-radius:16px!important;gap:5px!important;background:transparent!important;box-shadow:none!important;padding:9px 8px 8px!important;transition:background var(--fp25-fast) ease,transform var(--fp25-fast) var(--fp25-ease),box-shadow var(--fp25-fast) ease!important}
+#appDock .dock-btn img{height:25px!important;width:25px!important;object-fit:contain}
+#appDock .dock-btn span{font-size:12px!important;line-height:1.2!important;font-weight:600!important;letter-spacing:0!important;color:#514d44!important}
+#appDock .dock-btn:is(.active,[aria-pressed="true"]){background:#f8ecc7!important;box-shadow:inset 0 0 0 1px #e9d49d!important}
+#appDock .dock-btn:is(.active,[aria-pressed="true"]) span{color:#3b321f!important}
+#appDock .dock-btn:active{transform:scale(.965)!important;background:var(--fp25-press)!important}
+#dockRoutePop{gap:8px;padding:8px;border-radius:21px!important;background:rgba(255,254,250,.975)!important;box-shadow:var(--fp25-shadow)!important;animation:dockPop25 220ms var(--fp25-ease) both!important;transform-origin:70% 100%}
+#dockRoutePop .dock-pop-btn{min-width:96px;width:96px;height:72px;gap:6px;border-radius:15px;background:#fbf8ef;box-shadow:inset 0 0 0 1px #eae5d8}
+#dockRoutePop .dock-pop-btn img{height:24px;width:24px}
+#dockRoutePop .dock-pop-btn span{font-size:12px;line-height:1.2;font-weight:600;letter-spacing:0}
+#dockRoutePop .dock-pop-btn:active{transform:scale(.965);background:#f6eccb}
+@keyframes dockPop25{from{opacity:0;transform:translateY(9px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* Search is a single quiet surface with an explicit search affordance. */
+#searchDock{background:rgba(255,254,250,.975)!important;border:1px solid var(--fp25-divider)!important;border-radius:19px!important;box-shadow:0 7px 27px #28241c1a!important}
+#searchDock .searchbox{min-height:53px!important;border:0!important;box-shadow:none!important;border-radius:19px!important;padding-inline:14px 6px!important;background:transparent!important}
+#searchDock #searchInput{font-family:var(--fp25-type)!important;font-size:16px!important;line-height:1.45!important;letter-spacing:0!important;color:var(--fp25-ink)!important}
+#searchInput::placeholder{color:#918d83!important;opacity:1}
+#searchDock .dock-go{border-radius:13px!important;min-height:44px!important;min-width:44px!important;background:#f4f1e8;color:var(--fp25-ink)}
+#searchDock .dock-go:active{background:#efe4c5}
+#searchResults{border:0!important;border-top:1px solid var(--fp25-divider)!important;box-shadow:none!important;border-radius:0 0 18px 18px!important;overscroll-behavior:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#searchResults::-webkit-scrollbar{display:none}
+#searchResults .search-result{padding:12px 15px!important;min-height:60px!important;gap:4px!important;font-size:14px!important;line-height:1.45!important;border-bottom:1px solid #eeeae1}
+#searchResults .search-result:active{background:#f9f1dc}
+/* Same control proportions around the map. Position and map strategy untouched. */
+.map-controls{gap:9px!important}
+.map-controls .circlebtn{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;border-radius:16px!important;background:rgba(255,254,250,.97)!important;box-shadow:0 5px 18px #24221c17!important;border-color:#e7e3da!important;transition:transform var(--fp25-fast) var(--fp25-ease),background var(--fp25-fast) ease}
+.map-controls .circlebtn:active{transform:scale(.95);background:#f6eedb!important}
+/* Sheets: shorter read lines, sticky heading, no unexpected extra scrollbar gutter. */
+.drawer{border-radius:25px 25px 0 0!important;background:var(--fp25-paper)!important;scrollbar-gutter:auto!important;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;transition:transform var(--fp25-sheet) var(--fp25-ease)!important;box-shadow:0 -14px 54px #27241d2b!important}
+.drawer::-webkit-scrollbar{display:none}
+.drawer .drawer-head{background:var(--fp25-paper)!important;padding-top:10px!important;padding-bottom:13px!important;min-height:75px}
+.drawer .drawer-head .sheet-grab{height:9px;margin:0 0 9px!important;touch-action:pan-x}
+.drawer .drawer-head .sheet-grab::before{width:37px!important;height:5px!important;background:#d1cdc3!important}
+.drawer .drawer-head h2{font-family:var(--fp25-type)!important;font-size:21px!important;font-weight:650!important;letter-spacing:-.025em!important;color:var(--fp25-ink)!important}
+.drawer .drawer-cn{font-size:21px!important;color:var(--fp25-ink)!important;font-weight:650!important}
+#drawer .iconclose,#closeEditor,.fp-card-close{border-radius:14px!important;background:transparent!important;color:#69665e!important;min-width:44px;min-height:44px}
+#drawer .iconclose:active,#closeEditor:active,.fp-card-close:active{background:#ece9e0!important}
+#drawer .savebox-main{min-height:51px!important;border-radius:15px!important;background:#fffefa!important;border:1px solid var(--fp25-divider)!important;font-size:14px!important}
+#drawer .savebox-main span{font-weight:650!important;color:var(--fp25-ink)!important}
+#drawer .savebox-menu{border-radius:16px!important;box-shadow:var(--fp25-shadow)}
+#drawer .savebox-menu button{min-height:48px;font-size:14px!important}
+#spotList .spotrow{min-height:91px!important;padding:11px 12px!important;margin:10px 0!important;gap:13px!important;border-radius:18px!important;background:#fffefa!important;box-shadow:0 2px 12px #26221708;transition:background var(--fp25-fast) ease,transform var(--fp25-fast) var(--fp25-ease)}
+#spotList .spotrow:active{transform:scale(.99);background:#fcf5e6!important}
+#spotList .spotrow strong{font-size:15px!important;font-weight:650!important;letter-spacing:-.01em!important;line-height:1.35!important}
+#spotList .spotrow small{font-size:12px!important;line-height:1.5!important;color:#817b70!important}
+#spotList .spotrow>img,#spotList .spotrow .spotempty{width:65px;height:65px;border-radius:13px!important}
+#spotList .spotrow .arrow img{opacity:.6;width:19px;height:19px}
+#drawer .backuprow{gap:10px!important}
+#drawer .backuprow button{font-size:12px!important;line-height:1.35;padding:13px 10px;min-height:50px;border-radius:14px!important;font-weight:600}
+#drawer .footnote{font-size:12px!important;line-height:1.7!important;color:#817d73!important}
+#cover{transition:opacity var(--fp25-standard) ease!important}
+/* Editor: stable hierarchy, larger readable supporting type, no horizontal jolts. */
+dialog.editor{border-radius:25px!important;box-shadow:0 24px 76px #15140f4d!important;background:var(--fp25-paper)!important}
+.editor .editor-scroll{overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.editor .editor-scroll::-webkit-scrollbar{display:none}
+.editor .edit-head{margin-bottom:12px!important;gap:8px}
+.editor .edit-head::before{display:none!important} /* extra cursive ornament competes with action */
+.editor .edit-head h2{font-family:var(--fp25-type)!important;font-weight:690!important;font-size:23px!important;line-height:1.22!important;letter-spacing:-.035em!important;margin:5px 0 0!important}
+.editor .editor-eyebrow{font-size:10px!important;font-weight:650!important;letter-spacing:.11em!important;color:#938b77!important}
+.editor .edit-sub{font-size:12px!important;line-height:1.55!important;color:#777268!important;margin:0 0 18px!important}
+.editor .field,.editor .atlas-stage-selector legend{font-size:13px!important;letter-spacing:0!important;line-height:1.4;font-weight:660!important;color:#4c4840!important}
+.editor .input,.editor .area{font-family:var(--fp25-type)!important;font-size:16px!important;font-weight:400!important;line-height:1.5!important;border:1px solid #e2ded4!important;border-radius:14px!important;background:var(--fp25-surface)!important;padding:13px 14px!important}
+.editor .area{min-height:114px!important;resize:vertical;line-height:1.7!important}
+.editor .input:focus,.editor .area:focus{border-color:#c7a44c!important;box-shadow:0 0 0 3px #eed68c45!important}
+.editor .atlas-stage-option span{min-height:66px!important;gap:4px!important;border-radius:14px!important;transition:border-color var(--fp25-fast) ease,background var(--fp25-fast) ease}
+.editor .atlas-stage-option b{font-size:14px!important;letter-spacing:0!important}
+.editor .atlas-stage-option small{font-size:12px!important;line-height:1.3!important}
+.editor .atlas-stage-option input:checked+span{border-color:#d9b757!important;background:#fff4cf!important}
+.editor .atlas-editor-more{background:#f4f1e9!important;border:1px solid #e7e3d7!important;border-radius:16px!important}
+.editor .atlas-editor-more summary{min-height:51px!important;padding:14px 15px!important;gap:9px}
+.editor .atlas-editor-more summary span{font-size:14px!important;font-weight:650!important}
+.editor .atlas-editor-more summary small{font-size:12px!important;color:#797368!important}
+#editor .editor-actions{gap:9px!important;box-shadow:none!important;background:linear-gradient(180deg,#faf9f500,#faf9f5 22%)!important;padding:15px 0 calc(10px + env(safe-area-inset-bottom))!important}
+#editor .editor-actions button{min-height:52px!important;border-radius:15px!important;font-family:var(--fp25-type)!important;font-size:15px!important;font-weight:650!important}
+#editor .editor-save-hint{font-size:11px;line-height:1.55;color:#8a857a}
+/* Memory card and 4 SVG bubble *content only*; SVG shape, arrows and hierarchy untouched. */
+.memory-atlas .memo-name{font-family:var(--fp25-type)!important;letter-spacing:-.025em!important;font-weight:640!important;font-size:21px!important;line-height:1.36!important}
+.memory-atlas .memo-text{font-family:var(--fp25-type)!important;font-size:14px!important;line-height:1.8!important;letter-spacing:0!important;color:#4b4943!important}
+.memory-atlas .memo-foot small{font-size:12px!important;line-height:1.4!important}
+.memory-atlas .memo-edit{min-height:40px;border-radius:12px!important;font-size:12px!important;font-weight:600!important}
+.memory-atlas .memory-quickbar button{font-family:var(--fp25-type)!important;font-size:12px!important;line-height:1.3!important;min-height:43px;transition:transform var(--fp25-fast) var(--fp25-ease),background var(--fp25-fast) ease}
+.memory-atlas .memory-quickbar button:active{transform:scale(.97)}
+#atlasOrbit .orbit-content{font-family:var(--fp25-type)}
+#atlasOrbit .orbit-kicker{font-size:11px;letter-spacing:.02em;color:#80796e}
+#atlasOrbit .orbit-title{font-weight:650;letter-spacing:-.02em;line-height:1.28}
+#atlasOrbit .orbit-note{font-size:clamp(11px,1.15vw,13px);line-height:1.5;color:#625f57}
+#atlasOrbit .orbit-action{font-size:11px;font-weight:650;border-radius:10px;transition:background var(--fp25-fast) ease}
+#atlasOrbit .orbit-action:active{background:#f1e8cf}
+#atlasOrbit.is-open .orbit-bubble{animation-duration:.47s!important}
+#atlasOrbit.is-open .orbit-content{animation-duration:.32s!important}
+/* Fullscreen photo navigation stays above home indicator, with true 44px targets. */
+#viewer .viewer-top{top:calc(12px + env(safe-area-inset-top));left:18px;right:16px}
+#viewer .viewer-close,#viewer .viewer-arrow{min-width:44px;min-height:44px;display:grid;place-items:center}
+#viewer .viewer-bottom{font-size:13px;line-height:1.5;padding-inline:20px;text-align:center;color:#dcdad4}
+#viewer .viewer-photo{max-height:calc(100dvh - 178px);object-fit:contain}
+/* Secondary screens inherit the same typographic scale and responsive rhythm. */
+body.journey-page,body.route-page{font-family:var(--fp25-type)!important;color:var(--fp25-ink)}
+.journey-page .builder h1{letter-spacing:-.04em!important;line-height:1.15!important}
+.journey-page .intro,.journey-page .place small,.journey-page .choice small{font-size:13px!important;line-height:1.55!important}
+.journey-page .block h2,.journey-page .section-head h2{font-size:14px!important;font-weight:650!important}
+.journey-page .place,.journey-page .choice{min-height:53px;border-radius:15px;transition:background var(--fp25-fast) ease}
+.journey-page button:active{filter:brightness(.975)}
+.route-page .stop-bubble h2{letter-spacing:-.025em;font-weight:650}
+.route-page .bubble-brief{font-size:13px;line-height:1.7}
+.route-page .bubble-ops a{font-size:12px;min-height:40px;display:grid;place-items:center}
+.route-page .atlas-stops,.route-page .stop-bubble{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+@media(max-width:550px){
+ #searchDock{width:calc(100% - 28px)!important;max-width:none!important;top:calc(10px + env(safe-area-inset-top))!important}
+ #appDock{bottom:calc(10px + env(safe-area-inset-bottom));gap:4px!important;padding:6px!important}
+ #appDock .dock-btn{width:73px!important;min-width:73px!important;height:64px!important;min-height:64px!important}
+ #dockRoutePop{bottom:calc(88px + env(safe-area-inset-bottom));right:calc(50% - 104px)}
+ .drawer{max-height:calc(89dvh - env(safe-area-inset-top))!important;padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+ .editor .editor-scroll{max-height:calc(var(--atlas-visual-height,100dvh) - 18px)!important;padding:20px 18px calc(16px + env(safe-area-inset-bottom))!important}
+ #editor .editor-actions{bottom:0}
+ .memory-atlas .memory-quickbar button{font-size:11px!important}
+}
+@media(max-width:355px){
+ #appDock .dock-btn{width:68px!important;min-width:68px!important}
+ #dockRoutePop .dock-pop-btn{width:90px;min-width:90px}
+ .editor .atlas-stage-option small{font-size:11px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .drawer,#dockRoutePop,#appDock .dock-btn,.spotrow,.circlebtn{transition-duration:.01ms!important;animation-duration:.01ms!important}
+ #atlasOrbit.is-open .orbit-bubble,#atlasOrbit.is-open .orbit-content{animation-duration:.01ms!important}
+}
+/* Collage sheet, search sheet and archive share the same visual density. */
+#fpPlaceCard{border-radius:24px!important;background:var(--fp25-paper)!important;box-shadow:var(--fp25-shadow)!important;animation:fp25CardIn .3s var(--fp25-ease) both!important}
+@keyframes fp25CardIn{from{opacity:.65;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+#fpPlaceCard .fp-card-name{font:650 21px/1.35 var(--fp25-type)!important;letter-spacing:-.025em!important}
+#fpPlaceCard .fp-card-kicker,#fpPlaceCard .fp-subheading label,#fpPlaceCard .fp-subheading strong{font-size:11px!important;font-weight:650!important;letter-spacing:.055em!important;color:#88774f!important}
+#fpPlaceCard .fp-card-scroll{scrollbar-width:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#fpPlaceCard .fp-card-scroll::-webkit-scrollbar{display:none}
+#fpPlaceCard .fp-brief-text{font-size:14px!important;line-height:1.8!important;color:#4d4a43!important}
+#fpPlaceCard .fp-block{border-radius:17px!important;padding:14px 15px!important;box-shadow:none!important;border-color:#e8e4da!important}
+#fpPlaceCard .fp-card-chip{min-height:45px!important;font-size:12px!important;font-weight:650!important;border-radius:13px!important}
+#fpPlaceCard .fp-edit-toggle{min-height:42px!important;font-size:12px!important;padding:9px 13px!important}
+#fpPlaceCard .fp-unstar-btn{width:44px!important;height:44px!important;min-width:44px!important;border-radius:14px!important}
+#fpSearchSheet{background:var(--fp25-paper)!important;border-color:#e6e2d8!important;border-radius:25px 25px 0 0!important;transition:transform .35s var(--fp25-ease),opacity .18s ease!important}
+#fpSearchSheet .fp-search-head h2{font-size:21px!important;font-weight:670!important;letter-spacing:-.03em!important}
+#fpSearchSheet .fp-search-label{font-size:11px!important;letter-spacing:.05em!important;font-weight:650!important}
+#fpSearchSheet .fp-quick{min-height:83px!important;border-radius:16px!important;font-size:12px!important;font-weight:600!important}
+#fpSearchSheet .fp-search-row{min-height:69px!important}
+#fpSearchSheet .fp-row-main strong{font-size:15px!important;font-weight:650!important}
+#fpSearchSheet .fp-row-main small{font-size:12px!important}
+#fpSearchSheet .fp-search-body{scrollbar-width:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#fpSearchSheet .fp-search-body::-webkit-scrollbar{display:none}
+
+.drawer.fp25-dragging,.drawer.fp25-dragging.visible{transition:none!important;will-change:transform}
+
+/* At the narrowest iPhone widths the optional row stays one line. */
+.editor .atlas-editor-more summary{display:grid!important;grid-template-columns:max-content minmax(0,1fr) 20px;align-items:center;flex-wrap:nowrap!important;column-gap:8px}
+.editor .atlas-editor-more summary small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.editor .atlas-editor-more summary::after{grid-column:3;margin:0!important;justify-self:center}
+@media(max-height:740px){.editor .editor-save-hint{margin-top:2px;font-size:10px}}
+#drawer #sheetCount{color:#898174!important;font-size:12px!important;font-weight:500!important;margin-left:7px}
