@@ -1,24 +1,5 @@
 <!doctype html>
 <html lang="zh-CN"><head>
-<base href="/travel-atlas-pages/v4-systematic-review-20261112/">
-<script id="atlas-isolated-systematic-review">(()=>{'use strict';
-const ns='atlas-v4-systematic-20261112-';window.__atlasPreviewNamespace=ns;
-const factory=IDBFactory.prototype,open=factory.open,del=factory.deleteDatabase;
-factory.open=function(name,...args){return open.call(this,ns+String(name),...args)};
-factory.deleteDatabase=function(name){return del.call(this,ns+String(name))};
-const list=factory.databases;
-if(typeof list==='function')factory.databases=async function(){
- const all=await list.call(this);
- return all.filter(item=>String(item.name||'').startsWith(ns))
-   .map(item=>({...item,name:String(item.name).slice(ns.length)}));
-};
-const st=Storage.prototype,get=st.getItem,set=st.setItem,rm=st.removeItem,key=st.key;
-st.getItem=function(name){return get.call(this,ns+String(name))};
-st.setItem=function(name,v){return set.call(this,ns+String(name),v)};
-st.removeItem=function(name){return rm.call(this,ns+String(name))};
-st.clear=function(){const a=[];for(let i=0;i<this.length;i++){const k=key.call(this,i);if(k?.startsWith(ns))a.push(k)}a.forEach(k=>rm.call(this,k))};
-})();</script>
-
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f3f1e9">
@@ -106,7 +87,7 @@ const imageData=src=>typeof src==='string'&&(/^(data:image\/(png|jpeg|webp);base
 const urls=[];let places=[],map=null,pins=[],active=-1,redrawRaf=0,routePayload=null,routeCoords=[],statusTimeout=0,stopDays=[],addCandidate=null,segEls=[],markEls=[],dayPills=[];
 const SVGNS='http://www.w3.org/2000/svg';
 function notice(t,keep=false){const box=$('atlasStatus');box.textContent=t;box.classList.remove('is-quiet');clearTimeout(statusTimeout);if(!keep)statusTimeout=setTimeout(()=>box.classList.add('is-quiet'),3200)}
-function empty(t){$('emptyMessage').textContent=t;$('emptyState').hidden=false;notice('',false)}
+function empty(t){$('emptyMessage').textContent=t;$('emptyState').hidden=false;$('routeBootNotice').hidden=true;notice('',false)}
 function readSelection(){let handoff=null;try{handoff=sessionStorage.getItem(KEY);if(handoff){sessionStorage.removeItem(KEY);sessionStorage.setItem(ACTIVE,handoff)}else handoff=sessionStorage.getItem(ACTIVE)}catch{}if(!handoff)return null;let p;try{p=JSON.parse(handoff)}catch{return null}if(p.schema!==KEY||!Array.isArray(p.placeIds)||!p.placeIds.length||p.placeIds.length>100||!p.placeIds.every(x=>typeof x==='string'&&x.length<200))return null;if(!p.createdAt||Date.now()-p.createdAt>7*86400000||p.createdAt>Date.now()+60000)return null;return p}
 function getRecords(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB,1);req.onerror=()=>reject(req.error||Error('数据库读取失败'));req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('places'))db.createObjectStore('places',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta',{keyPath:'key'})};req.onsuccess=()=>{const db=req.result;let request;try{request=db.transaction('places','readonly').objectStore('places').getAll()}catch(e){db.close();reject(e);return}request.onsuccess=()=>{resolve(request.result||[]);db.close()};request.onerror=()=>{reject(request.error);db.close()}}})}
 async function loadPlaces(ids){let all=[];try{all=await getRecords()}catch(err){try{all=JSON.parse(localStorage.getItem('travel-places')||'[]')}catch{}if(!Array.isArray(all))all=[];if(!all.length)throw err}const lookup=new Map(all.filter(p=>p?.starred!==false&&!p?.demo&&coord(p.lat)&&coord(p.lng)&&Math.abs(+p.lat)<=85.05&&Math.abs(+p.lng)<=180).map(p=>[String(p.id),p]));const missing=ids.filter(id=>!lookup.has(id));if(missing.length)notice(`其中 ${missing.length} 个收藏点已删除或缺少坐标，已跳过`,true);return ids.map(id=>lookup.get(id)).filter(Boolean)}
@@ -188,7 +169,11 @@ function openAddStop(){if(!routePayload||!places.length)return;$('addStopError')
 async function renderAddStopList(q){const box=$('addStopList');box.replaceChildren(make('p','add-stop-empty','正在读取收藏…'));let all;try{all=await getRecords()}catch(e){box.replaceChildren(make('p','add-stop-empty','无法读取收藏库：'+e.message));return}const inRoute=new Set(places.map(p=>String(p.id)));const items=all.filter(p=>p&&p.starred!==false&&!p.demo&&coord(p.lat)&&coord(p.lng)&&Math.abs(+p.lat)<=90&&Math.abs(+p.lng)<=180&&!inRoute.has(String(p.id))&&(text(p.title||p.name)+' '+text(p.address||'')).toLowerCase().includes(q.trim().toLowerCase())).slice(0,60);box.replaceChildren();if(!items.length){box.append(make('p','add-stop-empty',q?'没有匹配的收藏。':'所有已定位的收藏都已在路线里。'));return}for(const p of items){const b=make('button','add-stop-item');b.type='button';b.setAttribute('role','option');b.append(make('span','add-stop-name',text(p.title||p.name,60)),make('span','add-stop-addr',text(p.address||'保存的地图位置',60)));b.onclick=()=>{addCandidate=p;for(const x of box.children)x.classList.toggle('picked',x===b);$('addStopError').textContent='';$('addStopConfirm').disabled=false};box.append(b)}}
 function confirmAddStop(){if(!addCandidate){$('addStopError').textContent='请先在列表中选择一个收藏点。';return}const day=Math.max(1,Math.min(tripDays()||60,Number($('addStopDay').value)||1));const entry=addCandidate;places.push(entry);stopDays.push(day);const order=places.map((p,i)=>i).sort((a,b)=>stopDays[a]-stopDays[b]||a-b);places=order.map(i=>places[i]);stopDays=order.map(i=>stopDays[i]);routePayload.placeIds=places.map(p=>String(p.id));routeCoords=places.map(p=>({lng:+p.lng,lat:+p.lat}));dismissBubble();addPins();showStopRail();buildRouteLayers();document.dispatchEvent(new CustomEvent('atlas:route-stops-changed'));$('addStopDialog').close();notice('已把「'+text(entry.title||entry.name,40)+'」加入 D'+day+'。点「保存路线」后写入我的路线。',true)}
 function initUI(){$('viewAll').onclick=fit;$('saveRoute').onclick=openSave;$('routeSaveCancel').onclick=()=>$('saveRouteDialog').close();$('routeSaveForm').addEventListener('submit',saveRoute);$('addStop').onclick=openAddStop;$('addStopCancel').onclick=()=>$('addStopDialog').close();$('addStopClose').onclick=()=>$('addStopDialog').close();$('addStopDialog').addEventListener('click',e=>{if(e.target===$('addStopDialog'))$('addStopDialog').close()});$('addStopConfirm').onclick=confirmAddStop;$('addStopSearch').oninput=e=>renderAddStopList(e.target.value);setupCardGestures();$('closeBubble').onclick=dismissBubble;document.addEventListener('keydown',e=>{if(e.key==='Escape')dismissBubble()});$('atlasMap').addEventListener('click',()=>{if(active>=0)dismissBubble()});}
-async function init(){initUI();routePayload=await resolveRoute();if(!routePayload){empty('请在 Footprint Map 点击「路线」，通过地图选点或列表搜索选出收藏地点后进入。');return}const ids=[...new Set(routePayload.placeIds)];try{places=await loadPlaces(ids)}catch(e){empty('无法读取当前浏览器中的收藏地点：'+e.message);return}if(!places.length){empty('本次选中的地点没有可读取的真实坐标。请返回主页检查收藏是否存在。');return}const stopList=routePayload.stops||ids.map((pid,i)=>({id:pid,day:1,order:i+1}));stopDays=ids.filter(id=>places.some(p=>String(p.id)===id)).map(id=>stopList.find(s=>s.id===id)?.day||1);routeCoords=places.map(p=>({lng:+p.lng,lat:+p.lat}));addPins();showStopRail();buildRouteLayers();try{const lib=await getMaplibre();setupMap(lib);setTimeout(()=>{if(map&&!map.loaded()){const boot=document.getElementById('routeBootNotice');if(!boot.hidden){boot.querySelector('strong').textContent='地图网络响应较慢';boot.querySelector('small').textContent='站点已经读取，可以返回路线规划或重试地图';boot.querySelector('button').hidden=false;boot.querySelector('button').onclick=()=>location.reload()}}},7500)}catch(e){
+async function init(){initUI();routePayload=await resolveRoute();if(!routePayload){empty('请在 Footprint Map 点击「路线」，通过地图选点或列表搜索选出收藏地点后进入。');return}const ids=[...new Set(routePayload.placeIds)];try{places=await loadPlaces(ids)}catch(e){empty('无法读取当前浏览器中的收藏地点：'+e.message);return}if(!places.length){empty('本次选中的地点没有可读取的真实坐标。请返回主页检查收藏是否存在。');return}const stopList=routePayload.stops||ids.map((pid,i)=>({id:pid,day:1,order:i+1}));stopDays=ids.filter(id=>places.some(p=>String(p.id)===id)).map(id=>stopList.find(s=>s.id===id)?.day||1);routeCoords=places.map(p=>({lng:+p.lng,lat:+p.lat}));addPins();showStopRail();buildRouteLayers();
+ // Show actual route controls once route data is ready; tile loading cannot block them.
+ $('routeBootNotice').hidden=true;
+ try{const lib=await getMaplibre();setupMap(lib);setTimeout(()=>{if(map&&!map.loaded())notice('站点与日期已可操作，地图仍在加载；可继续查看站点或重试。',true)},7500)}catch(e){
+ $('routeBootNotice').hidden=true;
  const boot=document.getElementById('routeBootNotice');
  boot.querySelector('strong').textContent='地图暂时无法连接';
  boot.querySelector('small').textContent='已读取路线站点；可检查网络后重试，收藏数据不受影响';
@@ -549,6 +534,15 @@ function init(){
     if(detail.classList.contains('open'))openDetail();else fillCallout();
   }).observe(document.getElementById('bubbleTitle'),{childList:true,characterData:true,subtree:true});
   map.on('move',posCallout);
+  // Approved C04: a selected route stop on the persistent bottom rail opens
+  // its own real placeId detail sheet directly. The floating map callout remains
+  // available, but is no longer a required second tap (or map-load dependency).
+  rail.addEventListener('click',e=>{
+    const chip=e.target.closest('.stop-chip');
+    if(!chip||!rail.contains(chip)||drag?.on)return;
+    // The original rail button sets the active geographic place first.
+    if(curPlace())openDetail();
+  });
   callout.addEventListener('click',e=>{e.stopPropagation();openDetail()});
 }
 })();
