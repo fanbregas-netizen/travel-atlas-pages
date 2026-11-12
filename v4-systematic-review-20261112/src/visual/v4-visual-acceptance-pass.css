@@ -1178,3 +1178,31 @@ body:not(.route-pick-active) .map-controls #btnLayers{display:none!important}
   min-height:44px!important;height:44px!important
  }
 }
+
+
+/* Stage18 final iPhone cover action pinned inside the visible upper-right of
+   the cover: it must never disappear under the existing half-open sheet. */
+@media(max-width:700px){
+ body.journey-page.journey-live-sheet .fp-journey-overview{
+  position:relative!important;min-height:0!important;
+  padding:12px 14px 11px!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-top{
+  display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+  justify-content:center!important;gap:2px!important;
+  padding-right:111px!important;min-height:44px!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-kicker{font-size:10px!important}
+ body.journey-page.journey-live-sheet .fp-jov-stats{font-size:11px!important}
+ body.journey-page.journey-live-sheet .fp-jov-action{
+  position:absolute!important;top:12px!important;right:12px!important;
+  width:101px!important;max-width:101px!important;
+  min-height:44px!important;height:44px!important;
+  padding:10px 10px!important;border-radius:13px!important;
+  background:rgba(255,255,255,.16)!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-title{
+  margin-top:5px!important;font-size:22px!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stops{margin-bottom:0!important}
+}
