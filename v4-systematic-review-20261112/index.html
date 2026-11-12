@@ -5418,9 +5418,9 @@ class Map{
       mapConnection(warning,true);
       let settled=false;
       const confirmRaster=()=>{
-        if(settled||!map)return;
+        if(settled||!map||mapMode!=='figure')return;
         let ready=false;
-        try{ready=!!map.isSourceLoaded?.('base')&&!!map.loaded?.()}catch(_){}
+        try{ready=!!map.isSourceLoaded?.('base')&&!!map.loaded?.()&&!!map.areTilesLoaded?.()}catch(_){}
         if(!ready)return;
         settled=true;
         clearTimeout(rasterRecoveryTimer);
