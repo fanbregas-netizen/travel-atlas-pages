@@ -1,0 +1,43 @@
+name: V4 Stage 06 public preview HTTP smoke
+on:
+  workflow_run:
+    workflows: ["Publish Travel Atlas V4 to GitHub Pages"]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-preview:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify deployed isolated V4 checkpoint over public HTTPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://fanbregas-netizen.github.io/travel-atlas-pages/v4-systematic-review-20261112"
+          mkdir -p /tmp/atlas-stage06
+          for target in version.json index.html footprint-home.js journey.js src/interaction/real-product-bridge.js src/visual/iphone-v4-polish.css; do
+            mkdir -p "/tmp/atlas-stage06/$(dirname "$target")"
+            curl --fail --location --silent --show-error --retry 9 --retry-delay 5 --max-time 35 \
+              "$base/$target?check=$(date +%s)" -o "/tmp/atlas-stage06/$target"
+            test -s "/tmp/atlas-stage06/$target"
+          done
+          node <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const root='/tmp/atlas-stage06/',read=p=>fs.readFileSync(root+p,'utf8');
+          const v=JSON.parse(read('version.json')),index=read('index.html');
+          assert.equal(v.release_channel,'isolated-systematic-integration-acceptance');
+          assert.equal(v.stage_checkpoint,'2026-11-12-stage06-vector-tile-readiness');
+          assert.equal(v.stage_checkpoint_commit,'a10ec261706be27f3fbccf5f60e1ecda8fadcc73');
+          assert.equal(v.production_site_unchanged,true);
+          assert.ok(index.includes('atlas-v4-systematic-20261112-'),'isolated storage must remain protected');
+          assert.ok(index.includes('const confirmVectorTiles=()=>'),'Stage06 vector tile confirmation not served');
+          assert.ok(index.includes("if(!tilesReady&&mapMode==='vector')"),'Stage06 failover not served');
+          assert.ok(read('footprint-home.js').includes('function closePlace(immediate=false)'));
+          assert.ok(read('journey.js').includes('unresolvedStopIds.length'));
+          assert.ok(read('src/interaction/real-product-bridge.js').includes('cardMotion?.state()?.animating'));
+          assert.ok(read('src/visual/iphone-v4-polish.css').includes('Stage 03: locked upright geographic star'));
+          console.log('PASS: public HTTPS serves Stage 01–06 integrated files and isolated namespace');
+          NODE
