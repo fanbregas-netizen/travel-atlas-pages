@@ -5474,9 +5474,42 @@ class Map{
       vectorMap=new window.maplibregl.Map({container:'atlasVectorMap',style:'https://tiles.openfreemap.org/styles/bright',center:[c.lng,c.lat],zoom:Math.max(2,Math.min(19,currentZoom())),pitch:0,bearing:0,maxPitch:0,minZoom:2,maxZoom:19,attributionControl:{compact:true},dragRotate:false,renderWorldCopies:false});
       mapMode='vector';document.body.classList.remove('legacy-recovery');document.body.classList.add('vector-active');document.body.classList.remove('amap-active');
       vectorMap.touchZoomRotate.disableRotation();
-      vectorMap.getCanvas()?.addEventListener('webglcontextlost',event=>{
-        event.preventDefault();recoverFromVectorFailure('图形渲染被系统中断，已恢复基础地图。');
-      },{once:true});
+      // A WebGL context may be lost transiently during a heavy street-zoom
+      // on iOS / software GPU. MapLibre itself can restore the canvas; removing
+      // the entire map synchronously prevents that recovery and causes a blank
+      // raster fallback on the very same exhausted graphics context.
+      const activeCanvas=vectorMap.getCanvas();
+      let contextRestoreTimer=null,contextRestorePending=false;
+      activeCanvas?.addEventListener('webglcontextlost',event=>{
+        event.preventDefault();
+        if(!isVector()||vectorMap?.getCanvas?.()!==activeCanvas)return;
+        contextRestorePending=true;
+        document.body.classList.remove('atlas-remote-ready');
+        mapConnection('地图图形正在恢复，请稍候…',true);
+        clearTimeout(contextRestoreTimer);
+        contextRestoreTimer=setTimeout(()=>{
+          if(contextRestorePending&&isVector()&&vectorMap?.getCanvas?.()===activeCanvas)
+            recoverFromVectorFailure('WebGL 图形上下文在恢复期限内未恢复，已尝试基础地图。');
+        },6000);
+      });
+      activeCanvas?.addEventListener('webglcontextrestored',()=>{
+        if(!contextRestorePending)return;
+        contextRestorePending=false;
+        clearTimeout(contextRestoreTimer);
+        if(!isVector()||vectorMap?.getCanvas?.()!==activeCanvas)return;
+        try{vectorMap.resize();vectorMap.triggerRepaint()}catch(_){}
+        // The renderer will mark ready only once the refreshed style and
+        // actual visible tiles finish loading.
+        const restoreReady=()=>{
+          if(!isVector()||vectorMap?.getCanvas?.()!==activeCanvas)return;
+          if(vectorMap.isStyleLoaded?.()&&vectorMap.areTilesLoaded?.()){
+            document.body.classList.add('atlas-remote-ready');
+            mapConnection('',false);
+            vectorMap.off('idle',restoreReady);
+          }
+        };
+        vectorMap.on('idle',restoreReady);restoreReady();
+      });
       let loaded=false,tilesReady=false,vectorTileTimer=null;
       const confirmVectorTiles=()=>{
         if(tilesReady||!isVector()||!vectorMap)return;
