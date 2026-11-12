@@ -4622,8 +4622,9 @@ class Map{
     if(map)document.body.classList.toggle('poi-detail',map.getZoom()>=14);
     if(!selectedId && $('helptext'))$('helptext').textContent='俯视白模 · 点击地点查看详情，★ 收藏旅途';
   }
-  function showMapWarning(message){const el=$('mapError');el.querySelector('span').textContent=message;el.classList.add('visible')}
-  function hideMapWarning(){$('mapError').classList.remove('visible')}
+  /* Stage 16: terminal map failures exit the loading state and reuse one accessible retry banner. */
+  function showMapWarning(message){const el=$('mapError');el.querySelector('span').textContent=message;el.classList.add('visible');el.setAttribute('role','alert');document.body.classList.add('atlas-map-unavailable');document.body.classList.remove('map-booting');mapConnection('',false)}
+  function hideMapWarning(){$('mapError').classList.remove('visible');document.body.classList.remove('atlas-map-unavailable')}
   function handleMapError(e){
     if(isVector()||isOfficial())return;
     if(!e?.sourceId&&!e?.error)return;
@@ -5473,8 +5474,8 @@ class Map{
     }catch(_){}
     return {provider,ready:!!ready,canvas:!!canvas,warning:!!$('mapError')?.classList.contains('visible'),status:document.body.classList.contains('map-booting')?'loading':ready?'ready':'unavailable'};
   };
-  async function activateVectorMap(){
-    if(vectorStarting||vectorMap||(map&&window.AtlasServices?.staticHost))return;
+  async function activateVectorMap(forceRetry=false){
+    if(vectorStarting||vectorMap||(map&&window.AtlasServices?.staticHost&&!forceRetry))return;
     vectorStarting=true;
     /* build .18 · 启动只保留 atlasMapLoader 一个指示器,不再叠第二条 toast */
     try{
@@ -5535,6 +5536,7 @@ class Map{
         vectorMap.off('idle',confirmVectorTiles);
         document.body.classList.add('atlas-remote-ready');
         document.body.classList.remove('map-booting');
+        hideMapWarning();
         mapConnection('',false);
       };
       vectorMap.on('remove',()=>{
@@ -5582,7 +5584,7 @@ class Map{
     $('selectionBack').onclick=hideDestination;$('selectionClose').onclick=hideDestination;
     $('btnStars').onclick=openDrawer;$('closePoiFilters').onclick=()=>{$('poiFilters').hidden=true};document.querySelectorAll('[data-poi-category]').forEach(btn=>btn.onclick=()=>setPoiFilter(btn.dataset.poiCategory));
     $('amapForm').addEventListener('submit',e=>{e.preventDefault();activateOfficial()});$('amapClose').onclick=()=>$('amapSetup').close();$('amapCancel').onclick=()=>$('amapSetup').close();
-    $('retryMap').onclick=()=>{if(!map){location.reload();return}streetSource=0;installTileLayer('street',true)};
+    $('retryMap').onclick=()=>{hideMapWarning();mapConnection('',false);document.body.classList.add('map-booting');if(window.AtlasServices?.staticHost&&!isVector()){activateVectorMap(true);return}if(!map){location.reload();return}streetSource=0;installTileLayer('street',true)};
     $('btnZoomIn').onclick=()=>(map||isVector()||isOfficial())?zoomMap(1):toast('地图尚未加载');$('btnZoomOut').onclick=()=>(map||isVector()||isOfficial())?zoomMap(-1):toast('地图尚未加载');
     $('btnLocate').onclick=()=>{userHasMovedMap=false;requestCurrentLocation(true)};
     // AMap is the only displayed provider; initialize it automatically once controls are ready.
