@@ -349,5 +349,4 @@ jobs:
           name: systematic-v4-pages-browser-evidence
           path: systematic-v4-pages-evidence/
           if-no-files-found: ignore
-          if-no-files-found: ignore
 
