@@ -1272,7 +1272,8 @@ body:has(#atlasFirstStar:not([hidden])) #fpMapOverview{
   width:min(216px,calc(100vw - 92px));padding:13px 14px;border-radius:21px}
  #fpMapOverview .fp-map-overview-title{font-size:19px}
 }
-@media(max-height:680px){#fpMapOverview{top:calc(95px + env(safe-area-inset-top))}}
+@media(max-height:680px){#fpMapOverview{top:calc(143px + env(safe-area-inset-top))}}
+body.atlas-map-unavailable #fpMapOverview{opacity:0!important;visibility:hidden!important}
 
 /* Selected-place identity: use the actual stored address, not invented POI. */
 #fpPlaceCard .fp-card-header:has(.fp-card-location){

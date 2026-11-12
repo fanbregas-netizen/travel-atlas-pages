@@ -30,7 +30,7 @@ jobs:
           const v=JSON.parse(read('version.json')),index=read('index.html');
           assert.equal(v.release_channel,'isolated-systematic-integration-acceptance');
           assert.equal(v.stage_checkpoint,'2026-11-12-stage19-editorial-first-viewport');
-          assert.equal(v.stage_checkpoint_commit,'d0aa43ea252ed5926141b979091c02a9665e339c');
+          assert.equal(v.stage_checkpoint_commit,'b6d90257959e611bdd238022afaf4d824b217a7b');
           assert.equal(v.production_site_unchanged,true);
           assert.ok(index.includes('atlas-v4-systematic-20261112-'),'isolated storage must remain protected');
           const indexBytes=fs.readFileSync(root+'index.html');
@@ -50,7 +50,7 @@ jobs:
           assert.ok(read('footprint-home.js').includes('resetViewerDrag()'));
           assert.ok(read('footprint-home.js').includes('.map(x=>({...x,lon:x.lon??x.lng,lat:x.lat}))'));
           assert.ok(read('footprint-home.js').includes('function closePlace(immediate=false)'));
-          assert.equal(v.stage_checkpoint_route_script_sha,'10188c12a7e885e0480578d38da7ed758e0d2b58');
+          assert.equal(v.stage_checkpoint_route_script_sha,'64e994f89ec9a4752deeba531aad94a293f4eb99');
           assert.ok(read('route-view.html').includes("$('routeBootNotice').hidden=true"));
           assert.ok(read('route-view.html').includes('rail.addEventListener(\'click\',e=>{'));
           assert.ok(read('route-view.html').includes('if(curPlace())openDetail()'));
@@ -74,9 +74,9 @@ jobs:
           assert.ok(nextVisual.toString('utf8').includes('grid-template-columns:minmax(0,1fr) 44px 58px 44px'));
           assert.ok(read('footprint-home.js').includes("h('span','fp-section-index',number)"));
           assert.ok(read('footprint-home.js').includes("h('strong','fp-section-label',name)"));
-          assert.ok(index.includes('v4-visual-acceptance-pass.css?v=stage19-editorial'));
-          assert.ok(read('journey.html').includes('v4-visual-acceptance-pass.css?v=stage19-editorial'));
-          assert.ok(read('route-view.html').includes('v4-visual-acceptance-pass.css?v=stage19-editorial'));
+          assert.ok(index.includes('v4-visual-acceptance-pass.css?v=stage19-map-clearance'));
+          assert.ok(read('journey.html').includes('v4-visual-acceptance-pass.css?v=stage19-map-clearance'));
+          assert.ok(read('route-view.html').includes('v4-visual-acceptance-pass.css?v=stage19-map-clearance'));
           assert.ok(read('journey.js').includes('unresolvedStopIds.length'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('cardMotion?.state()?.animating'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('closingInFlight'),'Stage09 header bind close guard not served');
@@ -106,6 +106,8 @@ jobs:
           assert.ok(read('footprint-home.js').includes('fp-card-location'),'Stage19 stored address absent');
           assert.ok(read('journey.js').includes('rail.dataset.count=String(Math.min(3,items.length))'),'Stage19 route layout not data-driven');
           assert.ok(nextVisual.toString('utf8').includes('Stage 19 — first-screen editorial identity'),'Stage19 first-screen visual CSS absent');
+          assert.ok(nextVisual.toString('utf8').includes('top:calc(143px + env(safe-area-inset-top))'),'Stage19 short-viewport loader clearance missing');
+          assert.ok(nextVisual.toString('utf8').includes('body.atlas-map-unavailable #fpMapOverview'),'Stage19 terminal-map error clearance missing');
           assert.ok(nextVisual.toString('utf8').includes('grid-template-columns:minmax(0,1.58fr) minmax(0,1fr)!important'),'Stage19 dominant media missing');
           console.log('PASS: Stage19 editorial map, real saved-place address, photo hierarchy and actual route first viewport served by public HTTPS');
           NODE
