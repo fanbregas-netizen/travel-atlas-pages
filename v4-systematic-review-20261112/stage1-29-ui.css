@@ -1,0 +1,83 @@
+/* Footprint Map V4 · Stage1.29 · Ink / Frost / Champagne design system.
+   V3 icons remain untouched. Top dock is removed, NOT search capability. */
+:root{--fp-gold:#C8AD78;--fp-ink:#26333A;--fp-paper:#F2F5F3;--fp-surface:#F9FBFA;--fp-muted:#78898D;--fp-line:#DDE5E3;--fp-shadow:0 15px 42px rgba(25,44,49,.12);--fp-ease:cubic-bezier(.22,1,.36,1)}
+body{color:#27363B;background:#EFF3F1}
+#map{background:#EEF2F0!important}
+/* The search now lives in the bottom Map entry, with an accessible search sheet. */
+#searchDock{display:none!important;pointer-events:none!important}
+#atlasFirstStar p{font-size:13px;line-height:1.55}
+#figureCaption{color:#7E9093!important;opacity:.82}
+#mapStatus{color:#89999B!important}
+#appDock{width:min(372px,calc(100vw - 42px));padding:8px!important;gap:8px!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid rgba(206,218,216,.8)!important;border-radius:25px!important;background:rgba(247,250,249,.92)!important;box-shadow:0 15px 38px rgba(32,52,58,.18)!important;backdrop-filter:blur(20px) saturate(1.08)!important;-webkit-backdrop-filter:blur(20px) saturate(1.08)!important}
+#appDock .dock-btn{width:100%!important;min-width:0!important;height:57px!important;min-height:57px!important;padding:8px 4px!important;border:0!important;border-radius:17px!important;background:transparent!important;color:#4D6065!important;box-shadow:none!important;transition:transform .32s var(--fp-ease),background .32s var(--fp-ease)!important}
+#appDock .dock-btn img{width:25px!important;height:25px!important;filter:none!important;opacity:.88}
+#appDock .dock-btn span{font-size:11px!important;font-weight:620!important;letter-spacing:.015em!important;line-height:1.15}
+#appDock .dock-btn.active,#appDock .dock-btn[aria-current="page"],body.route-pick-active #dockRoute{background:#E7EBD8!important;color:#26383A!important;box-shadow:inset 0 0 0 1px rgba(141,164,154,.16)!important}
+#appDock #dockStars.active{background:#EFE5CF!important}
+#appDock .dock-btn:active{transform:scale(.946)!important}
+#appDock #dockMap::after{content:"";width:11px;height:11px;position:absolute;top:5px;left:calc(50% + 12px);background:#637A7E;-webkit-mask:url('./icons/02_search.svg') center/contain no-repeat;mask:url('./icons/02_search.svg') center/contain no-repeat}
+#appDock #dockMap{position:relative}
+#dockRoutePop{background:rgba(248,250,249,.97)!important;border-color:#DBE5E2!important;border-radius:19px!important}
+#dockRoutePop .dock-pop-btn{color:#35474B!important}
+/* Three right-side map tools remain. The redundant layers button is not a primary action. */
+#btnLayers,#layerMenu{display:none!important}
+.map-controls{right:12px!important;bottom:calc(124px + env(safe-area-inset-bottom))!important;gap:9px!important;z-index:890!important}
+.map-controls .circlebtn{background:rgba(248,251,250,.91)!important;border:1px solid rgba(219,228,225,.9)!important;color:#29383C!important;border-radius:19px!important;box-shadow:0 6px 19px rgba(31,49,51,.12)!important;width:48px!important;height:48px!important;display:grid!important;place-items:center!important;transition:transform .25s var(--fp-ease),background .2s ease!important;-webkit-tap-highlight-color:transparent}
+.map-controls .circlebtn:active{transform:scale(1.115)!important;background:#E1EBE8!important}
+#btnLocate{font-size:0!important;color:transparent!important}
+#btnLocate::before{content:'';width:23px;height:23px;display:block;background:#34484B;-webkit-mask:url('./icons/18_locate.svg') center/contain no-repeat;mask:url('./icons/18_locate.svg') center/contain no-repeat}
+#btnZoomIn,#btnZoomOut{font-size:28px!important;font-weight:350!important;line-height:1!important}
+/* The search sheet remains native and legible after the top launcher is removed. */
+#fpSearchSheet{background:#F5F8F7!important;color:#26383C!important;border:1px solid #DEE8E4!important;box-shadow:0 -18px 44px rgba(32,48,52,.16)!important}
+#fpSearchSheet .fp-search-bar{background:#FFF!important;border:1px solid #DDE6E3!important}
+#fpSearchField{font-size:16px!important}
+/* Remove tiny vivid yellow markers and use generous muted metal accents. */
+#atlasBookmarkOverlay .atlas-bookmark-hit{color:#D2AE68!important;-webkit-text-stroke:0!important;text-shadow:none!important}
+#atlasBookmarkOverlay .atlas-bookmark-hit svg{filter:drop-shadow(0 2px 4px rgba(35,47,43,.19))!important}
+#atlasBookmarkOverlay .atlas-bookmark-hit.selected svg{filter:drop-shadow(0 2px 7px rgba(165,123,64,.28))!important}
+#atlasBookmarkOverlay .atlas-star-cluster{background:#F0E7D4!important;color:#405256!important;border-color:#D8C399!important}
+.search-dot{background:#78969F!important;border:3px solid #fff!important}
+/* Real POI icons sit in porcelain-like map tokens: native pictograms, no yellow dots. */
+#atlasPoiOverlay{z-index:420!important;pointer-events:none!important;overflow:hidden!important}
+#atlasPoiOverlay .fp-poi{width:52px;min-width:52px;height:52px;min-height:52px;padding:0!important;position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transform:translate(-50%,-50%);background:transparent!important;border:0!important;box-shadow:none!important;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer;isolation:isolate}
+#atlasPoiOverlay .fp-poi-token{width:31px;height:31px;flex:none;border-radius:12px;display:grid;place-items:center;background:rgba(248,250,248,.94);border:1px solid rgba(187,204,202,.7);box-shadow:0 3px 9px rgba(35,52,53,.17);transition:transform .44s cubic-bezier(.16,1.18,.28,1),box-shadow .35s ease,background .3s ease;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#atlasPoiOverlay .fp-poi-token img{width:20px;height:20px;display:block;object-fit:contain;pointer-events:none}
+#atlasPoiOverlay .fp-poi-label{max-width:98px;padding:1px 5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px;font-weight:580;line-height:1.35;letter-spacing:-.008em;color:#455B60;text-shadow:0 1px 2px rgba(255,255,255,.93);background:rgba(248,251,250,.66);border-radius:5px}
+#atlasPoiOverlay .fp-poi.is-selected .fp-poi-token{background:#E8F1EA;border-color:#AABFBA;box-shadow:0 5px 19px rgba(41,72,77,.23)}
+#atlasPoiOverlay .fp-poi.is-tapped .fp-poi-token{animation:fpPoiSpring .48s cubic-bezier(.19,.9,.28,1) both}
+@keyframes fpPoiSpring{0%{transform:scale(1)}28%{transform:scale(1.22) rotate(-3deg)}46%{transform:scale(1.10) rotate(2deg)}68%{transform:scale(1.145) rotate(-1deg)}100%{transform:scale(1.08) rotate(0)}}
+#atlasPoiOverlay .fp-poi:focus-visible{outline:2px solid #75969A!important;outline-offset:0!important;border-radius:13px}
+#atlasPoiOverlay .fp-poi:active .fp-poi-token{background:#E4EEEB}
+/* Legacy raster category markers retain names but inherit V3 icons. */
+.poi-marker{background:rgba(248,250,249,.92)!important;border:1px solid #D7E3E0!important;color:#374A4E!important;border-radius:13px!important;padding:5px 9px!important}
+.poi-marker .poi-icon{width:21px;height:21px;display:block;flex:none;font-size:0!important}
+.poi-marker .poi-icon img{width:100%;height:100%;display:block;object-fit:contain}
+/* Stage1.28 four independent SVG bubbles, now frost-translucent & dynamic. */
+#atlasOrbit{--fp-bubble-safe-top:64px;color:#26363B!important}
+#atlasOrbit .orbit-bubble{animation:none!important;filter:none!important;transform-origin:center!important;will-change:transform,opacity;backface-visibility:hidden}
+#atlasOrbit .orbit-svg{overflow:visible!important;filter:drop-shadow(0 9px 18px rgba(31,48,52,.17))!important;pointer-events:none}
+#atlasOrbit .orbit-svg path{fill:rgba(247,250,249,.91)!important;stroke:rgba(255,255,255,.22)!important;stroke-width:.6px!important;stroke-linejoin:round!important;vector-effect:non-scaling-stroke}
+#atlasOrbit .orbit-kicker{color:#26383C!important}
+#atlasOrbit .orbit-ref-sub{color:#64797D!important}
+#atlasOrbit .orbit-ref-media-tile{background:#E8EEEC!important}
+#atlasOrbit .orbit-ref-media-tile:active{background:#D3E2DC!important}
+#atlasOrbit .orbit-center svg path{fill:#D7B36E!important;stroke:#2D3D43!important;stroke-width:2.5!important}
+#atlasOrbit .orbit-center{animation:none!important;filter:drop-shadow(0 2px 4px rgba(39,50,49,.13))!important}
+#atlasOrbit .orbit-content{animation:none!important;opacity:1;transition:opacity .13s ease!important}
+#atlasOrbit.is-closing .orbit-content{opacity:0!important}
+#atlasOrbit .orbit-bubble.tl,#atlasOrbit .orbit-bubble.tr,#atlasOrbit .orbit-bubble.bl,#atlasOrbit .orbit-bubble.br{max-width:none!important;min-width:0!important}
+#atlasOrbit .orbit-backdrop{background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+@media(max-width:355px){#atlasOrbit .orbit-ref-media-tile{min-height:24px!important}}
+@media(max-height:720px){#atlasOrbit{--fp-bubble-safe-top:45px}}
+@media(prefers-reduced-motion:reduce){#atlasPoiOverlay .fp-poi.is-tapped .fp-poi-token{animation:none!important;transform:scale(1.08)!important}}
+
+#btnLocate > *{display:none!important}
+
+/* The selected destination is a V3 pictogram too, never the former yellow pin. */
+.atlas-vector-selection.fp-vector-selection{width:48px!important;height:48px!important;display:grid;place-items:center;pointer-events:none;filter:none!important}
+.fp-vector-selection .fp-vector-token{display:grid;place-items:center;width:42px;height:42px;background:rgba(246,250,248,.96);border:1px solid #9BB5AE;border-radius:15px;box-shadow:0 6px 16px rgba(36,56,60,.2);animation:fpPoiSpring .49s cubic-bezier(.2,.9,.25,1) both}
+.fp-vector-selection .fp-vector-token img{width:26px;height:26px;display:block;object-fit:contain}
+/* Center-place picking uses our drawing, never a system emoji map pin. */
+#pickTarget span{font-size:0!important;display:grid;place-items:center;width:46px;height:46px}
+#pickTarget span::before{content:"";width:38px;height:38px;background:#30494D;-webkit-mask:url('./icons/16_add_place.svg') center/contain no-repeat;mask:url('./icons/16_add_place.svg') center/contain no-repeat}
+@media(prefers-reduced-motion:reduce){.fp-vector-selection .fp-vector-token{animation:none!important}}

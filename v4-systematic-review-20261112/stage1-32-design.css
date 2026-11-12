@@ -1,0 +1,174 @@
+/* Footprint Map Stage1.32 · Unified interaction & visual system.
+   Locked: original hand-drawn icons, existing data, 4/2/1 anchored bubbles.
+   No outlined white building blocks. No large gold active tile. */
+:root{
+ --f32-bg:#f2f4f1;--f32-paper:#fafbf9;--f32-ink:#263536;--f32-muted:#748382;
+ --f32-soft:#e9eeeb;--f32-accent:#bda77c;--f32-shadow:0 16px 40px rgba(31,46,46,.105);
+ --f32-ease:cubic-bezier(.22,1,.36,1);--f32-type:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;
+}
+html,body{font-family:var(--f32-type)!important;color:var(--f32-ink)!important;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font-family:var(--f32-type)!important;-webkit-tap-highlight-color:transparent}
+button:focus:not(:focus-visible),dialog:focus,dialog:focus:not(:focus-visible){outline:none!important}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #668a88!important;outline-offset:2px!important}
+button{touch-action:manipulation}
+[hidden],#atlasOrbit .orbit-bubble[hidden]{display:none!important}
+/* Compact dock, four independent actions. A search field replaces the dock in place. */
+#appDock{width:min(334px,calc(100vw - 30px))!important;min-height:64px!important;padding:5px!important;
+ border:0!important;border-radius:22px!important;background:rgba(249,251,249,.92)!important;
+ box-shadow:0 9px 29px rgba(25,45,45,.10)!important;backdrop-filter:blur(22px) saturate(1.1)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(1.1)!important}
+#appDock .dock-btn{min-height:54px!important;height:54px!important;gap:3px!important;padding:5px 2px!important;
+ border:0!important;border-radius:15px!important;transition:background .22s ease,transform .29s var(--f32-ease)!important}
+#appDock .dock-btn img{width:23px!important;height:23px!important}
+#appDock .dock-btn span{font-size:11px!important;font-weight:580!important;line-height:1.25!important;letter-spacing:0!important}
+#appDock .dock-btn.active,#appDock .dock-btn[aria-current="page"],#appDock .dock-btn.fp25-current,
+#appDock #dockStars.active{background:#e8eeeb!important;color:#263536!important;box-shadow:none!important}
+#appDock .dock-btn:active{transform:scale(.96)!important;background:#dfeae6!important}
+#fpSearchSheet{width:min(334px,calc(100vw - 30px))!important;bottom:calc(12px + env(safe-area-inset-bottom) + var(--fp-keyboard,0px))!important}
+#fpSearchSheet .fp-search-top{border:0!important;box-shadow:0 9px 29px rgba(25,45,45,.10)!important;background:rgba(249,251,249,.94)!important}
+#fpSearchSheet .fp-search-body{background:rgba(250,251,249,.98)!important;border:0!important;
+ box-shadow:0 12px 35px rgba(32,48,48,.1)!important;overscroll-behavior:contain}
+#fpSearchSheet .fp-search-row{border-bottom:1px solid #eef1ee!important;transition:background .18s ease}
+#fpSearchSheet .fp-search-row:active{background:#edf2ee!important}
+#dockRoutePop{border:0!important;background:rgba(250,251,249,.96)!important;box-shadow:var(--f32-shadow)!important}
+/* Map controls: paper + shadow, no redundant outline. */
+.map-controls .circlebtn{border:0!important;background:rgba(250,251,249,.95)!important;
+ box-shadow:0 5px 16px rgba(33,53,53,.12)!important;border-radius:17px!important;width:46px!important;height:46px!important}
+.map-controls .circlebtn:active{transform:scale(1.06)!important}
+/* Browsing and saved places: one content rhythm, two easy-entry cards. */
+#drawer{background:var(--f32-bg)!important;color:var(--f32-ink)!important;box-shadow:0 -14px 44px rgba(25,41,41,.13)!important;
+ border:0!important;border-radius:24px 24px 0 0!important;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+#drawer .drawer-head{background:var(--f32-bg)!important;padding:7px 4px 15px!important;min-height:68px!important}
+#drawer .drawer-head h2,#drawer .drawer-cn{font-size:20px!important;font-weight:665!important;letter-spacing:-.032em!important;color:var(--f32-ink)!important}
+#drawer #sheetCount{font-size:12px!important;font-weight:470!important;color:#84918d!important}
+#drawer .fp30-hub-grid{gap:12px!important;margin:5px 0 20px!important}
+#drawer .fp30-entry{min-height:132px!important;padding:16px 14px 14px!important;gap:8px!important;
+ border:0!important;border-radius:18px!important;background:var(--f32-paper)!important;
+ box-shadow:0 3px 13px rgba(31,50,50,.045)!important;transition:transform .28s var(--f32-ease),background .18s ease!important}
+#drawer .fp30-entry:active{transform:scale(.98)!important;background:#ebf1ed!important}
+#drawer .fp30-entry-icon{width:33px!important;height:33px!important;background:#edf1ed!important}
+#drawer .fp30-entry strong{font-size:15px!important;line-height:1.35!important;font-weight:640!important}
+#drawer .fp30-entry small{font-size:11px!important;line-height:1.4!important;color:var(--f32-muted)!important}
+#drawer #spotList .spotrow,#drawer #drawerRouteList .rs-row{border:0!important;border-radius:17px!important;
+ background:var(--f32-paper)!important;box-shadow:0 3px 15px rgba(31,50,50,.045)!important;
+ min-height:80px!important;padding:12px!important;margin:9px 0!important;transition:transform .2s var(--f32-ease),background .18s ease!important}
+#drawer #spotList .spotrow:active,#drawer #drawerRouteList .rs-row:active{transform:scale(.992)!important;background:#eef3ef!important}
+#drawer .spotrow strong{font-size:15px!important;letter-spacing:-.025em!important;font-weight:645!important;line-height:1.35!important}
+#drawer .spotrow small{font-size:12px!important;color:var(--f32-muted)!important;line-height:1.5!important}
+#drawer #spotList .spotrow>img,#drawer #spotList .spotrow .spotempty{width:60px!important;height:60px!important;border-radius:12px!important}
+#drawer #fp30Back{font-size:13px!important;color:#4d6869!important;min-height:44px!important}
+#drawer .fp30-detail-head h3{font-size:17px!important;font-weight:660!important}
+/* Editing: the place, intent and reason are first; metadata stays optional. */
+#editor.editor{background:var(--f32-paper)!important;border:0!important;border-radius:24px!important;
+ box-shadow:0 22px 68px rgba(18,37,37,.22)!important;max-width:510px!important;
+ max-height:calc(var(--atlas-visual-height,100dvh) - 22px)!important;outline:none!important}
+#editor::backdrop,dialog.atlas-discard-dialog::backdrop{background:rgba(19,34,35,.38)!important;backdrop-filter:blur(7px)!important;-webkit-backdrop-filter:blur(7px)!important}
+#editor .editor-scroll{padding:20px 20px 16px!important;scroll-padding-bottom:120px;overscroll-behavior-y:contain;scrollbar-width:none!important}
+#editor .edit-head{margin:0 0 10px!important}
+#editor .editor-eyebrow{font-size:10px!important;color:#87908b!important;letter-spacing:.06em!important}
+#editor .edit-head h2{font-size:22px!important;line-height:1.22!important;font-weight:690!important;color:var(--f32-ink)!important}
+#editor #coordText{font-size:11px!important;color:#93a09a!important;margin:0 0 13px!important;line-height:1.5!important}
+#editor .field,#editor .atlas-stage-selector legend{font-size:13px!important;color:#41514f!important;font-weight:660!important;margin:13px 0 7px!important}
+#editor .input,#editor .area{border:1px solid #e0e6e0!important;border-radius:13px!important;
+ background:#fff!important;padding:12px 14px!important;color:var(--f32-ink)!important;font-size:16px!important;
+ box-shadow:none!important;outline:none!important;transition:border-color .18s ease,box-shadow .18s ease!important}
+#editor .input:focus,#editor .area:focus{border-color:#8fa6a0!important;box-shadow:0 0 0 3px rgba(132,160,152,.16)!important}
+#editor .area{min-height:104px!important;line-height:1.65!important}
+#editor .atlas-stage-option span{border:1px solid #dfe5df!important;background:#fff!important;border-radius:14px!important;min-height:67px!important;box-shadow:none!important}
+#editor .atlas-stage-option input:checked+span{background:#e9f0eb!important;border-color:#afc0b6!important;box-shadow:none!important}
+#editor .atlas-stage-option b{font-size:14px!important;font-weight:655!important}
+#editor .atlas-stage-option small{color:#83918a!important;font-size:11px!important}
+#editor .atlas-editor-more{border:0!important;border-radius:17px!important;background:#f2f4ef!important;box-shadow:none!important}
+#editor .atlas-editor-more summary{min-height:50px!important;border:0!important;border-radius:16px!important;padding:13px 15px!important}
+#editor .atlas-editor-more summary span{font-size:14px!important;color:var(--f32-ink)!important;font-weight:640!important}
+#editor .atlas-editor-more summary small{font-size:11px!important;color:#85918a!important}
+#editor .rank-choices label{border:1px solid #dce3dc!important;border-radius:13px!important;background:transparent!important;color:#44524d!important}
+#editor .rank-choices label:has(input:checked){background:#e8eee6!important;border-color:#a9b9aa!important}
+#editor .editor-actions{padding:14px 0 6px!important;box-shadow:none!important;background:linear-gradient(to bottom,rgba(250,251,249,0),#fafbf9 25%)!important}
+#editor .editor-actions .primary-btn{min-height:52px!important;border:0!important;border-radius:15px!important;background:#293d3e!important;
+ color:#fff!important;font-size:15px!important;font-weight:670!important;box-shadow:0 8px 20px rgba(37,59,59,.12)!important}
+#editor .editor-actions .primary-btn:active{background:#405b5b!important;transform:scale(.99)}
+#editor .editor-save-hint{font-size:11px!important;color:#929c96!important;line-height:1.5!important;margin:6px 0 0!important}
+/* Confirmation dialogs: compact, quiet and consistent, no alert-like giant borders. */
+dialog.atlas-discard-dialog{border:0!important;border-radius:22px!important;background:var(--f32-paper)!important;
+ box-shadow:0 20px 65px rgba(23,39,41,.23)!important;width:min(340px,calc(100vw - 36px))!important;padding:0!important;outline:none!important}
+dialog.atlas-discard-dialog .atlas-discard-inner{padding:24px 21px 18px!important}
+dialog.atlas-discard-dialog .discard-symbol{font-size:20px!important;background:#edf2ed!important;color:#536a63!important;
+ border-radius:12px!important;width:38px!important;height:38px!important;display:grid!important;place-items:center!important;margin:0 auto 12px!important}
+dialog.atlas-discard-dialog h2{font-size:19px!important;font-weight:680!important;letter-spacing:-.025em!important;margin:0 0 8px!important;color:var(--f32-ink)!important}
+dialog.atlas-discard-dialog p{font-size:13px!important;line-height:1.6!important;color:var(--f32-muted)!important;margin:0 0 18px!important}
+dialog.atlas-discard-dialog .discard-actions{display:grid!important;gap:9px!important;margin:0!important}
+dialog.atlas-discard-dialog .discard-actions button{width:100%!important;min-height:46px!important;border-radius:13px!important;
+ border:0!important;font-size:14px!important;font-weight:640!important;box-shadow:none!important}
+dialog.atlas-discard-dialog .discard-actions button:first-child{background:#2b4040!important;color:#fff!important}
+dialog.atlas-discard-dialog .discard-actions button:last-child{background:#f4ece8!important;color:#9b564d!important}
+/* Existing route controls and cards share the same density without changing itinerary logic. */
+#atlasRoutesSheet,.route-page .stop-bubble,.journey-page .builder,.journey-page .block{
+ font-family:var(--f32-type)!important;color:var(--f32-ink)!important}
+#atlasRoutesSheet{background:var(--f32-paper)!important;border:0!important;box-shadow:var(--f32-shadow)!important}
+#atlasRoutesSheet .rs-row,.route-page .stop-bubble,.journey-page .place,.journey-page .choice{
+ border-color:rgba(184,199,188,.18)!important;border-radius:16px!important;box-shadow:0 3px 16px rgba(31,50,50,.05)!important}
+#atlasRoutesSheet .rs-new,.journey-page button,.route-page button{font-family:var(--f32-type)!important}
+#atlasRoutesSheet .rs-head strong{font-size:18px!important;font-weight:665!important}
+/* Bubbles: sizes and silhouette fixed; the DOM only chooses 4/2/1. */
+#atlasOrbit .orbit-bubble[hidden]{display:none!important}
+#atlasOrbit .orbit-bubble{isolation:isolate;overflow:visible!important;animation:none!important;filter:none!important;
+ border:0!important;will-change:transform,opacity}
+#atlasOrbit .orbit-svg{overflow:visible!important;filter:drop-shadow(0 9px 16px rgba(28,49,48,.16))!important}
+#atlasOrbit .orbit-svg path{fill:rgba(250,251,249,.94)!important;stroke:none!important;stroke-width:0!important}
+#atlasOrbit .orbit-content{animation:none!important;transition:none!important}
+#atlasOrbit .orbit-center svg path{fill:#c3aa77!important;stroke:#2f4243!important;stroke-width:2.25!important}
+#atlasOrbit .orbit-bubble.combo .orbit-content{padding:calc(12px * var(--orbit-unit,1))!important;
+ display:flex!important;gap:calc(8px * var(--orbit-unit,1))!important;flex-direction:column!important;min-width:0!important}
+#atlasOrbit .orbit-combo-title{font-size:calc(14px * var(--orbit-unit,1));font-weight:700;line-height:1.28;color:var(--f32-ink);
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#atlasOrbit .orbit-combo-section{display:flex;flex-direction:column;gap:4px;min-height:0}
+#atlasOrbit .orbit-combo-section .orbit-kicker{font-size:calc(12px * var(--orbit-unit,1))!important}
+#atlasOrbit .orbit-combo-brief{font-size:calc(11px * var(--orbit-unit,1));line-height:1.55;margin:0;color:#667774;
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+#atlasOrbit .orbit-combo-media{flex:1;min-height:0}
+#atlasOrbit .orbit-combo-preview{border:0!important;border-radius:calc(12px * var(--orbit-unit,1));background:#e8eeea!important;
+ color:#667875;box-shadow:none!important;flex:1;min-height:40px;max-height:107px;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:7px;font-size:11px}
+#atlasOrbit .orbit-combo-preview img:not(.orbit-ref-action-icon){object-fit:cover;width:100%;height:100%}
+#atlasOrbit .orbit-combo-preview .orbit-ref-action-icon{width:20px;height:20px}
+#atlasOrbit .orbit-combo-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-height:33px}
+#atlasOrbit .orbit-combo-shortcuts button{border:0!important;border-radius:11px!important;padding:5px 7px!important;
+ background:#e9efeb!important;color:#445855!important;display:flex!important;justify-content:center!important;gap:5px!important;
+ font-size:11px!important;font-weight:610!important;min-height:33px!important;margin:0!important}
+#atlasOrbit .orbit-combo-shortcuts button .orbit-ref-action-icon{height:15px;width:15px}
+#atlasOrbit .orbit-combo-shortcuts button:active{background:#dce8e1!important}
+@media(max-width:355px){#atlasOrbit .orbit-combo-shortcuts button{font-size:10px!important;gap:3px!important}}
+/* Date sheet: precise control without iOS native dark calendar alert. */
+#fp32Calendar:not([open]){display:none!important}
+#fp32Calendar{position:fixed;inset:0;z-index:4000;display:grid;place-items:center;padding:20px;
+ width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border:0;outline:0;box-shadow:none;
+ background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
+#fp32Calendar .fp32-cal-panel{width:min(345px,calc(100vw - 32px));padding:18px 16px 15px;
+ border-radius:22px;background:#fafbf9;box-shadow:0 21px 64px rgba(15,33,34,.22);color:var(--f32-ink)}
+#fp32Calendar .fp32-cal-header{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:14px}
+#fp32Calendar .fp32-cal-header strong{font-size:17px;font-weight:690}
+#fp32Calendar button{border:0;border-radius:12px;background:transparent;color:var(--f32-ink);min-height:40px;min-width:40px}
+#fp32Calendar button:active{background:#e5ece8}
+#fp32Calendar .fp32-cal-week,#fp32Calendar .fp32-cal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+#fp32Calendar .fp32-cal-week{margin-bottom:6px;color:#85938e;font-size:11px;text-align:center}
+#fp32Calendar .fp32-cal-days button{aspect-ratio:1;width:100%;min-height:0;min-width:0;font-size:13px;font-weight:550}
+#fp32Calendar .fp32-cal-days button[aria-selected=true]{background:#324f4c;color:#fff}
+#fp32Calendar .fp32-cal-days button.is-today:not([aria-selected=true]){background:#e7eee9;color:#294f4b}
+#fp32Calendar .fp32-cal-days span{min-height:35px}
+#fp32Calendar .fp32-cal-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:14px}
+#fp32Calendar .fp32-cal-actions button{background:#eef2ef;font-size:13px;min-height:44px}
+#fp32Calendar .fp32-cal-actions button:last-child{background:#304b4b;color:white}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}
+ #atlasOrbit .orbit-bubble,#atlasOrbit .orbit-content,#appDock,#drawer{animation:none!important;transition:none!important}}
+
+#fp32Calendar::backdrop{background:rgba(23,38,39,.38);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+#atlasOrbit .orbit-combo-nearby{position:absolute;inset:12px;z-index:4;display:flex;flex-direction:column;justify-content:center;
+ gap:5px;padding:13px;border-radius:14px;background:rgba(250,251,249,.98);box-shadow:0 3px 18px rgba(35,55,53,.10);
+ color:#637670;font-size:12px;overflow-y:auto}
+#atlasOrbit .orbit-combo-nearby button{min-height:40px;border:0;background:#eaf0eb;border-radius:9px;text-align:left;
+ padding:8px 10px;font-size:12px;color:#2d4a46;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+#atlasOrbit .orbit-combo-nearby .orbit-combo-nearby-close{background:transparent!important;color:#385853!important;
+ font-weight:660!important;min-height:30px;text-align:left;padding:2px 5px;margin-bottom:3px}
+#atlasOrbit .orbit-combo-nearby p{color:#61766f;font-size:11px;line-height:1.5;margin:5px 0}

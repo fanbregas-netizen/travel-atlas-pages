@@ -1,0 +1,16 @@
+{
+  "product": "Footprint Map V4",
+  "release_channel": "isolated-four-module-acceptance",
+  "source_repo": "fanbregas-netizen/travel-atlas",
+  "source_branch": "review/v4-true-allmodules-20261111",
+  "source_commit": "636616a40e5f113878fc84236b29d2a0161faa9e",
+  "date": "2026-11-11",
+  "map": "PR11/PR18 real map and same zoom/POI assets",
+  "interaction": "B V3 spring motor on real card, duplicate touch handlers removed",
+  "media": "D real IndexedDB with photo-to-fullscreen FLIP",
+  "visual": "PR15 homepage CSS and C V5 real-route mobile sheet",
+  "route": "real placeId, same B sheet, date apply/cancel, reorder, media",
+  "data_namespace": "atlas-v4-final-four-20261111-",
+  "production_site_unchanged": true,
+  "status": "acceptance-preview-not-final-production"
+}
