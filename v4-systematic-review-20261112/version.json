@@ -47,7 +47,7 @@
   "stage_checkpoint_public_script_sha": "4046b72abd3efec9c0856651a3aef1b99b8ceeda",
   "stage_checkpoint_physical_iphone_safari_verified": false,
   "stage_checkpoint_live_public_preview_verified": false,
-  "stage_checkpoint_route_script_sha": "51109adbdc5f7ccb15210c469b77d1ffc3b7d562",
+  "stage_checkpoint_route_script_sha": "c0b388cbca2d9b75074d8a6b01caa4ef3cb6a934",
   "user_visual_acceptance": "Stage13 interaction generally acceptable; Stage14 visual unapproved; Stage15 awaits explicit iPhone visual review",
   "stage_checkpoint_visual_css_sha": "62b3cd9f269a8d9a2b7eea2cc0d67c25ead8f8c8",
   "stage_checkpoint_visible_changes": [
@@ -58,5 +58,7 @@
     "Preserve real data handlers, media FLIP, B sheet detents, one Dock and retired four-SVG-bubble decision",
     "After selecting a route stop, delayed map load no longer resets the user-selected stop card"
   ],
-  "stage_checkpoint_visual_acceptance_css_sha": "525e43f8ad8c46d47fe8d203aa953b7230d20a78"
+  "stage_checkpoint_visual_acceptance_css_sha": "525e43f8ad8c46d47fe8d203aa953b7230d20a78",
+  "stage_checkpoint_visual_stylesheet_url_version": "stage15-visual-c04",
+  "stage_checkpoint_public_http_cache": "Versioned CSS query attached to index, journey and route pages to avoid older Safari cached Stage14 CSS"
 }

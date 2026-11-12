@@ -47,7 +47,7 @@ jobs:
           assert.ok(read('footprint-home.js').includes('resetViewerDrag()'));
           assert.ok(read('footprint-home.js').includes('.map(x=>({...x,lon:x.lon??x.lng,lat:x.lat}))'));
           assert.ok(read('footprint-home.js').includes('function closePlace(immediate=false)'));
-          assert.equal(v.stage_checkpoint_route_script_sha,'51109adbdc5f7ccb15210c469b77d1ffc3b7d562');
+          assert.equal(v.stage_checkpoint_route_script_sha,'c0b388cbca2d9b75074d8a6b01caa4ef3cb6a934');
           assert.ok(read('route-view.html').includes("$('routeBootNotice').hidden=true"));
           assert.ok(read('route-view.html').includes('rail.addEventListener(\'click\',e=>{'));
           assert.ok(read('route-view.html').includes('if(curPlace())openDetail()'));
@@ -71,9 +71,9 @@ jobs:
           assert.ok(nextVisual.toString('utf8').includes('grid-template-columns:minmax(0,1fr) 44px 58px 44px'));
           assert.ok(read('footprint-home.js').includes("h('span','fp-section-index',number)"));
           assert.ok(read('footprint-home.js').includes("h('strong','fp-section-label',name)"));
-          assert.ok(index.includes('v4-visual-acceptance-pass.css'));
-          assert.ok(read('journey.html').includes('v4-visual-acceptance-pass.css'));
-          assert.ok(read('route-view.html').includes('v4-visual-acceptance-pass.css'));
+          assert.ok(index.includes('v4-visual-acceptance-pass.css?v=stage15-visual-c04'));
+          assert.ok(read('journey.html').includes('v4-visual-acceptance-pass.css?v=stage15-visual-c04'));
+          assert.ok(read('route-view.html').includes('v4-visual-acceptance-pass.css?v=stage15-visual-c04'));
           assert.ok(read('journey.js').includes('unresolvedStopIds.length'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('cardMotion?.state()?.animating'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('closingInFlight'),'Stage09 header bind close guard not served');
