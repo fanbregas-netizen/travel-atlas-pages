@@ -33,7 +33,15 @@ function initSearch(){const dock=$('searchDock'),original=$('searchInput'),form=
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('fpMediaViewer')){if(activeSearch)closeSearch();else if(activePlaceId)closePlace()}});
  window.visualViewport?.addEventListener('resize',setViewport,{passive:true});window.visualViewport?.addEventListener('scroll',setViewport,{passive:true});window.addEventListener('resize',setViewport,{passive:true});
 }
-function openSearch(){if(activeSearch)return;if(activePlaceId)closePlace();searchReset();activeSearch=true;searchUsed=false;searchSheet.hidden=false;setViewport();document.body.classList.remove('fp34-search-returning');document.body.classList.add('fp34-searching','fp-search-open');searchInput.value='';drawSearchStart();window.setTimeout(()=>{document.body.classList.remove('fp34-searching');if(activeSearch)searchInput.focus({preventScroll:true})},380)}
+function openSearch(){if(activeSearch)return;if(activePlaceId)closePlace();searchReset();activeSearch=true;searchUsed=false;searchSheet.hidden=false;setViewport();document.body.classList.remove('fp34-search-returning');document.body.classList.add('fp34-searching','fp-search-open');searchInput.value='';drawSearchStart();
+ // Focus synchronously inside the user gesture: iOS Safari may reject keyboard
+ // activation when focus is deferred until after the 380ms Dock transition.
+ searchInput.focus({preventScroll:true});
+ window.setTimeout(()=>{
+   document.body.classList.remove('fp34-searching');
+   // Only retry when another control stole focus; never blur the active field.
+   if(activeSearch&&document.activeElement!==searchInput)searchInput.focus({preventScroll:true});
+ },380)}
 function closeSearch(){if(!activeSearch)return;activeSearch=false;searchReset();searchInput.blur();document.body.classList.remove('fp-search-open','fp34-searching');document.body.classList.add('fp34-search-returning');searchSheet.hidden=true;searchVeil.hidden=true;window.setTimeout(()=>document.body.classList.remove('fp34-search-returning'),350);const old=$('searchInput');if(old)old.value='';setViewport()}
 window.__fpCloseSearch=()=>closeSearch();
 async function searchNow(q,submitted){q=String(q||'').trim();searchReset();if(!q){drawSearchStart();return}searchUsed=true;const token=++searchToken;const matches=await readPlaces().then(rows=>rows.filter(p=>p.starred!==false&&String(p.title||'').toLocaleLowerCase().includes(q.toLocaleLowerCase())).slice(0,7).map(p=>({id:p.id,name:p.title,saved:true,lat:p.lat,lon:p.lng,description:'我的收藏 · 想去原因与旅行照片'}))).catch(()=>[]);if(token!==searchToken||!activeSearch)return;searchBody.replaceChildren();if(matches.length)searchBody.append(searchRows(matches,'我的收藏'));
