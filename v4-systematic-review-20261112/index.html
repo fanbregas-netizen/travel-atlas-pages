@@ -5469,16 +5469,46 @@ class Map{
       vectorMap.getCanvas()?.addEventListener('webglcontextlost',event=>{
         event.preventDefault();recoverFromVectorFailure('图形渲染被系统中断，已恢复基础地图。');
       },{once:true});
-      vectorMap.on('remove',()=>{clearTimeout(vectorRenderWatch);vectorRenderWatch=null});
-      let loaded=false;
-      vectorMap.once('load',()=>{loaded=true;document.body.classList.add('atlas-remote-ready');document.body.classList.remove('map-booting');vectorSetStyle();renderVectorBookmarks();scheduleVectorPOIs();updateVectorUserLocation();if(selectedDestination)showVectorSelection(selectedDestination);mapConnection('',false)});
-      vectorMap.on('error',e=>{if(!loaded){console.warn('矢量图层加载中',e.error);mapConnection('矢量瓦片加载失败，请检查网络后刷新');}});
+      let loaded=false,tilesReady=false,vectorTileTimer=null;
+      const confirmVectorTiles=()=>{
+        if(tilesReady||!isVector()||!vectorMap)return;
+        let ready=false;
+        try{
+          const canvas=vectorMap.getCanvas?.();
+          ready=!!(canvas&&canvas.width>10&&canvas.height>10&&
+            vectorMap.isStyleLoaded?.()&&vectorMap.areTilesLoaded?.());
+        }catch(_){}
+        if(!ready)return;
+        tilesReady=true;clearTimeout(vectorTileTimer);
+        vectorMap.off('idle',confirmVectorTiles);
+        document.body.classList.add('atlas-remote-ready');
+        document.body.classList.remove('map-booting');
+        mapConnection('',false);
+      };
+      vectorMap.on('remove',()=>{
+        clearTimeout(vectorRenderWatch);vectorRenderWatch=null;
+        clearTimeout(vectorTileTimer);
+        vectorMap?.off('idle',confirmVectorTiles);
+      });
+      vectorMap.once('load',()=>{
+        loaded=true;vectorSetStyle();renderVectorBookmarks();scheduleVectorPOIs();
+        updateVectorUserLocation();if(selectedDestination)showVectorSelection(selectedDestination);
+        // A loaded style is not evidence that the visible map tiles rendered.
+        vectorMap.on('idle',confirmVectorTiles);confirmVectorTiles();
+      });
+      vectorMap.on('error',e=>{
+        if(!tilesReady){console.warn('矢量瓦片加载中',e.error);
+          mapConnection('矢量瓦片仍未就绪，正在等待或回退到基础地图');}
+      });
       vectorMap.on('click',selectVectorTap);
       vectorMap.on('move',()=>{userHasMovedMap=true;renderVectorBookmarks();if(selectedId)relayoutMemoryOpen();const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='0'});
       vectorMap.on('moveend',()=>{rememberMapView();renderVectorBookmarks();scheduleVectorPOIs();const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='1';/* Legacy raster camera synchronizes once on provider fallback, not on every vector gesture. */});
       vectorMap.on('zoomend',()=>{updateVectorCamera();renderVectorBookmarks();scheduleVectorPOIs()});
       vectorMap.on('styledata',scheduleVectorPOIs);
-      setTimeout(()=>{if(!loaded&&mapMode==='vector')recoverFromVectorFailure('矢量瓦片连接超时，已切换到基础地图。')},13500);
+      vectorTileTimer=setTimeout(()=>{
+        if(!tilesReady&&mapMode==='vector')
+          recoverFromVectorFailure('矢量地图瓦片连接超时，已切换到基础地图。');
+      },13500);
     }catch(e){console.error(e);recoverFromVectorFailure('无法加载矢量建筑图，已切换到基础地图。');}
     finally{vectorStarting=false}
   }
