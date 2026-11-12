@@ -5387,6 +5387,14 @@ class Map{
   let rasterRecoveryTimer=null;
   function recoverFromVectorFailure(message){
     const camera={...currentCenter(),zoom:currentZoom()};
+    // Source-neutral diagnostics for a real zoom/context-loss regression.
+    // Never record geographic coordinates, place IDs or personal content.
+    window.__atlasVectorRecoveryTrace={
+      reason:String(message||'矢量地图无法继续绘制').slice(0,160),
+      zoom:Number(camera.zoom)||0,
+      at:new Date().toISOString()
+    };
+    console.warn('地图渲染回退原因',window.__atlasVectorRecoveryTrace.reason);
     const failed=vectorMap;vectorMap=null;
     failed?.remove();
     vectorSelectionMarker=null;vectorYouMarker=null;
