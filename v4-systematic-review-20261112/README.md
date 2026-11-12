@@ -1,20 +1,12 @@
-# Travel Atlas V4｜跨模块真实功能 iPhone 试验版（2026-11-11）
+# Footprint Map V4｜系统整合候选验收（2026-11-12）
+源码：私有仓库 fanbregas-netizen/travel-atlas PR #24 integration/v4-systematic-rebuild-20261111 commit 124289617fa0975eed2239ce67cc2a94048594fd。
+本目录从真实 source/ 构建，不使用旧 main、独立 B/C 演示页面，维持原 V4 地图、黄星、交互、媒体、路线。
+预览只用于验收，不是商用正式站，也不替换公开 Pages 根首页。
 
-源码来自私有仓库 `integration/v4-real-e2e-20261111`（PR #20），以已通过 35/35 交互设计验收的 PR #19 完整产品为底，不是单独的演示原型。
-
-## 数据隔离规则
-- 所有保存的 Places/Meta IndexedDB 使用 `private-travel-footprints-v1-v4-real-e2e-review`。
-- 路线 IndexedDB 使用 `travel-atlas-journeys-v1-v4-real-e2e-review`。
-- 浏览器 localStorage 与 sessionStorage 通过预览入口 HTML 中最早的脚本按 `atlas-e2e-preview-20261111:` 自动隔离。
-- URL 及页面相对资源、手绘 SVG 图标均限定在 `/travel-atlas-pages/integration-v4-real-e2e-review/`。
-- 用户正式版收藏、媒体和路线 **不会被此预览读到或修改**；新预览打开时是空白收藏，需要创建测试数据，勿将其当作真实数据丢失。
-
-## 已验证
-- 私有仓库 Github Actions: 41/41 Node module tests, 7/7 真实 Chrome cross-module E2E。
-- 真实地点：保存/刷新；照片、视频二进制、Brief、链接同 PlaceId，ZIP 备份可完整解码；真实路线导入/保存/添加停靠点和日期 D 标签适配；损坏 ZIP 拒绝。
-- 35/35 交互审核已确认，不再重复视觉设计。
-
-## 尚待 Safari 真机
-- 实际地图 POI/API 质量、弱网、前后台恢复、Safari 视频解码、照片选择、拖动 3 档卡片、路线道路服务偶发失败及原生日期操作。
-
-本目录为独立验收副本，**不修改根目录的正式 `index.html`**。
+## 隔离
+浏览器 IndexedDB 与 Storage 使用 atlas-v4-systematic-20261112- 前缀；与旧验收页、正式网站完全分离。新打开时收藏为空是正常的，请用测试地点。
+## 自动化依据
+Github Actions run 43141592142：Chromium 和 WebKit 成功；42/42 Node 模块测试，4/4 接线检查，15 组真实浏览器流程（含地点→媒体/Brief→路线→备份）。
+自动化不等于真实 iPhone Safari 或最终视觉确认。
+## 仍需真机与发布门禁
+地图/provider 商业授权、Safari 真实设备、存储配额与清理风险、隐私安全、监控等未全部通过。

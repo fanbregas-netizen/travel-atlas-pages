@@ -1,7 +1,7 @@
 /* Footprint Map -> Travel Atlas: journey view. No user data is sent to a server. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
-const PREFIX='./';const placesDB='private-travel-footprints-v1';const tripsDB='travel-atlas-journeys-v1';
+const PREFIX='./';const placesDB='private-travel-footprints-v1';
 let places=[],selected=[],planId='',allPlans=[],demoMode=false,objectUrls=[],changed=false,lastProposal=null;
 const copyStops=()=>selected.map(x=>({...x}));
 function clearProposal(){lastProposal=null;const b=document.getElementById('undoProposal');if(b)b.hidden=true}
@@ -20,8 +20,12 @@ const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.classNa
 let reportTimer=0;const report=(message,isError=false)=>{const bar=$('status');bar.textContent=message;bar.classList.toggle('error',isError);clearTimeout(reportTimer);if(isError&&message)reportTimer=setTimeout(()=>{bar.textContent='';bar.classList.remove('error')},4500)};
 function openDB(name,version,upgrade){return new Promise((resolve,reject)=>{const r=indexedDB.open(name,version);r.onupgradeneeded=()=>upgrade?.(r.result);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error('其他标签页正占用数据库'))})}
 function getAll(db,store){return new Promise((resolve,reject)=>{const tx=db.transaction(store,'readonly'),rq=tx.objectStore(store).getAll();rq.onsuccess=()=>resolve(rq.result||[]);rq.onerror=()=>reject(rq.error)})}
-function putPlan(record){return openDB(tripsDB,1,db=>{if(!db.objectStoreNames.contains('plans'))db.createObjectStore('plans',{keyPath:'id'})}).then(db=>new Promise((resolve,reject)=>{const tx=db.transaction('plans','readwrite');tx.objectStore('plans').put(record);tx.oncomplete=()=>{db.close();resolve()};tx.onabort=()=>{db.close();reject(tx.error||Error('保存失败'))};tx.onerror=()=>{} }))}
-async function loadPlans(){try{const db=await openDB(tripsDB,1,d=>{if(!d.objectStoreNames.contains('plans'))d.createObjectStore('plans',{keyPath:'id'})});allPlans=await getAll(db,'plans');db.close();allPlans.sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''));renderPlans()}catch(err){report('浏览器未开放路线存储：'+err.message,true)}}
+const routeRepository=window.FootprintMediaCore.createRepository(indexedDB);
+const putPlan=plan=>routeRepository.saveRoute(plan);
+async function loadPlans(){
+ try{allPlans=await routeRepository.listRoutes();renderPlans()}
+ catch(err){report('浏览器未开放路线存储：'+err.message,true)}
+}
 async function loadPlaces(){try{const db=await openDB(placesDB,1,d=>{if(!d.objectStoreNames.contains('places'))d.createObjectStore('places',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'})});places=(await getAll(db,'places')).filter(p=>p&&p.starred!==false&&!p.demo&&validCoord(p));db.close()}catch(err){try{places=(JSON.parse(localStorage.getItem('travel-places')||'[]')||[]).filter(p=>p&&p.starred!==false&&!p.demo&&validCoord(p))}catch{places=[]}report('暂时不能读取星标数据库；仍可预览产品结构。',true)}places.sort((a,b)=>safe(a.title||a.name).localeCompare(safe(b.title||b.name),'zh-CN'));renderPlaces();renderChosen();$('starTotal').textContent=places.length+' 个收藏';if(!places.length)report('未找到已定位的个人星标。可先到 Footprint Map 收藏或导入高德地点，也可点击下方演示按钮。');else report('已连接 Footprint Map：读取 '+places.length+' 个有坐标的私人星标。')}
 function renderPlans(){$('savedPlans').replaceChildren(new Option('创建新路线',''));for(const p of allPlans)$('savedPlans').add(new Option(safe(p.title,70),p.id));$('savedPlans').value=planId||''}
 function renderPlaces(){const root=$('places');root.replaceChildren();const q=$('placeFilter').value.trim().toLowerCase();const items=places.filter(p=>(safe(p.title||p.name)+' '+safe(p.address||'')+' '+safe(p.note||'')).toLowerCase().includes(q)).slice(0,120);if(!items.length){root.append(make('p','empty-list',places.length?'没有匹配的收藏地点。':'当前没有可用星标。请先在 Footprint Map 收藏地点，或导入高德带坐标的地点。'));return}for(const p of items){const exists=selected.some(s=>s.id===p.id);const b=make('button','place');b.type='button';b.disabled=exists;b.append(make('span','star-dot',exists?'✓':'★'));const body=make('span','place-body');body.append(make('span','place-name',safe(p.title||p.name,100)),make('span','place-location',safe(p.address||p.note||'保存的地图位置',65)));b.append(body,make('span','plus',exists?'':'+'));b.addEventListener('click',()=>{if(demoMode){selected=[];places=places.filter(x=>!String(x.id).startsWith('_demo_'));demoMode=false}clearProposal();selected.push({id:p.id,day:Math.min(currentDays(),Math.max(1,selected.length+1)),time:''});sortByDay();changed=true;renderPlaces();renderChosen();renderRoute()});root.append(b)}if(items.length===120)root.append(make('p','hint','只展示前 120 项，可输入关键词搜索更多收藏。'))}

@@ -159,7 +159,27 @@
     if(pos!==end) throw error('BAD_BACKUP','ZIP 目录末尾信息无效');
     return files;
   }
-  async function createBackup(records) {
+  function normalizeRoute(route) {
+    if(!route || typeof route.id!=='string' || !route.id.trim())throw error('INVALID_ROUTE','路线 ID 无效');
+    const rows=route.stops?.length?route.stops:route.selected?.length?route.selected:route.placeIds;
+    if(!Array.isArray(rows)||rows.length>300)throw error('INVALID_ROUTE','路线站点无效');
+    const stops=rows.map(row=>{
+      const placeId=typeof row==='string'?row:row?.placeId??row?.id;
+      if(typeof placeId!=='string'||!placeId.trim())throw error('INVALID_ROUTE','路线缺少地点 ID');
+      const day=Number(row?.day??1);
+      if(!Number.isInteger(day)||day<1||day>60)throw error('INVALID_ROUTE','路线日期无效');
+      return {placeId,day,time:typeof row?.time==='string'?row.time:''};
+    });
+    const {selected,placeIds,...fields}=route;
+    return {...fields,schema:'travel-atlas-journey-v1',stops};
+  }
+  function parseRoutes(routes) {
+    if(!Array.isArray(routes))throw error('INVALID_ROUTE','路线备份无效');
+    const result=routes.map(normalizeRoute);
+    if(new Set(result.map(x=>x.id)).size!==result.length)throw error('INVALID_ROUTE','路线 ID 重复');
+    return result;
+  }
+  async function createBackup(records,routes=[]) {
     if (!Array.isArray(records) || records.length>MAX_PLACES) throw error('INVALID_BACKUP','备份地点数量无效');
     const seen=new Set(),files=[],places=[];
     for(const raw of records) {
@@ -180,7 +200,7 @@
       places.push(copy);
     }
     files.unshift({name:'travel-places.json',data:encoder().encode(JSON.stringify({
-      format:'travel-footprints-v10',schemaVersion:2,exportedAt:new Date().toISOString(),places
+      format:'travel-footprints-v10',schemaVersion:3,exportedAt:new Date().toISOString(),places,routes:parseRoutes(routes)
     }))});
     return zipWrite(files);
   }
@@ -213,7 +233,7 @@
       }
       records.push({...p,videos});
     }
-    return {format:payload.format,schemaVersion:payload.schemaVersion||1,records};
+    return {format:payload.format,schemaVersion:payload.schemaVersion||1,records,routes:parseRoutes(payload.schemaVersion>=3?payload.routes:(payload.routes??[]))};
   }
 
   // Only user-selected browser Files are read. Caller explicitly supplies a
@@ -301,7 +321,7 @@
             tx.oncomplete=()=>{if(!settled){settled=true;resolve(result)}};
             tx.onabort=()=>fail(explicitFailure||tx.error||error('STORAGE_ABORTED','存储事务中止；原数据未修改'));
             tx.onerror=()=>fail(tx.error||error('STORAGE_FAILED','存储失败；可能是空间不足'));
-            enqueue(tx.objectStore(store),value=>{result=value},tx,(reason)=>{explicitFailure=reason;try{tx.abort()}catch(_){};});
+            enqueue(tx.objectStore(Array.isArray(store)?store[0]:store),value=>{result=value},tx,(reason)=>{explicitFailure=reason;try{tx.abort()}catch(_){};});
           } catch(e){try{tx?.abort()}catch(_){}fail(e);}
         });
       } finally {db.close();}
@@ -359,11 +379,67 @@
         return {...p,photos:combine(p.photos,photo,'photos'),videos:combine(p.videos,video,'videos')};
       });
     }
+    const routeKey=id=>'journey/'+id;
+    const migrationKey='journeys-migrated-v1';
+    async function migrateRoutes(){
+      const migrated=await transaction('meta','readonly',(s,set)=>{
+        const r=s.get(migrationKey);r.onsuccess=()=>set(!!r.result);
+      });
+      if(migrated)return;
+      const legacy=await new Promise((resolve,reject)=>{
+        const r=idb.open('travel-atlas-journeys-v1',1);
+        r.onupgradeneeded=()=>r.result.createObjectStore('plans',{keyPath:'id'});
+        r.onerror=()=>reject(r.error);
+        r.onsuccess=()=>resolve(r.result);
+      });
+      let previous;
+      try{
+        previous=legacy.objectStoreNames.contains('plans')?await new Promise((resolve,reject)=>{
+          const r=legacy.transaction('plans','readonly').objectStore('plans').getAll();
+          r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);
+        }):[];
+      }finally{legacy.close()}
+      const routes=parseRoutes(previous);
+      await transaction('meta','readwrite',(s,set)=>{
+        const check=s.get(migrationKey);
+        check.onsuccess=()=>{
+          if(check.result)return;
+          for(const route of routes)s.put({key:routeKey(route.id),value:route});
+          s.put({key:migrationKey,value:true});
+        };
+      });
+    }
+    async function listRoutes(){
+      await migrateRoutes();
+      return transaction('meta','readonly',(s,set)=>{
+        const r=s.getAll();
+        r.onsuccess=()=>set(r.result.filter(row=>row.key.startsWith('journey/')).map(row=>row.value)
+          .sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||''))));
+      });
+    }
+    async function saveRoute(input){
+      const route=normalizeRoute(input);
+      await migrateRoutes();
+      return transaction('meta','readwrite',s=>s.put({key:routeKey(route.id),value:route}));
+    }
     async function restore(backup,{conflict='merge'}={}) {
       if(conflict!=='merge'&&conflict!=='replace')throw error('INVALID_RESTORE','恢复策略无效');
-      const {records}=await readBackup(backup);
-      if(!records.length)return {restored:0};
-      await transaction('places','readwrite',(s,set,tx,abort)=>{
+      const {records,routes}=await readBackup(backup);
+      if(!records.length&&!routes.length)return {restored:0,routes:0};
+      if(routes.length)await migrateRoutes();
+      await transaction(routes.length?['places','meta']:'places','readwrite',(s,set,tx,abort)=>{
+        if(routes.length){
+          const meta=tx.objectStore('meta');
+          for(const route of routes){
+            const key=routeKey(route.id),r=meta.get(key);
+            r.onsuccess=()=>{
+              if(!r.result||conflict==='replace')meta.put({key,value:route});
+              else if(JSON.stringify(normalizeRoute(r.result.value))!==JSON.stringify(route)){
+                abort(error('ROUTE_CONFLICT','已有同 ID 的不同路线，恢复已取消'));
+              }
+            };
+          }
+        }
         let index=0,failed=false;
         const next=()=>{
           if(index>=records.length)return;
@@ -377,10 +453,18 @@
         };
         next();set(records.length);
       });
-      return {restored:records.length};
+      return {restored:records.length,routes:routes.length};
     }
-    async function backup() {return createBackup(await list());}
-    return Object.freeze({read,list,saveBrief,saveGuide,addMedia,restore,backup});
+    async function backup() {
+      await migrateRoutes();
+      const snapshot=await transaction(['places','meta'],'readonly',(places,set,tx)=>{
+        const records=places.getAll(),meta=tx.objectStore('meta').getAll();
+        meta.onsuccess=()=>set({places:records.result,routes:meta.result
+          .filter(row=>row.key.startsWith('journey/')).map(row=>row.value)});
+      });
+      return createBackup(snapshot.places,snapshot.routes);
+    }
+    return Object.freeze({read,list,listRoutes,saveRoute,saveBrief,saveGuide,addMedia,restore,backup});
   }
   return Object.freeze({DB_NAME,idOf,validPlace,mergePlace,crc32,zipWrite,zipRead,createBackup,readBackup,prepareSelectedFiles,createRepository});
 });
