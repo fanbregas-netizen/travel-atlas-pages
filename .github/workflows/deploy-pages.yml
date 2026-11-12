@@ -94,11 +94,39 @@ jobs:
           cp -R integration-v4-real-e2e-review _site/integration-v4-real-e2e-review
           # Four-branch final V4 real-product acceptance; keep production homepage untouched.
           cp -R v4-all-branches-review-20261111 _site/v4-all-branches-review-20261111
+          # PR24 systematic integration: independent namespace, never overwrite root index.html.
+          cp -R v4-systematic-review-20261112 _site/v4-systematic-review-20261112
           # Original V4 map / card / Dock rubber-band review, independent of production and existing demo.
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
           cp -R interaction-b-real-home-search-review _site/interaction-b-real-home-search-review
           touch _site/.nojekyll
+      - name: Validate isolated systematic V4 review package
+        run: |
+          test "$(git hash-object index.html)" = '7f21b12e9c48c6a3a7527002fc1cafaf0057aedc'
+          for p in index.html journey.html route-view.html amap-import.html footprint-home.js journey.js src/media/media-core.js src/interaction/real-product-bridge.js src/interaction/physical-sheet.js src/route/route-detail-sheet.js version.json; do
+            test -s "_site/v4-systematic-review-20261112/$p"
+          done
+          grep -q 'atlas-v4-systematic-20261112-' _site/v4-systematic-review-20261112/index.html
+          grep -q 'integration/v4-systematic-rebuild-20261111' _site/v4-systematic-review-20261112/version.json
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path');
+          const base=path.resolve('_site/v4-systematic-review-20261112');
+          const pages=['index.html','journey.html','route-view.html','amap-import.html'];
+          for(const name of pages){
+            const html=fs.readFileSync(path.join(base,name),'utf8');
+            if(!html.includes('atlas-v4-systematic-20261112-'))throw Error('isolated storage missing '+name);
+            const refs=[...html.matchAll(/(?:src|href)\s*=\s*["']([^"'#]+)["']/gi)].map(x=>x[1]);
+            for(const raw of refs){
+              if(/^(?:https?:|data:|javascript:|mailto:|tel:|\$\{)/i.test(raw))continue;
+              const ref=decodeURIComponent(raw.split('?')[0].split('#')[0]);
+              if(!ref||ref==='./'||ref.startsWith('#'))continue;
+              const target=path.resolve(base,ref.replace(/^\.\//,''));
+              if(!(target===base||target.startsWith(base+path.sep))||!fs.existsSync(target))throw Error('missing asset '+name+' -> '+raw);
+            }
+          }
+          console.log('Systematic isolated V4 asset and root integrity checks passed');
+          NODE
       - name: Validate newly published four-module acceptance bundle
         run: |
           test -s _site/v4-all-branches-review-20261111/index.html
@@ -287,6 +315,17 @@ jobs:
           curl -fsSL --retry 8 --retry-delay 2 --retry-all-errors --max-time 25 "${URL}src/interaction/physical-sheet.js" -o /tmp/four-system-motion.js
           grep -q 'TravelAtlasPhysicalSheet' /tmp/four-system-motion.js
           echo "Public four-system URL and dynamic sheet asset are accessible"
+
+      - name: Verify systematic V4 acceptance preview HTTP and runtime
+        run: |
+          URL='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-systematic-review-20261112/'
+          curl -fsSL --retry 15 --retry-delay 3 --retry-all-errors --max-time 25 -H 'Cache-Control: no-cache' "$URL" -o /tmp/systematic-v4-index.html
+          grep -q 'atlas-v4-systematic-20261112-' /tmp/systematic-v4-index.html
+          for p in journey.html route-view.html src/media/media-core.js src/interaction/physical-sheet.js version.json; do
+            curl -fsSL --retry 8 --retry-delay 2 --retry-all-errors --max-time 25 "${URL}${p}" -o /tmp/systematic-v4-asset
+            test -s /tmp/systematic-v4-asset
+          done
+          echo 'Isolated systematic V4 is publicly accessible; official root unchanged'
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
