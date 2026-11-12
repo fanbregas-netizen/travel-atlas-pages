@@ -10,9 +10,15 @@
   "ci_status": "Chromium and WebKit success; 42 Node tests + 16 E2E groups each",
   "data_namespace": "atlas-v4-systematic-20261112-",
   "production_site_unchanged": true,
-  "status": "acceptance-candidate-not-commercial-release",
+  "status": "stage-acceptance-candidate-not-commercial-release",
   "map_health_probe": true,
   "map_provider_public_preview": "OpenFreeMap fallback (GitHub Pages has no AMap server config)",
   "map_tiles_verified": false,
-  "map_health_ci_pending": true
+  "map_health_ci_pending": true,
+  "stage_checkpoint": "2026-11-12-search-focus",
+  "stage_checkpoint_pr": 25,
+  "stage_checkpoint_source_branch": "review/v4-stage-checkpoint-20261112-search-focus",
+  "stage_checkpoint_commit": "59dd0a246c7b21966c4b4e0a041043cb148cc94b",
+  "stage_checkpoint_patch": "Dock search input receives focus synchronously in the same user gesture; 380ms fallback only when focus lost",
+  "stage_checkpoint_validation": "published candidate; physical iPhone Safari keyboard and full E2E still require verification"
 }
