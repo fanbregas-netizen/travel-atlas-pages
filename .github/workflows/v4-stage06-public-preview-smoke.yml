@@ -1,4 +1,4 @@
-name: V4 Stage 12 public preview HTTP smoke
+name: V4 Stage 13 public preview HTTP smoke
 on:
   workflow_run:
     workflows: ["Publish Travel Atlas V4 to GitHub Pages"]
@@ -18,7 +18,7 @@ jobs:
           set -euo pipefail
           base="https://fanbregas-netizen.github.io/travel-atlas-pages/v4-systematic-review-20261112"
           mkdir -p /tmp/atlas-stage06
-          for target in version.json index.html footprint-home.js journey.js route-view.html src/interaction/real-product-bridge.js src/visual/iphone-v4-polish.css; do
+          for target in version.json index.html journey.html footprint-home.js journey.js route-view.html src/interaction/real-product-bridge.js src/visual/iphone-v4-polish.css src/visual/v4-product-cohesion.css; do
             mkdir -p "/tmp/atlas-stage06/$(dirname "$target")"
             curl --fail --location --silent --show-error --retry 9 --retry-delay 5 --max-time 35 \
               "$base/$target?check=$(date +%s)" -o "/tmp/atlas-stage06/$target"
@@ -29,8 +29,8 @@ jobs:
           const root='/tmp/atlas-stage06/',read=p=>fs.readFileSync(root+p,'utf8');
           const v=JSON.parse(read('version.json')),index=read('index.html');
           assert.equal(v.release_channel,'isolated-systematic-integration-acceptance');
-          assert.equal(v.stage_checkpoint,'2026-11-12-stage12-route-visible-controls-one-tap-detail');
-          assert.equal(v.stage_checkpoint_commit,'0383a2d2ebda1e453ec715a626427868997c3752');
+          assert.equal(v.stage_checkpoint,'2026-11-12-stage13-visible-cohesive-experience');
+          assert.equal(v.stage_checkpoint_commit,'48ad6c4cf9bc464d9d226c72944ce78dec7aab9b');
           assert.equal(v.production_site_unchanged,true);
           assert.ok(index.includes('atlas-v4-systematic-20261112-'),'isolated storage must remain protected');
           assert.ok(index.includes('const confirmVectorTiles=()=>'),'Stage06 vector tile confirmation not served');
@@ -51,10 +51,18 @@ jobs:
           assert.ok(read('route-view.html').includes("$('routeBootNotice').hidden=true"));
           assert.ok(read('route-view.html').includes('rail.addEventListener(\'click\',e=>{'));
           assert.ok(read('route-view.html').includes('if(curPlace())openDetail()'));
+          assert.ok(index.includes('id="fpvCollectionTabs"')&&index.includes('id="fpvPlacesTab"')&&index.includes('id="fpvRoutesTab"'));
+          assert.ok(index.includes("$('fpvCollectionTabs').dataset.active=section"));
+          assert.ok(index.includes('drawerWasOpen=visible;'));
+          assert.ok(read('journey.html').includes('./src/visual/v4-product-cohesion.css'));
+          assert.ok(read('route-view.html').includes('./src/visual/v4-product-cohesion.css'));
+          const crypto=require('node:crypto'),visual=fs.readFileSync(root+'src/visual/v4-product-cohesion.css');
+          const visualSha=crypto.createHash('sha1').update(Buffer.from('blob '+visual.length+'\0')).update(visual).digest('hex');
+          assert.equal(visualSha,v.stage_checkpoint_visual_css_sha,'public visual CSS differs from tested source');
           assert.ok(read('journey.js').includes('unresolvedStopIds.length'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('cardMotion?.state()?.animating'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('closingInFlight'),'Stage09 header bind close guard not served');
           assert.ok(read('src/interaction/real-product-bridge.js').includes("if(state.sheet==='closed'&&(closingTimer!==null"),'Stage09 child DOM close guard not served');
           assert.ok(read('src/visual/iphone-v4-polish.css').includes('Stage 03: locked upright geographic star'));
-          console.log('PASS: public HTTPS serves Stage 12 visible route and one-tap details, Stage 11 media and isolated namespace');
+          console.log('PASS: public HTTPS serves Stage 13 real B05 tabs, unified visible layout, prior route/media fixes and isolated namespace');
           NODE

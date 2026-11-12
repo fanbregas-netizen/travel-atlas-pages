@@ -1,0 +1,437 @@
+/*
+ * Footprint Map V4 | approved-system visual consolidation pass
+ * Approved visual vocabulary: Visual C iPhone V4 (paper/ink/sage/gold), B05
+ * stable collection, C V5 route card hierarchy, and B01 media sheet.
+ *
+ * This layer changes presentation only. It never creates another map, Dock,
+ * marker, card controller or media repository; existing bindings and gestures
+ * remain the sole owners. The four-direction SVG bubbles are retired.
+ */
+:root {
+ --fp-coh-ink: #27342f;
+ --fp-coh-muted: #69746e;
+ --fp-coh-subtle: #8b948c;
+ --fp-coh-paper: #fffefa;
+ --fp-coh-canvas: #f8f8f3;
+ --fp-coh-sage: #edf3e9;
+ --fp-coh-line: #e5e7df;
+ --fp-coh-gold: #b59a62;
+ --fp-coh-wash: #f3eddf;
+ --fp-coh-ease: cubic-bezier(.22,1,.36,1);
+ --fp-coh-type: -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+}
+:where(#drawer,#fpPlaceCard,#fpSearchSheet,#rvDetail,#stopsDock,body.journey-page){
+ font-family:var(--fp-coh-type);
+ -webkit-font-smoothing:antialiased;
+}
+:where(#drawer,#fpPlaceCard,#fpSearchSheet,#rvDetail,body.journey-page) :where(button,input,textarea,select){
+ font-family:inherit;
+}
+:where(#drawer,#fpPlaceCard,#fpSearchSheet,#rvDetail,body.journey-page) :where(button,a,input,textarea,select):focus-visible{
+ outline:2px solid #ab8b43!important;
+ outline-offset:3px;
+}
+
+/* B05. One uninterrupted, accessible place/route collection. Both tabs
+   reuse the real #spotList and #drawerRouteList, never clone their children. */
+#drawer.fp30-detail {
+ background:var(--fp-coh-paper)!important;
+ color:var(--fp-coh-ink)!important;
+ /* Show the collection as an actual readable sheet, not a tiny dock popover. */
+ min-height:min(58dvh,510px)!important;
+ height:min(72dvh,630px)!important;
+ max-height:calc(100dvh - 30px)!important;
+ overflow-y:auto!important;
+ box-sizing:border-box;
+}
+/* Safari may retain the legacy offscreen .drawer translation after a state
+   class change. Lock the opened position, but yield to its real drag owner. */
+/* WebKit can indefinitely pause the legacy drawer transition at currentTime=0.
+   The saved collection must be immediately on screen; only its inner B05
+   segment indicator animates. During swipe-drag the touch owner paints. */
+#drawer.fp30-detail{
+ transition:none!important;
+}
+#drawer.fp30-detail.visible:not(.fp25-dragging){
+ transform:translate(-50%,0)!important;
+ transition:none!important;
+}
+#drawer #fpvCollectionTabs {
+ display:flex;
+ gap:4px;
+ width:calc(100% - 32px);
+ margin:6px 16px 14px;
+ padding:4px;
+ border:1px solid #e7e8e0;
+ border-radius:17px;
+ background:#f0f1eb;
+ position:relative;
+ z-index:3;
+ box-sizing:border-box;
+}
+#drawer #fpvCollectionTabs .fpv-collection-indicator{
+ position:absolute;left:4px;top:4px;bottom:4px;width:calc(50% - 4px);
+ background:var(--fp-coh-paper);
+ border-radius:13px;
+ box-shadow:0 2px 10px rgba(33,49,38,.09),0 1px 2px rgba(33,49,38,.04);
+ transform:translateX(0);
+ transition:transform .36s cubic-bezier(.18,1.18,.25,1);
+ pointer-events:none;
+}
+#drawer #fpvCollectionTabs[data-active="routes"] .fpv-collection-indicator{transform:translateX(100%)}
+#drawer.fp30-route-pick #fpvCollectionTabs{display:none!important}
+#drawer #fpvCollectionTabs .fpv-collection-tab{
+ position:relative;z-index:1;
+ min-width:0;
+ flex:1;
+ height:44px;
+ padding:0 8px;
+ border:0;
+ border-radius:13px;
+ background:transparent;
+ box-shadow:none;
+ font-size:13px;
+ font-weight:620;
+ letter-spacing:-.025em;
+ color:#7b8179;
+ white-space:nowrap;
+ cursor:pointer;
+ transition:color .18s ease,background .25s var(--fp-coh-ease),box-shadow .25s var(--fp-coh-ease);
+ touch-action:manipulation;
+}
+#drawer #fpvCollectionTabs .fpv-collection-tab[aria-selected="true"]{
+ background:transparent;
+ box-shadow:none;
+ color:var(--fp-coh-ink);
+ font-weight:760;
+}
+#drawer #fpvCollectionTabs .fpv-collection-tab:active{transform:scale(.985)}
+#drawer.fp30-detail #fp30DetailHead{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ min-height:30px;
+ margin:0 17px 10px;
+ padding:0 2px;
+}
+#drawer.fp30-detail #fp30Back,
+#drawer.fp30-detail #fp30DetailTitle{display:none!important}
+#drawer.fp30-detail #fp30NewRoute{
+ font-size:12px!important;
+ font-weight:710!important;
+ border-radius:12px!important;
+ padding:8px 13px!important;
+ border:1px solid #dfdacd!important;
+ color:#5c5c47!important;
+ background:#f8f7f2!important;
+ text-decoration:none!important;
+ margin-left:auto;
+}
+#drawer.fp30-detail .drawer-head{
+ border-bottom:0!important;
+ padding-bottom:3px!important;
+}
+#drawer.fp30-detail .drawer-head h2{
+ font-size:21px!important;
+ color:var(--fp-coh-ink)!important;
+ letter-spacing:-.045em!important;
+}
+#drawer.fp30-detail #spotList{
+ display:flex;
+ flex-direction:column;
+ gap:9px;
+ padding:0 15px 12px;
+}
+#drawer.fp30-detail #spotList .spotrow{
+ display:flex!important;
+ align-items:center!important;
+ gap:13px!important;
+ width:100%!important;
+ min-height:84px!important;
+ margin:0!important;
+ padding:11px 12px!important;
+ border:1px solid var(--fp-coh-line)!important;
+ border-radius:18px!important;
+ background:var(--fp-coh-paper)!important;
+ box-shadow:0 3px 13px rgba(37,51,41,.035)!important;
+ color:var(--fp-coh-ink)!important;
+ text-align:left!important;
+ transition:background .2s ease,transform .25s var(--fp-coh-ease)!important;
+}
+#drawer.fp30-detail #spotList .spotrow:active{transform:scale(.988)!important;background:#f8f7f2!important}
+#drawer.fp30-detail #spotList .spotrow :where(strong,b){color:var(--fp-coh-ink)!important;font-size:14px!important;line-height:1.35!important}
+#drawer.fp30-detail #spotList .spotrow small{font-size:11px!important;color:var(--fp-coh-muted)!important;line-height:1.5!important}
+#drawer.fp30-detail #spotList .spotrow>img,
+#drawer.fp30-detail #spotList .spotrow .spotempty{
+ width:57px!important;height:57px!important;
+ border-radius:15px!important;
+ object-fit:cover!important;
+ flex:none!important;
+}
+#drawer.fp30-detail #drawerRouteList{
+ padding:0 15px 14px;
+}
+#drawer.fp30-detail #drawerRouteList .rs-row{
+ min-height:83px!important;
+ margin:0 0 9px!important;
+ padding:12px!important;
+ border:1px solid var(--fp-coh-line)!important;
+ border-radius:18px!important;
+ background:var(--fp-coh-paper)!important;
+ box-shadow:0 3px 13px rgba(37,51,41,.035)!important;
+}
+#drawer.fp30-detail #drawerRouteList .rs-badge{
+ width:43px!important;height:43px!important;
+ border-radius:14px!important;
+ background:var(--fp-coh-wash)!important;
+ color:#7c673c!important;
+}
+#drawer.fp30-detail #drawerRouteList .rs-meta b{font-size:14px!important;font-weight:720!important;color:var(--fp-coh-ink)!important}
+#drawer.fp30-detail #drawerRouteList .rs-meta span{font-size:11px!important;color:var(--fp-coh-muted)!important;line-height:1.55!important}
+#drawer.fp30-detail .backuprow{padding:4px 16px 0!important}
+#drawer.fp30-detail .footnote{padding:0 17px 14px!important;color:var(--fp-coh-subtle)!important;line-height:1.55!important}
+
+/* Place / Brief / media: one sheet, not four boxes masquerading as four
+   independent components. Preserve B's gesture-driven peek/half/full bounds. */
+#fpPlaceCard{
+ background:var(--fp-coh-paper)!important;
+ border:1px solid var(--fp-coh-line)!important;
+ box-shadow:0 16px 52px rgba(25,38,31,.16)!important;
+}
+#fpPlaceCard .fp-card-header{
+ background:var(--fp-coh-paper)!important;
+ padding:15px 18px 12px!important;
+ border-bottom:1px solid rgba(229,231,223,.7);
+}
+#fpPlaceCard .fp-card-name{
+ font-size:clamp(20px,5.2vw,24px)!important;
+ font-weight:730!important;
+ color:var(--fp-coh-ink)!important;
+ letter-spacing:-.045em!important;
+ line-height:1.28!important;
+}
+#fpPlaceCard .fp-card-scroll{
+ background:var(--fp-coh-paper)!important;
+ padding:0 20px calc(20px + env(safe-area-inset-bottom) * .3)!important;
+}
+#fpPlaceCard .fp-block{
+ padding:17px 0 19px!important;
+ margin:0!important;
+ border:0!important;
+ border-bottom:1px solid var(--fp-coh-line)!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+#fpPlaceCard .fp-block:last-of-type{border-bottom:0!important}
+#fpPlaceCard .fp-subheading{margin:0 0 11px!important;min-height:28px!important;gap:8px!important}
+#fpPlaceCard .fp-subheading :where(strong,label){font-size:12px!important;font-weight:730!important;letter-spacing:-.01em!important;color:#56645b!important}
+#fpPlaceCard .fp-subheading .fp-kicker{font-size:10px!important;letter-spacing:.08em!important;font-weight:690!important;color:#a0906e!important}
+#fpPlaceCard .fp-brief-text{
+ margin:0!important;
+ padding:0!important;
+ border:0!important;
+ background:transparent!important;
+ font-size:14px!important;
+ line-height:1.75!important;
+ font-weight:425!important;
+ color:#4d5a52!important;
+}
+#fpPlaceCard .fp-brief-text.is-empty{color:#89938b!important;font-weight:430!important}
+#fpPlaceCard .fp-media-empty{
+ display:flex!important;
+ align-items:center!important;
+ gap:12px!important;
+ min-height:88px!important;
+ padding:12px!important;
+ border:1px dashed #d8dccf!important;
+ border-radius:16px!important;
+ background:#f8f9f5!important;
+}
+#fpPlaceCard .fp-media-empty .fp-empty-icon{
+ display:grid!important;
+ place-items:center!important;
+ flex:none!important;
+ width:42px!important;height:42px!important;
+ border-radius:13px!important;
+ background:#ecf1e8!important;
+ color:#6d7d70!important;
+ font-size:21px!important;
+}
+#fpPlaceCard .fp-media-empty .fp-empty-text{flex:1!important;min-width:0!important}
+#fpPlaceCard .fp-media-empty .fp-empty-text strong{color:var(--fp-coh-ink)!important;font-size:12px!important;line-height:1.4!important}
+#fpPlaceCard .fp-media-empty .fp-empty-text small{color:var(--fp-coh-muted)!important;font-size:11px!important;line-height:1.4!important}
+#fpPlaceCard .fp-media-empty .fp-btn-primary{
+ flex:none;
+ min-height:36px!important;
+ padding:8px 12px!important;
+ border-radius:11px!important;
+ font-size:11px!important;
+ background:#e9dfc2!important;
+ color:#63512e!important;
+ border:0!important;
+ box-shadow:none!important;
+}
+#fpPlaceCard .fp-media-mosaic{
+ overflow:hidden;
+ border-radius:17px!important;
+ border:1px solid rgba(229,231,223,.75);
+}
+#fpPlaceCard .fp-photo-count{font-size:11px!important;color:var(--fp-coh-muted)!important}
+#fpPlaceCard .fp-social-empty{
+ margin:0!important;
+ color:#91988e!important;
+ font-size:12px!important;
+ line-height:1.65!important;
+}
+#fpPlaceCard .fp-social-list a{
+ border-radius:13px!important;
+ background:#f5f5ef!important;
+ border-color:var(--fp-coh-line)!important;
+ color:#526455!important;
+}
+#fpPlaceCard .fp-inline-editor{
+ border-radius:16px!important;
+ background:#f8f9f5!important;
+ border:1px solid var(--fp-coh-line)!important;
+ padding:12px!important;
+}
+#fpPlaceCard .fp-inline-editor :where(textarea,input){
+ background:var(--fp-coh-paper)!important;
+ border:1px solid #dce1d9!important;
+ border-radius:12px!important;
+ min-height:44px!important;
+ font-size:16px!important;
+}
+#fpPlaceCard .fp-inline-editor textarea{min-height:132px!important;line-height:1.65!important}
+#fpPlaceCard .fp-subaction{font-size:12px!important;font-weight:680!important}
+#fpPlaceCard .fp-place-stage{font-size:11px!important}
+#fpPlaceCard .sheet-grab{margin:9px auto 0!important;background:#cfd5cd!important}
+#fpSearchSheet .fp-search-body{background:var(--fp-coh-paper)!important}
+#fpSearchSheet .fp-search-row{min-height:70px!important;border-bottom:1px solid var(--fp-coh-line)!important}
+#fpSearchSheet .fp-search-row strong{font-size:14px!important;color:var(--fp-coh-ink)!important}
+#fpSearchSheet .fp-search-row small{color:var(--fp-coh-muted)!important}
+#fpSearchSheet .fp-quick{background:#f6f7f1!important;border:1px solid var(--fp-coh-line)!important;border-radius:15px!important}
+
+/* C V5: keep real map and route data, make planning a single visual surface
+   instead of desktop-style form + separate map in the mobile viewport. */
+body.journey-page .topbar{
+ font-family:var(--fp-coh-type)!important;
+ background:rgba(255,254,250,.97)!important;
+ border-color:var(--fp-coh-line)!important;
+ box-shadow:0 2px 15px rgba(27,42,32,.04)!important;
+}
+body.journey-page .builder{background:var(--fp-coh-paper)!important}
+body.journey-page .builder h1{font-size:24px!important;font-weight:730!important;line-height:1.25!important;color:var(--fp-coh-ink)!important}
+body.journey-page .builder .intro{font-size:12px!important;color:var(--fp-coh-muted)!important;line-height:1.6!important}
+body.journey-page .block{border-top-color:var(--fp-coh-line)!important}
+body.journey-page .block :where(input,select,textarea){border:1px solid var(--fp-coh-line)!important;background:#fffefa!important;border-radius:13px!important;font-size:16px!important}
+body.journey-page .choice{border-radius:16px!important}
+body.journey-page .accent{background:#365f45!important;border-color:#365f45!important;color:white!important}
+body.journey-page .journey{background:#fffefa!important;border:1px solid var(--fp-coh-line)!important;box-shadow:0 12px 40px rgba(27,42,32,.08)!important;border-radius:22px!important}
+@media(max-width:700px){
+ body.journey-page{overflow:hidden!important}
+ body.journey-page .topbar{position:relative!important;z-index:10!important}
+ body.journey-page:not(.journey-live-sheet) .layout{
+  display:block!important;
+  position:relative!important;
+  height:calc(100dvh - 61px)!important;
+  min-height:0!important;
+  overflow:hidden!important;
+ }
+ body.journey-page:not(.journey-live-sheet) .atlas-view{
+  position:absolute!important;
+  inset:0!important;
+  padding:16px 13px 34px!important;
+  min-height:0!important;
+  overflow:auto!important;
+ }
+ body.journey-page:not(.journey-live-sheet) .atlas-view .atlas-heading{padding:0 2px!important}
+ body.journey-page:not(.journey-live-sheet) .atlas-view .journey{min-height:calc(100dvh - 185px)!important;margin:8px 0!important}
+ body.journey-page:not(.journey-live-sheet) .builder{
+  position:absolute!important;
+  z-index:8!important;
+  top:auto!important;bottom:0!important;
+  left:0!important;right:0!important;
+  width:auto!important;
+  max-height:min(65dvh,660px)!important;
+  border-radius:24px 24px 0 0!important;
+  border:1px solid var(--fp-coh-line)!important;
+  border-bottom:0!important;
+  padding:23px 18px calc(21px + env(safe-area-inset-bottom))!important;
+  overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  box-shadow:0 -16px 52px rgba(26,43,35,.17)!important;
+ }
+ body.journey-page:not(.journey-live-sheet) .builder::before{
+  content:"";display:block;
+  width:42px;height:5px;
+  background:#d4d9d1;
+  border-radius:99px;
+  margin:-10px auto 17px;
+ }
+ body.journey-page .builder h1{font-size:21px!important;letter-spacing:-.04em!important}
+ body.journey-page .builder .intro{margin:7px 0 15px!important}
+ body.journey-page .builder .block{padding:17px 0!important}
+ /* The approved C V5 motor owns the real route sheet position and height. */
+ body.journey-page.journey-live-sheet .layout{height:calc(100dvh - 68px)!important}
+ body.journey-page.journey-live-sheet .builder{
+  position:fixed!important;
+  max-height:calc(100dvh - 80px)!important;
+ }
+ body.journey-page.journey-live-sheet .builder::before{display:none!important}
+ body.journey-page .journey::before{opacity:.25!important}
+}
+@media(max-width:390px){
+ #drawer #fpvCollectionTabs{width:calc(100% - 24px);margin-inline:12px}
+ #fpPlaceCard .fp-card-scroll{padding-inline:16px!important}
+ #fpPlaceCard .fp-media-empty{gap:8px!important;padding:10px!important}
+ #fpPlaceCard .fp-media-empty .fp-btn-primary{padding-inline:9px!important}
+}
+
+/* Route map detail reuses the iPhone card's typography; preserve C's
+   selected-place state and the 64% map-visibility rule. */
+body.route-page #rvDetail{
+ background:var(--fp-coh-paper)!important;
+ border-top:1px solid var(--fp-coh-line)!important;
+ border-radius:24px 24px 0 0!important;
+ box-shadow:0 -18px 55px rgba(23,38,29,.17)!important;
+ color:var(--fp-coh-ink)!important;
+}
+body.route-page #rvDetail h2{font-size:22px!important;letter-spacing:-.045em!important;font-weight:730!important;color:var(--fp-coh-ink)!important}
+body.route-page #rvDetail .brief{
+ border:0!important;border-radius:0!important;
+ border-bottom:1px solid var(--fp-coh-line)!important;
+ background:transparent!important;
+ padding:13px 0 17px!important;
+ font-size:13px!important;line-height:1.75!important;
+ color:#4b5750!important;
+}
+body.route-page #rvDetail .rv-links a{
+ background:#f7f7f2!important;border-color:var(--fp-coh-line)!important;
+ color:#50624e!important;border-radius:13px!important;
+}
+body.route-page #stopsDock{
+ background:rgba(255,254,250,.97)!important;
+ backdrop-filter:blur(18px);
+ -webkit-backdrop-filter:blur(18px);
+ border:1px solid var(--fp-coh-line)!important;
+ box-shadow:0 10px 38px rgba(25,38,29,.11)!important;
+}
+body.route-page #stopsDock .stop-chip{
+ background:#f9f9f5!important;
+ border:1px solid #e8e9e1!important;
+ color:var(--fp-coh-ink)!important;
+ border-radius:12px!important;
+}
+body.route-page #stopsDock .stop-chip.active{
+ background:var(--fp-coh-wash)!important;
+ border-color:#d9c18b!important;
+}
+@media(prefers-reduced-motion:reduce){
+ #drawer #fpvCollectionTabs .fpv-collection-tab,
+ #drawer.fp30-detail #spotList .spotrow{
+  transition:none!important;
+ }
+}

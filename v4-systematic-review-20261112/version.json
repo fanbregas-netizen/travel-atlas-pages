@@ -15,14 +15,14 @@
   "map_provider_public_preview": "OpenFreeMap fallback (GitHub Pages has no AMap server config)",
   "map_tiles_verified": true,
   "map_health_ci_pending": false,
-  "stage_checkpoint": "2026-11-12-stage12-route-visible-controls-one-tap-detail",
+  "stage_checkpoint": "2026-11-12-stage13-visible-cohesive-experience",
   "stage_checkpoint_pr": 25,
   "stage_checkpoint_source_branch": "review/v4-stage-checkpoint-20261112-search-focus",
-  "stage_checkpoint_commit": "0383a2d2ebda1e453ec715a626427868997c3752",
+  "stage_checkpoint_commit": "48ad6c4cf9bc464d9d226c72944ce78dec7aab9b",
   "stage_checkpoint_patch": "Show route stops immediately after reading actual route data instead of blocking with map loader; tap route stop chip to open the real placeId detail sheet directly",
   "stage_checkpoint_validation": "5/5 integration E2E success; new public Pages redeploy and postdeploy smoke must be verified separately",
-  "stage_checkpoint_regression_ci": 43170907512,
-  "stage_checkpoint_regression_status": "success: Node regressions, Chromium/WebKit real-product E2E, Chromium/WebKit maps, candidate package",
+  "stage_checkpoint_regression_ci": 43177417136,
+  "stage_checkpoint_regression_status": "success: Node regression, Chromium/WebKit full-product E2E including native B05 collection tap, both live map tests, candidate ZIP",
   "current_interaction_mode": "swipe-card",
   "four_svg_bubbles": "cancelled by user; not mounted; swipe-card is final interaction model",
   "stage_checkpoint_public_deploy_ci": 43153349901,
@@ -48,5 +48,12 @@
   "stage_checkpoint_physical_iphone_safari_verified": false,
   "stage_checkpoint_live_public_preview_verified": false,
   "stage_checkpoint_route_script_sha": "8f575da46c109143c80542f3e2d874642a8ec75a",
-  "user_visual_acceptance": "not yet approved; current session recording found insufficient system-wide visual restoration"
+  "user_visual_acceptance": "pending: not yet approved",
+  "stage_checkpoint_visual_css_sha": "62b3cd9f269a8d9a2b7eea2cc0d67c25ead8f8c8",
+  "stage_checkpoint_visible_changes": [
+    "Saved collection opens directly into live places, sliding place/route tab switches in same sheet",
+    "Brief/media/Guides/Nearby use one continuous destination content hierarchy",
+    "Unified typography and surfaces across real saved list, search, gallery, journey planning and route details",
+    "Approved physical peek/half/full card remains the only sheet controller"
+  ]
 }

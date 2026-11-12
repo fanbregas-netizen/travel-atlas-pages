@@ -3442,6 +3442,7 @@ body.atlas-orbit-active #memorySheet{opacity:0!important;visibility:hidden!impor
 <link rel="stylesheet" href="./src/interaction/sheet.css">
 <link rel="stylesheet" href="./src/interaction/real-product-bridge.css">
 <link rel="stylesheet" href="./src/interaction/physical-sheet.css">
+<link rel="stylesheet" href="./src/visual/v4-product-cohesion.css">
 </head>
 <body>
 <div id="map" aria-label="私人旅行收藏地图"></div><div id="amapSurface" aria-label="高德地点地图" hidden></div><div id="figureCaption" aria-hidden="true"></div><div class="map-status" id="mapStatus">建筑肌理 © OpenStreetMap</div><div id="atlasMapLoader" role="status" aria-live="polite"><span class="loader-star">★</span><span class="loader-text">正在绘制城市肌理</span><span class="loader-dots"><i></i><i></i><i></i></span></div><div class="map-shade" aria-hidden="true"></div><div id="atlasRoutesVeil"></div><div id="atlasRoutesSheet" role="dialog" aria-label="我的路线"><button type="button" class="rs-close" aria-label="关闭">×</button><div class="rs-head"><strong>已保存的路线</strong></div><!-- build .18 · 去掉 JOURNEYS/我的路线 眉题,双标题合一 --><div class="rs-list"></div><a class="rs-new" href="./journey.html">＋ 规划新路线</a></div><div id="atlasFirstStar" hidden><button type="button" class="fs-close" aria-label="知道了">×</button><div class="fs-star">★</div><strong>点亮第一颗 ★</strong><p>点底部「搜索」探索地点，标下第一颗星</p></div>
@@ -3535,6 +3536,11 @@ window.__atlasDock={closePop:()=>setPop(false)};
   <div class="screen-cover" id="cover"></div>
 <section class="drawer fp30-hub" id="drawer" aria-label="我的收藏">
  <div class="drawer-head"><div class="sheet-grab" aria-hidden="true"></div><h2><span class="drawer-cn">我的收藏</span><span id="sheetCount" aria-live="polite"></span></h2><button class="iconclose" id="closeDrawer" aria-label="关闭收藏">×</button></div>
+ <div id="fpvCollectionTabs" class="fpv-collection-tabs" role="tablist" aria-label="收藏分类" data-active="places">
+  <span class="fpv-collection-indicator" aria-hidden="true"></span>
+  <button type="button" id="fpvPlacesTab" class="fpv-collection-tab" role="tab" aria-controls="spotList" aria-selected="true">收藏地点</button>
+  <button type="button" id="fpvRoutesTab" class="fpv-collection-tab" role="tab" aria-controls="drawerRouteList" aria-selected="false">已保存路线</button>
+ </div>
  <div id="fp30Hub" class="fp30-hub-grid" aria-label="收藏内容入口">
   <button type="button" class="fp30-entry" id="fp30Places" aria-label="查看收藏地点"><span class="fp30-entry-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTdGFyIj4KIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzE2MTYxNiIgc3Ryb2tlLXdpZHRoPSIzLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CiAgPHBhdGggZD0iTTMyIDggTDM5LjIgMjMuMiBMNTYgMjUuNCBMNDMuMiAzNy4yIEw0Ni4xIDU0LjQgTDMxLjcgNDUuOCBMMTYuOCA1NC40IEwyMCAzNy40IEw4LjEgMjUuMyBMMjQuOCAyM1oiLz4KICA8cGF0aCBkPSJNMjQgMjUgTDMwIDEzIiBzdHJva2Utd2lkdGg9IjEuMyIvPgogPC9nPgo8L3N2Zz4=" alt="" aria-hidden="true"></span><strong>收藏地点</strong><small id="fp30PlaceCount">想去和已到访的地方</small><span class="fp30-entry-arrow" aria-hidden="true">↗</span></button>
   <button type="button" class="fp30-entry" id="fp30Routes" aria-label="查看已保存路线"><span class="fp30-entry-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJSb3V0ZSI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxjaXJjbGUgY3g9IjE0IiBjeT0iNDciIHI9IjUuNSIvPgogIDxwYXRoIGQ9Ik0yMCA0NiBDMzAgNDQgMjAgMjYgMzMgMjYgQzQ0IDI2IDM5IDE2IDQ3IDE1IiBzdHJva2UtZGFzaGFycmF5PSIzIDYiIHN0cm9rZS13aWR0aD0iMyIvPgogIDxwYXRoIGQ9Ik00NSA5IEw1NCAxNCBMNDUgMjAiLz4KIDwvZz4KPC9zdmc+" alt="" aria-hidden="true"></span><strong>已保存路线</strong><small id="fp30RouteCount">查看规划好的行程</small><span class="fp30-entry-arrow" aria-hidden="true">↗</span></button>
@@ -6880,12 +6886,10 @@ window.visualViewport?.addEventListener('resize',()=>{
  }
  function showHub(){
    if(document.body.classList.contains('route-pick-active'))return;
-   const d=$('drawer');if(!d)return;
-   d.classList.remove('fp30-detail','fp30-routes','fp30-route-pick');d.classList.add('fp30-hub');
-   $('fp30DetailHead').hidden=true;
-   $('spotList').hidden=true;$('drawerRouteList').hidden=true;
-   d.querySelector('.backuprow').hidden=true;d.querySelector('.footnote').hidden=true;
-   updateCards();d.scrollTo?.({top:0,behavior:'instant'});
+   // B05 approved stable-DOM experience: the saved collection opens directly
+   // into the real place list; no second landing page or duplicate UI model.
+   updateCards();
+   showSection('places');
  }
  function showRoutePick(){
    const d=$('drawer');if(!d)return;
@@ -6895,6 +6899,15 @@ window.visualViewport?.addEventListener('resize',()=>{
  function showSection(section){
    const d=$('drawer');if(!d)return;
    d.classList.remove('fp30-hub','fp30-route-pick');d.classList.add('fp30-detail');d.classList.toggle('fp30-routes',section==='routes');
+   // Match approved B05 sliding indicator without rebuilding either tab.
+   $('fpvCollectionTabs').dataset.active=section;
+   // Update the two real-content tabs in place, never replacing the tab DOM.
+   for(const tab of [$('fpvPlacesTab'),$('fpvRoutesTab')]){
+     if(!tab)continue;
+     const chosen=(tab.id==='fpvRoutesTab')===(section==='routes');
+     tab.setAttribute('aria-selected',String(chosen));
+     tab.tabIndex=chosen?0:-1;
+   }
    $('fp30DetailHead').hidden=false;$('fp30DetailTitle').textContent=section==='routes'?'已保存路线':'收藏地点';
    $('fp30NewRoute').hidden=section!=='routes';
    d.querySelector('.backuprow').hidden=section==='routes';d.querySelector('.footnote').hidden=section==='routes';
@@ -6923,6 +6936,15 @@ window.visualViewport?.addEventListener('resize',()=>{
    $('dockRoute').addEventListener('click',()=>{$('closeDrawer')?.click();window.__fpCloseSearch?.();syncNav()});
    $('fp30Places').addEventListener('click',()=>showSection('places'));
    $('fp30Routes').addEventListener('click',()=>showSection('routes'));
+   $('fpvPlacesTab').addEventListener('click',()=>showSection('places'));
+   $('fpvRoutesTab').addEventListener('click',()=>showSection('routes'));
+   $('fpvCollectionTabs').addEventListener('keydown',e=>{
+     if(!['ArrowLeft','ArrowRight'].includes(e.key))return;
+     e.preventDefault();
+     const next=e.key==='ArrowRight'?'routes':'places';
+     showSection(next);
+     $(next==='routes'?'fpvRoutesTab':'fpvPlacesTab').focus();
+   });
    $('fp30Back').addEventListener('click',showHub);
    const drawer=$('drawer');
    if(drawer){
