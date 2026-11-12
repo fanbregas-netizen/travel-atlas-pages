@@ -1,11 +1,17 @@
 <!doctype html>
 <html lang="zh-CN"><head>
-<base href="/travel-atlas-pages/v4-all-branches-review-20261111/">
-<script id="atlas-isolated-four-branch-review">(()=>{'use strict';
-const ns='atlas-v4-final-four-20261111-';window.__atlasPreviewNamespace=ns;
+<base href="/travel-atlas-pages/v4-systematic-review-20261112/">
+<script id="atlas-isolated-systematic-review">(()=>{'use strict';
+const ns='atlas-v4-systematic-20261112-';window.__atlasPreviewNamespace=ns;
 const factory=IDBFactory.prototype,open=factory.open,del=factory.deleteDatabase;
 factory.open=function(name,...args){return open.call(this,ns+String(name),...args)};
 factory.deleteDatabase=function(name){return del.call(this,ns+String(name))};
+const list=factory.databases;
+if(typeof list==='function')factory.databases=async function(){
+ const all=await list.call(this);
+ return all.filter(item=>String(item.name||'').startsWith(ns))
+   .map(item=>({...item,name:String(item.name).slice(ns.length)}));
+};
 const st=Storage.prototype,get=st.getItem,set=st.setItem,rm=st.removeItem,key=st.key;
 st.getItem=function(name){return get.call(this,ns+String(name))};
 st.setItem=function(name,v){return set.call(this,ns+String(name),v)};
@@ -19,6 +25,7 @@ st.clear=function(){const a=[];for(let i=0;i<this.length;i++){const k=key.call(t
 <meta name="color-scheme" content="light">
 <meta name="description" content="Travel Atlas：在真实地图上查看 Footprint Map 收藏地点组成的旅行线路，点击每个地点查看 Brief、照片与旅行资料。">
 <title>旅行路线地图</title>
+<script src="./src/media/media-core.js"></script>
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <!-- Loading external map CSS must never block the route page's first paint. -->
 <style>
@@ -154,16 +161,16 @@ function validCalendarDays(start,end) {
 function clampRouteDays(days,count) {
  return days.map(v=>Math.max(1,Math.min(count,Math.trunc(Number(v))||1)));
 }
-function planDb(){return new Promise((resolve,reject)=>{const r=indexedDB.open(PLAN_DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('plans'))r.result.createObjectStore('plans',{keyPath:'id'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error('保存库正在被其他标签页占用'))})}
-async function readSavedPlan(id){const db=await planDb();return new Promise((resolve,reject)=>{let req;try{req=db.transaction('plans','readonly').objectStore('plans').get(id)}catch(err){db.close();reject(err);return}req.onsuccess=()=>{db.close();resolve(req.result||null)};req.onerror=()=>{db.close();reject(req.error)}})}
-async function writeSavedPlan(item){const db=await planDb();return new Promise((resolve,reject)=>{let tx;try{tx=db.transaction('plans','readwrite');tx.objectStore('plans').put(item)}catch(err){db.close();reject(err);return}tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{};tx.onabort=()=>{db.close();reject(tx.error||Error('保存事务未完成'))}})}
-async function resolveRoute(){const id=new URLSearchParams(location.search).get('saved');if(!id)return readSelection();if(!/^[\w-]{1,140}$/.test(id))return null;let item;try{item=await readSavedPlan(id)}catch(err){notice('读取保存的路线失败：'+err.message,true);return null}if(!item)return null;let stops=Array.isArray(item.selected)&&item.selected.length?item.selected.map((s,i)=>({id:String(s?.id??''),day:Math.max(1,Math.min(60,Number(s?.day)||1)),order:Number(s?.order)||i+1})):[];if(!stops.length&&Array.isArray(item.stops))stops=item.stops.map((s,i)=>({id:String(s?.placeId??''),day:Math.max(1,Math.min(60,Number(s?.day)||1)),order:i+1}));if(!stops.length&&Array.isArray(item.placeIds))stops=item.placeIds.map((pid,i)=>({id:String(pid),day:1,order:i+1}));stops=stops.filter(s=>s.id&&s.id.length<200).slice(0,100).sort((a,b)=>a.day-b.day||a.order-b.order);if(!stops.length)return null;savedId=item.id;createdAt=item.createdAt;return{schema:KEY,placeIds:stops.map(s=>s.id),stops,startDate:item.startDate||'',endDate:item.endDate||'',origin:item.origin||'',destination:item.destination||'',title:item.title||'',createdAt:Date.now(),source:'saved'}}
+const routeRepository=window.FootprintMediaCore.createRepository(indexedDB);
+async function readSavedPlan(id){return (await routeRepository.listRoutes()).find(route=>route.id===id)}
+const writeSavedPlan=route=>routeRepository.saveRoute(route);
+async function resolveRoute(){const id=new URLSearchParams(location.search).get('saved');if(!id)return readSelection();if(!/^[\w-]{1,140}$/.test(id))return null;let item;try{item=await readSavedPlan(id)}catch(err){notice('读取保存的路线失败：'+err.message,true);return null}if(!item)return null;let stops=Array.isArray(item.selected)&&item.selected.length?item.selected.map((s,i)=>({id:String(s?.id??''),day:Math.max(1,Math.min(60,Number(s?.day)||1)),order:Number(s?.order)||i+1})):[];if(!stops.length&&Array.isArray(item.stops))stops=item.stops.map((s,i)=>({id:String(s?.placeId??''),day:Math.max(1,Math.min(60,Number(s?.day)||1)),time:s?.time||'',order:i+1}));if(!stops.length&&Array.isArray(item.placeIds))stops=item.placeIds.map((pid,i)=>({id:String(pid),day:1,order:i+1}));stops=stops.filter(s=>s.id&&s.id.length<200).slice(0,100).sort((a,b)=>a.day-b.day||a.order-b.order);if(!stops.length)return null;savedId=item.id;createdAt=item.createdAt;return{schema:KEY,placeIds:stops.map(s=>s.id),stops,startDate:item.startDate||'',endDate:item.endDate||'',origin:item.origin||'',destination:item.destination||'',title:item.title||'',createdAt:Date.now(),source:'saved'}}
 function openSave(){if(!routePayload||!places.length)return;const modal=$('saveRouteDialog');const todayStr=new Date().toLocaleDateString('sv-SE');$('routeSaveName').value=routePayload.title||`我的旅行 · ${routePayload.startDate||todayStr}`;$('routeSaveStart').value=routePayload.startDate||'';$('routeSaveEnd').value=routePayload.endDate||'';$('routeSaveOrigin').value=routePayload.origin||'';$('routeSaveDest').value=routePayload.destination||'';$('saveRouteError').textContent='';modal.showModal();const firstEmpty=['routeSaveStart','routeSaveEnd','routeSaveOrigin','routeSaveDest'].find(fid=>!$(fid).value);$(firstEmpty||'routeSaveName').focus()}
 async function saveRoute(e){e?.preventDefault();if(saveBusy)return;const title=$('routeSaveName').value.trim().slice(0,80);if(!title){$('saveRouteError').textContent='请填写路线名称';return}const start=$('routeSaveStart').value,end=$('routeSaveEnd').value,origin=$('routeSaveOrigin').value.trim(),destination=$('routeSaveDest').value.trim();const miss=[];if(!start)miss.push('出发日期');if(!end)miss.push('结束日期');if(!origin)miss.push('出发地');if(!destination)miss.push('目的地');if(miss.length){$('saveRouteError').textContent='请先补全先决条件：'+miss.join('、');return}const allowedDays=validCalendarDays(start,end);
  if(!allowedDays){$('saveRouteError').textContent='请确认日期有效，结束不早于开始，行程不超过 60 天';return}
  const normalizedDays=clampRouteDays(stopDays,allowedDays);
  const hadOverflow=normalizedDays.some((d,i)=>d!==Number(stopDays[i]));
- saveBusy=true;$('routeSaveConfirm').disabled=true;const now=new Date().toISOString();const id=savedId||(crypto?.randomUUID?.()||'trip-'+Date.now());const ids=places.map(p=>String(p.id));const item={id,title,placeIds:ids,selected:ids.map((pid,i)=>({id:pid,day:normalizedDays[i],time:'',order:i+1})),startDate:start,endDate:end,origin:origin.slice(0,70),destination:destination.slice(0,70),createdAt:createdAt||now,updatedAt:now,version:2,mapStyle:'black-white-plan',source:'footprint-map'};try{await writeSavedPlan(item);savedId=id;createdAt=item.createdAt;stopDays=normalizedDays;if(hadOverflow){showStopRail();buildRouteLayers();document.dispatchEvent(new CustomEvent('atlas:route-stops-changed'));}routePayload.title=title;routePayload.startDate=start;routePayload.endDate=end;routePayload.origin=item.origin;routePayload.destination=item.destination;$('tripName').textContent=title;$('travelDates').textContent=[start,end].join(' — ');$('saveRoute').textContent='✓ 已保存';$('saveRouteDialog').close();history.replaceState(null,'','./route-view.html?saved='+encodeURIComponent(id));notice('路线已保存到「我的路线」；地点图文将与主页同步更新')}catch(err){$('saveRouteError').textContent='保存失败：'+err.message}finally{saveBusy=false;$('routeSaveConfirm').disabled=false}}
+ saveBusy=true;$('routeSaveConfirm').disabled=true;const now=new Date().toISOString();const id=savedId||(crypto?.randomUUID?.()||'trip-'+Date.now());const ids=places.map(p=>String(p.id));const item={id,title,placeIds:ids,selected:ids.map((pid,i)=>({id:pid,day:normalizedDays[i],time:routePayload.stops?.find(stop=>stop.id===pid)?.time||'',order:i+1})),startDate:start,endDate:end,origin:origin.slice(0,70),destination:destination.slice(0,70),createdAt:createdAt||now,updatedAt:now,version:2,mapStyle:'black-white-plan',source:'footprint-map'};try{await writeSavedPlan(item);savedId=id;createdAt=item.createdAt;stopDays=normalizedDays;if(hadOverflow){showStopRail();buildRouteLayers();document.dispatchEvent(new CustomEvent('atlas:route-stops-changed'));}routePayload.title=title;routePayload.startDate=start;routePayload.endDate=end;routePayload.origin=item.origin;routePayload.destination=item.destination;$('tripName').textContent=title;$('travelDates').textContent=[start,end].join(' — ');$('saveRoute').textContent='✓ 已保存';$('saveRouteDialog').close();history.replaceState(null,'','./route-view.html?saved='+encodeURIComponent(id));notice('路线已保存到「我的路线」；地点图文将与主页同步更新')}catch(err){$('saveRouteError').textContent='保存失败：'+err.message}finally{saveBusy=false;$('routeSaveConfirm').disabled=false}}
 function setSnap(state){const b=$('stopBubble');b.dataset.snap=state;if(state==='peek')b.scrollTop=0}
 function setupCardGestures(){
  const grip=$('bubbleGrip');let press=null,lastSwipe=0;

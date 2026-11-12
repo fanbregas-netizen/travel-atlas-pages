@@ -1,12 +1,18 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<base href="/travel-atlas-pages/v4-all-branches-review-20261111/">
-<script id="atlas-isolated-four-branch-review">(()=>{'use strict';
-const ns='atlas-v4-final-four-20261111-';window.__atlasPreviewNamespace=ns;
+<base href="/travel-atlas-pages/v4-systematic-review-20261112/">
+<script id="atlas-isolated-systematic-review">(()=>{'use strict';
+const ns='atlas-v4-systematic-20261112-';window.__atlasPreviewNamespace=ns;
 const factory=IDBFactory.prototype,open=factory.open,del=factory.deleteDatabase;
 factory.open=function(name,...args){return open.call(this,ns+String(name),...args)};
 factory.deleteDatabase=function(name){return del.call(this,ns+String(name))};
+const list=factory.databases;
+if(typeof list==='function')factory.databases=async function(){
+ const all=await list.call(this);
+ return all.filter(item=>String(item.name||'').startsWith(ns))
+   .map(item=>({...item,name:String(item.name).slice(ns.length)}));
+};
 const st=Storage.prototype,get=st.getItem,set=st.setItem,rm=st.removeItem,key=st.key;
 st.getItem=function(name){return get.call(this,ns+String(name))};
 st.setItem=function(name,v){return set.call(this,ns+String(name),v)};
