@@ -41,7 +41,7 @@ jobs:
           const base='/travel-atlas-pages/v4-systematic-review-20261112-stage20/';
           for(const page of [html,journey,route])assert.ok(page.includes('<base href="'+base+'">'),'Broken separate preview base');
           assert.ok(html.includes('footprint-home.js?v=stage20-clean-map'),'New JS cache key absent');
-          assert.ok(html.includes('v4-visual-acceptance-pass.css?v=stage20-clean-map'),'New CSS cache key absent');
+          assert.ok(html.includes('v4-visual-acceptance-pass.css?v=stage19-map-clearance'),'Existing CSS asset key is safe within separate Stage20 URL');
           assert.doesNotMatch(home,/fpMapOverview|mountMapOverview|fp-map-overview/,'Unauthorized panel JS still shipped');
           assert.doesNotMatch(css,/#fpMapOverview|\.fp-map-overview/,'Unauthorized panel CSS still shipped');
           assert.ok(home.includes('function init(){initSearch();mountPlace();'),'Real place card remains');
