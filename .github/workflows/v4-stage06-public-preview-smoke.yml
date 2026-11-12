@@ -1,4 +1,4 @@
-name: V4 Stage 09 public preview HTTP smoke
+name: V4 Stage 10 public preview HTTP smoke
 on:
   workflow_run:
     workflows: ["Publish Travel Atlas V4 to GitHub Pages"]
@@ -29,8 +29,8 @@ jobs:
           const root='/tmp/atlas-stage06/',read=p=>fs.readFileSync(root+p,'utf8');
           const v=JSON.parse(read('version.json')),index=read('index.html');
           assert.equal(v.release_channel,'isolated-systematic-integration-acceptance');
-          assert.equal(v.stage_checkpoint,'2026-11-12-stage09-card-lifecycle');
-          assert.equal(v.stage_checkpoint_commit,'de7a445f55e57b85301e23378401aeabeb15a17b');
+          assert.equal(v.stage_checkpoint,'2026-11-12-stage10-cross-place-search-media-editor');
+          assert.equal(v.stage_checkpoint_commit,'8e6eef7f892ff10e9724d088c98dd406303d6a63');
           assert.equal(v.production_site_unchanged,true);
           assert.ok(index.includes('atlas-v4-systematic-20261112-'),'isolated storage must remain protected');
           assert.ok(index.includes('const confirmVectorTiles=()=>'),'Stage06 vector tile confirmation not served');
@@ -39,11 +39,15 @@ jobs:
           assert.ok(index.includes("webglcontextrestored"),'Stage08 native WebGL restoration not served');
           assert.ok(index.includes("mapMode!=='figure'"),'Stage08 fallback source gate not served');
           assert.ok(index.includes("map.areTilesLoaded?.()"),'Stage08 raster tiles guard not served');
+          assert.equal(v.stage_checkpoint_public_script_sha,'ea4f5784459cdf44e2037d1195226b7447f7474d');
+          assert.ok(read('footprint-home.js').includes('if(changed&&activePlaceId===id)closePlace(true)'));
+          assert.ok(read('footprint-home.js').includes('if(activePlaceId&&!editMode)renderPlace(activePlaceId)'));
+          assert.ok(read('footprint-home.js').includes('.map(x=>({...x,lon:x.lon??x.lng,lat:x.lat}))'));
           assert.ok(read('footprint-home.js').includes('function closePlace(immediate=false)'));
           assert.ok(read('journey.js').includes('unresolvedStopIds.length'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('cardMotion?.state()?.animating'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('closingInFlight'),'Stage09 header bind close guard not served');
           assert.ok(read('src/interaction/real-product-bridge.js').includes("if(state.sheet==='closed'&&(closingTimer!==null"),'Stage09 child DOM close guard not served');
           assert.ok(read('src/visual/iphone-v4-polish.css').includes('Stage 03: locked upright geographic star'));
-          console.log('PASS: public HTTPS serves Stage 01–09 map recovery, real card dismiss guards and isolated namespace');
+          console.log('PASS: public HTTPS serves Stage 10 place-safe editing and search, existing map and card guards, isolated namespace');
           NODE
