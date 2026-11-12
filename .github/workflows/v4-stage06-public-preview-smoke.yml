@@ -1,4 +1,4 @@
-name: V4 Stage 14 public preview HTTP smoke
+name: V4 Stage 15 public preview HTTP smoke
 on:
   workflow_run:
     workflows: ["Publish Travel Atlas V4 to GitHub Pages"]
@@ -29,8 +29,8 @@ jobs:
           const root='/tmp/atlas-stage06/',read=p=>fs.readFileSync(root+p,'utf8');
           const v=JSON.parse(read('version.json')),index=read('index.html');
           assert.equal(v.release_channel,'isolated-systematic-integration-acceptance');
-          assert.equal(v.stage_checkpoint,'2026-11-12-stage14-visual-acceptance-pass');
-          assert.equal(v.stage_checkpoint_commit,'05e1fac1850db69c1feff4b933a94080b8305073');
+          assert.equal(v.stage_checkpoint,'2026-11-12-stage15-editorial-visual-system');
+          assert.equal(v.stage_checkpoint_commit,'d9d3e5e1cd06f1186f408c4ba722761222066f02');
           assert.equal(v.production_site_unchanged,true);
           assert.ok(index.includes('atlas-v4-systematic-20261112-'),'isolated storage must remain protected');
           assert.ok(index.includes('const confirmVectorTiles=()=>'),'Stage06 vector tile confirmation not served');
@@ -61,8 +61,10 @@ jobs:
           assert.equal(visualSha,v.stage_checkpoint_visual_css_sha,'public visual CSS differs from tested source');
           const nextVisual=fs.readFileSync(root+'src/visual/v4-visual-acceptance-pass.css');
           const nextVisualSha=crypto.createHash('sha1').update(Buffer.from('blob '+nextVisual.length+'\0')).update(nextVisual).digest('hex');
-          assert.equal(nextVisualSha,v.stage_checkpoint_visual_acceptance_css_sha,'Stage14 CSS differs from private tested build');
+          assert.equal(nextVisualSha,v.stage_checkpoint_visual_acceptance_css_sha ,'Stage15 CSS differs from private source');
           assert.ok(nextVisual.toString('utf8').includes('grid-template-columns:1.5fr 1fr 1fr'));
+          assert.ok(nextVisual.toString('utf8').includes('Stage 15 — editorial surface hierarchy'));
+          assert.ok(nextVisual.toString('utf8').includes('grid-template-columns:minmax(0,1fr) 44px 58px 44px'));
           assert.ok(read('footprint-home.js').includes("h('span','fp-section-index',number)"));
           assert.ok(read('footprint-home.js').includes("h('strong','fp-section-label',name)"));
           assert.ok(index.includes('v4-visual-acceptance-pass.css'));
@@ -73,5 +75,5 @@ jobs:
           assert.ok(read('src/interaction/real-product-bridge.js').includes('closingInFlight'),'Stage09 header bind close guard not served');
           assert.ok(read('src/interaction/real-product-bridge.js').includes("if(state.sheet==='closed'&&(closingTimer!==null"),'Stage09 child DOM close guard not served');
           assert.ok(read('src/visual/iphone-v4-polish.css').includes('Stage 03: locked upright geographic star'));
-          console.log('PASS: public HTTPS serves Stage 14 approved Visual C editorial chapters, photo mosaic and isolated data');
+          console.log('PASS: public HTTPS serves Stage 15 visual candidate with chapter hierarchy, separate action rail and isolated data');
           NODE

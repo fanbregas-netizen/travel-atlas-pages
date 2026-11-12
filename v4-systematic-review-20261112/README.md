@@ -1,14 +1,15 @@
-# Footprint Map V4｜系统整合候选验收（2026-11-12）
-独立真实产品验收入口：https://fanbregas-netizen.github.io/travel-atlas-pages/v4-systematic-review-20261112/
-源码：私有仓库 fanbregas-netizen/travel-atlas PR #24, integration/v4-systematic-rebuild-20261111, commit a00a15805935f1384ffae8365a56e2ed71a63bbc.
-本目录以最新真实 source/ 为基线，使用统一真实地图、单颗收藏星标、B 三档实体卡片、D 影像/Brief/攻略、C V5 路线日期与详情。
+# Footprint Map V4｜Stage 15 独立完整产品视觉候选
 
-## 数据隔离
-网页 IndexedDB/localStorage 使用 atlas-v4-systematic-20261112- 前缀，与正式版隔离。此预览首次访问收藏为空正常；不要在正式站与预览站之间期待实时同步。
+验收入口：https://fanbregas-netizen.github.io/travel-atlas-pages/v4-systematic-review-20261112/?v=stage15-visual
 
-## 已验证
-GitHub Actions https://github.com/fanbregas-netizen/travel-atlas/actions/runs/43144227561：Chromium 与 WebKit 双通过；各 42/42 Node 模块测试、4/4 runtime 接线检查，以及 16 组真实浏览器流程，包括地点/媒体/路线/备份和 iPhone 路线页控件几何回归。
-本版还修复了 WebKit 图片全屏窗口关闭时动画 Promise 可能悬挂、遮罩无法消失的问题。
+2026-11-12 在 Stage14 真实产品基础上，对地点详情、收藏、搜索、媒体、路线规划及详情做整体验证候选，**不是设计原型，也不是正式商用版**。
 
-## 尚待真实设备/商用发布验收
-此前独立批准的 UI/UX 35/35 不等于真实整合页面视觉全通过。实际 iPhone Safari、网络地图/授权、数据配额/清除、隐私安全与商用服务仍需验收。正式根目录未修改。
+- 地点：真实地点名称全宽，星标／编辑／关闭位于独立操作排；Brief、照片视频、攻略、附近地点统一章节节奏。
+- 收藏与搜索：统一字体、卡片比例、列表信息密度及 44px 触控目标。
+- 路线：保持已通过的 C V5 逻辑与 B 三档上滑交互；视觉调整路线信息与站点详情。
+- 单颗黄星、已有 V3 图标、真实媒体/IndexedDB、地图和数据命名空间全部保留；四向气泡已取消。
+- 实际源码：`fanbregas-netizen/travel-atlas` PR #25，视觉 CSS SHA `525e43f8ad8c46d47fe8d203aa953b7230d20a78`。
+- 用户验收未通过前维持 Draft，不更动正式根首页；独立预览的保存资料与正式站隔离。
+- 技术测试包含 Node、Chromium/WebKit 全产品、在线地图及可用时的 390px 实际控件几何截图；**CI 成功不等于 iPhone Safari 实机和最终视觉批准**。
+
+最后验收门槛：真机 Safari 与视觉对照、35项真实集成复核、商业高德权限和服务、隐私与容灾。
