@@ -709,3 +709,123 @@ body.route-page .save-route-dialog :where(input,select){
 @media(prefers-reduced-motion:reduce){
   #drawer #fpvCollectionTabs .fpv-collection-indicator{transition:none!important}
 }
+
+
+/* Stage 16 — reliable map-state presentation, evidenced by real iPhone-sized
+   WebKit capture: do not show an eternal "drawing map" spinner alongside a
+   definitive tile failure. Never fake a rendered or healthy map. */
+body.atlas-map-unavailable #atlasMapLoader{
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  animation:none!important;
+}
+body.atlas-map-unavailable #mapConnectionNote{display:none!important}
+#mapError{
+  top:calc(64px + env(safe-area-inset-top))!important;
+  width:min(398px,calc(100vw - 28px))!important;
+  max-width:calc(100vw - 28px)!important;
+  padding:12px 13px 12px 16px!important;
+  gap:12px!important;
+  align-items:center!important;
+  background:rgba(255,254,250,.97)!important;
+  color:#495a4e!important;
+  border:1px solid #e3e5d9!important;
+  border-radius:19px!important;
+  box-shadow:0 11px 36px rgba(38,50,41,.13)!important;
+  -webkit-backdrop-filter:blur(18px);
+  backdrop-filter:blur(18px);
+  font-family:var(--fp14-system)!important;
+  font-size:12px!important;
+  font-weight:530!important;
+  line-height:1.6!important;
+}
+#mapError span{min-width:0!important;flex:1!important;line-height:1.6!important}
+#mapError #retryMap{
+  display:inline-flex!important;
+  flex:none!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:44px!important;
+  min-width:62px!important;
+  padding:10px 13px!important;
+  border:1px solid #dce5d7!important;
+  border-radius:13px!important;
+  background:#eef3e9!important;
+  color:#365b43!important;
+  font-family:inherit!important;
+  font-size:13px!important;
+  font-weight:720!important;
+}
+#mapError #retryMap:active{background:#e1eadc!important}
+#mapError #retryMap:focus-visible{outline:2px solid #9aab81!important;outline-offset:2px}
+@media(max-width:390px){
+  #mapError{top:calc(58px + env(safe-area-inset-top))!important}
+}
+
+/* Stage 16: the C V5 planner keeps its approved geometry, but the background
+   itinerary and active editor have a quieter, clearer mobile hierarchy. */
+@media(max-width:700px){
+  body.journey-page.journey-live-sheet .atlas-view{
+    background:linear-gradient(155deg,#f0f4ec,#f8f9f5 63%)!important;
+  }
+  body.journey-page.journey-live-sheet .atlas-heading{
+    padding:7px 7px 4px!important;
+    gap:8px!important;
+    align-items:center!important;
+  }
+  body.journey-page.journey-live-sheet .atlas-heading h2{
+    font-size:22px!important;
+    line-height:1.22!important;
+    font-weight:750!important;
+    letter-spacing:-.04em!important;
+  }
+  body.journey-page.journey-live-sheet .atlas-heading p{font-size:11px!important;color:#7c877b!important}
+  body.journey-page.journey-live-sheet #journey{
+    background:rgba(255,254,250,.84)!important;
+    border:1px solid #e3e8dd!important;
+    box-shadow:0 8px 30px rgba(33,58,39,.04)!important;
+  }
+  body.journey-page.journey-live-sheet .builder{
+    background:#fffefa!important;
+    border-color:#e4e9e0!important;
+    box-shadow:0 -14px 50px rgba(25,44,31,.14)!important;
+  }
+  body.journey-page.journey-live-sheet .journey-sheet-toolbar{
+    border-bottom-color:#edf0e8!important;
+    background:rgba(255,254,250,.97)!important;
+  }
+  body.journey-page.journey-live-sheet .journey-sheet-summary strong{
+    font-size:14px!important;
+    font-weight:760!important;
+    letter-spacing:-.025em!important;
+    color:#364b3b!important;
+  }
+  body.journey-page.journey-live-sheet .journey-sheet-summary small{
+    font-size:11px!important;
+    color:#819087!important;
+  }
+  body.journey-page.journey-live-sheet .builder .choice{
+    background:#fffefa!important;
+    border:1px solid #e3e9e0!important;
+    border-radius:19px!important;
+    box-shadow:0 3px 14px rgba(27,45,33,.032)!important;
+  }
+  body.journey-page.journey-live-sheet .builder .choice-index{
+    background:#eaf0e7!important;
+    color:#526e53!important;
+    width:32px!important;
+    height:32px!important;
+    border-radius:12px!important;
+    font-size:12px!important;
+  }
+  body.journey-page.journey-live-sheet .builder .choice-name{
+    font-size:15px!important;
+    font-weight:760!important;
+    color:#283e31!important;
+    line-height:1.4!important;
+  }
+  body.journey-page.journey-live-sheet .builder .choice-controls :where(button,select,input){
+    border-radius:12px!important;
+  }
+}
