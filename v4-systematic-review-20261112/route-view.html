@@ -1,5 +1,23 @@
 <!doctype html>
 <html lang="zh-CN"><head>
+<base href="/travel-atlas-pages/v4-systematic-review-20261112/">
+<script id="atlas-isolated-systematic-review">(()=>{'use strict';
+const ns='atlas-v4-systematic-20261112-';window.__atlasPreviewNamespace=ns;
+const factory=IDBFactory.prototype,open=factory.open,del=factory.deleteDatabase;
+factory.open=function(name,...args){return open.call(this,ns+String(name),...args)};
+factory.deleteDatabase=function(name){return del.call(this,ns+String(name))};
+const list=factory.databases;
+if(typeof list==='function')factory.databases=async function(){
+ const all=await list.call(this);
+ return all.filter(item=>String(item.name||'').startsWith(ns))
+   .map(item=>({...item,name:String(item.name).slice(ns.length)}));
+};
+const st=Storage.prototype,get=st.getItem,set=st.setItem,rm=st.removeItem,key=st.key;
+st.getItem=function(name){return get.call(this,ns+String(name))};
+st.setItem=function(name,v){return set.call(this,ns+String(name),v)};
+st.removeItem=function(name){return rm.call(this,ns+String(name))};
+st.clear=function(){const a=[];for(let i=0;i<this.length;i++){const k=key.call(this,i);if(k?.startsWith(ns))a.push(k)}a.forEach(k=>rm.call(this,k))};
+})();</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f3f1e9">
