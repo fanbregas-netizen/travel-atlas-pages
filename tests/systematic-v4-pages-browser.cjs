@@ -16,7 +16,15 @@ async function main(){
  try{
   for(const width of [375,390,430]){
    const ctx=await browser.newContext({viewport:{width,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,serviceWorkers:'block'});
-   const page=await ctx.newPage(),errors=[];
+   const page=await ctx.newPage(),errors=[],mapNetwork={tileSuccess:0,tileFailure:0,styles:0};
+   page.on('response',response=>{
+     const url=response.url();
+     if(!/openfreemap|openstreetmap|arcgisonline|amap|jsdelivr|unpkg/i.test(url))return;
+     if(/\.(?:pbf|png|jpe?g|webp)(?:\?|$)|\/\d+\/\d+\/\d+/.test(url)){
+       if(response.ok())mapNetwork.tileSuccess++;else mapNetwork.tileFailure++;
+     }
+     if(/\/styles\/bright/.test(url))mapNetwork.styles++;
+   });
    page.on('pageerror',e=>errors.push(e.message));
    const response=await page.goto(root+'index.html?ci='+Date.now(),{waitUntil:'domcontentloaded',timeout:60000});
    await page.waitForFunction(()=>!!window.__atlasDemo&&!!window.FootprintMediaCore&&!!window.__atlasSheetIntegration,null,{timeout:20000});
@@ -39,6 +47,16 @@ async function main(){
    report.push({width,...result});
    await page.screenshot({path:evidence+'/home-'+width+'.png'});
    if(width===390){
+    // Wait for the provider's 13.5s vector timeout. Mounted DOM is not proof
+    // that real map imagery loaded; record the actual provider and tile status.
+    await page.waitForTimeout(15500);
+    const mapHealth=await page.evaluate(()=>window.__atlasMapHealth?.()||null);
+    assert.ok(mapHealth,'real map health probe must be installed');
+    assert.ok(['amap','openfreemap-vector','raster-fallback'].includes(mapHealth.provider));
+    assert.equal(typeof mapHealth.ready,'boolean');
+    report.push({mapHealth,mapNetwork});
+    console.log('REAL_MAP_READINESS',JSON.stringify({mapHealth,mapNetwork}));
+
     const isolated=await page.evaluate(async()=>{
       const db=await new Promise((res,rej)=>{const request=indexedDB.open('private-travel-footprints-v1',1);request.onsuccess=()=>res(request.result);request.onerror=()=>rej(request.error)});
       db.close();localStorage.setItem('smoke','ok');
