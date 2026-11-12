@@ -1,0 +1,422 @@
+/*
+ * Footprint Map V4 / Visual C — iPhone visual acceptance pass.
+ * 2026-11-12 · Stage 14.
+ *
+ * The video review showed approved swipe-card interaction working, but
+ * cramped titles, form-like sections and an unbalanced media strip.
+ * This stylesheet changes visual hierarchy ONLY. No transforms, sheet
+ * detents, map surfaces, star geometry, selectedPlaceId, storage or handlers.
+ * Visual tokens are taken from feature/visual: charcoal-green ink, warm
+ * off-white paper, restrained muted-gold accent, V3 original SVG icons.
+ */
+:root{
+  --fp14-ink:#27342f;
+  --fp14-sub:#58665d;
+  --fp14-muted:#8a9489;
+  --fp14-paper:#fffefa;
+  --fp14-line:#e7e8df;
+  --fp14-wash:#f3f4ed;
+  --fp14-gold:#b59a62;
+  --fp14-gold-wash:#f3eddf;
+  --fp14-focus:#a88c54;
+  --fp14-system:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+}
+:where(#fpPlaceCard,#fpSearchSheet,#drawer,#appDock,.journey-page,#rvDetail){
+  font-family:var(--fp14-system);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* One coherent location sheet. The approved B physical motion and
+   peek/half/full geometry remain solely controlled by physical-sheet.js. */
+#fpPlaceCard{
+  background:var(--fp14-paper)!important;
+  border:1px solid rgba(231,232,223,.88)!important;
+  border-radius:27px!important;
+  box-shadow:0 19px 54px rgba(29,40,31,.16)!important;
+}
+#fpPlaceCard .fp-card-header{
+  display:flex!important;
+  align-items:flex-start!important;
+  gap:9px!important;
+  padding:12px 15px 14px 20px!important;
+  background:var(--fp14-paper)!important;
+  border-bottom:1px solid var(--fp14-line)!important;
+}
+#fpPlaceCard .fp-card-title-wrap{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  gap:8px!important;
+  flex:1!important;
+  min-width:0!important;
+  padding:0 4px 0 0!important;
+}
+#fpPlaceCard .fp-card-name{
+  font-size:clamp(23px,6vw,27px)!important;
+  line-height:1.16!important;
+  font-weight:760!important;
+  color:var(--fp14-ink)!important;
+  letter-spacing:-.052em!important;
+  margin:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+#fpPlaceCard .fp-place-stage{
+  display:inline-flex!important;
+  align-items:center!important;
+  width:auto!important;
+  min-height:26px!important;
+  padding:4px 10px!important;
+  margin:0!important;
+  border:1px solid #e5d9b9!important;
+  border-radius:100px!important;
+  background:var(--fp14-gold-wash)!important;
+  color:#846b36!important;
+  font-size:11px!important;
+  line-height:1.15!important;
+  font-weight:690!important;
+  letter-spacing:.005em!important;
+  box-shadow:none!important;
+}
+#fpPlaceCard .fp-card-header .fp-unstar-btn{
+  width:41px!important;
+  min-width:41px!important;
+  height:41px!important;
+  min-height:41px!important;
+  flex:none!important;
+  border:1px solid #e6dcbf!important;
+  border-radius:14px!important;
+  background:#faf5e8!important;
+  box-shadow:none!important;
+  padding:9px!important;
+  margin:0!important;
+}
+#fpPlaceCard .fp-card-header .fp-unstar-btn img{
+  display:block!important;
+  width:22px!important;height:22px!important;
+  margin:auto!important;
+  object-fit:contain!important;
+}
+#fpPlaceCard .fp-card-header .fp-edit-toggle{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:43px!important;
+  min-height:41px!important;
+  padding:0 11px!important;
+  margin:0!important;
+  border:1px solid var(--fp14-line)!important;
+  border-radius:14px!important;
+  background:#f9f9f5!important;
+  color:var(--fp14-sub)!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  box-shadow:none!important;
+}
+#fpPlaceCard .fp-card-header .fp-card-close{
+  width:41px!important;min-width:41px!important;height:41px!important;min-height:41px!important;
+  padding:0!important;margin:0!important;
+  border:0!important;border-radius:14px!important;
+  color:#58645a!important;
+  font-size:21px!important;
+  background:transparent!important;
+}
+#fpPlaceCard .sheet-grab{margin:8px auto 0!important;background:#c6cdc5!important}
+#fpPlaceCard .fp-card-scroll{
+  padding:0 20px calc(21px + env(safe-area-inset-bottom)*.25)!important;
+  background:var(--fp14-paper)!important;
+}
+#fpPlaceCard .fp-block{
+  margin:0!important;
+  padding:19px 0 21px!important;
+  border:0!important;
+  border-bottom:1px solid var(--fp14-line)!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+#fpPlaceCard .fp-block:last-of-type{border-bottom:0!important}
+#fpPlaceCard .fp-subheading{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:7px!important;
+  min-height:35px!important;
+  margin:0 0 13px!important;
+}
+#fpPlaceCard .fp-section-index{
+  display:inline-flex;
+  justify-content:center;
+  min-width:21px;
+  margin-right:2px;
+  color:#b4a68e!important;
+  font-size:10px!important;
+  font-weight:750!important;
+  letter-spacing:.07em!important;
+  font-variant-numeric:tabular-nums;
+}
+#fpPlaceCard .fp-subheading .fp-section-label{
+  color:var(--fp14-ink)!important;
+  font-size:16px!important;
+  font-weight:735!important;
+  letter-spacing:-.035em!important;
+  line-height:1.26!important;
+}
+#fpPlaceCard .fp-subheading .fp-subaction{
+  margin-left:auto!important;
+  min-height:33px!important;
+  padding:6px 10px!important;
+  border:1px solid #ecebe4!important;
+  border-radius:10px!important;
+  background:#f9f9f5!important;
+  color:#617062!important;
+  font-size:11px!important;
+  font-weight:690!important;
+  box-shadow:none!important;
+}
+#fpPlaceCard .fp-brief-text{
+  max-height:none!important;
+  overflow:visible!important;
+  margin:0!important;
+  padding:0!important;
+  font-size:14px!important;
+  line-height:1.78!important;
+  letter-spacing:.006em!important;
+  color:#4c5c52!important;
+  white-space:pre-wrap;
+}
+#fpPlaceCard .fp-brief-text.is-empty{font-size:13px!important;color:#949b92!important}
+#fpPlaceCard .fp-photo-count{
+  justify-content:flex-start!important;
+  margin:9px 0 0!important;
+  color:#7e897d!important;
+  font-size:11px!important;
+  font-variant-numeric:tabular-nums;
+}
+#fpPlaceCard .fp-media-mosaic{
+  display:grid!important;
+  grid-template-columns:1.5fr 1fr 1fr!important;
+  grid-template-rows:repeat(2,minmax(0,1fr))!important;
+  gap:4px!important;
+  width:100%;
+  aspect-ratio:1.62!important;
+  max-height:252px!important;
+  margin:0!important;
+  overflow:hidden!important;
+  border:0!important;
+  border-radius:18px!important;
+  background:#e9ece7!important;
+}
+#fpPlaceCard .fp-media-mosaic > button{
+  display:block!important;
+  grid-column:auto!important;
+  grid-row:auto!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;min-height:0!important;
+  padding:0!important;margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  aspect-ratio:auto!important;
+  background:#e9ece7!important;
+  overflow:hidden!important;
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two) > button:first-child{
+  grid-column:1!important;
+  grid-row:1 / span 2!important;
+}
+#fpPlaceCard .fp-media-mosaic:has(>button:nth-child(3):last-child),
+#fpPlaceCard .fp-media-mosaic:has(>button:nth-child(4):last-child){
+  grid-template-columns:1.6fr 1fr!important;
+}
+#fpPlaceCard .fp-media-mosaic:has(>button:nth-child(4):last-child){
+  grid-template-rows:repeat(3,minmax(0,1fr))!important;
+}
+#fpPlaceCard .fp-media-mosaic:has(>button:nth-child(4):last-child) > button:first-child{
+  grid-row:1 / span 3!important;
+}
+#fpPlaceCard .fp-media-mosaic.one{
+  display:block!important;
+  aspect-ratio:1.62!important;
+}
+#fpPlaceCard .fp-media-mosaic.two{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:1fr!important;
+  aspect-ratio:2!important;
+}
+#fpPlaceCard .fp-media-mosaic img,
+#fpPlaceCard .fp-media-mosaic video{
+  display:block!important;
+  width:100%!important;height:100%!important;
+  max-width:none!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  border-radius:0!important;
+}
+#fpPlaceCard .fp-media-mosaic .fp-video-tile{
+  position:relative!important;
+  background:#d5dbd5!important;
+}
+#fpPlaceCard .fp-media-mosaic .fp-video-indicator{
+  position:absolute!important;
+  top:50%!important;left:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  width:31px!important;height:31px!important;
+  margin:-15.5px 0 0 -15.5px!important;
+  border:1px solid #ffffff91!important;
+  border-radius:50%!important;
+  background:#192b23ab!important;
+  color:white!important;
+  font-size:12px!important;
+  line-height:1!important;
+  box-shadow:0 2px 8px #0003!important;
+  pointer-events:none!important;
+}
+#fpPlaceCard .fp-media-mosaic .fp-tile-more{
+  background:#1d2926a6!important;
+  font-size:16px!important;
+  font-weight:740!important;
+}
+#fpPlaceCard .fp-social-list{gap:8px!important}
+#fpPlaceCard .fp-social-list a{
+  display:flex!important;
+  align-items:center!important;
+  padding:11px 13px!important;
+  border:1px solid var(--fp14-line)!important;
+  background:#f8f9f5!important;
+  border-radius:13px!important;
+  color:var(--fp14-sub)!important;
+  font-size:12px!important;
+  line-height:1.4!important;
+}
+#fpPlaceCard .fp-social-empty{margin:0!important;color:#909990!important;line-height:1.6!important}
+#fpPlaceCard .fp-inline-editor{background:#f8f9f5!important}
+#fpPlaceCard .fp-inline-editor :where(input,textarea){font-size:16px!important}
+#fpPlaceCard .fp-card-feedback{font-size:12px!important;color:#7c8a76!important;line-height:1.5!important}
+
+/* Saved collection has approved B05 sliding tabs. Strengthen title, content
+   hierarchy and thumbnail treatment, not its state or hit target geometry. */
+#drawer.fp30-detail{
+  background:var(--fp14-paper)!important;
+  border-radius:27px 27px 0 0!important;
+  box-shadow:0 -17px 51px rgba(24,39,28,.17)!important;
+}
+#drawer.fp30-detail .drawer-head{
+  padding:11px 18px 9px!important;
+  background:var(--fp14-paper)!important;
+  border-bottom:0!important;
+}
+#drawer.fp30-detail .drawer-head h2,
+#drawer.fp30-detail .drawer-cn{
+  font-size:23px!important;
+  font-weight:745!important;
+  letter-spacing:-.05em!important;
+  color:var(--fp14-ink)!important;
+}
+#drawer.fp30-detail #sheetCount{
+  display:inline-flex!important;
+  align-items:center!important;
+  margin-left:8px!important;
+  color:#7b887b!important;
+  font-size:11px!important;
+  font-weight:520!important;
+  letter-spacing:0!important;
+}
+#drawer #fpvCollectionTabs{
+  margin-top:7px!important;
+  margin-bottom:18px!important;
+  background:#eff0e9!important;
+  border:1px solid #e4e7dd!important;
+  border-radius:17px!important;
+}
+#drawer #fpvCollectionTabs .fpv-collection-tab{
+  font-size:13px!important;
+  font-weight:655!important;
+  letter-spacing:-.025em!important;
+}
+#drawer #fpvCollectionTabs .fpv-collection-tab[aria-selected="true"]{
+  font-weight:750!important;
+  color:var(--fp14-ink)!important;
+}
+#drawer.fp30-detail #spotList{gap:10px!important}
+#drawer.fp30-detail #spotList .spotrow,
+#drawer.fp30-detail #drawerRouteList .rs-row{
+  min-height:89px!important;
+  border:1px solid #e8e9e1!important;
+  border-radius:18px!important;
+  box-shadow:0 4px 16px rgba(30,47,34,.04)!important;
+  background:#fffefa!important;
+}
+#drawer.fp30-detail #spotList .spotrow>img,
+#drawer.fp30-detail #spotList .spotrow .spotempty{
+  width:62px!important;height:62px!important;
+  border-radius:14px!important;
+  object-fit:cover!important;
+  background:#f3f2eb!important;
+}
+#drawer.fp30-detail #spotList .spotrow strong,
+#drawer.fp30-detail #drawerRouteList .rs-meta b{
+  font-size:15px!important;
+  color:var(--fp14-ink)!important;
+  font-weight:745!important;
+  letter-spacing:-.03em!important;
+}
+#drawer.fp30-detail #spotList .spotrow small,
+#drawer.fp30-detail #drawerRouteList .rs-meta span{
+  font-size:11px!important;
+  color:#7d8b7f!important;
+  line-height:1.55!important;
+}
+
+/* Search inherits approved icon set; visually match the same one-surface
+   treatment and information type scale. */
+#fpSearchSheet{
+  border:1px solid rgba(230,232,224,.92)!important;
+  border-radius:25px!important;
+  background:var(--fp14-paper)!important;
+  box-shadow:0 16px 42px rgba(29,40,31,.16)!important;
+}
+#fpSearchSheet .fp-search-head h2{
+  font-size:22px!important;
+  font-weight:745!important;
+  letter-spacing:-.045em!important;
+  color:var(--fp14-ink)!important;
+}
+#fpSearchSheet .fp-search-top{border-bottom-color:var(--fp14-line)!important}
+#fpSearchSheet .fp-search-row{
+  background:var(--fp14-paper)!important;
+  border-bottom:1px solid var(--fp14-line)!important;
+}
+#fpSearchSheet .fp-search-row strong{font-size:14px!important;color:var(--fp14-ink)!important}
+#fpSearchSheet .fp-search-row small{font-size:12px!important;color:var(--fp14-muted)!important}
+#appDock{
+  background:rgba(255,254,250,.96)!important;
+  border:1px solid rgba(244,246,239,.97)!important;
+  border-radius:23px!important;
+  box-shadow:0 10px 29px rgba(24,40,28,.13)!important;
+}
+#appDock .dock-btn span{font-size:10px!important;font-weight:625!important;letter-spacing:-.012em!important;color:#53635a!important}
+#appDock .dock-btn img{width:24px!important;height:24px!important;object-fit:contain!important}
+
+/* Keep C V5 planner and route card layout but normalize its visual label
+   weights across the same approved type scale. */
+body.journey-page .builder h1{
+  font-size:clamp(22px,5vw,26px)!important;
+  font-weight:745!important;
+  letter-spacing:-.05em!important;
+}
+body.journey-page .builder .eyebrow{font-size:10px!important;color:#928b7c!important}
+body.journey-page .builder .block h2{font-size:13px!important;font-weight:720!important;color:#526354!important}
+body.journey-page .builder .choice{border-color:var(--fp14-line)!important}
+body.route-page #rvDetail h2{font-size:24px!important;font-weight:745!important;letter-spacing:-.05em!important;color:var(--fp14-ink)!important}
+body.route-page #rvDetail .brief{font-size:14px!important;line-height:1.75!important;color:var(--fp14-sub)!important}
+
+@media(max-width:390px){
+  #fpPlaceCard .fp-card-header{gap:6px!important;padding-right:12px!important;padding-left:16px!important}
+  #fpPlaceCard .fp-card-name{font-size:22px!important}
+  #fpPlaceCard .fp-card-header .fp-unstar-btn{width:39px!important;min-width:39px!important}
+  #fpPlaceCard .fp-card-header .fp-edit-toggle{padding-inline:8px!important}
+  #fpPlaceCard .fp-card-scroll{padding-inline:16px!important}
+  #fpPlaceCard .fp-subheading .fp-section-label{font-size:15px!important}
+}
