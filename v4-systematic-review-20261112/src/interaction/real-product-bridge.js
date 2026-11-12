@@ -48,10 +48,19 @@
     // Preserve the legacy close routine for video teardown/Dock state,
     // but let the approved closing motion finish first.
     if(closingTimer)clearTimeout(closingTimer);
-    closingTimer=setTimeout(()=>{
-      if(cardCtrl.getState().sheet==='closed')
-        window.__atlasClosePlace?.();
-    },440);
+    const finishClose=()=>{
+      closingTimer=null;
+      if(cardCtrl.getState().sheet!=='closed')return;
+      // Do not tear down an animating card at an arbitrary 440ms boundary.
+      // The V3 motor owns the actual spring; Safari may take longer after
+      // frame suspension, so wait until it settles (or its 840ms fail-safe).
+      if(cardMotion?.state()?.animating){
+        closingTimer=setTimeout(finishClose,40);
+        return;
+      }
+      window.__atlasClosePlace?.();
+    };
+    closingTimer=setTimeout(finishClose,50);
    }
   });
   cardMotion=window.TravelAtlasPhysicalSheet?.connect({sheet:card,controller:cardCtrl,header,grip,scroll})||null;
