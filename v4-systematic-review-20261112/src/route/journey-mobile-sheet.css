@@ -46,3 +46,54 @@
  #journeySheetOpen[hidden]{display:none}
 }
 @media(min-width:701px){.journey-sheet-toolbar,#journeySheetOpen{display:none!important}}
+
+
+/* Systematic V4 viewport and stop-control fix:
+   The legacy 106px/two-row header must never overlap the real route canvas.
+   The stage-1 global input width:100% must never stretch the optional time input
+   over the reorder buttons. Layout/labels preserve the approved C V5 palette. */
+@media(max-width:700px){
+ body.journey-live-sheet .topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  height:68px;min-height:68px;grid-template-columns:none;grid-template-rows:none;
+  padding:0 14px;gap:12px;
+ }
+ body.journey-live-sheet .topbar .brand{display:none}
+ body.journey-live-sheet .topbar .back-link{font-size:13px;flex:none;white-space:nowrap}
+ body.journey-live-sheet .topbar .top-actions{
+  display:flex;flex:none;grid-column:auto;grid-row:auto;
+  align-items:center;justify-self:auto;padding:0;margin:0;gap:7px;
+ }
+ body.journey-live-sheet .topbar .topaction{
+  flex:none;padding:9px 12px;min-height:42px;font-size:12px;
+ }
+ body.journey-live-sheet .builder .choice{
+  display:grid;grid-template-columns:34px minmax(0,1fr) 40px;
+  align-items:center;column-gap:10px;row-gap:10px;padding:12px;
+  min-width:0;
+ }
+ body.journey-live-sheet .builder .choice-index{grid-column:1;grid-row:1}
+ body.journey-live-sheet .builder .choice-body{grid-column:2;grid-row:1;min-width:0}
+ body.journey-live-sheet .builder .choice-drag{
+  grid-column:3;grid-row:1;width:40px;height:40px;min-width:40px;
+ }
+ body.journey-live-sheet .builder .choice-controls{
+  grid-column:1/-1;grid-row:2;
+  display:grid;grid-template-columns:64px minmax(0,1fr) repeat(3,40px);
+  gap:6px;align-items:center;min-width:0;width:100%;
+ }
+ body.journey-live-sheet .builder .choice-controls .day-picker{
+  display:block;width:64px;min-width:0;min-height:40px;height:40px;
+  padding:4px!important;margin:0;
+ }
+ body.journey-live-sheet .builder .choice-controls input.time-picker{
+  width:100%!important;max-width:100%;min-width:0;min-height:40px;
+  height:40px;padding:4px 6px;font-size:13px;
+  background:#fffefa;border:1px solid #dce8d8;color:#395740;
+ }
+ body.journey-live-sheet .builder .choice-controls button{
+  width:40px;height:40px;min-width:40px;min-height:40px;
+  margin:0;padding:0;border-radius:12px;
+ }
+ body.journey-live-sheet .builder .choice-controls button:disabled{opacity:.35}
+}
