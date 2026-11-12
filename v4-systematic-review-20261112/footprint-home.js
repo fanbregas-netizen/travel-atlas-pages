@@ -7,7 +7,7 @@ const h=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=c
 const getList=()=>{try{return JSON.parse(localStorage.getItem('fp-search-history-v1')||'[]').filter(x=>x&&typeof x.q==='string').slice(0,8)}catch{return []}};
 const saveHistory=item=>{try{const all=getList().filter(x=>x.q!==item.q);all.unshift(item);localStorage.setItem('fp-search-history-v1',JSON.stringify(all.slice(0,8)))}catch{}};
 const urlOf=x=>{try{const u=new URL(String(x||'').trim());return ['http:','https:'].includes(u.protocol)?u.href:''}catch{return ''}};
-const safe=(n,lo,hi)=>Number.isFinite(+n)&&+n>=lo&&+n<=hi;
+const safe=(n,lo,hi)=>n!==null&&n!==undefined&&String(n).trim()!==''&&Number.isFinite(+n)&&+n>=lo&&+n<=hi;
 const isPhoto=file=>file.type.startsWith('image/')||/\.(jpe?g|png|webp|heic)$/i.test(file.name);
 let searchSheet,searchVeil,searchInput,searchBody,searchTimer,searchController=null,searchToken=0,activeSearch=false,searchUsed=false;
 let placeCard,activePlaceId='',editMode='',busy=false;
@@ -48,7 +48,7 @@ async function searchNow(q,submitted){q=String(q||'').trim();searchReset();if(!q
  if(!submitted&&q.length<2)return;
  if(!window.AtlasServices?.search){if(!matches.length)searchBody.append(h('div','fp-search-empty','地图搜索服务未准备好，请重试。'));return}
  searchController=new AbortController();const controller=searchController;const status=h('div','fp-search-empty','正在搜索真实地点…');searchBody.append(status);
- try{const results=await window.AtlasServices.search(q,{signal:controller.signal,center:window.__fpSearchCenter?.(),allowFallback:submitted});if(token!==searchToken||!activeSearch)return;status.remove();const existing=new Set(matches.map(x=>String(x.name).trim()+':'+Number(x.lat).toFixed(3)));const filtered=(Array.isArray(results)?results:[]).map(x=>({...x,lon:Number(x.lon??x.lng),lat:Number(x.lat)})).filter(x=>safe(x.lat,-90,90)&&safe(x.lon,-180,180)&&!existing.has(String(x.name).trim()+':'+x.lat.toFixed(3))).slice(0,12);if(filtered.length)searchBody.append(searchRows(filtered,'地图地点'));else if(!matches.length)searchBody.append(h('div','fp-search-empty','没有找到这个地点。试试「城市 + 地点名」，或返回地图手动选点。'));if(submitted)saveHistory({q,name:q,description:'搜索记录'})}
+ try{const results=await window.AtlasServices.search(q,{signal:controller.signal,center:window.__fpSearchCenter?.(),allowFallback:submitted});if(token!==searchToken||!activeSearch)return;status.remove();const existing=new Set(matches.map(x=>String(x.name).trim()+':'+Number(x.lat).toFixed(3)));const filtered=(Array.isArray(results)?results:[]).map(x=>({...x,lon:x.lon??x.lng,lat:x.lat})).filter(x=>safe(x.lat,-90,90)&&safe(x.lon,-180,180)).map(x=>({...x,lon:Number(x.lon),lat:Number(x.lat)})).filter(x=>!existing.has(String(x.name).trim()+':'+x.lat.toFixed(3))).slice(0,12);if(filtered.length)searchBody.append(searchRows(filtered,'地图地点'));else if(!matches.length)searchBody.append(h('div','fp-search-empty','没有找到这个地点。试试「城市 + 地点名」，或返回地图手动选点。'));if(submitted)saveHistory({q,name:q,description:'搜索记录'})}
  catch(err){if(!controller.signal.aborted&&token===searchToken&&activeSearch){status.textContent='搜索暂时不可用。可以重试或继续查看已经收藏的地点。'}}
 }
 function chooseResult(place){closeSearch();const name=place.name||place.q||'地点';if(place.saved&&place.id){window.__atlasDemo?.openSaved?.(place.id);return}if(!safe(place.lat,-90,90)||!safe(place.lon??place.lng,-180,180)){openSearch();searchInput.value=name;searchNow(name,true);return}saveHistory({q:name,name,lat:place.lat,lon:place.lon,description:place.display_name||place.description||''});const data={name,lat:Number(place.lat),lng:Number(place.lon??place.lng),address:place.display_name||place.address||'',category:place.type||'地点',id:place.id||''};if(typeof window.__fpSearchSelect==='function')window.__fpSearchSelect(data);else window.__atlasDemo?.select?.(data.name,data.lat,data.lng)}
@@ -73,7 +73,7 @@ function feedback(msg){const e=$('fpCardFeedback');if(e)e.textContent=msg}
 function mountPlace(){if(placeCard)return;placeCard=h('article');placeCard.id='fpPlaceCard';placeCard.hidden=true;placeCard.setAttribute('role','dialog');placeCard.setAttribute('aria-modal','false');placeCard.setAttribute('aria-label','收藏地点详情');document.body.append(placeCard); /* V3 physical B owns all card swipes: no additional legacy touch handlers. */
  document.addEventListener('atlas:memory-open',e=>{if(window.__atlasPreferCollage!==false)showPlaceCard(e.detail?.id)});
  // Unified B controller owns backdrop dismissal after pointerup; map dragging must not close the card.
- document.addEventListener('atlas:source-updated',()=>{if(activePlaceId)showPlaceCard(activePlaceId,false)});
+ document.addEventListener('atlas:source-updated',()=>{if(activePlaceId&&!editMode)renderPlace(activePlaceId)});
  const originalSheet=$('memorySheet');if(originalSheet)new MutationObserver(()=>{if(activePlaceId&&!originalSheet.classList.contains('visible'))closePlace()}).observe(originalSheet,{attributes:true,attributeFilter:['class']});
  const qs=new URLSearchParams(location.search);const source=qs.get('sourcePlace'),media=qs.get('mediaPlace');if(source||media){const target=source||media;let count=0;const t=setInterval(()=>{count++;if(typeof window.__atlasDemo?.openSaved==='function'){clearInterval(t);window.__atlasDemo.openSaved(target);editMode=source?'link':'media';setTimeout(()=>renderPlace(target),120);history.replaceState(null,'',location.pathname)}if(count>32)clearInterval(t)},250)}
 }
@@ -102,9 +102,9 @@ async function showPlaceCard(id){
  if(activePlaceId!==id){
   closeViewer(true);
   placeCard.classList.remove('fp-editing');
+  editMode='';
  }
  activePlaceId=id;
- editMode='';
  closeSearch();
  if(!await renderPlace(id)||revision!==selectionRevision||id!==activePlaceId)return;
  placeCard.dataset.placeId=id;
@@ -114,13 +114,13 @@ async function showPlaceCard(id){
 }
 async function renderPlace(id){const revision=++renderRevision;const p=await readPlace(id);if(!p||id!==activePlaceId||revision!==renderRevision)return false;stopTileVideos();placeCard.replaceChildren();if(editMode)placeCard.classList.add('fp-editing');const grab=h('div','sheet-grab');grab.setAttribute('aria-hidden','true');placeCard.append(grab);const head=h('header','fp-card-header'),titlewrap=h('div','fp-card-title-wrap');titlewrap.append(h('h2','fp-card-name',p.title||'未命名地点'));const stageBtn=btn(p.stage==='visited'?'已到访 · 足迹':'想去 · 灵感',()=>window.__atlasEditPlace?.(id),'fp-place-stage');stageBtn.setAttribute('aria-label','更改地点状态，当前：'+(p.stage==='visited'?'已到访':'想去'));titlewrap.append(stageBtn);const editToggle=btn(placeCard.classList.contains('fp-editing')?'完成':'编辑',()=>{placeCard.classList.toggle('fp-editing');if(!placeCard.classList.contains('fp-editing'))editMode='';renderPlace(id)},'fp-subaction fp-edit-toggle');
  /* build .20 · 用户批注：收藏点卡片上始终要有「取消收藏」——金星即已收藏，点它取消（影像保留） */
- const unstarBtn=btn('',async()=>{const changed=await window.__atlasCancelBookmark?.(id);if(changed)closePlace(true)},'fp-unstar-btn');
+ const unstarBtn=btn('',async()=>{const changed=await window.__atlasCancelBookmark?.(id);if(changed&&activePlaceId===id)closePlace(true)},'fp-unstar-btn');
  unstarBtn.innerHTML='<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTYXZlZCI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0zMiA4IEwzOS4yIDIzLjIgTDU2IDI1LjQgTDQzLjIgMzcuMiBMNDYuMSA1NC40IEwzMS43IDQ1LjggTDE2LjggNTQuNCBMMjAgMzcuNCBMOC4xIDI1LjMgTDI0LjggMjNaIiBmaWxsPSIjRjZDQzNCIi8+CiAgPHBhdGggZD0iTTI1IDI1IEwzMCAxNCIgc3Ryb2tlLXdpZHRoPSIxLjMiLz4KIDwvZz4KPC9zdmc+" alt="" aria-hidden="true">';unstarBtn.setAttribute('aria-label','取消收藏这颗星');unstarBtn.title='已收藏 · 点按取消收藏';
  head.append(titlewrap,unstarBtn,editToggle,btn('×',closePlace,'fp-card-close'));placeCard.append(head);const sc=h('div','fp-card-scroll');
  /* build .16 · 详情大卡规整为三块卡片（参考苹果排版）：Brief / 影像 / 社交资料 */
  const cardBrief=h('section','fp-block');
  cardBrief.append(sectionHeading('01',p.stage==='visited'?'旅行手记':'为什么想去',btn(editMode==='brief'?'收起':'编辑',()=>{editMode=editMode==='brief'?'':'brief';renderPlace(id)},'fp-subaction')));
- if(editMode==='brief'){const edit=h('div','fp-inline-editor');const area=h('textarea');area.value=p.note||'';area.placeholder=p.stage==='visited'?'记下这次旅程的细节与感受…':'为什么想去这个地方？记录你的旅行灵感…';area.maxLength=12000;area.addEventListener('focus',()=>setTimeout(()=>edit.scrollIntoView({block:'center',behavior:'smooth'}),380)); /* build .18 · 键盘弹起后输入区与保存按钮跟随到可视区 */const actions=h('div','fp-inline-actions');actions.append(btn('保存 Brief',async()=>{if(busy)return;busy=true;try{const fresh=await readPlace(id);if(!fresh)throw Error('找不到地点');if(!window.FootprintMediaCore)throw Error('存储模块未加载');await window.FootprintMediaCore.createRepository(window.indexedDB).saveBrief(id,area.value.trim());try{await window.__atlasFlowRefresh?.()}catch(_){}if(activePlaceId===id){editMode='';await renderPlace(id)}}catch(e){feedback('保存失败：'+e.message)}finally{busy=false}},'fp-btn-primary'),btn('取消',()=>{editMode='';renderPlace(id)},'fp-btn-muted'));edit.append(area,actions);cardBrief.append(edit)}else{const briefText=String(p.note||'').replace(/^原高德地址[：:][^\n]*\n?/,'').trim();cardBrief.append(h('p','fp-brief-text'+(!briefText?' is-empty':''),briefText||(p.stage==='visited'?'还没有旅行手记。点「编辑」记录这段经历。':'还没有 Brief。点「编辑」写下为什么想去这里。')))}
+ if(editMode==='brief'){const edit=h('div','fp-inline-editor');const area=h('textarea');area.value=p.note||'';area.placeholder=p.stage==='visited'?'记下这次旅程的细节与感受…':'为什么想去这个地方？记录你的旅行灵感…';area.maxLength=12000;area.addEventListener('focus',()=>setTimeout(()=>edit.scrollIntoView({block:'center',behavior:'smooth'}),380)); /* build .18 · 键盘弹起后输入区与保存按钮跟随到可视区 */const actions=h('div','fp-inline-actions');actions.append(btn('保存 Brief',async()=>{if(busy)return;busy=true;try{const fresh=await readPlace(id);if(!fresh)throw Error('找不到地点');if(!window.FootprintMediaCore)throw Error('存储模块未加载');await window.FootprintMediaCore.createRepository(window.indexedDB).saveBrief(id,area.value.trim());try{await window.__atlasFlowRefresh?.()}catch(_){}if(activePlaceId===id){editMode='';await renderPlace(id)}}catch(e){if(activePlaceId===id)feedback('保存失败：'+e.message)}finally{busy=false}},'fp-btn-primary'),btn('取消',()=>{editMode='';renderPlace(id)},'fp-btn-muted'));edit.append(area,actions);cardBrief.append(edit)}else{const briefText=String(p.note||'').replace(/^原高德地址[：:][^\n]*\n?/,'').trim();cardBrief.append(h('p','fp-brief-text'+(!briefText?' is-empty':''),briefText||(p.stage==='visited'?'还没有旅行手记。点「编辑」记录这段经历。':'还没有 Brief。点「编辑」写下为什么想去这里。')))}
  const cardMedia=h('section','fp-block');
  const media=mediaOf(p);placeCard.dataset.hasMedia=media.length?'yes':'no';cardMedia.append(sectionHeading('02','照片与视频',btn('＋ 添加',()=>filePicker.click(),'fp-subaction')));
  const filePicker=h('input');filePicker.type='file';filePicker.accept='image/*,video/*';filePicker.multiple=true;filePicker.hidden=true;filePicker.addEventListener('change',()=>addMedia(id,[...filePicker.files]));cardMedia.append(filePicker);
@@ -128,7 +128,7 @@ async function renderPlace(id){const revision=++renderRevision;const p=await rea
  const cardLinks=h('section','fp-block');
  cardLinks.append(sectionHeading('03','相关攻略',btn('＋ 链接',()=>{editMode=editMode==='link'?'':'link';renderPlace(id)},'fp-subaction')));
  const links=linksOf(p);if(links.length){const list=h('div','fp-social-list');links.slice(0,12).forEach(x=>{const a=h('a');a.href=x.url;a.target='_blank';a.rel='noopener noreferrer';a.title=x.url;a.append(h('span','',`${sourceName(x.url)} · ${x.title||'查看原文'}`),h('b','','↗'));list.append(a)});cardLinks.append(list)}else cardLinks.append(h('p','fp-social-empty','还没有保存公众号、小红书、Bilibili 或 YouTube 链接。'));
- if(editMode==='link'){const edit=h('div','fp-inline-editor');edit.style.marginTop='12px';const url=h('input');url.type='url';url.placeholder='粘贴微信、小红书或视频链接';url.setAttribute('inputmode','url');url.autocomplete='off';const name=h('input');name.type='text';name.placeholder='给这条资料写个标题（可选）';name.maxLength=150;const acts=h('div','fp-inline-actions');acts.append(btn('保存链接',async()=>{const u=urlOf(url.value);if(!u){feedback('请输入有效的 http 或 https 链接');return}if(busy)return;busy=true;try{const fresh=await readPlace(id);const before=linksOf(fresh);if(before.some(x=>x.url===u)){feedback('这个链接已经保存过了');return}if(!window.FootprintMediaCore)throw Error('存储模块未加载');await window.FootprintMediaCore.createRepository(window.indexedDB).saveGuide(id,{url:u,title:name.value.trim()||sourceName(u),createdAt:new Date().toISOString()});try{await window.__atlasFlowRefresh?.()}catch(_){}if(activePlaceId===id){editMode='';await renderPlace(id)}}catch(e){feedback('保存链接失败：'+e.message)}finally{busy=false}},'fp-btn-primary'),btn('取消',()=>{editMode='';renderPlace(id)},'fp-btn-muted'));edit.append(url,name,acts);cardLinks.append(edit);queueMicrotask(()=>{if(activePlaceId===id&&editMode==='link')edit.scrollIntoView({block:'nearest',behavior:'smooth'})})}
+ if(editMode==='link'){const edit=h('div','fp-inline-editor');edit.style.marginTop='12px';const url=h('input');url.type='url';url.placeholder='粘贴微信、小红书或视频链接';url.setAttribute('inputmode','url');url.autocomplete='off';const name=h('input');name.type='text';name.placeholder='给这条资料写个标题（可选）';name.maxLength=150;const acts=h('div','fp-inline-actions');acts.append(btn('保存链接',async()=>{const u=urlOf(url.value);if(!u){feedback('请输入有效的 http 或 https 链接');return}if(busy)return;busy=true;try{const fresh=await readPlace(id);const before=linksOf(fresh);if(before.some(x=>x.url===u)){if(activePlaceId===id)feedback('这个链接已经保存过了');return}if(!window.FootprintMediaCore)throw Error('存储模块未加载');await window.FootprintMediaCore.createRepository(window.indexedDB).saveGuide(id,{url:u,title:name.value.trim()||sourceName(u),createdAt:new Date().toISOString()});try{await window.__atlasFlowRefresh?.()}catch(_){}if(activePlaceId===id){editMode='';await renderPlace(id)}}catch(e){if(activePlaceId===id)feedback('保存链接失败：'+e.message)}finally{busy=false}},'fp-btn-primary'),btn('取消',()=>{editMode='';renderPlace(id)},'fp-btn-muted'));edit.append(url,name,acts);cardLinks.append(edit);queueMicrotask(()=>{if(activePlaceId===id&&editMode==='link')edit.scrollIntoView({block:'nearest',behavior:'smooth'})})}
  const nearby=h('section','fp-block');
  const status=h('div','fp-social-list');
  const load=btn('查看附近',async()=>{
@@ -142,7 +142,7 @@ async function renderPlace(id){const revision=++renderRevision;const p=await rea
        const row=btn(place.name+' · '+place.distance+' 米',()=>chooseResult(place),'fp-subaction');
        status.append(row);
      }
-   }catch{status.textContent='附近地点暂时无法读取，可重试'}
+   }catch{if(nearby.isConnected&&activePlaceId===id)status.textContent='附近地点暂时无法读取，可重试'}
    finally{load.disabled=false}
  },'fp-subaction');
  nearby.append(sectionHeading('04','附近地点',load),status);
@@ -152,7 +152,7 @@ async function renderPlace(id){const revision=++renderRevision;const p=await rea
 async function shrinkPhoto(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(Error('无法读取图片'));reader.onload=()=>{const img=new Image();img.onerror=()=>reject(Error('无法解码图片，请改用 JPEG/PNG'));img.onload=()=>{const scale=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);resolve({name:file.name,src:canvas.toDataURL('image/jpeg',.82),addedAt:new Date().toISOString()})};img.src=reader.result};reader.readAsDataURL(file)})}
 async function addMedia(id,files){
  if(!files?.length||busy)return;
- busy=true;feedback('正在验证并保存影像…');
+ busy=true;if(activePlaceId===id)feedback('正在验证并保存影像…');
  try{
   if(!window.FootprintMediaCore)throw Error('媒体存储模块未加载，请重新打开页面');
   const core=window.FootprintMediaCore,repo=core.createRepository(window.indexedDB);
@@ -163,8 +163,8 @@ async function addMedia(id,files){
   // A single validated place ID and one atomic IndexedDB transaction per upload.
   await repo.addMedia(id,prepared);
   try{await window.__atlasFlowRefresh?.()}catch(e){console.warn('地图媒体缩略图刷新延迟',e)}
-  if(activePlaceId===id){await renderPlace(id);feedback('已保存 '+prepared.length+' 项影像到当前地点；刷新后仍可查看。')}
- }catch(e){console.error('地点媒体保存失败',e);feedback('保存失败，原有内容未改动：'+(e?.message||'请检查权限或空间'))}
+  if(activePlaceId===id){await renderPlace(id);if(activePlaceId===id)feedback('已保存 '+prepared.length+' 项影像到当前地点；刷新后仍可查看。')}
+ }catch(e){console.error('地点媒体保存失败',e);if(activePlaceId===id)feedback('保存失败，原有内容未改动：'+(e?.message||'请检查权限或空间'))}
  finally{busy=false}
 }
 function closeViewer(immediate=false){
