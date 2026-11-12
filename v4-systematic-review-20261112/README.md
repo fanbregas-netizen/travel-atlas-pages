@@ -25,3 +25,6 @@
 - Pages 上基础地图失败后允许用户主动重试 OpenFreeMap 矢量地图，不要求清空收藏或重新登录。
 - 精修 iPhone 路线规划的页面层级和触控目标；保留原三档上滑、真实媒体与路线数据逻辑。
 - 截图是 WebKit 自动化浏览器证据，不等于用户 iPhone Safari 真机视觉验收。
+
+## Stage 17｜用户反馈 Stage 15/16 正常浏览无明显差别后的真正可见改动
+本次修改不再把错误提示与内部测试归类为主要视觉成果。地图默认 Dock、地点卡片、媒体章节、收藏/搜索、真实路线规划站点卡和路线地图底部站点，均统一采用已确认墨绿／米白／哑金／V3 手绘 SVG 语言，重新安排密度、主次和触控目标。CSS-only presentation, B/C physical swipe handlers, IDB, POI state intact；PR 继续 Draft。

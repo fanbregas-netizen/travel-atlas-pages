@@ -1,4 +1,4 @@
-name: V4 Stage 16 public preview HTTP smoke
+name: V4 Stage 17 public preview HTTP smoke
 on:
   workflow_run:
     workflows: ["Publish Travel Atlas V4 to GitHub Pages"]
@@ -29,8 +29,8 @@ jobs:
           const root='/tmp/atlas-stage06/',read=p=>fs.readFileSync(root+p,'utf8');
           const v=JSON.parse(read('version.json')),index=read('index.html');
           assert.equal(v.release_channel,'isolated-systematic-integration-acceptance');
-          assert.equal(v.stage_checkpoint,'2026-11-12-stage16-map-resilience-and-mobile-clarity');
-          assert.equal(v.stage_checkpoint_commit,'bc1238e762af698a9730b883152900b8103acf47');
+          assert.equal(v.stage_checkpoint,'2026-11-12-stage17-visible-cross-system-visual-refinement');
+          assert.equal(v.stage_checkpoint_commit,'398901a75588c405e469a5e86115a36cccd27eeb');
           assert.equal(v.production_site_unchanged,true);
           assert.ok(index.includes('atlas-v4-systematic-20261112-'),'isolated storage must remain protected');
           const indexBytes=fs.readFileSync(root+'index.html');
@@ -50,7 +50,7 @@ jobs:
           assert.ok(read('footprint-home.js').includes('resetViewerDrag()'));
           assert.ok(read('footprint-home.js').includes('.map(x=>({...x,lon:x.lon??x.lng,lat:x.lat}))'));
           assert.ok(read('footprint-home.js').includes('function closePlace(immediate=false)'));
-          assert.equal(v.stage_checkpoint_route_script_sha,'e8515d61db42d37c06f1ab41aa0f432f88619d55');
+          assert.equal(v.stage_checkpoint_route_script_sha,'e6c567c4746fe42a37d7830e14b1a0c9e36f2fd0');
           assert.ok(read('route-view.html').includes("$('routeBootNotice').hidden=true"));
           assert.ok(read('route-view.html').includes('rail.addEventListener(\'click\',e=>{'));
           assert.ok(read('route-view.html').includes('if(curPlace())openDetail()'));
@@ -74,9 +74,9 @@ jobs:
           assert.ok(nextVisual.toString('utf8').includes('grid-template-columns:minmax(0,1fr) 44px 58px 44px'));
           assert.ok(read('footprint-home.js').includes("h('span','fp-section-index',number)"));
           assert.ok(read('footprint-home.js').includes("h('strong','fp-section-label',name)"));
-          assert.ok(index.includes('v4-visual-acceptance-pass.css?v=stage16-map-resilience'));
-          assert.ok(read('journey.html').includes('v4-visual-acceptance-pass.css?v=stage16-map-resilience'));
-          assert.ok(read('route-view.html').includes('v4-visual-acceptance-pass.css?v=stage16-map-resilience'));
+          assert.ok(index.includes('v4-visual-acceptance-pass.css?v=stage17-visible'));
+          assert.ok(read('journey.html').includes('v4-visual-acceptance-pass.css?v=stage17-visible'));
+          assert.ok(read('route-view.html').includes('v4-visual-acceptance-pass.css?v=stage17-visible'));
           assert.ok(read('journey.js').includes('unresolvedStopIds.length'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('cardMotion?.state()?.animating'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('closingInFlight'),'Stage09 header bind close guard not served');
@@ -85,5 +85,7 @@ jobs:
           assert.ok(index.includes('atlas-map-unavailable'),'Stage16 unavailable UI not served');
           assert.ok(index.includes('activateVectorMap(true)'),'Stage16 real vector retry not served');
           assert.ok(nextVisual.toString('utf8').includes('Stage 16 — reliable map-state presentation'),'Stage16 CSS not served');
-          console.log('PASS: Stage16 HTTPS map resilience and real C V5 mobile style, unchanged production and isolated data');
+          assert.ok(nextVisual.toString('utf8').includes('Stage 17 — visible UI hierarchy'),'Stage17 normal UI CSS missing');
+          assert.ok(nextVisual.toString('utf8').includes('grid-template-rows:40px 44px!important'),'Stage17 compact stop grid missing');
+          console.log('PASS: Stage17 public HTTPS serves visibly updated Dock, place, collection, search and C V5 route rows');
           NODE
