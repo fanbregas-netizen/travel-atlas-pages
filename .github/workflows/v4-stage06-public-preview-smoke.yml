@@ -1,4 +1,4 @@
-name: V4 Stage 08 public preview HTTP smoke
+name: V4 Stage 09 public preview HTTP smoke
 on:
   workflow_run:
     workflows: ["Publish Travel Atlas V4 to GitHub Pages"]
@@ -29,8 +29,8 @@ jobs:
           const root='/tmp/atlas-stage06/',read=p=>fs.readFileSync(root+p,'utf8');
           const v=JSON.parse(read('version.json')),index=read('index.html');
           assert.equal(v.release_channel,'isolated-systematic-integration-acceptance');
-          assert.equal(v.stage_checkpoint,'2026-11-12-stage08-webgl-map-recovery');
-          assert.equal(v.stage_checkpoint_commit,'89b5de480046fc249330d31f84dce5b9eb802c03');
+          assert.equal(v.stage_checkpoint,'2026-11-12-stage09-card-lifecycle');
+          assert.equal(v.stage_checkpoint_commit,'de7a445f55e57b85301e23378401aeabeb15a17b');
           assert.equal(v.production_site_unchanged,true);
           assert.ok(index.includes('atlas-v4-systematic-20261112-'),'isolated storage must remain protected');
           assert.ok(index.includes('const confirmVectorTiles=()=>'),'Stage06 vector tile confirmation not served');
@@ -42,6 +42,8 @@ jobs:
           assert.ok(read('footprint-home.js').includes('function closePlace(immediate=false)'));
           assert.ok(read('journey.js').includes('unresolvedStopIds.length'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('cardMotion?.state()?.animating'));
+          assert.ok(read('src/interaction/real-product-bridge.js').includes('closingInFlight'),'Stage09 header bind close guard not served');
+          assert.ok(read('src/interaction/real-product-bridge.js').includes("if(state.sheet==='closed'&&(closingTimer!==null"),'Stage09 child DOM close guard not served');
           assert.ok(read('src/visual/iphone-v4-polish.css').includes('Stage 03: locked upright geographic star'));
-          console.log('PASS: public HTTPS serves Stage 01–08 integrated files, map recovery guards and isolated namespace');
+          console.log('PASS: public HTTPS serves Stage 01–09 map recovery, real card dismiss guards and isolated namespace');
           NODE
