@@ -1,4 +1,4 @@
-name: V4 Stage 15 public preview HTTP smoke
+name: V4 Stage 16 public preview HTTP smoke
 on:
   workflow_run:
     workflows: ["Publish Travel Atlas V4 to GitHub Pages"]
@@ -29,8 +29,8 @@ jobs:
           const root='/tmp/atlas-stage06/',read=p=>fs.readFileSync(root+p,'utf8');
           const v=JSON.parse(read('version.json')),index=read('index.html');
           assert.equal(v.release_channel,'isolated-systematic-integration-acceptance');
-          assert.equal(v.stage_checkpoint,'2026-11-12-stage15-editorial-visual-system');
-          assert.equal(v.stage_checkpoint_commit,'8d2f9e9dd259ce08e530cf2aaa92e5f493dace2b');
+          assert.equal(v.stage_checkpoint,'2026-11-12-stage16-map-resilience-and-mobile-clarity');
+          assert.equal(v.stage_checkpoint_commit,'9645680d9a213f6cc8f57b22131142974b2075ca');
           assert.equal(v.production_site_unchanged,true);
           assert.ok(index.includes('atlas-v4-systematic-20261112-'),'isolated storage must remain protected');
           assert.ok(index.includes('const confirmVectorTiles=()=>'),'Stage06 vector tile confirmation not served');
@@ -47,7 +47,7 @@ jobs:
           assert.ok(read('footprint-home.js').includes('resetViewerDrag()'));
           assert.ok(read('footprint-home.js').includes('.map(x=>({...x,lon:x.lon??x.lng,lat:x.lat}))'));
           assert.ok(read('footprint-home.js').includes('function closePlace(immediate=false)'));
-          assert.equal(v.stage_checkpoint_route_script_sha,'c0b388cbca2d9b75074d8a6b01caa4ef3cb6a934');
+          assert.equal(v.stage_checkpoint_route_script_sha,'e8515d61db42d37c06f1ab41aa0f432f88619d55');
           assert.ok(read('route-view.html').includes("$('routeBootNotice').hidden=true"));
           assert.ok(read('route-view.html').includes('rail.addEventListener(\'click\',e=>{'));
           assert.ok(read('route-view.html').includes('if(curPlace())openDetail()'));
@@ -71,13 +71,16 @@ jobs:
           assert.ok(nextVisual.toString('utf8').includes('grid-template-columns:minmax(0,1fr) 44px 58px 44px'));
           assert.ok(read('footprint-home.js').includes("h('span','fp-section-index',number)"));
           assert.ok(read('footprint-home.js').includes("h('strong','fp-section-label',name)"));
-          assert.ok(index.includes('v4-visual-acceptance-pass.css?v=stage15-visual-c04'));
-          assert.ok(read('journey.html').includes('v4-visual-acceptance-pass.css?v=stage15-visual-c04'));
-          assert.ok(read('route-view.html').includes('v4-visual-acceptance-pass.css?v=stage15-visual-c04'));
+          assert.ok(index.includes('v4-visual-acceptance-pass.css?v=stage16-map-resilience'));
+          assert.ok(read('journey.html').includes('v4-visual-acceptance-pass.css?v=stage16-map-resilience'));
+          assert.ok(read('route-view.html').includes('v4-visual-acceptance-pass.css?v=stage16-map-resilience'));
           assert.ok(read('journey.js').includes('unresolvedStopIds.length'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('cardMotion?.state()?.animating'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('closingInFlight'),'Stage09 header bind close guard not served');
           assert.ok(read('src/interaction/real-product-bridge.js').includes("if(state.sheet==='closed'&&(closingTimer!==null"),'Stage09 child DOM close guard not served');
           assert.ok(read('src/visual/iphone-v4-polish.css').includes('Stage 03: locked upright geographic star'));
-          console.log('PASS: public HTTPS serves Stage 15 visual candidate with chapter hierarchy, separate action rail and isolated data');
+          assert.ok(index.includes('atlas-map-unavailable'),'Stage16 unavailable UI not served');
+          assert.ok(index.includes('activateVectorMap(true)'),'Stage16 real vector retry not served');
+          assert.ok(nextVisual.toString('utf8').includes('Stage 16 — reliable map-state presentation'),'Stage16 CSS not served');
+          console.log('PASS: Stage16 HTTPS map resilience and real C V5 mobile style, unchanged production and isolated data');
           NODE
