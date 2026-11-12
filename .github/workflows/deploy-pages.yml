@@ -334,11 +334,20 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts playwright-core@1.58.2
           node tests/approved35-pages-browser-smoke.cjs
+      - name: Verify new systematic V4 public preview at 375/390/430 iPhone widths
+        run: node tests/systematic-v4-pages-browser.cjs
       - name: Upload isolated V4 browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: approved35-pages-browser-evidence
           path: approved35-pages-evidence/
+      - name: Upload systematic V4 browser and layout evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: systematic-v4-pages-browser-evidence
+          path: systematic-v4-pages-evidence/
+          if-no-files-found: ignore
           if-no-files-found: ignore
 

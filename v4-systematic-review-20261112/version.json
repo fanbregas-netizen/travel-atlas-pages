@@ -4,10 +4,10 @@
   "date": "2026-11-12",
   "source_repo": "fanbregas-netizen/travel-atlas",
   "source_branch": "integration/v4-systematic-rebuild-20261111",
-  "source_commit": "124289617fa0975eed2239ce67cc2a94048594fd",
+  "source_commit": "a00a15805935f1384ffae8365a56e2ed71a63bbc",
   "private_pr": 24,
-  "ci_run": 43141592142,
-  "ci_status": "Chromium and WebKit success; 42 Node tests + 15 E2E groups",
+  "ci_run": 43144227561,
+  "ci_status": "Chromium and WebKit success; 42 Node tests + 16 E2E groups each",
   "data_namespace": "atlas-v4-systematic-20261112-",
   "production_site_unchanged": true,
   "status": "acceptance-candidate-not-commercial-release"

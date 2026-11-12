@@ -146,11 +146,19 @@ async function addMedia(id,files){
 }
 function closeViewer(immediate=false){
  const panel=$('fpMediaViewer');
+ if(!panel)return;
+ // A top-layer <dialog> must always be closed before removal. WebKit can keep
+ // WAAPI .finished pending after a full-screen gesture or interrupted spring.
  const cleanup=()=>{
-   if(panel?.isConnected)panel.remove();
-   if(panel?.__videoURL){URL.revokeObjectURL(panel.__videoURL);panel.__videoURL=null}
+   if(panel.__closed)return;
+   panel.__closed=true;
+   if(panel.__closeFallback){clearTimeout(panel.__closeFallback);panel.__closeFallback=null}
+   try{panel.querySelector('video')?.pause()}catch(_){}
+   try{if(panel.open)panel.close()}catch(_){}
+   if(panel.isConnected)panel.remove();
+   if(panel.__videoURL){URL.revokeObjectURL(panel.__videoURL);panel.__videoURL=null}
  };
- if(!panel||immediate){cleanup();return}
+ if(immediate){cleanup();return}
  if(panel.__closing)return;
  panel.__closing=true;
  const media=panel.querySelector('img,video'),origin=panel.__origin;
@@ -159,8 +167,13 @@ function closeViewer(immediate=false){
  const dx=from.left+from.width/2-dest.left-dest.width/2,dy=from.top+from.height/2-dest.top-dest.height/2;
  const sx=from.width/Math.max(1,dest.width),sy=from.height/Math.max(1,dest.height);
  const options={duration:390,easing:'cubic-bezier(.22,1,.36,1)',fill:'forwards'};
- media.animate([{transform:'none',borderRadius:'0px'},{transform:`translate3d(${dx}px,${dy}px,0) scale(${sx},${sy})`,borderRadius:'15px'}],options);
- panel.animate([{backgroundColor:'rgba(19,20,21,.93)',opacity:1},{backgroundColor:'rgba(19,20,21,0)',opacity:.02}],options).finished.then(cleanup,cleanup);
+ // Do not let a stalled WAAPI Promise strand an invisible modal above the map.
+ panel.__closeFallback=setTimeout(cleanup,options.duration+250);
+ try{
+   media.animate([{transform:'none',borderRadius:'0px'},{transform:`translate3d(${dx}px,${dy}px,0) scale(${sx},${sy})`,borderRadius:'15px'}],options);
+   const animation=panel.animate([{backgroundColor:'rgba(19,20,21,.93)',opacity:1},{backgroundColor:'rgba(19,20,21,0)',opacity:.02}],options);
+   animation.finished.then(cleanup,cleanup);
+ }catch(error){console.warn('Media closing motion fell back to immediate teardown',error);cleanup()}
 }
 function openViewer(items,index,originTile=null){closeViewer(true);const x=items[index];if(!x)return;const viewer=h('dialog');viewer.id='fpMediaViewer';viewer.setAttribute('role','dialog');viewer.setAttribute('aria-modal','true');viewer.setAttribute('aria-label','查看旅行照片或视频');viewer.append(btn('×',()=>closeViewer(),'fp-viewer-close'));if(x.kind==='photo'){const img=h('img');img.src=x.src;img.alt='旅行照片';viewer.append(img)}else{const blob=x.blob instanceof Blob?x.blob:new Blob([x.bytes],{type:x.type||'video/mp4'});viewer.__videoURL=URL.createObjectURL(blob);const v=h('video');v.src=viewer.__videoURL;v.controls=true;v.playsInline=true;v.autoplay=true;viewer.append(v)}viewer.append(h('div','fp-viewer-caption',`${index+1} / ${items.length} · ${x.name||'旅行影像'}`));viewer.addEventListener('click',e=>{if(e.target===viewer)closeViewer()});
  /* build .21 · 用户批注：全屏看图必须能左右滑切换 */
