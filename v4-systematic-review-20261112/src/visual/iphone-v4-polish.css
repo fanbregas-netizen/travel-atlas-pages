@@ -314,3 +314,19 @@
   border-radius: 13px !important;
 }
 /* Preserve destructive action color, order and click targets. */
+
+/* Stage 03: locked upright geographic star. Keep the original artwork and
+   location marker coordinates; animate only SVG scale, never rotate or move
+   the marker DOM. This overrides the earlier rotated fp34 pulse keyframes. */
+@keyframes fp34SavedPulse {
+  0%   { transform: scale(1); }
+  33%  { transform: scale(1.20); }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1.17); }
+}
+@keyframes atlasStarPop {
+  0%   { scale: 1; rotate: 0deg; }
+  46%  { scale: 1.12; rotate: 0deg; }
+  66%  { scale: 1.08; rotate: 0deg; }
+  100% { scale: 1; rotate: 0deg; }
+}
