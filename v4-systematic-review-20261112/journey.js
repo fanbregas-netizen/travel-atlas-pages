@@ -155,7 +155,7 @@ function renderJourneyOverview(){
  $('fpJovTitle').textContent=safe($('planTitle').value||'我的旅行路线',65);
  const start=$('origin').value.trim(),end=$('destination').value.trim();
  $('fpJovSummary').textContent=items.length?(start||'出发地待填')+'  →  '+(end||'目的地待填'):'从收藏地点开始，写下自己的路线';
- const rail=$('fpJovStops');rail.replaceChildren();
+ const rail=$('fpJovStops');rail.replaceChildren();rail.dataset.count=String(Math.min(3,items.length));
  if(items.length){
   for(const {s,i,p} of items.slice(0,3)){
    const item=make('div','fp-jov-stop');item.setAttribute('role','listitem');

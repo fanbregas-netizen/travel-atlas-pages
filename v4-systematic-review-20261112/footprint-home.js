@@ -112,7 +112,7 @@ async function showPlaceCard(id){
  window.__atlasSheetIntegration?.card.open(id);
  document.body.classList.add('fp-place-open');
 }
-async function renderPlace(id){const revision=++renderRevision;const p=await readPlace(id);if(!p||id!==activePlaceId||revision!==renderRevision)return false;stopTileVideos();placeCard.replaceChildren();if(editMode)placeCard.classList.add('fp-editing');const grab=h('div','sheet-grab');grab.setAttribute('aria-hidden','true');placeCard.append(grab);const head=h('header','fp-card-header'),titlewrap=h('div','fp-card-title-wrap');titlewrap.append(h('h2','fp-card-name',p.title||'未命名地点'));const stageBtn=btn(p.stage==='visited'?'已到访 · 足迹':'想去 · 灵感',()=>window.__atlasEditPlace?.(id),'fp-place-stage');stageBtn.setAttribute('aria-label','更改地点状态，当前：'+(p.stage==='visited'?'已到访':'想去'));titlewrap.append(stageBtn);const editToggle=btn(placeCard.classList.contains('fp-editing')?'完成':'编辑',()=>{placeCard.classList.toggle('fp-editing');if(!placeCard.classList.contains('fp-editing'))editMode='';renderPlace(id)},'fp-subaction fp-edit-toggle');
+async function renderPlace(id){const revision=++renderRevision;const p=await readPlace(id);if(!p||id!==activePlaceId||revision!==renderRevision)return false;stopTileVideos();placeCard.replaceChildren();if(editMode)placeCard.classList.add('fp-editing');const grab=h('div','sheet-grab');grab.setAttribute('aria-hidden','true');placeCard.append(grab);const head=h('header','fp-card-header'),titlewrap=h('div','fp-card-title-wrap');titlewrap.append(h('h2','fp-card-name',p.title||'未命名地点'));const address=String(p.address||'').trim();if(address)titlewrap.append(h('p','fp-card-location',address.slice(0,120)));const stageBtn=btn(p.stage==='visited'?'已到访 · 足迹':'想去 · 灵感',()=>window.__atlasEditPlace?.(id),'fp-place-stage');stageBtn.setAttribute('aria-label','更改地点状态，当前：'+(p.stage==='visited'?'已到访':'想去'));titlewrap.append(stageBtn);const editToggle=btn(placeCard.classList.contains('fp-editing')?'完成':'编辑',()=>{placeCard.classList.toggle('fp-editing');if(!placeCard.classList.contains('fp-editing'))editMode='';renderPlace(id)},'fp-subaction fp-edit-toggle');
  /* build .20 · 用户批注：收藏点卡片上始终要有「取消收藏」——金星即已收藏，点它取消（影像保留） */
  const unstarBtn=btn('',async()=>{const changed=await window.__atlasCancelBookmark?.(id);if(changed&&activePlaceId===id)closePlace(true)},'fp-unstar-btn');
  unstarBtn.innerHTML='<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTYXZlZCI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0zMiA4IEwzOS4yIDIzLjIgTDU2IDI1LjQgTDQzLjIgMzcuMiBMNDYuMSA1NC40IEwzMS43IDQ1LjggTDE2LjggNTQuNCBMMjAgMzcuNCBMOC4xIDI1LjMgTDI0LjggMjNaIiBmaWxsPSIjRjZDQzNCIi8+CiAgPHBhdGggZD0iTTI1IDI1IEwzMCAxNCIgc3Ryb2tlLXdpZHRoPSIxLjMiLz4KIDwvZz4KPC9zdmc+" alt="" aria-hidden="true">';unstarBtn.setAttribute('aria-label','取消收藏这颗星');unstarBtn.title='已收藏 · 点按取消收藏';
@@ -263,6 +263,30 @@ function openViewer(items,index,originTile=null){closeViewer(true);const x=items
    viewer.animate([{backgroundColor:'rgba(19,20,21,0)'},{backgroundColor:'rgba(19,20,21,.93)'}],{duration:350,fill:'both',easing:'ease-out'});
  }
 }
-function init(){initSearch();mountPlace();window.__footprintHome={openSearch,closeSearch,openSaved:showPlaceCard,readPlaces};}
+/* Stage19 editorial map overview — mirrors the EXISTING collection count.
+ * No secondary store, new map provider, fake location or extra yellow star. */
+function mountMapOverview(){
+ if($('fpMapOverview'))return;
+ const panel=h('aside','fp-map-overview');panel.id='fpMapOverview';
+ panel.setAttribute('aria-label','我的旅行地图概览');
+ const eyebrow=h('div','fp-map-overview-top');
+ eyebrow.append(h('span','fp-map-overview-brand','FOOTPRINT / MAP'),
+                h('span','fp-map-overview-mark','01'));
+ const title=h('strong','fp-map-overview-title','我的旅行地图');
+ const summary=h('div','fp-map-overview-summary');
+ const count=h('span','fp-map-overview-count','私人星标地图');
+ const tagline=h('span','fp-map-overview-tagline','保存想去与到过的地方');
+ summary.append(count,tagline);panel.append(eyebrow,title,summary);
+ document.body.append(panel);
+ const source=$('sheetCount');
+ const sync=()=>{
+  const match=String(source?.textContent||'').match(/(\d+)\s*(?:处|个)?/);
+  count.textContent=match?Number(match[1])+' 处星标':'私人星标地图';
+ };
+ if(source){new MutationObserver(sync).observe(source,{characterData:true,childList:true,subtree:true});sync()}
+ window.addEventListener('atlas:source-updated',sync);
+}
+
+function init(){initSearch();mountPlace();mountMapOverview();window.__footprintHome={openSearch,closeSearch,openSaved:showPlaceCard,readPlaces};}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
