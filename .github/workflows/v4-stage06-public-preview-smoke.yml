@@ -30,7 +30,7 @@ jobs:
           const v=JSON.parse(read('version.json')),index=read('index.html');
           assert.equal(v.release_channel,'isolated-systematic-integration-acceptance');
           assert.equal(v.stage_checkpoint,'2026-11-12-stage18-first-viewport-route-cover');
-          assert.equal(v.stage_checkpoint_commit,'81309d69f148b4b7c0df699de921196b1c90c356');
+          assert.equal(v.stage_checkpoint_commit,'7a16f53af016d7509cba2791d782e9241ace645a');
           assert.equal(v.production_site_unchanged,true);
           assert.ok(index.includes('atlas-v4-systematic-20261112-'),'isolated storage must remain protected');
           const indexBytes=fs.readFileSync(root+'index.html');
@@ -50,7 +50,7 @@ jobs:
           assert.ok(read('footprint-home.js').includes('resetViewerDrag()'));
           assert.ok(read('footprint-home.js').includes('.map(x=>({...x,lon:x.lon??x.lng,lat:x.lat}))'));
           assert.ok(read('footprint-home.js').includes('function closePlace(immediate=false)'));
-          assert.equal(v.stage_checkpoint_route_script_sha,'172fc602eb435a1060199df077442e10d2d6119a');
+          assert.equal(v.stage_checkpoint_route_script_sha,'f1a928618c8bee6a632cfe8c7d5734242c6babe3');
           assert.ok(read('route-view.html').includes("$('routeBootNotice').hidden=true"));
           assert.ok(read('route-view.html').includes('rail.addEventListener(\'click\',e=>{'));
           assert.ok(read('route-view.html').includes('if(curPlace())openDetail()'));
@@ -74,9 +74,9 @@ jobs:
           assert.ok(nextVisual.toString('utf8').includes('grid-template-columns:minmax(0,1fr) 44px 58px 44px'));
           assert.ok(read('footprint-home.js').includes("h('span','fp-section-index',number)"));
           assert.ok(read('footprint-home.js').includes("h('strong','fp-section-label',name)"));
-          assert.ok(index.includes('v4-visual-acceptance-pass.css?v=stage18-first-viewport'));
-          assert.ok(read('journey.html').includes('v4-visual-acceptance-pass.css?v=stage18-first-viewport'));
-          assert.ok(read('route-view.html').includes('v4-visual-acceptance-pass.css?v=stage18-first-viewport'));
+          assert.ok(index.includes('v4-visual-acceptance-pass.css?v=stage18-cover-clearance'));
+          assert.ok(read('journey.html').includes('v4-visual-acceptance-pass.css?v=stage18-cover-clearance'));
+          assert.ok(read('route-view.html').includes('v4-visual-acceptance-pass.css?v=stage18-cover-clearance'));
           assert.ok(read('journey.js').includes('unresolvedStopIds.length'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('cardMotion?.state()?.animating'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('closingInFlight'),'Stage09 header bind close guard not served');
@@ -95,5 +95,6 @@ jobs:
           const jsSha=crypto.createHash('sha1').update(Buffer.from('blob '+jsBlob.length+'\0')).update(jsBlob).digest('hex');
           assert.equal(jsSha,v.stage_checkpoint_public_journey_js_sha,'Stage18 preview JS differs from candidate source');
           assert.ok(nextVisual.toString('utf8').includes('Stage 18 — first-viewport route cover'),'Stage18 first screen stylesheet missing');
+          assert.ok(nextVisual.toString('utf8').includes('Stage18 first-viewport half-sheet clearance'),'Stage18 no-overlap layout missing');
           console.log('PASS: Stage18 public HTTPS serves real route cover + actual C V5 controls and versioned iPhone map rail');
           NODE

@@ -1155,3 +1155,26 @@ body:not(.route-pick-active) .map-controls #btnLayers{display:none!important}
  body.journey-page.journey-live-sheet .fp-jov-stop{flex-direction:column;align-items:flex-start;gap:3px}
 }
 @media(prefers-reduced-motion:reduce){.fp-jov-action{transition:none!important}}
+
+
+/* Stage18 first-viewport half-sheet clearance: keep the live route cover's
+   real "Edit route" button visible above the C V5 half detent on 390px phones. */
+@media(max-width:700px){
+ body.journey-page.journey-live-sheet .fp-journey-overview{
+  margin-top:6px!important;margin-bottom:9px!important;
+  padding:10px 14px 10px!important;min-height:0!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-title{
+  margin:5px 0 1px!important;font-size:21px!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-summary{
+  margin:0 0 5px!important;font-size:11px!important;line-height:1.35!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stops{
+  min-height:39px!important;margin-bottom:5px!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stop{padding:5px!important}
+ body.journey-page.journey-live-sheet .fp-jov-action{
+  min-height:44px!important;height:44px!important
+ }
+}
