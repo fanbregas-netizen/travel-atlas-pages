@@ -47,7 +47,7 @@ jobs:
           assert.ok(read('footprint-home.js').includes('resetViewerDrag()'));
           assert.ok(read('footprint-home.js').includes('.map(x=>({...x,lon:x.lon??x.lng,lat:x.lat}))'));
           assert.ok(read('footprint-home.js').includes('function closePlace(immediate=false)'));
-          assert.equal(v.stage_checkpoint_route_script_sha,'8f575da46c109143c80542f3e2d874642a8ec75a');
+          assert.equal(v.stage_checkpoint_route_script_sha,'51109adbdc5f7ccb15210c469b77d1ffc3b7d562');
           assert.ok(read('route-view.html').includes("$('routeBootNotice').hidden=true"));
           assert.ok(read('route-view.html').includes('rail.addEventListener(\'click\',e=>{'));
           assert.ok(read('route-view.html').includes('if(curPlace())openDetail()'));
