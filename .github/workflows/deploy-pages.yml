@@ -118,7 +118,7 @@ jobs:
             if(!html.includes('atlas-v4-systematic-20261112-'))throw Error('isolated storage missing '+name);
             const refs=[...html.matchAll(/(?:src|href)\s*=\s*["']([^"'#]+)["']/gi)].map(x=>x[1]);
             for(const raw of refs){
-              if(/^(?:https?:|data:|javascript:|mailto:|tel:|\$\{)/i.test(raw))continue;
+              if(raw.startsWith('/')||/^(?:https?:|data:|javascript:|mailto:|tel:|\$\{)/i.test(raw))continue;
               const ref=decodeURIComponent(raw.split('?')[0].split('#')[0]);
               if(!ref||ref==='./'||ref.startsWith('#'))continue;
               const target=path.resolve(base,ref.replace(/^\.\//,''));
