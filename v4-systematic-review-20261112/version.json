@@ -18,11 +18,11 @@
   "stage_checkpoint": "2026-11-12-stage05-route-preservation",
   "stage_checkpoint_pr": 25,
   "stage_checkpoint_source_branch": "review/v4-stage-checkpoint-20261112-search-focus",
-  "stage_checkpoint_commit": "afffb07f2952aef76d32395c995e4a9a8bd07a4e",
+  "stage_checkpoint_commit": "6eb2b67d9e53acd5fc3379ce1d36a334eebf8f56",
   "stage_checkpoint_patch": "Stage01 Safari search; Stage02 physical close; Stage03 upright star; Stage04 map tile readiness; Stage05 protect unresolved route stops on save and clamp loaded D days",
-  "stage_checkpoint_validation": "Node regressions success; browser end-to-end for new checkpoint and iPhone physical acceptance not verified",
-  "stage_checkpoint_regression_ci": 43152114800,
-  "stage_checkpoint_regression_status": "success",
+  "stage_checkpoint_validation": "Node+Chromium+WebKit success; latest Pages redeployment, tile HTTP and physical iPhone Safari still unverified",
+  "stage_checkpoint_regression_ci": 43152216007,
+  "stage_checkpoint_regression_status": "interaction node, Chromium and WebKit full product E2E all success",
   "current_interaction_mode": "swipe-card",
   "four_svg_bubbles": "legacy preserved; deliberately not mounted while swipe-card is active"
 }
