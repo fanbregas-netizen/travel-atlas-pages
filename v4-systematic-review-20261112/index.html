@@ -5384,6 +5384,7 @@ class Map{
   }
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(inspectVectorAfterReturn,150)},{passive:true});
   window.addEventListener('pageshow',()=>setTimeout(inspectVectorAfterReturn,200),{passive:true});
+  let rasterRecoveryTimer=null;
   function recoverFromVectorFailure(message){
     const camera={...currentCenter(),zoom:currentZoom()};
     const failed=vectorMap;vectorMap=null;
@@ -5392,15 +5393,68 @@ class Map{
     document.body.classList.remove('vector-active','map-booting');
     document.body.classList.add('legacy-recovery');
     $('atlasVectorMap').hidden=true;
-    if(!map)initMap();
-    map.jumpTo({center:[camera.lng,camera.lat],zoom:camera.zoom});
-    renderMarkers();
-    if(currentUserCoords)addLocationMarker(currentUserCoords.lat,currentUserCoords.lng);
-    mapMode='figure';
-    document.body.classList.remove('map-booting');document.body.classList.add('atlas-remote-ready');
-    if(map){map.resize();renderDestinations();}
-    mapConnection(message||'矢量地图无法连接，已切换到基础地图。',true);
+    // Recovery must never mark a blank raster canvas as a successful remote map.
+    // Wait for actual raster source completion, not merely MapLibre construction.
+    try{
+      if(!map)initMap();
+      map.jumpTo({center:[camera.lng,camera.lat],zoom:camera.zoom});
+      renderMarkers();
+      if(currentUserCoords)addLocationMarker(currentUserCoords.lat,currentUserCoords.lng);
+      mapMode='figure';
+      document.body.classList.remove('map-booting','atlas-remote-ready');
+      map.resize();renderDestinations();
+      const warning=message||'矢量地图无法连接，正在尝试基础地图。';
+      mapConnection(warning,true);
+      let settled=false;
+      const confirmRaster=()=>{
+        if(settled||!map)return;
+        let ready=false;
+        try{ready=!!map.isSourceLoaded?.('base')&&!!map.loaded?.()}catch(_){}
+        if(!ready)return;
+        settled=true;
+        clearTimeout(rasterRecoveryTimer);
+        map.off?.('idle',confirmRaster);
+        document.body.classList.add('atlas-remote-ready');
+        mapConnection('',false);
+        hideMapWarning();
+      };
+      clearTimeout(rasterRecoveryTimer);
+      map.on('idle',confirmRaster);
+      rasterRecoveryTimer=setTimeout(()=>{
+        if(settled)return;
+        map.off?.('idle',confirmRaster);
+        document.body.classList.add('atlas-remote-ready');
+        showMapWarning('地图瓦片未能加载。仍可管理星标、照片与路线，请检查网络后重试。');
+        mapConnection('地图资源连接失败；请检查网络后重试。',true);
+      },10000);
+      confirmRaster();
+    }catch(error){
+      console.warn('基础地图恢复失败',error);
+      document.body.classList.add('atlas-remote-ready');
+      showMapWarning('地图组件无法加载。收藏、媒体与路线仍可使用。');
+      mapConnection('地图组件加载失败，请检查网络后重试。',true);
+    }
   }
+  // Read-only map readiness probe for acceptance: UI mounted != actual tiles ready.
+  // No credentials, coordinates or personal data are exposed.
+  window.__atlasMapHealth=()=>{
+    const provider=isOfficial()?'amap':isVector()?'openfreemap-vector':'raster-fallback';
+    let ready=false,canvas=false;
+    try{
+      if(provider==='amap'){
+        canvas=!!$('amapSurface')?.querySelector('canvas');
+        ready=canvas&&document.body.classList.contains('atlas-remote-ready');
+      }else if(provider==='openfreemap-vector'){
+        const c=vectorMap?.getCanvas?.();
+        canvas=!!(c&&c.width>10&&c.height>10);
+        ready=canvas&&!!vectorMap?.isStyleLoaded?.()&&document.body.classList.contains('atlas-remote-ready');
+      }else{
+        canvas=!!map?.getCanvas?.();
+        ready=!!map?.isSourceLoaded?.('base')&&!!map?.loaded?.()&&document.body.classList.contains('atlas-remote-ready');
+      }
+    }catch(_){}
+    return {provider,ready:!!ready,canvas:!!canvas,warning:!!$('mapError')?.classList.contains('visible'),status:document.body.classList.contains('map-booting')?'loading':ready?'ready':'unavailable'};
+  };
   async function activateVectorMap(){
     if(vectorStarting||vectorMap||(map&&window.AtlasServices?.staticHost))return;
     vectorStarting=true;
