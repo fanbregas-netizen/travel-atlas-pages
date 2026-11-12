@@ -145,7 +145,35 @@ function renderRouteReview(){
  summary.textContent=issueCount?`${issueCount} 项值得核对`:'查看每日站点和距离提示';
 }
 
-function renderRoute(){renderRouteReview();clearObjectUrls();const root=$('journey');root.replaceChildren();const stops=selected.map((s,i)=>({s,i,p:places.find(x=>x.id===s.id)})).filter(x=>x.p);if(!stops.length){const empty=make('div','route-empty');empty.append(make('div','route-empty-icon','✦'),make('h3','','从一颗星开始'),make('p','','从左侧选择收藏地点，或查看交互示例。'));const demo=make('button','outline','看看手绘路线的交互示例');demo.id='demo';demo.onclick=showDemo;empty.append(demo);root.append(empty);return}const header=make('div','route-intro'),name=make('div','route-name',safe($('planTitle').value||'我的旅程',80)),meta=make('div','route-meta',`${stops.length} 个地点 · ${currentDays()} 天 · ${safe($('origin').value||'出发地待填',40)} → ${safe($('destination').value||'自由探索',40)}`);header.append(name,meta);root.append(header);const caveat=make('p','route-caveat','这条曲线路径表达旅程叙事，不是实际道路；请以高德导航确认距离、路线和时间。');root.append(caveat);if(demoMode)root.append(make('div','demo-banner','这是视觉与交互演示数据，不是你的真实收藏，也不会写入你的星标库。'));
+/* Stage18: one-glance route cover from the EXISTING selected placeIds.
+   No new route store, no fabricated places, no changes to the C V5 sheet owner. */
+function renderJourneyOverview(){
+ const cover=$('fpJourneyOverview');if(!cover)return;
+ const items=selected.map((s,i)=>({s,i,p:places.find(p=>p.id===s.id)})).filter(x=>x.p);
+ cover.dataset.empty=items.length?'false':'true';
+ $('fpJovStats').textContent=items.length?items.length+' 站 · '+currentDays()+' 天':'尚未安排站点';
+ $('fpJovTitle').textContent=safe($('planTitle').value||'我的旅行路线',65);
+ const start=$('origin').value.trim(),end=$('destination').value.trim();
+ $('fpJovSummary').textContent=items.length?(start||'出发地待填')+'  →  '+(end||'目的地待填'):'从收藏地点开始，写下自己的路线';
+ const rail=$('fpJovStops');rail.replaceChildren();
+ if(items.length){
+  for(const {s,i,p} of items.slice(0,3)){
+   const item=make('div','fp-jov-stop');item.setAttribute('role','listitem');
+   const number=make('span','fp-jov-number',String(i+1).padStart(2,'0'));
+   const label=make('span','fp-jov-label');
+   label.append(make('strong','',safe(p.title||p.name,40)),make('small','',`D${Math.max(1,Number(s.day)||1)}${s.time?" · "+s.time:""}`));
+   item.append(number,label);rail.append(item);
+  }
+  if(items.length>3)rail.append(make('span','fp-jov-more','+'+(items.length-3)));
+ }else rail.append(make('span','fp-jov-empty','★ 收藏的地点会显示在这里'));
+}
+document.getElementById('fpJovEdit')?.addEventListener('click',()=>{
+ const ctrl=window.__atlasJourneyRealV5;
+ if(ctrl){ctrl.open();ctrl.snapTo('full')}
+ else document.querySelector('.builder')?.scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+function renderRoute(){renderJourneyOverview();renderRouteReview();clearObjectUrls();const root=$('journey');root.replaceChildren();const stops=selected.map((s,i)=>({s,i,p:places.find(x=>x.id===s.id)})).filter(x=>x.p);if(!stops.length){const empty=make('div','route-empty');empty.append(make('div','route-empty-icon','✦'),make('h3','','从一颗星开始'),make('p','','从左侧选择收藏地点，或查看交互示例。'));const demo=make('button','outline','看看手绘路线的交互示例');demo.id='demo';demo.onclick=showDemo;empty.append(demo);root.append(empty);return}const header=make('div','route-intro'),name=make('div','route-name',safe($('planTitle').value||'我的旅程',80)),meta=make('div','route-meta',`${stops.length} 个地点 · ${currentDays()} 天 · ${safe($('origin').value||'出发地待填',40)} → ${safe($('destination').value||'自由探索',40)}`);header.append(name,meta);root.append(header);const caveat=make('p','route-caveat','这条曲线路径表达旅程叙事，不是实际道路；请以高德导航确认距离、路线和时间。');root.append(caveat);if(demoMode)root.append(make('div','demo-banner','这是视觉与交互演示数据，不是你的真实收藏，也不会写入你的星标库。'));
  const stage=make('div','route-diagram'),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('route-line');svg.setAttribute('aria-hidden','true');svg.setAttribute('preserveAspectRatio','none');const path=document.createElementNS('http://www.w3.org/2000/svg','path');svg.append(path);stage.append(svg);let last=0;for(const {s,i,p} of stops){const d=Math.min(currentDays(),Math.max(1,Number(s.day)||1));if(d!==last){const grp=make('div','route-day');const text=make('span','day-label');text.append(make('strong','',`D${d}`),document.createTextNode($('startDate').value?dateAdd($('startDate').value,d-1):'旅行日 '+d));grp.append(text);stage.append(grp);last=d}const st=make('section','route-stop'),pin=make('span','pin',String(i+1));pin.setAttribute('aria-label',`第${i+1}站 ${safe(p.title||p.name,50)}`);st.append(pin,renderCard(p,i));stage.append(st)}root.append(stage);requestAnimationFrame(()=>drawPath(stage,path));}
 function drawPath(stage,path){if(!stage.isConnected)return;const pins=[...stage.querySelectorAll('.pin')],box=stage.getBoundingClientRect();if(!pins.length)return;const points=pins.map(el=>{const r=el.getBoundingClientRect();return{x:r.left+r.width/2-box.left,y:r.top+r.height/2-box.top}});let d=`M ${points[0].x.toFixed(1)} ${(points[0].y-45).toFixed(1)} L ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],dy=(b.y-a.y)*.55;d+=` C ${a.x+(i%2?25:-25)} ${a.y+dy}, ${b.x+(i%2?-25:25)} ${b.y-dy}, ${b.x} ${b.y}`}const last=points[points.length-1];d+=` L ${last.x} ${last.y+35}`;path.setAttribute('d',d);svgSize(stage)}
 function svgSize(stage){const svg=stage.querySelector('svg');svg.setAttribute('viewBox',`0 0 ${Math.ceil(stage.clientWidth)} ${Math.ceil(stage.scrollHeight)}`)}

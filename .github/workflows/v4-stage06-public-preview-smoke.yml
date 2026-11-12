@@ -1,4 +1,4 @@
-name: V4 Stage 17 public preview HTTP smoke
+name: V4 Stage 18 public preview HTTP smoke
 on:
   workflow_run:
     workflows: ["Publish Travel Atlas V4 to GitHub Pages"]
@@ -29,8 +29,8 @@ jobs:
           const root='/tmp/atlas-stage06/',read=p=>fs.readFileSync(root+p,'utf8');
           const v=JSON.parse(read('version.json')),index=read('index.html');
           assert.equal(v.release_channel,'isolated-systematic-integration-acceptance');
-          assert.equal(v.stage_checkpoint,'2026-11-12-stage17-visible-cross-system-visual-refinement');
-          assert.equal(v.stage_checkpoint_commit,'398901a75588c405e469a5e86115a36cccd27eeb');
+          assert.equal(v.stage_checkpoint,'2026-11-12-stage18-first-viewport-route-cover');
+          assert.equal(v.stage_checkpoint_commit,'81309d69f148b4b7c0df699de921196b1c90c356');
           assert.equal(v.production_site_unchanged,true);
           assert.ok(index.includes('atlas-v4-systematic-20261112-'),'isolated storage must remain protected');
           const indexBytes=fs.readFileSync(root+'index.html');
@@ -50,7 +50,7 @@ jobs:
           assert.ok(read('footprint-home.js').includes('resetViewerDrag()'));
           assert.ok(read('footprint-home.js').includes('.map(x=>({...x,lon:x.lon??x.lng,lat:x.lat}))'));
           assert.ok(read('footprint-home.js').includes('function closePlace(immediate=false)'));
-          assert.equal(v.stage_checkpoint_route_script_sha,'e6c567c4746fe42a37d7830e14b1a0c9e36f2fd0');
+          assert.equal(v.stage_checkpoint_route_script_sha,'172fc602eb435a1060199df077442e10d2d6119a');
           assert.ok(read('route-view.html').includes("$('routeBootNotice').hidden=true"));
           assert.ok(read('route-view.html').includes('rail.addEventListener(\'click\',e=>{'));
           assert.ok(read('route-view.html').includes('if(curPlace())openDetail()'));
@@ -74,9 +74,9 @@ jobs:
           assert.ok(nextVisual.toString('utf8').includes('grid-template-columns:minmax(0,1fr) 44px 58px 44px'));
           assert.ok(read('footprint-home.js').includes("h('span','fp-section-index',number)"));
           assert.ok(read('footprint-home.js').includes("h('strong','fp-section-label',name)"));
-          assert.ok(index.includes('v4-visual-acceptance-pass.css?v=stage17-visible'));
-          assert.ok(read('journey.html').includes('v4-visual-acceptance-pass.css?v=stage17-visible'));
-          assert.ok(read('route-view.html').includes('v4-visual-acceptance-pass.css?v=stage17-visible'));
+          assert.ok(index.includes('v4-visual-acceptance-pass.css?v=stage18-first-viewport'));
+          assert.ok(read('journey.html').includes('v4-visual-acceptance-pass.css?v=stage18-first-viewport'));
+          assert.ok(read('route-view.html').includes('v4-visual-acceptance-pass.css?v=stage18-first-viewport'));
           assert.ok(read('journey.js').includes('unresolvedStopIds.length'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('cardMotion?.state()?.animating'));
           assert.ok(read('src/interaction/real-product-bridge.js').includes('closingInFlight'),'Stage09 header bind close guard not served');
@@ -87,5 +87,13 @@ jobs:
           assert.ok(nextVisual.toString('utf8').includes('Stage 16 — reliable map-state presentation'),'Stage16 CSS not served');
           assert.ok(nextVisual.toString('utf8').includes('Stage 17 — visible UI hierarchy'),'Stage17 normal UI CSS missing');
           assert.ok(nextVisual.toString('utf8').includes('grid-template-rows:40px 44px!important'),'Stage17 compact stop grid missing');
-          console.log('PASS: Stage17 public HTTPS serves visibly updated Dock, place, collection, search and C V5 route rows');
+          const jsv=read('journey.js');
+          assert.ok(read('journey.html').includes('id="fpJourneyOverview"'),'Stage18 real route overview is absent');
+          assert.ok(jsv.includes('renderJourneyOverview();renderRouteReview();'),'Stage18 live route updater absent');
+          assert.ok(jsv.includes("selected.map((s,i)=>({s,i,p:places.find(p=>p.id===s.id)})"),'Stage18 preview must derive real stops');
+          const jsBlob=fs.readFileSync(root+'journey.js');
+          const jsSha=crypto.createHash('sha1').update(Buffer.from('blob '+jsBlob.length+'\0')).update(jsBlob).digest('hex');
+          assert.equal(jsSha,v.stage_checkpoint_public_journey_js_sha,'Stage18 preview JS differs from candidate source');
+          assert.ok(nextVisual.toString('utf8').includes('Stage 18 — first-viewport route cover'),'Stage18 first screen stylesheet missing');
+          console.log('PASS: Stage18 public HTTPS serves real route cover + actual C V5 controls and versioned iPhone map rail');
           NODE

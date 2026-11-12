@@ -1041,3 +1041,117 @@ body.route-page #rvDetail .rv-sec{border-color:#e6ebe4!important}
  body.journey-page.journey-live-sheet .builder .choice-controls .day-picker{width:58px!important}
 }
 @media(prefers-reduced-motion:reduce){#appDock .dock-btn{transition:none!important}}
+
+
+/* Stage 18 — first-viewport route cover & geographic tool hierarchy.
+   Real selected stops, not a mock; no extra sheet owner, POI data or star. */
+.fp-journey-overview{
+ position:relative;isolation:isolate;overflow:hidden;width:100%;max-width:1050px;
+ margin:15px auto 14px;padding:21px 22px 19px;
+ background:linear-gradient(128deg,#223b2d 0%,#314f3a 64%,#426047 100%);
+ color:#fffdf6;border-radius:26px;border:1px solid rgba(255,255,255,.12);
+ box-shadow:0 14px 34px rgba(28,54,35,.14);
+ font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif
+}
+.fp-journey-overview::after{
+ content:"";pointer-events:none;position:absolute;z-index:-1;right:-75px;top:-105px;
+ width:265px;height:265px;border-radius:50%;border:1px solid #e6c98440;
+ box-shadow:0 0 0 42px #e6c98409,0 0 0 92px #e6c98406
+}
+.fp-jov-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.fp-jov-kicker{color:#e9cc82;font-size:10px;letter-spacing:.16em;line-height:1.4;font-weight:800}
+.fp-jov-stats{color:#dde8d8;font-size:11px;font-weight:720;white-space:nowrap}
+.fp-jov-title{
+ margin:10px 0 3px!important;font-size:clamp(24px,4vw,31px)!important;
+ font-weight:810!important;line-height:1.23!important;letter-spacing:-.047em!important;
+ color:#fffefa!important;overflow-wrap:anywhere
+}
+.fp-jov-summary{font-size:12px!important;line-height:1.55!important;color:#d1dfd0!important;margin:0 0 12px!important}
+.fp-jov-stops{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;
+ position:relative;align-items:stretch;min-height:52px;margin-bottom:12px
+}
+.fp-jov-stop{
+ display:flex;align-items:center;gap:7px;min-width:0;padding:10px 9px;
+ background:#ffffff15;border:1px solid #e5ecdf2b;border-radius:14px
+}
+.fp-jov-number{
+ width:25px;height:25px;flex:none;border-radius:9px;
+ display:grid;place-items:center;color:#294033;background:#e4c679;
+ font-size:10px;font-weight:840;font-variant-numeric:tabular-nums
+}
+.fp-jov-label{min-width:0;display:flex;flex-direction:column;gap:3px}
+.fp-jov-label strong{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fffefa;font-size:11px;line-height:1.3;font-weight:770}
+.fp-jov-label small{display:block;color:#c1d3c0;font-size:10px;line-height:1.2;white-space:nowrap}
+.fp-jov-more{position:absolute;right:-5px;top:-9px;background:#e2c379;color:#273d31;border-radius:999px;padding:3px 7px;font-size:10px;font-weight:810}
+.fp-jov-empty{display:flex;align-items:center;grid-column:1/-1;color:#cadcc9;font-size:12px}
+.fp-jov-action{
+ display:flex;justify-content:space-between;align-items:center;
+ min-height:44px;width:100%;padding:9px 13px;
+ border-radius:13px;border:1px solid #ffffff3d;background:#ffffff20;
+ color:#fffefa;font-family:inherit;font-size:12px;font-weight:760;cursor:pointer
+}
+.fp-jov-action:active{background:#ffffff38}
+.fp-jov-action:focus-visible{outline:2px solid #f4d68b;outline-offset:2px}
+
+/* Routes remain editable in the original C V5 engine. The cover adds a
+   visible first-screen summary, not a second map or itinerary controller. */
+body.journey-page #journey{
+ background:#fffefbf2!important;border:1px solid #e3eae1!important;
+ border-radius:24px!important;box-shadow:0 8px 25px #1b34230d!important
+}
+body.journey-page #journey .route-intro{border-radius:17px!important}
+body.journey-page #journey .route-name{letter-spacing:-.035em!important;font-weight:770!important}
+
+/* iPhone map: replace three drifting white circles with one grouped tool rail.
+   Keep exact same locate / zoom handlers and 46px touch targets. */
+body:not(.route-pick-active) .map-controls{
+ display:flex!important;flex-direction:column!important;gap:2px!important;
+ right:12px!important;bottom:calc(112px + env(safe-area-inset-bottom))!important;
+ padding:5px!important;border-radius:22px!important;
+ border:1px solid #dfe5da!important;background:#fffef9f7!important;
+ box-shadow:0 8px 26px #203a2721!important;
+ -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)
+}
+body:not(.route-pick-active) .map-controls .circlebtn{
+ display:grid!important;place-items:center!important;width:46px!important;height:46px!important;
+ min-width:46px!important;min-height:46px!important;margin:0!important;padding:0!important;
+ border:0!important;border-radius:15px!important;box-shadow:none!important;
+ background:transparent!important;color:#294735!important
+}
+body:not(.route-pick-active) .map-controls #btnLocate{background:#eaf1e7!important}
+body:not(.route-pick-active) .map-controls #btnZoomIn{
+ border-top:1px solid #e5e8e1!important;border-radius:4px!important
+}
+body:not(.route-pick-active) .map-controls #btnZoomOut{border-radius:4px!important}
+body:not(.route-pick-active) .map-controls .circlebtn:active{background:#dce8d8!important}
+body:not(.route-pick-active) .map-controls #btnLayers{display:none!important}
+
+@media(max-width:700px){
+ body.journey-page.journey-live-sheet .atlas-view{
+  padding:10px 14px 16px!important;background:linear-gradient(180deg,#f1f4ed,#f8f8f4 80%)!important
+ }
+ body.journey-page.journey-live-sheet .atlas-heading{margin:0!important}
+ body.journey-page.journey-live-sheet .atlas-heading h2{
+  font-size:23px!important;line-height:1.22!important;margin:4px 0!important
+ }
+ body.journey-page.journey-live-sheet .atlas-heading p{font-size:11px!important;line-height:1.5!important}
+ body.journey-page.journey-live-sheet .fp-journey-overview{
+  margin:10px 0 14px;padding:14px 15px 13px;min-height:182px;
+  border-radius:21px;box-shadow:0 10px 30px #203d2824
+ }
+ body.journey-page.journey-live-sheet .fp-jov-title{font-size:22px!important;margin:8px 0 2px!important}
+ body.journey-page.journey-live-sheet .fp-jov-summary{font-size:11px!important;margin:0 0 9px!important}
+ body.journey-page.journey-live-sheet .fp-jov-stops{min-height:46px;margin-bottom:8px;gap:5px}
+ body.journey-page.journey-live-sheet .fp-jov-stop{padding:6px;gap:5px;border-radius:11px}
+ body.journey-page.journey-live-sheet .fp-jov-number{width:21px;height:21px;font-size:9px;border-radius:7px}
+ body.journey-page.journey-live-sheet .fp-jov-label strong{font-size:10px}
+ body.journey-page.journey-live-sheet .fp-jov-label small{font-size:9px}
+ body.journey-page.journey-live-sheet .fp-jov-action{min-height:44px;height:44px;font-size:12px}
+ body.journey-page.journey-live-sheet #journey{margin-top:8px!important;padding-top:10px!important}
+}
+@media(max-width:375px){
+ body.journey-page.journey-live-sheet .fp-journey-overview{padding-inline:12px}
+ body.journey-page.journey-live-sheet .fp-jov-stop{flex-direction:column;align-items:flex-start;gap:3px}
+}
+@media(prefers-reduced-motion:reduce){.fp-jov-action{transition:none!important}}

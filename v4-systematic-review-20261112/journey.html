@@ -42,7 +42,7 @@ st.clear=function(){const a=[];for(let i=0;i<this.length;i++){const k=key.call(t
 <script defer src="./src/interaction/physical-sheet.js"></script>
 <script defer src="./src/route/journey-mobile-sheet.js"></script>
 <link rel="stylesheet" href="./src/visual/v4-product-cohesion.css">
-<link rel="stylesheet" href="./src/visual/v4-visual-acceptance-pass.css?v=stage17-visible">
+<link rel="stylesheet" href="./src/visual/v4-visual-acceptance-pass.css?v=stage18-first-viewport">
 </head><body class="journey-page">
 <header class="topbar">
   <a class="back-link" href="./index.html" aria-label="返回地图"><span class="back-arrow" aria-hidden="true">←</span> <span>旅行地图</span></a>
@@ -79,6 +79,13 @@ st.clear=function(){const a=[];for(let i=0;i<this.length;i++){const k=key.call(t
  </aside>
  <section class="atlas-view" aria-labelledby="atlasTitle">
   <div class="atlas-heading"><div><div class="eyebrow">我的旅程</div><h2 id="atlasTitle">你的旅行路线</h2><p id="atlasSubtitle">从星标到路线，从计划到记忆。</p></div><button id="printPlan" type="button" class="outline print">打印路书</button></div>
+  <section id="fpJourneyOverview" class="fp-journey-overview" aria-label="当前旅行路线概览">
+    <div class="fp-jov-top"><span class="fp-jov-kicker">FOOTPRINT / ROUTE</span><span id="fpJovStats" class="fp-jov-stats">准备行程</span></div>
+    <h3 id="fpJovTitle" class="fp-jov-title">从收藏开始一段旅程</h3>
+    <p id="fpJovSummary" class="fp-jov-summary">为星标安排日期，让每一站都成为路上的章节。</p>
+    <div id="fpJovStops" class="fp-jov-stops" role="list" aria-label="路线站点顺序"></div>
+    <button id="fpJovEdit" class="fp-jov-action" type="button">编辑路线 <span aria-hidden="true">↗</span></button>
+  </section>
   <div id="status" class="notice" role="status">正在读取你的收藏地点…</div>
   <div id="journey" class="journey" aria-label="旅程路线与每日站点">
     <div class="route-empty"><div class="route-empty-icon">✦</div><h3>从一颗星开始</h3><p>先从左侧选择你收藏的地点，再生成旅程。</p><button id="demo" type="button" class="outline">看看手绘路线的交互示例</button></div>
