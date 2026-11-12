@@ -21,6 +21,11 @@
   if(!card)return;
   const state=cardCtrl.getState(),id=card.dataset.placeId;
   if(!card.hidden&&id&&(state.sheet==='closed'||state.selectedPlaceId!==id)){
+   // During V3's physical exit the card is deliberately still visible.
+   // Child-list mutations (media, Brief, or grip updates) must not interpret
+   // that outgoing DOM as an external request to reopen the same place.
+   if(state.sheet==='closed'&&(closingTimer!==null||
+      cardMotion?.state()?.sheet==='closed'))return;
    cardCtrl.open(id);
   }else if(card.hidden&&state.sheet!=='closed')cardCtrl.close();
  }
