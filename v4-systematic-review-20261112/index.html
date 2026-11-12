@@ -5365,20 +5365,23 @@ class Map{
       load('https://cdn.jsdelivr.net/npm/maplibre-gl@5.12.0/dist/maplibre-gl.js','https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js');
     });return fallbackScriptRequest;
   }
-  let vectorRenderWatch=null;
+  let vectorRenderWatch=null,vectorHasRenderedOnce=false;
   function inspectVectorAfterReturn(){
     if(!isVector()||!vectorMap)return;
     try{
       vectorMap.resize();vectorMap.triggerRepaint();
       const cv=vectorMap.getCanvas();
       if(!cv||cv.width<10||cv.height<10||!cv.isConnected){recoverFromVectorFailure('地图绘制中断，已恢复基础地图。');return}
+      // pageshow also fires during the FIRST navigation, before style loads.
+      // Never destroy a healthy first-load renderer from the resume watcher.
+      if(!vectorHasRenderedOnce)return;
       if(!vectorMap.isStyleLoaded?.()&&document.visibilityState==='visible'){
         clearTimeout(vectorRenderWatch);
         vectorRenderWatch=setTimeout(()=>{
           if(!isVector()||!vectorMap||document.visibilityState!=='visible')return;
           try{if(!vectorMap.isStyleLoaded?.())recoverFromVectorFailure('地图资源未能恢复，已切换到基础地图。')}
           catch(_){recoverFromVectorFailure('地图无法恢复，已切换到基础地图。')}
-        },5500);
+        },12000);
       }
     }catch(_){recoverFromVectorFailure('地图显示异常，已恢复基础地图。')}
   }
@@ -5470,6 +5473,7 @@ class Map{
     try{
       await injectMapLibre();
       const c=currentCenter();
+      vectorHasRenderedOnce=false;
       $('atlasVectorMap').hidden=false;
       vectorMap=new window.maplibregl.Map({container:'atlasVectorMap',style:'https://tiles.openfreemap.org/styles/bright',center:[c.lng,c.lat],zoom:Math.max(2,Math.min(19,currentZoom())),pitch:0,bearing:0,maxPitch:0,minZoom:2,maxZoom:19,attributionControl:{compact:true},dragRotate:false,renderWorldCopies:false});
       mapMode='vector';document.body.classList.remove('legacy-recovery');document.body.classList.add('vector-active');document.body.classList.remove('amap-active');
@@ -5520,7 +5524,7 @@ class Map{
             vectorMap.isStyleLoaded?.()&&vectorMap.areTilesLoaded?.());
         }catch(_){}
         if(!ready)return;
-        tilesReady=true;clearTimeout(vectorTileTimer);
+        tilesReady=true;vectorHasRenderedOnce=true;clearTimeout(vectorTileTimer);
         vectorMap.off('idle',confirmVectorTiles);
         document.body.classList.add('atlas-remote-ready');
         document.body.classList.remove('map-booting');
