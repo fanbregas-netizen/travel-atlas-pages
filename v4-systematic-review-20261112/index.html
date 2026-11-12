@@ -5423,14 +5423,14 @@ class Map{
       rasterRecoveryTimer=setTimeout(()=>{
         if(settled)return;
         map.off?.('idle',confirmRaster);
-        document.body.classList.add('atlas-remote-ready');
+        document.body.classList.remove('atlas-remote-ready');
         showMapWarning('地图瓦片未能加载。仍可管理星标、照片与路线，请检查网络后重试。');
         mapConnection('地图资源连接失败；请检查网络后重试。',true);
       },10000);
       confirmRaster();
     }catch(error){
       console.warn('基础地图恢复失败',error);
-      document.body.classList.add('atlas-remote-ready');
+      document.body.classList.remove('atlas-remote-ready');
       showMapWarning('地图组件无法加载。收藏、媒体与路线仍可使用。');
       mapConnection('地图组件加载失败，请检查网络后重试。',true);
     }
@@ -5447,10 +5447,10 @@ class Map{
       }else if(provider==='openfreemap-vector'){
         const c=vectorMap?.getCanvas?.();
         canvas=!!(c&&c.width>10&&c.height>10);
-        ready=canvas&&!!vectorMap?.isStyleLoaded?.()&&document.body.classList.contains('atlas-remote-ready');
+        ready=canvas&&!!vectorMap?.isStyleLoaded?.()&&!!vectorMap?.areTilesLoaded?.()&&document.body.classList.contains('atlas-remote-ready');
       }else{
         canvas=!!map?.getCanvas?.();
-        ready=!!map?.isSourceLoaded?.('base')&&!!map?.loaded?.()&&document.body.classList.contains('atlas-remote-ready');
+        ready=canvas&&!!map?.isSourceLoaded?.('base')&&!!map?.loaded?.()&&!!map?.areTilesLoaded?.()&&document.body.classList.contains('atlas-remote-ready');
       }
     }catch(_){}
     return {provider,ready:!!ready,canvas:!!canvas,warning:!!$('mapError')?.classList.contains('visible'),status:document.body.classList.contains('map-booting')?'loading':ready?'ready':'unavailable'};
