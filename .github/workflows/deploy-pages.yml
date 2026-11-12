@@ -98,6 +98,8 @@ jobs:
           cp -R v4-systematic-review-20261112 _site/v4-systematic-review-20261112
           # Stage20: rejected map overlay removed. Copy standalone review, not root homepage.
           cp -R v4-systematic-review-20261112-stage20 _site/v4-systematic-review-20261112-stage20
+          # Stage21 approved interaction UX; keep existing production root and prior stages unchanged.
+          cp -R v4-systematic-review-20261112-stage21 _site/v4-systematic-review-20261112-stage21
           # Original V4 map / card / Dock rubber-band review, independent of production and existing demo.
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
@@ -107,6 +109,10 @@ jobs:
         run: |
           test "$(git hash-object index.html)" = '7f21b12e9c48c6a3a7527002fc1cafaf0057aedc'
           test -s _site/v4-systematic-review-20261112-stage20/index.html
+          test -s _site/v4-systematic-review-20261112-stage21/index.html
+          test -s _site/v4-systematic-review-20261112-stage21/footprint-home.js
+          test -s _site/v4-systematic-review-20261112-stage21/src/visual/v4-visual-acceptance-pass.css
+          ! grep -q 'function mountMapOverview()' _site/v4-systematic-review-20261112-stage21/footprint-home.js
           test -s _site/v4-systematic-review-20261112-stage20/footprint-home.js
           test -s _site/v4-systematic-review-20261112-stage20/src/visual/v4-visual-acceptance-pass.css
           ! grep -q 'function mountMapOverview()' _site/v4-systematic-review-20261112-stage20/footprint-home.js
