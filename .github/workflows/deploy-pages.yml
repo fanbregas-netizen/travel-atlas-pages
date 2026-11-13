@@ -110,7 +110,7 @@ jobs:
           cp -R v4-approved-recovery-20261113 _site/v4-approved-ux-real-review-20261113
           cp -R v4-approved-ux-real-review-20261113/. _site/v4-approved-ux-real-review-20261113/
           # User-approved V4 performance candidate; inherit exact real-product resources.
-          cp -R v4-approved-ux-real-review-20261113 _site/v4-iphone-fluidity-20261113
+          cp -R _site/v4-approved-ux-real-review-20261113 _site/v4-iphone-fluidity-20261113
           cp v4-iphone-fluidity-20261113/index.html _site/v4-iphone-fluidity-20261113/index.html
           # Approved V4 visual recovery 2 — distinct review; root is never overwritten.
           cp -R v4-approved-recovery-phase2-20261113 _site/v4-approved-recovery-phase2-20261113
@@ -131,6 +131,12 @@ jobs:
           test -s _site/v4-systematic-review-20261113-stage22/index.html
           test -s _site/v4-systematic-review-20261113-stage23/index.html
           test -s _site/v4-iphone-fluidity-20261113/index.html
+          test -s _site/v4-iphone-fluidity-20261113/src/interaction/sheet-controller.js
+          test -s _site/v4-iphone-fluidity-20261113/src/interaction/sheet-dom.js
+          test -s _site/v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js
+          test -s _site/v4-iphone-fluidity-20261113/src/interaction/real-product-bridge.js
+          test -s _site/v4-iphone-fluidity-20261113/src/map/map-adapter.js
+          test -s _site/v4-iphone-fluidity-20261113/src/media/media-core.js
           grep -q 'pixelRatio:mobileStableMap' _site/v4-iphone-fluidity-20261113/index.html
           grep -q 'fp-v4-fluidity-20261113-' _site/v4-iphone-fluidity-20261113/index.html
           ! grep -q '<script data-inline="atlas-orbit.js">' _site/v4-iphone-fluidity-20261113/index.html
