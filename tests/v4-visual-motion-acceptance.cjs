@@ -83,4 +83,4 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  console.log('PASS route header/content drag, date cancel and zero runtime errors');
  console.log('PASS tactile Dock preview and all four sheet categories');
  await browser.close();
-})().catch(err=>{console.error('FAIL V4 VISUAL MOTION: '+err.stack);process.exitCode=1});
+})().catch(err=>{console.error('FAIL V4 VISUAL MOTION: '+err.stack);process.exit(1)});
