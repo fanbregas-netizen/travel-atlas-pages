@@ -58,8 +58,8 @@ async function drag(page,selector,dy){
  assert.equal(startup.oldOrbitScript,false);
  assert.equal(startup.oldOrbitCSS,false);
  assert.ok(startup.namespace?.startsWith(variant==='cacheable'?'fp-v4-cacheable-':'fp-v4-fluidity-'),'isolated storage prefix missing');
- assert.equal(startup.cacheableScript,variant==='cacheable','cacheable build script gate failed');
- assert.equal(startup.cacheablePreload,variant==='cacheable','preload gate failed');
+ assert.equal(startup.cacheableScript,true,'production candidate must preload cacheable map bootstrap');
+ assert.equal(startup.cacheablePreload,true,'production candidate must hint map bootstrap preload');
  if(startup.canvasRatio!==null){
   assert.ok(startup.canvasRatio<=2.06,'iPhone vector backing unexpectedly >2x: '+startup.canvasRatio);
   assert.ok(startup.canvasRatio>=1,'Map image must be nonzero');

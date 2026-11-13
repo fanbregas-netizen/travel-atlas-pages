@@ -113,6 +113,7 @@ jobs:
           cp -R _site/v4-approved-ux-real-review-20261113 _site/v4-iphone-fluidity-20261113
           cp v4-iphone-fluidity-20261113/index.html _site/v4-iphone-fluidity-20261113/index.html
           cp v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js _site/v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js
+          cp v4-iphone-fluidity-20261113/v4-map-runtime.js _site/v4-iphone-fluidity-20261113/v4-map-runtime.js
           # Cacheable app script experiment (new distinct isolated Pages preview only).
           cp -R _site/v4-iphone-fluidity-20261113 _site/v4-iphone-cacheable-20261113
           cp v4-iphone-cacheable-20261113/index.html _site/v4-iphone-cacheable-20261113/index.html
@@ -137,6 +138,8 @@ jobs:
           test -s _site/v4-systematic-review-20261113-stage23/index.html
           test -s _site/v4-iphone-fluidity-20261113/index.html
           grep -q 'height.toFixed(2).*important' _site/v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js
+          test -s _site/v4-iphone-fluidity-20261113/v4-map-runtime.js
+          grep -q 'v4-map-runtime.js' _site/v4-iphone-fluidity-20261113/index.html
           test -s _site/v4-iphone-fluidity-20261113/src/interaction/sheet-controller.js
           test -s _site/v4-iphone-fluidity-20261113/src/interaction/sheet-dom.js
           test -s _site/v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js
