@@ -3,7 +3,8 @@ const {chromium}=require('playwright');
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const urls={
  demo:'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-visual-motion-acceptance-20261113/',
- real:'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-approved-ux-real-review-20261113/'
+ real:'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-approved-ux-real-review-20261113/',
+ perf:'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-iphone-fluidity-20261113/'
 };
 function summarizeCPU(profile,limit=28){
  const byId=new Map(profile.nodes.map(n=>[n.id,n]));
@@ -45,7 +46,7 @@ async function profile(label,url,rate=4){
   cpu:summarizeCPU(startup,25),
   tasks:init.long.slice(0,70),frame:frames(init.frame),
   scripts:init.scripts,styles:init.styles,canvas:init.canvas,bodyClass:init.bodyClass.slice(0,180),stableMap:init.stableMap,errs}));
- if(label==='real'){
+ if(label!=='demo'){
    await cdp.send('Profiler.start');
    const start=Date.now();
    await page.locator('#dockSearch').click({timeout:18000});
@@ -58,4 +59,5 @@ async function profile(label,url,rate=4){
 (async()=>{
  await profile('demo',urls.demo,4);
  await profile('real',urls.real,4);
+ await profile('perf',urls.perf,4);
 })().catch(e=>{console.error('PROFILE_FAILED',e.stack);process.exit(1)});
