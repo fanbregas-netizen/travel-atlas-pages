@@ -46,7 +46,7 @@ function captureSearch(){
 }
 function makeNode(type,cssClass,txt){const n=document.createElement(type);n.className=cssClass;if(txt!==undefined)n.textContent=txt;return n;}
 function cleanup(){
- if(active){cancelAnimationFrame(active.raf);active.el.remove();active=null;}
+ if(active){cancelAnimationFrame(active.raf);clearTimeout(active.fallbackTimer);active.el.remove();active=null;}
  body.classList.remove('fp-search-ux-flight','fp-search-ux-prepare');
 }
 function place(el,center,box,opacity=1,scale=1){
@@ -93,7 +93,7 @@ function start(target,options={}){
  const cancel=makeNode('span','ux-cancel','取消');surface.append(cancel);
  document.body.append(surface);
  const anim={el:surface,source,search:finish,target,progress:startProgress,
-  velocity:old?.velocity||0,raf:0,started:0,lastFrame:0,physicsStarted:0,
+  velocity:old?.velocity||0,raf:0,fallbackTimer:0,started:0,lastFrame:0,physicsStarted:0,
   // Restrained underdamped spring: one stretch, a short recoil, then settle.
   stiffness:target?230:250,damping:target?19:20,
   // When cancelling with the iOS keyboard raised, keep the search bar aligned
@@ -171,6 +171,14 @@ function start(target,options={}){
   }
  };
  anim.raf=requestAnimationFrame(tick);
+ // WebKit can pause animation frames while dismissing the software keyboard
+ // or repainting the map. Never leave an invisible pointer-blocking flight
+ // surface on the live Dock if no more animation frame is delivered.
+ anim.fallbackTimer=setTimeout(()=>{
+  if(active!==anim)return;
+  anim.progress=target;anim.velocity=0;
+  cleanup();
+ },820);
 }
 let resultTimer=0;
 function animateResults(){
