@@ -28,7 +28,7 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
    drawerGuard:source[0].includes("if($('drawer')?.classList.contains('visible'))"),
    dynamicViewport:source[1].includes("on(window.visualViewport,'resize',resettleForViewport"),
    dismissHook:source[2].includes('dismiss:onSearchDismiss'),
-   drawerExit:source[3].includes("window.__fpCloseSearch?.();window.__fpRealSearchMotion?.cleanup?.()")
+   drawerExit:source[3].includes("window.__fpCloseSearch?.();window.__fpRealSearchMotion?.cancelForHandoff?.()")
   };
  });
  assert.ok(Object.values(patches).every(Boolean),'Missing deployed patch '+JSON.stringify(patches));

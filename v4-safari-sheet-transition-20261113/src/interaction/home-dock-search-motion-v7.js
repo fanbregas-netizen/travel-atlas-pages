@@ -225,5 +225,6 @@ const watcher=new MutationObserver(()=>{
 });
 watcher.observe(body,{attributes:true,attributeFilter:['class']});
 window.addEventListener('pagehide',()=>{watcher.disconnect();cleanup();vv?.removeEventListener('resize',updateViewportBaseline);window.removeEventListener('resize',updateViewportBaseline)});
-window.__fpRealSearchMotion={version:7,state:()=>({mode:active?(active.target?'opening':'closing'):nativeOpen()?'search':'dock',progress:active?.progress||0,hasOverlay:!!active}),dismiss:onSearchDismiss,cleanup};
+const cancelForHandoff=()=>{wasOpen=false;cleanup()};
+window.__fpRealSearchMotion={version:7,state:()=>({mode:active?(active.target?'opening':'closing'):nativeOpen()?'search':'dock',progress:active?.progress||0,hasOverlay:!!active}),dismiss:onSearchDismiss,cancelForHandoff,cleanup};
 })();
