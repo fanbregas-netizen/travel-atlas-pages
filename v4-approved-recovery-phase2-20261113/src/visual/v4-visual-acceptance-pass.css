@@ -1710,16 +1710,32 @@ body.route-page #stopsDock .stop-chip:focus-visible{
 /* Search: a useful place library backed by actual personal photographs,
    followed by third-party map results. No synthetic media or placeholder POIs. */
 #fpSearchSheet{
+ position:fixed!important;left:0!important;right:0!important;
+ width:100%!important;max-width:620px!important;margin-inline:auto!important;
+ bottom:var(--fp-keyboard,0px)!important;
+ max-height:min(86dvh,740px)!important;
+ display:flex!important;flex-direction:column!important;overflow:hidden!important;
  background:var(--fp-rc-paper)!important;color:var(--fp-rc-ink)!important;
- border-color:#dfe6dc!important;border-radius:25px 25px 0 0!important;
+ border:1px solid #dfe6dc!important;border-bottom:0!important;
+ border-radius:25px 25px 0 0!important;
  box-shadow:0 -10px 45px rgba(29,45,33,.15)!important
 }
-#fpSearchSheet .fp-search-top{padding:11px 18px 16px!important;border-color:var(--fp-rc-stroke)!important}
+#fpSearchSheet .fp-search-top{
+ order:0!important;display:block!important;flex:none!important;
+ padding:11px 18px 16px!important;background:var(--fp-rc-paper)!important;
+ border:0!important;border-bottom:1px solid var(--fp-rc-stroke)!important;
+ border-radius:0!important;box-shadow:none!important
+}
 #fpSearchSheet .fp-search-grip{margin-bottom:14px!important;background:#cfd6cb!important}
 #fpSearchSheet .fp-search-head{display:flex!important;align-items:center!important;min-height:51px!important;margin-bottom:11px!important}
 #fpSearchSheet .fp-search-title{display:flex;flex-direction:column;gap:3px;min-width:0}
 #fpSearchSheet .fp-search-eyebrow{font-size:10px;line-height:1.25;color:#829182;letter-spacing:.06em;font-weight:650}
 #fpSearchSheet .fp-search-head h2{margin:0!important;font-size:22px!important;font-weight:760!important;letter-spacing:-.048em!important;line-height:1.16!important}
+#fpSearchSheet .fp-search-head{display:flex!important;visibility:visible!important}
+#fpSearchSheet .fp-search-grip{display:block!important}
+#fpSearchSheet .fp-search-close{display:grid!important}
+#fpSearchSheet .fp-search-title{display:flex!important}
+#fpSearchSheet .fp-search-bar{order:1!important;display:flex!important}
 #fpSearchSheet .fp-search-close{width:44px!important;min-width:44px!important;height:44px!important;border-radius:14px!important;color:#59665d!important;background:#f3f5ef!important}
 #fpSearchSheet .fp-search-bar{
  min-height:54px!important;padding:0 13px!important;border-radius:17px!important;
@@ -1729,8 +1745,12 @@ body.route-page #stopsDock .stop-chip:focus-visible{
  border-color:#becbba!important;box-shadow:0 0 0 3px rgba(182,194,179,.2)!important
 }
 #fpSearchSheet .fp-search-body{
+ order:1!important;flex:1 1 auto!important;min-height:0!important;
+ max-height:calc(86dvh - 130px)!important;
  padding:13px 16px calc(28px + env(safe-area-inset-bottom))!important;
- background:var(--fp-rc-paper)!important;overscroll-behavior-y:contain
+ background:var(--fp-rc-paper)!important;border:0!important;
+ border-radius:0!important;box-shadow:none!important;
+ overflow-y:auto!important;overscroll-behavior-y:contain
 }
 #fpSearchSheet .fp-search-group{margin:0 0 20px}
 #fpSearchSheet .fp-search-label{

@@ -75,3 +75,7 @@ This independent review restores actual saved-photo location recognition in the 
 
 ## Approved V4 Recovery · Phase 2 · 2026-11-13
 Actual product: shared saved-photo identity between search results and the one B V3 place card; saved status/media count are read from persisted places; same four original Dock icons with balanced layout; one visual typography/spacing scale across collection and C route; figure-ground map black architecture/white roofs at zoom levels, with the historical real-map blur removed from the source. No new map surface, no stock pictures, no fake POIs, no four-direction bubbles. Production root and Phase 1 preview unchanged. Safari physical approval/commercial AMap remain pending. Source adea89e77447f135d47b6fd6a2f2869beeefaf73.
+
+
+### Search layout QA correction
+The first Phase2 browser screenshot exposed an old reversed Dock layout that placed the search header below results. The actual source now removes that obsolete behavior in-place (Stage1.30 / Stage1.32) and uses a full-width header-first sheet with real photo results beneath it; updated e2e checks actual visual geometry. Source commit 37e2724a5646410322dc9e603b8be412645a8b90.
