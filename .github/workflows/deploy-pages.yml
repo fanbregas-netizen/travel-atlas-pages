@@ -149,6 +149,17 @@ jobs:
           cp -R v4-stage137-approved-parity-20261113/. _site/v4-stage137-approved-parity-20261113/
           test -s _site/v4-stage137-approved-parity-20261113/journey.js
           grep -q 'fp-v4-stage137-approved-parity-20261113-' _site/v4-stage137-approved-parity-20261113/journey.html
+          # FULL approved systems product: map A + visual C + interaction B/C V5 + media D.
+          # Stage 1.37 is a runtime baseline; its route editor is replaced by
+          # the original C V5 approved DOM/CSS/physics + a real storage adapter.
+          # Never change production root or any historical review entrypoint.
+          cp -R _site/v4-stage137-approved-parity-20261113 _site/v4-approved-four-systems-live-20261113
+          cp -R v4-approved-four-systems-live-20261113/. _site/v4-approved-four-systems-live-20261113/
+          test -s _site/v4-approved-four-systems-live-20261113/src/interaction/demo/v5/route-cards-v5.css
+          test -s _site/v4-approved-four-systems-live-20261113/src/interaction/route-cards-v5-live.js
+          test -s _site/v4-approved-four-systems-live-20261113/src/media/media-core.js
+          grep -q 'fp-v4-four-systems-live-20261113-' _site/v4-approved-four-systems-live-20261113/index.html
+          grep -q 'Footprint Map｜旅行路线' _site/v4-approved-four-systems-live-20261113/journey.html
           touch _site/.nojekyll
       - name: Validate isolated systematic V4 review package
         run: |
