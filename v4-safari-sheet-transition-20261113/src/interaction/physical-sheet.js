@@ -10,6 +10,7 @@ function connect({sheet,controller,header,grip,scroll}){
  const reduced=matchMedia('(prefers-reduced-motion:reduce)');
  let level=controller.getState().sheet,place=controller.getState().selectedPlaceId;
  let height=0,vertical=0,heightVelocity=0,verticalVelocity=0,frame=0,lastTick=0;
+ let springTargetHeight=0;
  let drag=null,touch=null,animating=false,settleTimer=null;
  const listeners=[];
  const on=(el,type,cb,opt)=>{el?.addEventListener(type,cb,opt);listeners.push(()=>el?.removeEventListener(type,cb,opt))};
@@ -35,6 +36,9 @@ function connect({sheet,controller,header,grip,scroll}){
  const stop=()=>{if(frame)cancelAnimationFrame(frame);if(settleTimer!==null)clearTimeout(settleTimer);
   settleTimer=null;frame=0;animating=false;lastTick=0};
  const target=(h,y=0,v=0)=>{
+  // Coalesce repeated WebKit geometry notifications against the destination,
+  // not the still-moving rendered height; otherwise the spring restarts forever.
+  springTargetHeight=h;
   stop();
   if(reduced.matches){height=h;vertical=y;paint();complete();return}
   heightVelocity=clamp(v,-2000,2000);animating=true;
@@ -180,7 +184,7 @@ function connect({sheet,controller,header,grip,scroll}){
    viewportFrame=0;
    if(level==='closed'||drag||!sheet.isConnected)return;
    const nextHeight=detents()[level];
-   if(Math.abs(nextHeight-height)<1)return;
+   if(Math.abs(nextHeight-(springTargetHeight||height))<1)return;
    target(nextHeight,0,heightVelocity);
   });
  };
