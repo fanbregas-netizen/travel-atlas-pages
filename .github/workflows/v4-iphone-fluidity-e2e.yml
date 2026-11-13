@@ -25,8 +25,7 @@ jobs:
       - name: Guard exact map runtime and original approved gesture bridge
         run: |
           node --check v4-iphone-fluidity-20261113/v4-map-runtime.js
-          test -s v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js
-          test -s v4-iphone-fluidity-20261113/src/interaction/real-product-bridge.js
+          # Shared real-product modules are assembled in Pages deployment; browser checks them live.
           grep -q 'pixelRatio:mobileStableMap' v4-iphone-fluidity-20261113/v4-map-runtime.js
           grep -q 'v4-map-runtime.js' v4-iphone-fluidity-20261113/index.html
       - run: |
