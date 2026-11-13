@@ -937,9 +937,11 @@ async function liveStoreRouteOnlyStops(){
 }
 async function liveSavedRouteList(){
  if(!liveRepository)return;
- const routes=await liveRepository.listRoutes();
- if(!state.active)return;
  state.mini='saved';miniLayer.classList.add('is-open');
+ miniBase('已保存路线','在当前路线系统中打开，不再进入旧路线页面',
+  '<p class="rc-note" role="status">正在读取已保存路线…</p>',button('返回规划','mini-close'));
+ const routes=await liveRepository.listRoutes();
+ if(!state.active||state.mini!=='saved')return;
  const rows=routes.length?routes.map(x=>
   '<button type="button" class="rc-choice" data-rc="live-open-saved-'+encodeURIComponent(x.id)+'">'+
   '<span><b>'+safe(x.title||'未命名路线')+'</b><small>'+
