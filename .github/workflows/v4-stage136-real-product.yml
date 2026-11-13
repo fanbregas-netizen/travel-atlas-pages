@@ -1,0 +1,47 @@
+name: V4 Stage 1.36 real approved-product regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/stage136-route-order.test.cjs'
+      - 'tests/stage136-real-product-e2e.cjs'
+      - '.github/workflows/v4-stage136-real-product.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  approved-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preserve exact approved C V5 assets and route V5 visual adapter
+        run: |
+          test "$(git hash-object interaction-b-v4-batch-c-v5-review/index.html)" = 145e33e468b3eaeb91f1e4f2da921937fc7c281f
+          test "$(git hash-object interaction-b-v4-batch-c-v5-review/route-cards-v5.css)" = 4e5899b6d7589c5f65effbe759139d424798b767
+          test "$(git hash-object interaction-b-v4-batch-c-v5-review/route-cards-v5.js)" = 084f9b48355b37c9fa871b04aef09f86fe65bb39
+          test "$(git hash-object v4-stage136-approved-real-20261113/src/visual/route-v5-integrated.css)" = be258098454c3fddac5a40273034229047c9ad14
+      - name: Test actual route order and date/save contract
+        run: node --test tests/stage136-route-order.test.cjs
+  browser-real-route:
+    needs: approved-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 17
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Validate isolated real route with actual IndexedDB, order, date, save and reopen
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: node tests/stage136-real-product-e2e.cjs
