@@ -22,8 +22,10 @@ const keyboardGap=()=>Math.max(0,restViewportHeight-(vv?.height||window.innerHei
 function updateViewportBaseline(){
  if(!nativeOpen()&&!active && (vv?.height||window.innerHeight)>restViewportHeight)
   restViewportHeight=vv?.height||window.innerHeight;
+ if(active)active.measureDirty=true;
 }
 vv?.addEventListener('resize',updateViewportBaseline,{passive:true});
+window.addEventListener('resize',updateViewportBaseline,{passive:true});
 
 function captureDock(){
  const frame=geometry(dock),lens=geometry(button.querySelector('img')||button);
@@ -48,7 +50,10 @@ function cleanup(){
  body.classList.remove('fp-search-ux-flight','fp-search-ux-prepare');
 }
 function place(el,center,box,opacity=1,scale=1){
- attr(el,{left:(center.x-box.x-el.offsetWidth/2)+'px',top:(center.y-box.y-el.offsetHeight/2)+'px',opacity:String(opacity),transform:'scale('+scale.toFixed(3)+')'});
+ // Never read offsetWidth/offsetHeight after writing each animation frame.
+ // A compositor-side centering transform keeps label/icon geometry identical.
+ attr(el,{left:(center.x-box.x)+'px',top:(center.y-box.y)+'px',opacity:String(opacity),
+  transform:'translate(-50%,-50%) scale('+scale.toFixed(3)+')'});
 }
 function center(g){return{x:g.cx??g.x+g.w/2,y:g.cy??g.y+g.h/2};}
 function frameFor(progress,src,search,velocity,target){
@@ -95,7 +100,9 @@ function start(target,options={}){
   // with the retreating keyboard. Only then complete the reverse Dock morph.
   waitForKeyboard:target===0&&!old&&keyboardGap()>115,
   keyboardGapAtStart:keyboardGap(),keyboardWaitStarted:0,
-  baselineSearch:finish};
+  baselineSearch:finish,
+  // Re-measure on actual native open and keyboard resize, not every rAF.
+  seenOpen:false,measureDirty:true};
  active=anim;
  const render=p=>{
   const q=clamp(p),t=ease(q);
@@ -145,9 +152,10 @@ function start(target,options={}){
   const a=anim.stiffness*(target-anim.progress)-anim.damping*anim.velocity;
   anim.velocity+=a*dt;
   anim.progress=clamp(anim.progress+anim.velocity*dt,-.10,1.10);
-  if(target===1 && nativeOpen()){
+  if(target===1&&nativeOpen()&&(!anim.seenOpen||anim.measureDirty)){
    const measured=captureSearch();
    if(valid(measured.frame))finish=measured;
+   anim.measureDirty=false;anim.seenOpen=true;
   }
   render(anim.progress);
   const settled=Math.abs(anim.progress-target)<.006&&Math.abs(anim.velocity)<.065;
@@ -216,6 +224,6 @@ const watcher=new MutationObserver(()=>{
  wasOpen=next;
 });
 watcher.observe(body,{attributes:true,attributeFilter:['class']});
-window.addEventListener('pagehide',()=>{watcher.disconnect();cleanup();vv?.removeEventListener('resize',updateViewportBaseline)});
+window.addEventListener('pagehide',()=>{watcher.disconnect();cleanup();vv?.removeEventListener('resize',updateViewportBaseline);window.removeEventListener('resize',updateViewportBaseline)});
 window.__fpRealSearchMotion={version:7,state:()=>({mode:active?(active.target?'opening':'closing'):nativeOpen()?'search':'dock',progress:active?.progress||0,hasOverlay:!!active}),cleanup};
 })();

@@ -8,7 +8,7 @@
 #appDock .dock-btn img{width:26px!important;height:26px!important;object-fit:contain}
 #appDock .dock-btn span{font-size:11px!important;letter-spacing:-.01em!important;color:#536659!important;font-weight:640!important}
 #fpPlaceCard,#fpSearchSheet,#drawer.fp30-detail{background:var(--v4-paper)!important;color:var(--v4-ink)!important;border-color:var(--v4-line)!important;border-radius:27px 27px 0 0!important;box-shadow:0 -14px 55px rgba(31,53,38,.16)!important;-webkit-font-smoothing:antialiased}
-#fpSearchSheet[data-atlas-physical-sheet]{animation:none!important;transition:none!important;max-height:none!important;will-change:height,transform,opacity}
+#fpSearchSheet[data-atlas-physical-sheet]{animation:none!important;transition:none!important;max-height:none!important;will-change:transform,opacity;contain:layout paint style}
 #fpSearchSheet[data-atlas-physical-sheet] .fp-search-top{touch-action:none}
 #fpSearchSheet .fp-search-top{padding:39px 17px 14px!important;position:relative;background:var(--v4-paper)!important;border-bottom:1px solid var(--v4-line)!important}
 #fpSearchSheet .fp-search-grip{position:absolute;top:0;left:calc(50% - 65px);width:130px;height:40px;margin:0!important;background:transparent!important;touch-action:none!important;z-index:2;cursor:grab}
