@@ -18,8 +18,11 @@ async function drag(page,selector,dy){
   viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true,
   userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1'
  });
- const page=await ctx.newPage(),errors=[];
+ const page=await ctx.newPage(),errors=[],failedResources=[],consoleErrors=[];
  page.on('pageerror',e=>errors.push(String(e.message)));
+ page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text().slice(0,260))});
+ page.on('response',r=>{if(r.status()>=400)failedResources.push([r.status(),r.url().slice(0,160)])});
+ page.on('requestfailed',r=>failedResources.push(['network',r.url().slice(0,160)]));
  await page.goto(url,{waitUntil:'domcontentloaded',timeout:70000});
  await page.waitForSelector('#appDock',{timeout:35000});
  await wait(4600);
@@ -63,6 +66,12 @@ async function drag(page,selector,dy){
   hidden:document.getElementById('fpSearchSheet')?.hidden
  }));
  console.log('FLUIDITY_SEARCH_OPEN '+which+' '+JSON.stringify(opened));
+ console.log('FLUIDITY_DIAGNOSTIC '+which+' '+JSON.stringify(await page.evaluate(()=>({
+  controller:!!window.TravelAtlasSheet,sheetDOM:!!window.TravelAtlasSheetDOM,
+  physical:!!window.TravelAtlasPhysicalSheet,bridge:!!window.__atlasSheetIntegration,
+  hasV7:window.__fpRealSearchMotion?.version,app:!!window.__atlasDemo
+ }))));
+ console.log('FLUIDITY_RESOURCE_ERRORS '+which+' '+JSON.stringify({errors,consoleErrors,failedResources}));
  assert.equal(opened.focused,'fpSearchField','actual search input not focused');
  assert.ok(!opened.hidden&&opened.level==='full','real search sheet did not fully open');
  await drag(page,'#fpSearchSheet .fp-search-top',130);
