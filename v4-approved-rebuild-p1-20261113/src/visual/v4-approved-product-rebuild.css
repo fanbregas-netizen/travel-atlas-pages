@@ -42,6 +42,10 @@
  box-shadow:0 17px 45px rgba(27,36,28,.19)!important;
  overflow:hidden!important
 }
+#fpPlaceCard.fp-approved-rebuild[data-atlas-sheet-controller]>.sheet-grab{
+ /* One physical B drag handle in the header. Legacy visual grab is duplicate. */
+ display:none!important
+}
 #fpPlaceCard.fp-approved-rebuild .sheet-grab{
  background:#cbd0c9!important;margin:8px auto 5px!important;
  width:37px!important;height:4px!important
@@ -71,7 +75,7 @@
  grid-template-rows:auto auto auto auto!important;
  align-items:center!important;justify-content:stretch!important;
  column-gap:6px!important;row-gap:6px!important;
- padding:9px 16px 11px!important;
+ padding:35px 16px 11px!important;
  background:var(--fp-final-paper)!important;
  border-bottom:1px solid var(--fp-final-line)!important
 }
@@ -126,17 +130,27 @@
  color:#606d62!important;font-size:12px!important;line-height:1.5!important;
  display:none!important;max-height:2.9em!important;overflow:hidden!important
 }
-#fpPlaceCard.fp-approved-rebuild[data-has-feature="no"][data-fp-detent="peek"] .fp-peek-excerpt{
+#fpPlaceCard.fp-approved-rebuild[data-fp-detent="peek"] .fp-peek-excerpt{
  display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2
 }
 #fpPlaceCard.fp-approved-rebuild[data-fp-detent="peek"] .fp-place-feature{
- height:78px!important;max-height:78px!important;margin-top:1px!important
+ /* Real photo is a restrained right-side thumbnail, never a full-width
+    letterbox stripe; grip stays at the top of the one approved card. */
+ position:absolute!important;top:25px!important;right:17px!important;left:auto!important;
+ width:88px!important;height:68px!important;max-height:68px!important;
+ margin:0!important;z-index:4!important;
+ border-radius:12px!important
+}
+#fpPlaceCard.fp-approved-rebuild[data-has-feature="yes"][data-fp-detent="peek"] .fp-card-header :is(.fp-card-name,.fp-card-location){
+ max-width:calc(100% - 110px)!important
 }
 #fpPlaceCard.fp-approved-rebuild[data-fp-detent="half"] .fp-place-feature{
  height:120px!important;max-height:120px!important
 }
 #fpPlaceCard.fp-approved-rebuild[data-fp-detent="full"] .fp-place-feature{
- height:min(21dvh,180px)!important;max-height:180px!important
+ /* Full is for editing and managing actual content; the photo already lives
+    in the real mosaic. Do not duplicate a huge decorative hero above forms. */
+ display:none!important
 }
 #fpPlaceCard.fp-approved-rebuild[data-fp-detent="peek"] .fp-card-scroll{
  visibility:hidden!important;pointer-events:none!important;overflow:hidden!important
@@ -147,7 +161,8 @@
 }
 #fpPlaceCard.fp-approved-rebuild .fp-card-scroll{
  padding:0 17px calc(20px + env(safe-area-inset-bottom)*.3)!important;
- background:var(--fp-final-paper)!important
+ background:var(--fp-final-paper)!important;
+ scroll-behavior:auto!important
 }
 #fpPlaceCard.fp-approved-rebuild .fp-block{
  margin:0!important;padding:16px 0 19px!important;
@@ -194,15 +209,16 @@ body.route-page #routeLegend{
 }
 @media(max-width:390px){
  #fpPlaceCard.fp-approved-rebuild .fp-card-header{
-  grid-template-columns:minmax(0,1fr) 42px 50px 42px!important;
+  grid-template-columns:minmax(0,1fr) 44px 52px 44px!important;
   padding:8px 12px 10px!important;column-gap:5px!important
  }
  #fpPlaceCard.fp-approved-rebuild .fp-card-header :is(.fp-unstar-btn,.fp-edit-toggle,.fp-card-close){
-  width:42px!important;min-width:42px!important;height:44px!important
+  width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important
  }
- #fpPlaceCard.fp-approved-rebuild .fp-card-header .fp-edit-toggle{width:50px!important}
+ #fpPlaceCard.fp-approved-rebuild .fp-card-header .fp-edit-toggle{width:52px!important}
  #fpPlaceCard.fp-approved-rebuild[data-fp-detent="peek"] .fp-place-feature{
-  height:64px!important;max-height:64px!important
+  width:84px!important;height:64px!important;max-height:64px!important;
+  right:13px!important;top:25px!important
  }
 }
 @media(prefers-reduced-motion:reduce){

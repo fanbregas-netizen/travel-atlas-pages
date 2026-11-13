@@ -180,12 +180,13 @@ async function renderPlace(id){const revision=++renderRevision;const p=await rea
     In peek show the actual photo (if any), title and why; half/full use the
     same content owner. Never fabricate a hero or a second media library. */
  const media=mediaOf(p),coverAt=media.findIndex(x=>x.kind==='photo'&&x.src);
+ let feature=null;
  if(coverAt>=0){
   const hero=btn('',()=>openViewer(media,coverAt,hero),'fp-place-feature');
   hero.setAttribute('aria-label','打开'+(p.title||'地点')+'的旅行照片');
   const picture=h('img');picture.src=media[coverAt].src;picture.alt=p.title||'已保存旅行照片';picture.loading='eager';
   hero.append(picture,h('span','fp-feature-index',String(coverAt+1)+' / '+String(media.length)));
-  placeCard.append(hero);placeCard.dataset.hasFeature='yes';
+  feature=hero;placeCard.dataset.hasFeature='yes';
  }else{placeCard.dataset.hasFeature='no'}
  const head=h('header','fp-card-header'),titlewrap=h('div','fp-card-title-wrap');titlewrap.append(h('h2','fp-card-name',p.title||'未命名地点'));const address=String(p.address||'').trim();if(address)titlewrap.append(h('p','fp-card-location',address.slice(0,120)));const stageBtn=btn(p.stage==='visited'?'已到访 · 足迹':'想去 · 灵感',()=>window.__atlasEditPlace?.(id),'fp-place-stage');stageBtn.setAttribute('aria-label','更改地点状态，当前：'+(p.stage==='visited'?'已到访':'想去'));titlewrap.append(stageBtn);
  const excerpt=String(p.note||'').replace(/^原高德地址[：:][^\n]*\n?/,'').trim();
@@ -197,7 +198,8 @@ async function renderPlace(id){const revision=++renderRevision;const p=await rea
  /* build .20 · 用户批注：收藏点卡片上始终要有「取消收藏」——金星即已收藏，点它取消（影像保留） */
  const unstarBtn=btn('',async()=>{const changed=await window.__atlasCancelBookmark?.(id);if(changed&&activePlaceId===id)closePlace(true)},'fp-unstar-btn');
  unstarBtn.innerHTML='<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTYXZlZCI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0zMiA4IEwzOS4yIDIzLjIgTDU2IDI1LjQgTDQzLjIgMzcuMiBMNDYuMSA1NC40IEwzMS43IDQ1LjggTDE2LjggNTQuNCBMMjAgMzcuNCBMOC4xIDI1LjMgTDI0LjggMjNaIiBmaWxsPSIjRjZDQzNCIi8+CiAgPHBhdGggZD0iTTI1IDI1IEwzMCAxNCIgc3Ryb2tlLXdpZHRoPSIxLjMiLz4KIDwvZz4KPC9zdmc+" alt="" aria-hidden="true">';unstarBtn.setAttribute('aria-label','取消收藏这颗星');unstarBtn.title='已收藏 · 点按取消收藏';
- head.append(titlewrap,unstarBtn,editToggle,btn('×',closePlace,'fp-card-close'));placeCard.append(head);const sc=h('div','fp-card-scroll');
+ head.append(titlewrap,unstarBtn,editToggle,btn('×',closePlace,'fp-card-close'));placeCard.append(head);
+ if(feature)placeCard.append(feature);const sc=h('div','fp-card-scroll');
  /* build .16 · 详情大卡规整为三块卡片（参考苹果排版）：Brief / 影像 / 社交资料 */
  const cardBrief=h('section','fp-block');
  cardBrief.append(sectionHeading('01',p.stage==='visited'?'旅行手记':'为什么想去',btn(editMode==='brief'?'收起':editorDrafts.get(draftKey(id,'brief'))?.dirty?'继续编辑':'编辑',()=>{editMode=editMode==='brief'?'':'brief';renderPlace(id)},'fp-subaction')));
@@ -355,7 +357,12 @@ function openViewer(items,index,originTile=null,navDir=0){closeViewer(true);cons
    const dx=from.left+from.width/2-dest.left-dest.width/2,dy=from.top+from.height/2-dest.top-dest.height/2;
    const sx=from.width/Math.max(dest.width,1),sy=from.height/Math.max(dest.height,1);
    const opts={duration:465,easing:'cubic-bezier(.19,1,.32,1)',fill:'both'};
-   media.animate([{transform:`translate3d(${dx}px,${dy}px,0) scale(${sx},${sy})`,borderRadius:'15px',opacity:.8},{transform:'none',borderRadius:'0px',opacity:1}],opts);
+   const entrance=media.animate([{transform:`translate3d(${dx}px,${dy}px,0) scale(${sx},${sy})`,borderRadius:'15px',opacity:.8},{transform:'none',borderRadius:'0px',opacity:1}],opts);
+   // Real Safari sometimes leaves a Web Animations "running" forever after
+   // video canvas or fullscreen layer suspension. Settle the same V3 motion
+   // at the intended target after its normal duration, never freeze a photo.
+   const settle=()=>{if(!media.isConnected)return;try{if(entrance.playState==='running')entrance.finish()}catch(_){}};
+   setTimeout(settle,620);
    viewer.animate([{backgroundColor:'rgba(19,20,21,0)'},{backgroundColor:'rgba(19,20,21,.93)'}],{duration:350,fill:'both',easing:'ease-out'});
  }
 }

@@ -395,7 +395,7 @@ function init(){
     document.querySelectorAll('.rv-daytag').forEach(t=>t.remove());
     const pts=RV.places.map(p=>[Number(p.lng),Number(p.lat)]);
     if(pts.length<2 || pts.some(([lng,lat])=>!Number.isFinite(lng)||!Number.isFinite(lat)||Math.abs(lat)>90||Math.abs(lng)>180)){
-      if(legend)legend.textContent='仅显示站点 · 至少需要两个有效坐标才能计算道路';notice('道路未生成：需要至少两个有效地点',true);return;
+      if(legend)legend.textContent='仅显示站点 · 至少需要两个有效坐标才能计算道路';return;
     }
     const timeout=setTimeout(()=>controller.abort(),10000);
     try{
@@ -412,12 +412,10 @@ function init(){
       map.addLayer({id:'rv-road-line',type:'line',source:'rv-road',paint:{'line-color':'#3b4544','line-width':3.1},layout:{'line-cap':'round','line-join':'round'}});
       if(drawn)drawn.style.display='none';
       if(legend)legend.textContent='道路已匹配 · OSRM 规划参考（非实时导航）';
-      notice('道路路线已匹配 · 点击站点查看详情');
       roadRetry=0;
     }catch(err){
       if(generation!==roadGeneration)return;
       if(legend)legend.textContent='仅显示示意连线 · 实际道路暂不可用';
-      notice('道路匹配失败，仍可查看站点',true);
       if(roadRetry<1&&!controller.signal.aborted){roadRetry++;setTimeout(()=>{if(generation===roadGeneration)reRoad()},3200)}
     }finally{clearTimeout(timeout);if(roadRequest===controller)roadRequest=null}
   }
