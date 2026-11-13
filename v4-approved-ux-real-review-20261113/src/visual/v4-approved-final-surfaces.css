@@ -1,0 +1,48 @@
+/* Visual C + Interaction B + C V5: nine-screen V4 demo, applied to
+ * real DOM only. Do not modify map provider, star, routes or IndexedDB. */
+:root{--v4-paper:#fffefa;--v4-ink:#26382e;--v4-muted:#667669;--v4-line:#e4eae1;--v4-sage:#edf3ec;--v4-gold:#b49d69;--v4-ease:cubic-bezier(.22,1,.36,1)}
+#appDock.app-dock{background:rgba(255,254,250,.97)!important;border:1px solid #dfe8de!important;border-radius:25px!important;box-shadow:0 10px 32px rgba(37,61,43,.14),0 1px 4px rgba(37,61,43,.04)!important;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+#appDock .dock-btn{border-radius:17px!important;transition:background-color .22s var(--v4-ease),color .2s ease!important}
+#appDock .dock-btn:is(.active,[aria-pressed="true"],.fp25-current){background:#e9efe6!important;box-shadow:none!important}
+#appDock .dock-btn:active{transform:scale(.988)!important}
+#appDock .dock-btn img{width:26px!important;height:26px!important;object-fit:contain}
+#appDock .dock-btn span{font-size:11px!important;letter-spacing:-.01em!important;color:#536659!important;font-weight:640!important}
+#fpPlaceCard,#fpSearchSheet,#drawer.fp30-detail{background:var(--v4-paper)!important;color:var(--v4-ink)!important;border-color:var(--v4-line)!important;border-radius:27px 27px 0 0!important;box-shadow:0 -14px 55px rgba(31,53,38,.16)!important;-webkit-font-smoothing:antialiased}
+#fpSearchSheet[data-atlas-physical-sheet]{animation:none!important;transition:none!important;max-height:none!important;will-change:height,transform,opacity}
+#fpSearchSheet[data-atlas-physical-sheet] .fp-search-top{touch-action:none}
+#fpSearchSheet .fp-search-top{padding:39px 17px 14px!important;position:relative;background:var(--v4-paper)!important;border-bottom:1px solid var(--v4-line)!important}
+#fpSearchSheet .fp-search-grip{position:absolute;top:0;left:calc(50% - 65px);width:130px;height:40px;margin:0!important;background:transparent!important;touch-action:none!important;z-index:2;cursor:grab}
+#fpSearchSheet .fp-search-grip::before{content:'';position:absolute;left:42px;top:16px;width:46px;height:5px;border-radius:8px;background:#c6d1c7}
+#fpSearchSheet .fp-search-head h2{font-size:23px!important;line-height:1.17!important;font-weight:760!important;letter-spacing:-.05em!important}
+#fpSearchSheet .fp-search-bar{min-height:54px!important;border-radius:16px!important;background:#f0f4ed!important;border-color:#e0e9de!important}
+#fpSearchSheet .fp-search-body{padding:13px 17px calc(28px + env(safe-area-inset-bottom))!important;scrollbar-width:none}
+#fpSearchSheet .fp-search-label{font-size:11px!important;letter-spacing:.025em!important;color:#768876!important}
+#fpSearchSheet .fp-search-row{border-radius:17px!important;padding:8px!important;min-height:80px!important;gap:11px!important}
+#fpSearchSheet .fp-row-photo,#fpSearchSheet .fp-row-icon{width:62px!important;height:62px!important;border-radius:12px!important}
+#fpSearchSheet .fp-row-main strong{font-size:14px!important;color:var(--v4-ink)!important;letter-spacing:-.03em!important}
+#fpSearchSheet .fp-row-main small{font-size:11px!important;color:#879789!important}
+#fpSearchSheet .fp-search-empty{background:#f1f4ed!important;border:1px dashed #e1e9df!important;border-radius:15px!important;padding:16px!important;line-height:1.7!important}
+#fpPlaceCard .fp-card-header{padding:41px 17px 13px!important;border-bottom:1px solid #e9ede7!important}
+#fpPlaceCard .fp-card-name{font-weight:760!important;letter-spacing:-.05em!important;line-height:1.17!important;color:var(--v4-ink)!important}
+#fpPlaceCard .fp-card-location{font-size:11px!important;color:#869386!important}
+#fpPlaceCard .fp-place-stage{border-radius:999px!important;font-weight:680!important;color:#846e41!important}
+#fpPlaceCard .fp-card-scroll{background:var(--v4-paper)!important}
+#fpPlaceCard .fp-block{border-bottom-color:#e9eee8!important;padding-block:16px 18px!important}
+#fpPlaceCard .fp-brief-text{font-size:13px!important;line-height:1.78!important;color:#657567!important}
+#fpPlaceCard .fp-media-mosaic{border-radius:16px!important}
+#fpPlaceCard .fp-card-header .atlas-card-grip::before{background:#c6d1c7!important}
+#drawer.fp30-detail .drawer-head{padding:35px 17px 13px!important;touch-action:none}
+#drawer.fp30-detail .drawer-head .sheet-grab{position:absolute;top:15px;left:calc(50% - 23px);width:46px;height:5px;border-radius:6px;background:#c6d1c7}
+#drawer.fp30-detail .drawer-head h2{font-size:23px!important;letter-spacing:-.05em!important;font-weight:760!important}
+#drawer.fp30-detail #fpvCollectionTabs{border-radius:15px!important;background:#eef2eb!important}
+#drawer.fp30-detail #spotList .spotrow,#drawer.fp30-detail #drawerRouteList .rs-row{border-radius:17px!important;border:1px solid var(--v4-line)!important;box-shadow:0 2px 9px rgba(31,54,38,.045)!important}
+#drawer.fp30-detail #spotList .spotrow:active,#drawer.fp30-detail #drawerRouteList .rs-row:active{transform:scale(.985)!important}
+#drawer[data-collection-dragging="true"]{transition:none!important;will-change:height}
+body.journey-page .builder .block,body.journey-page .builder .choice{border-color:var(--v4-line)!important}
+body.journey-page .builder h1{font-size:22px!important;letter-spacing:-.05em!important;color:var(--v4-ink)!important}
+body.journey-page .builder :is(button,input,select,textarea){border-radius:13px!important}
+body.journey-page .builder .block h2{font-size:14px!important;font-weight:720!important;color:var(--v4-ink)!important}
+body.route-page #rvDetail{border-radius:27px 27px 0 0!important;background:var(--v4-paper)!important}
+body.route-page #rvDetail .grab{min-height:38px!important;touch-action:none}
+@media(max-width:370px){#fpSearchSheet .fp-search-top{padding-inline:13px!important}#fpSearchSheet .fp-row-photo,#fpSearchSheet .fp-row-icon{width:56px!important;height:56px!important}#fpPlaceCard .fp-card-header{padding-inline:13px!important}}
+@media(prefers-reduced-motion:reduce){#appDock .dock-btn,#fpSearchSheet,#fpPlaceCard{animation:none!important}}
