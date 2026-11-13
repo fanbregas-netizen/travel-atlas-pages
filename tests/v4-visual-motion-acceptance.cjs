@@ -15,7 +15,7 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  assert.equal(await page.locator('.dock button').count(),4,'Four original Dock actions remain');
  const cdp=await ctx.newCDPSession(page);
  async function touchDrag(selector,dy,options={}){
-  const box=await page.locator(selector).boundingBox();
+  const box=await page.locator(selector).first().boundingBox();
   assert.ok(box,'missing touch source '+selector);
   const x=box.x+(options.xRatio||.5)*box.width;
   const y=box.y+(options.yRatio||.5)*box.height;
