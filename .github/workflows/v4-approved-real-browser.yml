@@ -1,0 +1,25 @@
+name: V4 real product iPhone acceptance smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "tests/v4-approved-real-browser.cjs"
+      - ".github/workflows/v4-approved-real-browser.yml"
+permissions:
+  contents: read
+jobs:
+  actual-page:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install mobile Chromium
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install chromium
+      - name: Test user-approved real V4 screens
+        run: node tests/v4-approved-real-browser.cjs
