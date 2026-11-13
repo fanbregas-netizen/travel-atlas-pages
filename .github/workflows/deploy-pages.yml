@@ -113,6 +113,10 @@ jobs:
           cp -R _site/v4-approved-ux-real-review-20261113 _site/v4-iphone-fluidity-20261113
           cp v4-iphone-fluidity-20261113/index.html _site/v4-iphone-fluidity-20261113/index.html
           cp v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js _site/v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js
+          # Cacheable app script experiment (new distinct isolated Pages preview only).
+          cp -R _site/v4-iphone-fluidity-20261113 _site/v4-iphone-cacheable-20261113
+          cp v4-iphone-cacheable-20261113/index.html _site/v4-iphone-cacheable-20261113/index.html
+          cp v4-iphone-cacheable-20261113/v4-map-runtime.js _site/v4-iphone-cacheable-20261113/v4-map-runtime.js
           # Approved V4 visual recovery 2 — distinct review; root is never overwritten.
           cp -R v4-approved-recovery-phase2-20261113 _site/v4-approved-recovery-phase2-20261113
           # P1 approved V4 real-product rebuild; do not overwrite root or any existing stage.
@@ -140,6 +144,10 @@ jobs:
           test -s _site/v4-iphone-fluidity-20261113/src/map/map-adapter.js
           test -s _site/v4-iphone-fluidity-20261113/src/media/media-core.js
           grep -q 'pixelRatio:mobileStableMap' _site/v4-iphone-fluidity-20261113/index.html
+          test -s _site/v4-iphone-cacheable-20261113/index.html
+          test -s _site/v4-iphone-cacheable-20261113/v4-map-runtime.js
+          test -s _site/v4-iphone-cacheable-20261113/src/interaction/sheet-controller.js
+          grep -q 'v4-map-runtime.js' _site/v4-iphone-cacheable-20261113/index.html
           grep -q 'fp-v4-fluidity-20261113-' _site/v4-iphone-fluidity-20261113/index.html
           ! grep -q '<script data-inline="atlas-orbit.js">' _site/v4-iphone-fluidity-20261113/index.html
           test -s _site/v4-approved-ux-real-review-20261113/index.html
