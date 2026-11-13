@@ -1,0 +1,28 @@
+/* Scoped sheet motion: entire header/title drags, smooth detents, no redesign. */
+[data-atlas-sheet-controller] {
+  transition:height .46s cubic-bezier(.18,.84,.23,1),
+    transform .37s cubic-bezier(.18,.88,.25,1),opacity .26s ease;
+  transform:translate3d(0,0,0);
+  will-change:height,transform;
+}
+[data-atlas-sheet-controller][data-atlas-dragging="true"] {transition:none!important}
+[data-atlas-sheet-controller].atlas-sheet-closing {
+  transform:translate3d(0,calc(100% + 125px),0);opacity:.7;pointer-events:none
+}
+[data-atlas-sheet-controller].atlas-sheet-entering {
+  transform:translate3d(0,calc(100% + 125px),0);opacity:.85
+}
+[data-atlas-sheet-controller] :is(.sheet-head,.sheet-header,.fp-card-header,.drawer-head) {
+  touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab
+}
+[data-atlas-sheet-controller] .atlas-drag-header-active {cursor:grabbing}
+[data-atlas-sheet-controller] [data-atlas-grip] {
+  touch-action:none;cursor:grab;min-width:44px;min-height:44px
+}
+[data-atlas-sheet-controller] [data-atlas-grip]:focus-visible {
+  outline:2px solid #ae8c48;outline-offset:3px
+}
+[data-atlas-sheet-controller] :is(.sheet-head,.sheet-header,.fp-card-header,.drawer-head) button:not([data-atlas-grip]) {touch-action:manipulation}
+@media(prefers-reduced-motion:reduce){
+  [data-atlas-sheet-controller]{transition:none!important}
+}

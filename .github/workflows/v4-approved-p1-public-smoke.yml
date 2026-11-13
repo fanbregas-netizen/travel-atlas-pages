@@ -1,0 +1,53 @@
+name: Footprint V4 Approved P1 real-product public HTTP smoke
+on:
+  workflow_run:
+    workflows: ["Publish Travel Atlas V4 to GitHub Pages"]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  approved-p1-public-https:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check actual live product assets and source hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://fanbregas-netizen.github.io/travel-atlas-pages/v4-approved-rebuild-p1-20261113"
+          mkdir -p /tmp/v4-approved-p1/src/interaction /tmp/v4-approved-p1/src/visual
+          for f in version.json index.html journey.html route-view.html footprint-home.js src/interaction/real-product-bridge.js src/visual/v4-approved-product-rebuild.css; do
+            mkdir -p "/tmp/v4-approved-p1/$(dirname "$f")"
+            curl --fail --location --silent --show-error --retry 12 --retry-delay 5 --max-time 45               "$base/$f?approvedP1=$(date +%s)" -o "/tmp/v4-approved-p1/$f"
+            test -s "/tmp/v4-approved-p1/$f"
+          done
+          node <<'NODE'
+          const fs=require('fs'),assert=require('assert/strict'),crypto=require('crypto');
+          const bytes=p=>fs.readFileSync('/tmp/v4-approved-p1/'+p);
+          const read=p=>bytes(p).toString('utf8');
+          const gitsha=p=>{const b=bytes(p);return crypto.createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex')};
+          const v=JSON.parse(read('version.json')),html=read('index.html'),js=read('footprint-home.js');
+          const bridge=read('src/interaction/real-product-bridge.js'),style=read('src/visual/v4-approved-product-rebuild.css'),route=read('route-view.html');
+          assert.equal(v.stage_checkpoint,'2026-11-13-approved-product-rebuild-phase1');
+          assert.equal(v.stage_checkpoint_commit,'314a984c64a076563fa640cd1c1f8b2c3f60b36a');
+          assert.equal(v.data_namespace,'atlas-v4-systematic-20261112-');
+          assert.equal(gitsha('index.html'),v.stage_checkpoint_public_index_sha);
+          assert.equal(gitsha('route-view.html'),v.stage_checkpoint_route_script_sha);
+          assert.equal(gitsha('footprint-home.js'),v.stage_checkpoint_public_script_sha);
+          assert.equal(gitsha('src/visual/v4-approved-product-rebuild.css'),v.stage_checkpoint_visual_acceptance_css_sha);
+          assert.equal(gitsha('src/interaction/real-product-bridge.js'),v.stage_checkpoint_bridge_sha);
+          const base='/travel-atlas-pages/v4-approved-rebuild-p1-20261113/';
+          for(const page of [html,route,read('journey.html')])assert.ok(page.includes('<base href="'+base+'">'),'Wrong review path');
+          assert.ok(html.includes('v4-approved-product-rebuild.css?v=approved-p1'),'The actual P1 stylesheet is missing');
+          assert.ok(js.includes('placeCard.append(hero)')&&js.includes('fp-peek-excerpt'),'Actual data-led photo peek missing');
+          assert.ok(js.includes('thumb:mediaOf(p).find'),'Search is not linked to stored place media');
+          assert.ok(bridge.includes('card.dataset.fpDetent=next.sheet'),'Approved physical B state not reflected in real card');
+          assert.ok(style.includes('data-fp-detent="peek"')&&style.includes('data-fp-detent="full"'),'No actual three-level content hierarchy');
+          assert.ok(route.includes('站点已显示 · 正在匹配实际道路')&&!route.includes('路线已生成：点击编号查看地点内容'),'Route success misreport persists');
+          assert.ok(js.includes('const editorDrafts=new Map()'),'Existing draft safety dropped');
+          assert.ok(html.includes('id="fpvCollectionTabs"'),'Existing actual collection missing');
+          assert.ok(!js.includes('mountMapOverview'),'Unapproved map decoration returned');
+          console.log('PASS Approved P1 public HTTPS: exact Git blobs, real photo-first peek, saved image search, original B detents, honest route statuses, prior media/data retained');
+          NODE

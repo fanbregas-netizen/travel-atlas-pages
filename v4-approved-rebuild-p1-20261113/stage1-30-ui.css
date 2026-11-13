@@ -1,0 +1,96 @@
+/* Footprint Map · Stage1.30. One anchored navigation, four independent actions.
+   This layer is deliberately isolated from the locked Stage1.28 bubble geometry. */
+:root{--fp30-ink:#29383b;--fp30-muted:#75878a;--fp30-frost:rgba(247,250,249,.95);--fp30-surface:#fafbf9;--fp30-hairline:rgba(108,132,135,.13);--fp30-motion:cubic-bezier(.22,1,.36,1)}
+#appDock{width:min(338px,calc(100vw - 36px))!important;min-height:69px!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:center!important;gap:2px!important;padding:6px!important;border:0!important;border-radius:22px!important;background:var(--fp30-frost)!important;box-shadow:0 9px 26px rgba(25,42,46,.13)!important;backdrop-filter:blur(18px) saturate(1.06)!important;-webkit-backdrop-filter:blur(18px) saturate(1.06)!important;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif!important}
+#appDock .dock-btn{width:100%!important;min-width:0!important;height:57px!important;min-height:57px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:4px!important;padding:5px 0!important;background:transparent!important;border:0!important;border-radius:16px!important;color:var(--fp30-ink)!important;box-shadow:none!important;transition:background .22s ease,transform .26s var(--fp30-motion)!important;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#appDock .dock-btn img{height:23px!important;width:23px!important;flex:none;object-fit:contain;opacity:.92}
+#appDock .dock-btn span{font-size:11px!important;font-weight:590!important;letter-spacing:0!important;line-height:1.2!important;white-space:nowrap}
+#appDock .dock-btn.active,#appDock .dock-btn[aria-current="page"],#appDock #dockStars.active{background:rgba(202,215,213,.37)!important;border:0!important;box-shadow:none!important;color:#26383a!important}
+#appDock .dock-btn:active{transform:scale(.955)!important;background:rgba(215,227,224,.46)!important}
+#appDock #dockMap::after{display:none!important;content:none!important}
+#appDock #dockMap{position:static!important}
+/* Prevent Stage1.29 from painting a large yellow active tile. */
+body.route-pick-active #dockRoute{background:transparent!important;color:var(--fp30-ink)!important}
+/* While search is active the dock itself becomes one search bar at the same anchor. */
+body.fp-search-open #appDock{opacity:0!important;pointer-events:none!important;transform:translateX(-50%) scale(.97)!important}
+#fpSearchVeil{display:none!important}
+#fpSearchSheet{position:fixed!important;z-index:1360!important;left:50%!important;right:auto!important;bottom:calc(12px + env(safe-area-inset-bottom) + var(--fp-keyboard,0px))!important;width:min(338px,calc(100vw - 36px))!important;max-width:none!important;max-height:min(58dvh,460px)!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;display:flex!important;flex-direction:column!important;overflow:visible!important;opacity:0;pointer-events:none;transform:translate(-50%,12px) scale(.98)!important;transition:opacity .22s ease,transform .30s var(--fp30-motion)!important}
+body.fp-search-open #fpSearchSheet{opacity:1!important;pointer-events:auto!important;transform:translate(-50%,0) scale(1)!important}
+#fpSearchSheet[hidden]{display:none!important}
+#fpSearchSheet .fp-search-top{order:2;display:flex!important;align-items:center!important;gap:0!important;padding:6px!important;border:0!important;background:var(--fp30-frost)!important;border-radius:22px!important;box-shadow:0 9px 26px rgba(25,42,46,.13)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;flex:none}
+#fpSearchSheet .fp-search-grip,#fpSearchSheet .fp-search-head{display:none!important}
+#fpSearchSheet .fp-search-bar{width:100%;min-height:57px!important;height:57px!important;padding:0 7px 0 10px!important;margin:0!important;display:flex;gap:7px!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:15px!important;color:var(--fp30-ink)}
+#fpSearchSheet .fp-magnify{font-size:0!important;flex:none;width:20px;height:20px;background:var(--fp30-ink);-webkit-mask:url('./icons/02_search.svg') center/contain no-repeat;mask:url('./icons/02_search.svg') center/contain no-repeat}
+#fpSearchSheet #fpSearchField{font-size:16px!important;font-weight:480;min-width:0!important;flex:1!important;min-height:44px!important;padding:5px 0!important;color:var(--fp30-ink)!important}
+#fpSearchSheet #fpSearchField::placeholder{color:#849394!important}
+#fpSearchSheet .fp-search-clear{width:30px!important;height:40px!important;flex:none;color:#829395!important;font-size:20px!important}
+#fpSearchSheet .fp-search-close.fp30-search-cancel{display:inline-flex!important;align-items:center;justify-content:center;flex:none;min-width:44px;min-height:44px;width:auto!important;height:44px!important;padding:0 4px!important;margin:0!important;background:transparent!important;color:#40575a!important;border:0!important;font-size:13px!important;font-weight:580!important;letter-spacing:0!important;white-space:nowrap}
+#fpSearchSheet .fp-search-body{order:1;flex:none!important;max-height:min(45dvh,370px)!important;min-height:0!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;padding:9px 13px 13px!important;margin:0 0 8px!important;border-radius:19px!important;background:rgba(249,251,250,.97)!important;box-shadow:0 9px 25px rgba(30,48,50,.12)!important;overscroll-behavior:contain}
+#fpSearchSheet .fp-search-body:empty{display:none!important}
+#fpSearchSheet .fp-search-label{font-size:11px!important;font-weight:590!important;letter-spacing:0!important;color:#78878a!important;margin:7px 4px 4px!important}
+#fpSearchSheet .fp-search-row{padding:9px 3px!important;min-height:55px!important;gap:9px!important}
+#fpSearchSheet .fp-row-icon{height:35px!important;width:35px!important;background:#edf2f0!important;border-radius:12px!important;color:var(--fp30-ink)!important}
+#fpSearchSheet .fp-row-main strong{font-size:14px!important;letter-spacing:0!important;font-weight:640!important}
+#fpSearchSheet .fp-row-main small{font-size:11px!important;color:#718386!important}
+#fpSearchSheet .fp-search-notice{font-size:11px!important;color:#8a9898!important;line-height:1.55!important}
+/* Independent route tool is a small extension of the same four-item dock. */
+#dockRoutePop{right:max(18px,calc(50% - 169px))!important;left:auto!important;bottom:calc(87px + env(safe-area-inset-bottom))!important;padding:7px!important;gap:6px!important;border:0!important;border-radius:18px!important;background:var(--fp30-frost)!important;box-shadow:0 9px 26px rgba(25,42,46,.13)!important}
+#dockRoutePop .dock-pop-btn{width:108px!important;min-height:60px!important;height:60px!important;border:0!important;box-shadow:none!important;background:transparent!important;gap:4px!important}
+#dockRoutePop .dock-pop-btn img{width:22px!important;height:22px!important}
+#dockRoutePop .dock-pop-btn span{font-size:11px!important;font-weight:580!important}
+#dockRoutePop .dock-pop-btn:active{background:#e8eeec!important;transform:scale(.97)}
+/* Favorites: first level is exactly two choices, not an old drop-down or a mode chooser. */
+#drawer{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif!important;background:#f7f9f8!important;color:var(--fp30-ink)!important}
+#drawer .drawer-head{padding-bottom:13px!important}
+#drawer .drawer-head h2{font-size:21px!important;font-weight:690!important;letter-spacing:-.035em!important;color:var(--fp30-ink)!important}
+#drawer .drawer-head .script-label{display:none!important}
+#drawer #sheetCount{font-size:12px!important;font-weight:480!important;color:#879597!important}
+#drawer #drawerSaveBox{display:none!important}
+#drawer .fp30-hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:8px 0 20px}
+#drawer .fp30-entry{position:relative;display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-height:148px;gap:7px;padding:17px 14px 14px;border:0;border-radius:19px;background:rgba(255,255,255,.89);box-shadow:0 5px 18px rgba(46,64,68,.055);color:var(--fp30-ink);cursor:pointer;touch-action:manipulation;transition:background .2s ease,transform .32s var(--fp30-motion),box-shadow .26s ease}
+#drawer .fp30-entry:active{transform:scale(.975);background:#eaf0ee}
+#drawer .fp30-entry:focus-visible,#appDock .dock-btn:focus-visible,#fp30Back:focus-visible{outline:2px solid #78959a;outline-offset:3px}
+#drawer .fp30-entry-icon{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:11px;background:#edf2f0}
+#drawer .fp30-entry-icon img{display:block;width:23px;height:23px}
+#drawer .fp30-entry strong{display:block;font-size:15px;font-weight:675;letter-spacing:-.025em;line-height:1.3}
+#drawer .fp30-entry small{display:block;max-width:100%;font-size:11px;line-height:1.45;font-weight:450;color:#778a8c;white-space:normal}
+#drawer .fp30-entry-arrow{position:absolute;right:14px;top:16px;font-size:15px;font-weight:400;color:#a5b0af}
+#drawer.fp30-detail #fp30Hub,#drawer.fp30-route-pick #fp30Hub{display:none!important}
+#drawer .fp30-detail-head{display:flex;align-items:center;gap:9px;margin:0 0 14px;min-height:42px}
+#drawer .fp30-detail-head[hidden]{display:none!important}
+#drawer .fp30-detail-head h3{flex:1;min-width:0;font-size:17px;font-weight:670;letter-spacing:-.025em;margin:0;white-space:nowrap}
+#drawer #fp30Back{min-height:44px;border:0;background:transparent;color:#537073;font-size:13px;font-weight:560;padding:0 8px 0 0}
+#drawer #fp30NewRoute{color:#43595a;font-size:12px;font-weight:620;text-decoration:none;min-height:44px;display:flex;align-items:center}
+#drawer #fp30NewRoute[hidden]{display:none!important}
+#drawer.fp30-hub #spotList,#drawer.fp30-hub #drawerRouteList,#drawer.fp30-hub .backuprow,#drawer.fp30-hub .footnote,#drawer.fp30-hub .list-desc{display:none!important}
+#drawer.fp30-detail .backuprow,#drawer.fp30-detail .footnote{display:flex}
+#drawer.fp30-detail.fp30-routes .backuprow,#drawer.fp30-detail.fp30-routes .footnote{display:none!important}
+#drawer.fp30-detail .footnote{display:block!important}
+#drawer.fp30-detail .list-desc{display:none!important}
+#drawer.fp30-route-pick #spotList{display:block!important}
+#drawer.fp30-route-pick .backuprow,#drawer.fp30-route-pick .footnote{display:none!important}
+#drawer .spotrow{border:0!important;background:#fff!important;box-shadow:0 2px 9px rgba(38,52,55,.055)!important;border-radius:15px!important;min-height:76px!important}
+#drawer #drawerRouteList .rs-row{border:0!important;background:#fff!important;box-shadow:0 2px 9px rgba(38,52,55,.055)!important;min-height:65px!important}
+#drawer #drawerRouteList .rs-badge{background:#edf2f0!important;color:#395259!important}
+#drawer .backuprow button{background:#eef2f0!important;border:0!important;color:#52686b!important}
+#figureCaption{display:none!important}
+#atlasMapLoader .loader-text{font-size:12px;font-weight:530}
+/* The previously approved independent bubble SVG paths and proportions are untouched. */
+@media(max-width:350px){#appDock,#fpSearchSheet{width:calc(100vw - 26px)!important}#drawer .fp30-entry{padding:14px 11px 12px;min-height:142px}#drawer .fp30-entry strong{font-size:14px}}
+@media(prefers-reduced-motion:reduce){#appDock *,#fpSearchSheet *,#drawer .fp30-entry{transition:none!important;animation:none!important}}
+/* A previous polish layer marks the default map tab with fp25-current: neutralize its gold tile. */
+#appDock .dock-btn.fp25-current{background:rgba(202,215,213,.35)!important;color:var(--fp30-ink)!important;box-shadow:none!important}
+#drawer #atlasVersionBadge{display:none!important}
+/* Keep the bottom search controls visible when the keyboard is not present. */
+#fpSearchSheet .fp-search-empty{font-size:12px;color:#76888b}
+/* Planning temporarily replaces the four tabs with task actions; same size, tint and typography. */
+body.route-pick-active .tp-bar:not(.tp-docked){width:min(338px,calc(100vw - 36px))!important;min-height:69px!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:22px!important;background:var(--fp30-frost)!important;box-shadow:0 9px 26px rgba(25,42,46,.13)!important;padding:6px!important;gap:4px!important}
+body.route-pick-active .tp-bar.tp-docked{border:0!important;border-radius:15px!important;background:#f7f9f8!important;box-shadow:0 3px 12px rgba(25,42,46,.08)!important}
+body.route-pick-active .tp-bar .tp-pill{height:44px!important;border:0!important;background:transparent!important;border-radius:13px!important;color:#455c5f!important;padding:0 8px!important;font-size:12px!important;font-weight:575!important}
+body.route-pick-active .tp-bar .tp-pill small{font-size:12px!important;font-weight:600!important}
+body.route-pick-active .tp-bar .tp-count.has{background:#e6edeb!important;color:#345054!important}
+body.route-pick-active .tp-bar .tp-go,body.route-pick-active .tp-bar .tp-x{width:44px!important;height:44px!important;border-radius:14px!important;border:0!important;background:#eaf0ee!important;color:var(--fp30-ink)!important}
+body.route-pick-active .tp-bar .tp-go.ready{background:#dce9e4!important}
+body.route-pick-active .tp-bar .tp-x{background:#40575a!important}
+/* Disable legacy full-height search sheet snap sizes. This is now an anchored dock field. */
+#fpSearchSheet,#fpSearchSheet[data-atlas-snap]{height:max-content!important;min-height:0!important}

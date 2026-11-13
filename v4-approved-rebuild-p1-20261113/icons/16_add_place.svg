@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" aria-label="Add Place">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M29 7 C40 6 47 14 46 25 C45 36 37 41 29 49 C20 38 13 33 13 23 C13 14 20 8 29 7Z"/>
+  <path d="M29 18 L29 31 M23 25 L35 25" stroke-width="3"/>
+  <path d="M36 53 L48 53" stroke-width="1.8"/>
+ </g>
+</svg>

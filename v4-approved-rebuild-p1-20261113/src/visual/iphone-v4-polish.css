@@ -1,0 +1,332 @@
+/*
+ * Travel Atlas / Footprint Map — iPhone V4 visual refinement.
+ * Issue #5. Visual-only layer for source/index.html (card-restore candidate).
+ * Load AFTER all inline <style> blocks, only when Integration approves the hook.
+ * Never edit sheet geometry, transform, pointer/touch handlers, map markers or data.
+ * Existing V3 hand-drawn SVG icon assets are deliberately reused unchanged.
+ */
+:root {
+  --fpv-type: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  --fpv-ink: #27342f;
+  --fpv-secondary: #69746e;
+  --fpv-tertiary: #8b948c;
+  --fpv-paper: #fffefa;
+  --fpv-surface: #faf9f5;
+  --fpv-line: #e5e7df;
+  --fpv-gold: #b59a62;
+  --fpv-gold-wash: #f3eddf;
+  --fpv-shadow-sheet: 0 10px 38px rgba(26, 43, 35, .13), 0 2px 8px rgba(26, 43, 35, .045);
+  --fpv-shadow-control: 0 5px 17px rgba(29, 43, 34, .115), 0 1px 3px rgba(29, 43, 34, .05);
+  --fpv-radius-panel: 24px;
+  --fpv-radius-tile: 16px;
+  --fpv-space-1: 4px;
+  --fpv-space-2: 8px;
+  --fpv-space-3: 12px;
+  --fpv-space-4: 16px;
+  --fpv-space-5: 20px;
+}
+
+/* A consistent iOS/PingFang text stack, scoped to UI rather than map labels. */
+:where(#fpPlaceCard, #fpSearchSheet, #appDock, #searchDock, #drawer) {
+  font-family: var(--fpv-type);
+  -webkit-font-smoothing: antialiased;
+}
+:where(#fpPlaceCard, #fpSearchSheet, #appDock, #searchDock, #drawer) :where(button, input, textarea) {
+  font-family: inherit;
+}
+:where(#fpPlaceCard, #fpSearchSheet, #appDock, #searchDock, #drawer) :where(button, a, input, textarea):focus-visible {
+  outline: 2px solid #b88f37 !important;
+  outline-offset: 2px;
+}
+
+/* Real selected-place card: preserve B's peek/half/full heights and drag grip. */
+#fpPlaceCard {
+  background: var(--fpv-paper) !important;
+  border-color: var(--fpv-line) !important;
+  border-radius: var(--fpv-radius-panel) !important;
+  box-shadow: var(--fpv-shadow-sheet) !important;
+}
+#fpPlaceCard .fp-card-header {
+  padding: 13px 18px 11px !important;
+  gap: var(--fpv-space-3);
+}
+#fpPlaceCard .fp-card-title-wrap { min-width: 0; }
+#fpPlaceCard .fp-card-kicker {
+  margin-bottom: 7px;
+  color: #887650 !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  letter-spacing: .055em !important;
+  line-height: 1.4;
+}
+#fpPlaceCard .fp-card-name {
+  color: var(--fpv-ink) !important;
+  font-size: clamp(20px, 5.2vw, 23px) !important;
+  font-weight: 700 !important;
+  line-height: 1.32 !important;
+  letter-spacing: -.033em !important;
+}
+#fpPlaceCard .fp-card-scroll {
+  padding: 0 18px 18px !important;
+}
+#fpPlaceCard .fp-subheading {
+  margin: 13px 0 8px;
+}
+#fpPlaceCard .fp-subheading :where(label, strong) {
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  letter-spacing: .055em !important;
+  color: #837550 !important;
+}
+#fpPlaceCard .fp-brief-text {
+  font-size: 14px !important;
+  line-height: 1.72 !important;
+  color: #4b5750 !important;
+}
+#fpPlaceCard .fp-brief-text.is-empty { color: var(--fpv-tertiary) !important; }
+#fpPlaceCard .fp-block {
+  background: var(--fpv-paper) !important;
+  border-color: var(--fpv-line) !important;
+  border-radius: 17px !important;
+  padding: 14px 15px !important;
+  box-shadow: none !important;
+}
+#fpPlaceCard .fp-line { border-color: var(--fpv-line); }
+#fpPlaceCard .fp-media-empty {
+  background: #f8f7f2 !important;
+  border-color: #dedfd8 !important;
+  border-radius: var(--fpv-radius-tile) !important;
+}
+#fpPlaceCard .fp-card-footer {
+  gap: 8px !important;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom) * .3) !important;
+  border-top-color: var(--fpv-line) !important;
+  background: var(--fpv-paper) !important;
+}
+#fpPlaceCard .fp-card-chip {
+  min-height: 44px !important;
+  padding: 10px 8px !important;
+  border-radius: 13px !important;
+  border-color: var(--fpv-line) !important;
+  background: var(--fpv-surface) !important;
+  color: #4e5a52 !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+  line-height: 1.25 !important;
+}
+#fpPlaceCard .fp-card-chip.accent {
+  background: var(--fpv-gold-wash) !important;
+  border-color: #dfd1b4 !important;
+  color: #665338 !important;
+}
+#fpPlaceCard .fp-unstar-btn { border-radius: 13px !important; }
+#fpPlaceCard .atlas-card-grip,
+#fpPlaceCard .sheet-grab {
+  background: #c6cbc4 !important;
+}
+
+/* Search sheet: header rhythm, legible 16px field, tactile but quiet results. */
+#fpSearchSheet {
+  background: var(--fpv-paper) !important;
+  border-color: var(--fpv-line) !important;
+  box-shadow: 0 -12px 42px rgba(26, 43, 35, .14) !important;
+}
+#fpSearchSheet .fp-search-top {
+  padding: 10px 18px 12px !important;
+  border-bottom-color: var(--fpv-line) !important;
+}
+#fpSearchSheet .fp-search-head h2 {
+  color: var(--fpv-ink) !important;
+  font-size: 21px !important;
+  font-weight: 700 !important;
+  line-height: 1.25;
+  letter-spacing: -.032em !important;
+}
+#fpSearchSheet .fp-search-grip { background: #c6cbc4 !important; }
+#fpSearchSheet .fp-search-bar {
+  background: #f5f5ef !important;
+  border-color: #e5e8df !important;
+  border-radius: 16px !important;
+}
+#fpSearchSheet #fpSearchField {
+  color: var(--fpv-ink) !important;
+  font-size: 16px !important;
+  letter-spacing: 0 !important;
+}
+#fpSearchSheet .fp-search-label {
+  color: #837550 !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  letter-spacing: .055em !important;
+}
+#fpSearchSheet .fp-quick {
+  background: #faf9f5 !important;
+  border-color: var(--fpv-line) !important;
+  border-radius: var(--fpv-radius-tile) !important;
+  color: #47564d !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+#fpSearchSheet .fp-search-row,
+#fpSearchSheet .fp-search-suggestion {
+  border-radius: 13px !important;
+}
+
+/* Map chrome and bottom navigation: never modify geographic overlays. */
+#searchDock {
+  background: rgba(255, 254, 250, .97) !important;
+  border-color: rgba(230, 231, 224, .98) !important;
+  box-shadow: var(--fpv-shadow-control) !important;
+}
+#searchDock #searchInput {
+  font-size: 16px !important;
+  color: var(--fpv-ink) !important;
+  letter-spacing: -.012em !important;
+}
+#searchDock .dock-go { min-width: 44px; min-height: 44px; }
+#searchResults .search-result {
+  min-height: 52px;
+  color: var(--fpv-ink);
+  line-height: 1.45;
+}
+#appDock {
+  background: rgba(255, 254, 250, .97) !important;
+  border-color: var(--fpv-line) !important;
+  box-shadow: var(--fpv-shadow-sheet) !important;
+}
+#appDock .dock-btn {
+  min-width: 44px;
+  min-height: 48px;
+  border-radius: 15px !important;
+}
+#appDock .dock-btn img {
+  width: 23px !important;
+  block-size: 23px !important;
+  object-fit: contain;
+}
+#appDock .dock-btn span {
+  color: #47564f !important;
+  font-size: 11px !important;
+  font-weight: 620 !important;
+  letter-spacing: -.012em !important;
+  line-height: 1.3;
+}
+#appDock .dock-btn:is(.active, [aria-pressed="true"], .fp25-current) {
+  background: #edf1e9 !important;
+  box-shadow: none !important;
+}
+.map-controls .circlebtn {
+  background: rgba(255, 254, 250, .97) !important;
+  border-color: rgba(255, 255, 255, .98) !important;
+  box-shadow: var(--fpv-shadow-control) !important;
+  color: var(--fpv-ink) !important;
+}
+
+/* Collection hub: one visual density across list and location card. */
+#drawer {
+  background: #f8f9f5 !important;
+  color: var(--fpv-ink) !important;
+}
+#drawer .drawer-head h2,
+#drawer .drawer-cn {
+  color: var(--fpv-ink) !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.03em !important;
+}
+#drawer #sheetCount {
+  color: var(--fpv-secondary) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+#drawer .spotrow {
+  background: var(--fpv-paper) !important;
+  border-color: var(--fpv-line) !important;
+  border-radius: 17px !important;
+  box-shadow: 0 3px 12px rgba(29, 43, 34, .045) !important;
+}
+#drawer .spotrow strong {
+  color: var(--fpv-ink) !important;
+  font-weight: 680 !important;
+  letter-spacing: -.02em;
+}
+#drawer .spotrow small {
+  color: var(--fpv-secondary) !important;
+  line-height: 1.55 !important;
+}
+
+/* iPhone SE width: preserve readable buttons without changing gesture bounds. */
+@media (max-width: 375px) {
+  #fpPlaceCard .fp-card-header { padding-inline: 15px !important; }
+  #fpPlaceCard .fp-card-scroll { padding-inline: 15px !important; }
+  #fpPlaceCard .fp-card-footer { padding-inline: 11px !important; gap: 6px !important; }
+  #fpPlaceCard .fp-card-chip { padding-inline: 5px !important; font-size: 11px !important; }
+  #fpSearchSheet .fp-search-top { padding-inline: 15px !important; }
+  #appDock .dock-btn span { font-size: 10.5px !important; }
+}
+/* High-contrast text enhancement, without changing the user's warm V4 palette. */
+@media (prefers-contrast: more) {
+  #fpPlaceCard .fp-card-kicker,
+  #fpSearchSheet .fp-search-label { color: #624817 !important; }
+  #appDock .dock-btn span,
+  #drawer .spotrow small { color: #35453a !important; }
+}
+
+/* Confirmed V4 editing and safety dialogs: quiet hierarchy, unchanged actions. */
+#editor .edit-head h2,
+#atlasDiscardDialog .atlas-discard-inner h2,
+#atlasDeleteDialog .atlas-discard-inner h2,
+#atlasUnstarDialog .atlas-discard-inner h2 {
+  font-family: var(--fpv-type);
+  color: var(--fpv-ink) !important;
+  font-weight: 700 !important;
+  letter-spacing: -.025em !important;
+  line-height: 1.3 !important;
+}
+#editor .edit-sub,
+#editor .editor-save-hint,
+#atlasDiscardDialog .atlas-discard-inner p,
+#atlasDeleteDialog .atlas-discard-inner p,
+#atlasUnstarDialog .atlas-discard-inner p {
+  color: var(--fpv-secondary) !important;
+  font-family: var(--fpv-type);
+  line-height: 1.65 !important;
+}
+#editor .input {
+  font-family: var(--fpv-type);
+  font-size: 16px !important;
+  color: var(--fpv-ink) !important;
+  border-radius: 13px !important;
+}
+#atlasDiscardDialog .atlas-discard-inner,
+#atlasDeleteDialog .atlas-discard-inner,
+#atlasUnstarDialog .atlas-discard-inner {
+  background: var(--fpv-paper) !important;
+  border-radius: var(--fpv-radius-panel) !important;
+  box-shadow: var(--fpv-shadow-sheet) !important;
+}
+#atlasDiscardDialog .discard-actions button,
+#atlasDeleteDialog .discard-actions button,
+#atlasUnstarDialog .discard-actions button {
+  min-height: 44px;
+  font-family: var(--fpv-type);
+  font-weight: 650 !important;
+  border-radius: 13px !important;
+}
+/* Preserve destructive action color, order and click targets. */
+
+/* Stage 03: locked upright geographic star. Keep the original artwork and
+   location marker coordinates; animate only SVG scale, never rotate or move
+   the marker DOM. This overrides the earlier rotated fp34 pulse keyframes. */
+@keyframes fp34SavedPulse {
+  0%   { transform: scale(1); }
+  33%  { transform: scale(1.20); }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1.17); }
+}
+@keyframes atlasStarPop {
+  0%   { scale: 1; rotate: 0deg; }
+  46%  { scale: 1.12; rotate: 0deg; }
+  66%  { scale: 1.08; rotate: 0deg; }
+  100% { scale: 1; rotate: 0deg; }
+}
