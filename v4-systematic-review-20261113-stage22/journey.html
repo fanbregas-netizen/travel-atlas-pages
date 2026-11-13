@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<base href="/travel-atlas-pages/v4-systematic-review-20261113-stage22/">
+<script id="atlas-isolated-systematic-review">(()=>{'use strict';
+const ns='atlas-v4-systematic-20261112-';window.__atlasPreviewNamespace=ns;
+const factory=IDBFactory.prototype,open=factory.open,del=factory.deleteDatabase;
+factory.open=function(name,...args){return open.call(this,ns+String(name),...args)};
+factory.deleteDatabase=function(name){return del.call(this,ns+String(name))};
+const list=factory.databases;
+if(typeof list==='function')factory.databases=async function(){
+ const all=await list.call(this);
+ return all.filter(item=>String(item.name||'').startsWith(ns))
+   .map(item=>({...item,name:String(item.name).slice(ns.length)}));
+};
+const st=Storage.prototype,get=st.getItem,set=st.setItem,rm=st.removeItem,key=st.key;
+st.getItem=function(name){return get.call(this,ns+String(name))};
+st.setItem=function(name,v){return set.call(this,ns+String(name),v)};
+st.removeItem=function(name){return rm.call(this,ns+String(name))};
+st.clear=function(){const a=[];for(let i=0;i<this.length;i++){const k=key.call(this,i);if(k?.startsWith(ns))a.push(k)}a.forEach(k=>rm.call(this,k))};
+})();</script>
+
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#f6f6f2"/>
+<title>旅行路线</title>
+<meta name="description" content="由旅行地图的私人星标构成属于你的旅行路线与图文路书。"/>
+<link rel="icon" href="./icon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="./journey.css"/>
+<link rel="stylesheet" href="./atlas-icons.css"/>
+<script defer src="./src/media/media-core.js"></script>
+<script defer src="./journey.js?v=stage22-system-pass"></script>
+<link rel="stylesheet" href="./src/route/date-confirm.css">
+<script defer src="./src/route/date-confirm.js"></script>
+<link rel="stylesheet" href="./stage1-polish.css">
+<link rel="stylesheet" href="./stage1-finish.css">
+<link rel="stylesheet" href="./stage1-detail.css?v=stage126">
+<link rel="stylesheet" href="./stage1-32-design.css?v=132"/>
+<link rel="stylesheet" href="./stage1-34-1-ux.css"/><link rel="stylesheet" href="./stage1-34-2-ux.css"/><link rel="stylesheet" href="./stage1-34-3-premium.css?v=1343"/>
+<link rel="stylesheet" href="./src/visual/route-v5-integrated.css">
+<link rel="stylesheet" href="./src/route/journey-mobile-sheet.css">
+<script defer src="./src/interaction/sheet-controller.js"></script>
+<script defer src="./src/interaction/physical-sheet.js"></script>
+<script defer src="./src/route/journey-mobile-sheet.js"></script>
+<link rel="stylesheet" href="./src/visual/v4-product-cohesion.css">
+<link rel="stylesheet" href="./src/visual/v4-visual-acceptance-pass.css?v=stage22-system-pass">
+</head><body class="journey-page">
+<header class="topbar">
+  <a class="back-link" href="./index.html" aria-label="返回地图"><span class="back-arrow" aria-hidden="true">←</span> <span>旅行地图</span></a>
+  <div class="brand"><span class="brand-mark">✦</span> 旅行地图 <small>路线叙事</small></div>
+  <div class="top-actions"><button type="button" id="newPlan" class="quiet topaction">新路线</button><button type="button" id="savePlan" class="dark topaction">保存路线</button></div>
+</header>
+<main class="layout">
+ <aside class="builder" aria-label="旅行路线规划">
+   <div class="eyebrow">YOUR JOURNEY / 01</div>
+   <h1>让收藏的地点，<br/>成为一段旅程。</h1>
+   <p class="intro">从地图收藏中选地点，安排日期与顺序，生成你手绘构想中的 D1、D2… 线路叙事。</p>
+   <section class="block"><div class="section-head"><h2>01 · 旅程信息</h2><label for="savedPlans" class="mini-label">已保存路线</label></div>
+     <select id="savedPlans" aria-label="选择已保存路线"><option value="">创建新路线</option></select>
+     <label for="planTitle">旅行名称</label><input id="planTitle" maxlength="80" placeholder="例如：沿海的五天" value="我的新旅程"/>
+     <div class="form-row"><div><label for="startDate">出发日期</label><input id="startDate" type="date"/></div><div><label for="endDate">结束日期</label><input id="endDate" type="date"/></div></div>
+     <div class="form-row"><div><label for="origin">出发地</label><input id="origin" maxlength="70" placeholder="上海"/></div><div><label for="destination">目的地/范围</label><input id="destination" maxlength="70" placeholder="浙南沿海"/></div></div>
+   </section>
+   <section class="block"><div class="section-head"><h2>02 · 从 🌟 中选地点</h2><span id="starTotal" class="count">0 个收藏</span></div>
+     <input id="placeFilter" type="search" placeholder="搜索你保存的地点…" aria-label="搜索星标收藏"/>
+     <div id="places" class="place-list" aria-live="polite"></div>
+     <div class="hint">收藏不会搬走；这里只引用已有地点。<a href="./amap-import.html">导入高德星标</a></div>
+   </section>
+   <section class="block"><div class="section-head"><h2>03 · 路线顺序</h2><span id="selectedCount" class="count">0 站</span></div>
+     <div id="chosen" class="chosen-list" aria-live="polite"></div><details id="routeReview" class="route-review" hidden><summary>路线核对 <span id="routeReviewSummary"></span></summary><div id="routeReviewContent"></div></details>
+     <div class="hint">长按 ⠿ 拖动排序，或用上下箭头；指定 D1 / D2… 与到达时间；真实路况请用高德确认。</div><div class="journey-planning-explainer" aria-label="路线规划方式">自己排：先选地点，再调 D1 / D2 和先后顺序。<br>地理建议：按直线邻近关系分组，可撤销。<br>AI 辅助：在“更多工具”中复制素材并导回方案。</div><button type="button" id="autoArrange" class="outline full">按地理邻近生成分天建议</button><button type="button" id="undoProposal" class="outline full" hidden>↶ 撤销上次建议，恢复手动路线</button>
+     <button id="generate" type="button" class="accent full">生成旅行路线图 <span aria-hidden="true">↗</span></button>
+   </section>
+   <details class="block tools journey-more"><summary>更多工具 <span>AI 素材 · 导入与导出</span></summary><div class="journey-more-content">
+    <button id="copyPrompt" type="button" class="outline full">AI 规划助手 · 复制素材 / 导入结果</button>
+    <button id="exportPlan" type="button" class="outline full">导出本条路线 JSON</button><button id="exportMarkdown" type="button" class="outline full">导出详细图文路书（Markdown）</button>
+    <label for="importPlan" class="outline full filelabel">导入路线 JSON</label><input id="importPlan" type="file" accept="application/json,.json" hidden/>
+    <p class="hint">原收藏的想去原因、来源链接可整理给 AI；外部社交平台的完整内容解析与真实模型 AI 排程仍需服务端连接；按地理邻近的智能编排是本机算法，不冒充 AI。你的私人照片默认留在本机。</p>
+   </div></details>
+ </aside>
+ <section class="atlas-view" aria-labelledby="atlasTitle">
+  <div class="atlas-heading"><div><div class="eyebrow">我的旅程</div><h2 id="atlasTitle">你的旅行路线</h2><p id="atlasSubtitle">从星标到路线，从计划到记忆。</p></div><button id="printPlan" type="button" class="outline print">打印路书</button></div>
+  <section id="fpJourneyOverview" class="fp-journey-overview" aria-label="当前旅行路线概览">
+    <div class="fp-jov-top"><span class="fp-jov-kicker">FOOTPRINT / ROUTE</span><span id="fpJovStats" class="fp-jov-stats">准备行程</span></div>
+    <h3 id="fpJovTitle" class="fp-jov-title">从收藏开始一段旅程</h3>
+    <p id="fpJovSummary" class="fp-jov-summary">为星标安排日期，让每一站都成为路上的章节。</p>
+    <div id="fpJovStops" class="fp-jov-stops" role="list" aria-label="路线站点顺序"></div>
+    <button id="fpJovEdit" class="fp-jov-action" type="button">编辑路线 <span aria-hidden="true">↗</span></button>
+  </section>
+  <div id="status" class="notice" role="status">正在读取你的收藏地点…</div>
+  <div id="journey" class="journey" aria-label="旅程路线与每日站点">
+    <div class="route-empty"><div class="route-empty-icon">✦</div><h3>从一颗星开始</h3><p>先从左侧选择你收藏的地点，再生成旅程。</p><button id="demo" type="button" class="outline">看看手绘路线的交互示例</button></div>
+  </div>
+  <div class="atlas-foot"><span>✦ 地图上的记忆，成为旅途上的章节。</span><a href="./index.html">返回地图 ↗</a></div>
+ </section>
+</main>
+<dialog id="aiDialog" class="ai-dialog" aria-label="AI 规划助手">
+  <h2>AI 规划助手</h2>
+  <p class="ai-step"><strong>第 1 步</strong>复制规划素材：包含旅程先决条件、站点坐标、想去原因、来源链接与 placeId。</p>
+  <button id="aiCopy" type="button" class="accent full">复制规划素材</button>
+  <p class="ai-step"><strong>第 2 步</strong>粘贴给任意 AI（Kimi / DeepSeek / ChatGPT…），请它按素材末尾的格式返回路线 JSON。</p>
+  <p class="ai-step"><strong>第 3 步</strong>把 AI 返回的 JSON 粘回这里，一键导入为本路线：</p>
+  <textarea id="aiJsonInput" rows="6" spellcheck="false" placeholder="粘贴 AI 返回的 ```json 代码块或纯 JSON…"></textarea>
+  <p id="aiImportError" class="ai-error" role="status"></p>
+  <div class="ai-actions"><button id="aiClose" type="button" class="outline">关闭</button><button id="aiImport" type="button" class="accent">导入 AI 路线</button></div>
+  <p class="hint">素材只包含你主动整理的文字与坐标，私人照片不会发送给任何 AI；网页本身不直接调用 AI 接口。</p>
+</dialog>
+
+</body></html>
