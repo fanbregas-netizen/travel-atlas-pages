@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" aria-label="Forest">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M16 49 L16 17 M9 26 L16 12 L23 26 L19 25 L25 38 L7 38 L13 25Z"/>
+  <path d="M38 53 L38 11 M27 24 L38 7 L49 24 L44 23 L53 39 L23 39 L32 23Z"/>
+ </g>
+</svg>

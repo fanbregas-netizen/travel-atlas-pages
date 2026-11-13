@@ -1,0 +1,64 @@
+name: Footprint V4 Stage23 restored-map public HTTP smoke
+on:
+  workflow_run:
+    workflows: ["Publish Travel Atlas V4 to GitHub Pages"]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  stage23-public-http:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - name: Verify distinct Stage23 actual product over public HTTPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://fanbregas-netizen.github.io/travel-atlas-pages/v4-systematic-review-20261113-stage23"
+          mkdir -p /tmp/footprint-stage23/src/visual
+          for f in version.json index.html journey.html route-view.html footprint-home.js journey.js src/visual/v4-visual-acceptance-pass.css src/interaction/real-product-bridge.js; do
+            mkdir -p "/tmp/footprint-stage23/$(dirname "$f")"
+            curl --fail --location --silent --show-error --retry 15 --retry-delay 5 --max-time 35               "$base/$f?stage23check=$(date +%s)" -o "/tmp/footprint-stage23/$f"
+            test -s "/tmp/footprint-stage23/$f"
+          done
+          node <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+          const read=p=>fs.readFileSync('/tmp/footprint-stage23/'+p);
+          const str=p=>read(p).toString('utf8');
+          const sha=p=>{const x=read(p);return crypto.createHash('sha1').update(Buffer.from('blob '+x.length+'\0')).update(x).digest('hex')};
+          const v=JSON.parse(str('version.json')),html=str('index.html'),journey=str('journey.html');
+          const route=str('route-view.html'),home=str('footprint-home.js'),css=str('src/visual/v4-visual-acceptance-pass.css');
+          assert.equal(v.stage_checkpoint,'2026-11-13-stage23-crisp-map-media-continuity');
+          assert.equal(v.production_site_unchanged,true);
+          assert.equal(v.current_interaction_mode,'swipe-card');
+          assert.equal(v.four_svg_bubbles.includes('cancelled'),true);
+          assert.equal(sha('index.html'),v.stage_checkpoint_public_index_sha);
+          assert.equal(sha('route-view.html'),v.stage_checkpoint_route_script_sha);
+          assert.equal(sha('footprint-home.js'),v.stage_checkpoint_public_script_sha);
+          assert.equal(sha('src/visual/v4-visual-acceptance-pass.css'),v.stage_checkpoint_visual_acceptance_css_sha);
+          const base='/travel-atlas-pages/v4-systematic-review-20261113-stage23/';
+          for(const page of [html,journey,route])assert.ok(page.includes('<base href="'+base+'">'),'Broken separate preview base');
+          assert.ok(html.includes('footprint-home.js?v=stage23-crisp-map'),'New JS cache key absent');
+          assert.ok(html.includes('v4-visual-acceptance-pass.css?v=stage23-crisp-map'),'Existing CSS asset key is safe within separate Stage23 URL');
+          assert.doesNotMatch(home,/fpMapOverview|mountMapOverview|fp-map-overview/,'Unauthorized panel JS still shipped');
+          assert.doesNotMatch(css,/#fpMapOverview|\.fp-map-overview/,'Unauthorized panel CSS still shipped');
+          assert.ok(home.includes('function init(){initSearch();mountPlace();'),'Real place card remains');
+          assert.ok(home.includes('function openViewer('),'Original media viewer remains');
+          assert.ok(home.includes('fp-card-location'),'Actual place address remains');
+          assert.ok(css.includes('Stage23 — system-wide iPhone polish'),'Stage23 real multi-surface visual update absent');
+          const bridge=str('src/interaction/real-product-bridge.js');
+          assert.ok(css.includes('Stage23 | crisp geographic map')&&css.includes('body.memory-open #atlasVectorMap'),'Map blur removal is not deployed');
+          assert.ok(home.includes('watchTileVideo(video)')&&home.includes('fp-viewer-immersive'),'Viewport video management or photo immersive mode missing');
+          assert.ok(bridge.includes('closeStartedAt=performance.now()'),'Safari card close fail-safe missing');
+          assert.ok(css.includes('#fpMediaViewer[open]'),'Full-size native photo viewer CSS absent');
+          assert.ok(home.includes('function drawSearchStart()')&&home.includes('readPlaces().then(rows=>'),'Real saved-place suggestions missing');
+          assert.ok(home.includes('const editorDrafts=new Map()')&&home.includes('discardEditorDraft(id'),'Place-scoped editor draft safety missing');
+          assert.ok(home.includes('function openViewer(items,index,originTile=null,navDir=0)'),'B01 gallery paging transition missing');
+          assert.ok(html.includes('id="fpvCollectionTabs"'),'Collection tabs absent');
+          assert.ok(html.includes('webglcontextrestored'),'Actual map recovery absent');
+          assert.ok(journey.includes('id="fpJourneyOverview"'),'Actual trip overview absent');
+          assert.ok(str('journey.js').includes('rail.dataset.count=String(Math.min(3,items.length))'));
+          console.log('PASS Stage23 real public HTTPS: saved-place search, in-memory drafts and B01 paging shipped with exact SHA; original map/card/route preserved');
+          NODE

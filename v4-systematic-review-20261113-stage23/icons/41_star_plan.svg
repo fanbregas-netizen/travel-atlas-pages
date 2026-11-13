@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" aria-label="Star Plan">
+  <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+   <path d="M27 6 L33 18.4 L46.8 20.4 L36.2 30.2 L38.8 44.4 L26.8 37.4 L14 44.4 L17 30.4 L7 20.2 L20.8 18.2Z"/>
+  </g>
+  <circle cx="47" cy="47" r="12.5" fill="#fffef9"/>
+  <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round">
+   <circle cx="47" cy="47" r="12.5"/><path d="M47 40.5 L47 53.5 M40.5 47 L53.5 47"/>
+  </g>
+</svg>
