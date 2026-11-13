@@ -1,0 +1,53 @@
+name: Approved V4 recovery 1 public HTTPS verification
+on:
+  workflow_run:
+    workflows: ["Publish Travel Atlas V4 to GitHub Pages"]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  approved-recovery-public:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Confirm isolated real product and exact Git blob versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://fanbregas-netizen.github.io/travel-atlas-pages/v4-approved-recovery-20261113"
+          mkdir -p /tmp/recovery/src/visual
+          for f in version.json index.html journey.html route-view.html footprint-home.js src/visual/v4-visual-acceptance-pass.css; do
+            mkdir -p "/tmp/recovery/$(dirname "$f")"
+            curl --fail --location --silent --show-error --retry 15 --retry-delay 4 --max-time 40 "$base/$f?r1=$(date +%s)" -o "/tmp/recovery/$f"
+            test -s "/tmp/recovery/$f"
+          done
+          node <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+          const load=p=>fs.readFileSync('/tmp/recovery/'+p);
+          const src=p=>load(p).toString('utf8');
+          const sha=p=>{const b=load(p);return crypto.createHash('sha1').update(Buffer.from('blob '+b.length+'\\0')).update(b).digest('hex')};
+          const v=JSON.parse(src('version.json')),home=src('footprint-home.js'),html=src('index.html'),css=src('src/visual/v4-visual-acceptance-pass.css'),route=src('route-view.html');
+          assert.equal(v.stage_checkpoint,'approved-v4-recovery-1-20261113');
+          assert.equal(v.production_site_unchanged,true);
+          assert.equal(v.current_interaction_mode,'swipe-card');
+          assert.equal(sha('index.html'),v.stage_checkpoint_public_index_sha);
+          assert.equal(sha('route-view.html'),v.stage_checkpoint_route_script_sha);
+          assert.equal(sha('footprint-home.js'),v.stage_checkpoint_public_script_sha);
+          assert.equal(sha('src/visual/v4-visual-acceptance-pass.css'),v.stage_checkpoint_visual_acceptance_css_sha);
+          for(const p of ['index.html','journey.html','route-view.html'])assert.ok(src(p).includes('<base href="/travel-atlas-pages/v4-approved-recovery-20261113/">'),p+' preview base incorrect');
+          assert.ok(html.includes('footprint-home.js?v=approved-recovery-1'));
+          assert.ok(html.includes('v4-visual-acceptance-pass.css?v=approved-recovery-1'));
+          assert.ok(home.includes('const firstPhoto=media.find('));
+          assert.ok(home.includes('fp-place-preview'));
+          assert.ok(css.includes('Approved V4 recovery:'));
+          assert.ok(css.includes('pointer-events:auto!important'));
+          assert.ok(route.includes('地图已加载 · 正在核验道路路线'));
+          assert.ok(route.includes("legend.dataset.roadState='insufficient'"));
+          assert.ok(route.includes("legend.dataset.roadState='ready'"));
+          assert.ok(route.includes("legend.dataset.roadState='fallback'"));
+          assert.ok(!route.includes("notice('路线已生成"));
+          assert.ok(!home.includes('mountMapOverview'));
+          console.log('PASS: original root intact; real media card and honest route status shipped as distinct candidate');
+          NODE

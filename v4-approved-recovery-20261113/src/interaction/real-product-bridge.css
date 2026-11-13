@@ -1,0 +1,15 @@
+/* Preserve V4 appearance; align the dynamic card grabber with the B controller. */
+#fpPlaceCard[data-atlas-sheet-controller]>.sheet-grab{display:none}
+#fpPlaceCard[data-atlas-sheet-controller] .fp-card-header{padding-top:30px;position:relative}
+#fpPlaceCard[data-atlas-sheet-controller] .atlas-card-grip{
+ position:absolute;left:calc(50% - 37px);top:0;margin:0;
+ width:74px;min-width:74px;height:30px;min-height:30px;
+ border:0;border-radius:0;background:transparent!important;box-shadow:none!important;
+ touch-action:none;z-index:2
+}
+#fpPlaceCard[data-atlas-sheet-controller] .atlas-card-grip::before{
+ content:'';position:absolute;width:46px;height:6px;border-radius:10px;
+ left:14px;top:11px;background:#d3d1ca
+}
+#fpPlaceCard[data-atlas-sheet-controller] .fp-card-header .fp-card-title-wrap{min-width:0}
+#fpPlaceCard[data-atlas-sheet-controller].atlas-sheet-closing{pointer-events:none}
