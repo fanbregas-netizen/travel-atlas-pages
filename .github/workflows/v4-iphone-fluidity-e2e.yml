@@ -1,0 +1,29 @@
+name: V4 optimized iPhone actual-product gesture smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/v4-iphone-fluidity-e2e.cjs'
+      - '.github/workflows/v4-iphone-fluidity-e2e.yml'
+permissions:
+  contents: read
+jobs:
+  real-gestures:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - run: node tests/v4-iphone-fluidity-e2e.cjs
+        env:
+          BROWSER: ${{ matrix.browser }}
