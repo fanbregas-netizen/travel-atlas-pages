@@ -112,6 +112,7 @@ jobs:
           # User-approved V4 performance candidate; inherit exact real-product resources.
           cp -R _site/v4-approved-ux-real-review-20261113 _site/v4-iphone-fluidity-20261113
           cp v4-iphone-fluidity-20261113/index.html _site/v4-iphone-fluidity-20261113/index.html
+          cp v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js _site/v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js
           # Approved V4 visual recovery 2 — distinct review; root is never overwritten.
           cp -R v4-approved-recovery-phase2-20261113 _site/v4-approved-recovery-phase2-20261113
           # P1 approved V4 real-product rebuild; do not overwrite root or any existing stage.
@@ -131,6 +132,7 @@ jobs:
           test -s _site/v4-systematic-review-20261113-stage22/index.html
           test -s _site/v4-systematic-review-20261113-stage23/index.html
           test -s _site/v4-iphone-fluidity-20261113/index.html
+          grep -q 'height.toFixed(2).*important' _site/v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js
           test -s _site/v4-iphone-fluidity-20261113/src/interaction/sheet-controller.js
           test -s _site/v4-iphone-fluidity-20261113/src/interaction/sheet-dom.js
           test -s _site/v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js
