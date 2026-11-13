@@ -48,11 +48,11 @@ const variant=process.env.BROWSER||'chromium',url='https://fanbregas-netizen.git
    await repo.saveRoute({id:'media-route',title:'媒体与路线同存储',stops:[{placeId:place.id,day:1}],startDate:'2026-11-20',endDate:'2026-11-20'});
    const archive=await repo.backup();
    const restored=await FootprintMediaCore.readBackup(archive);
-   if(!(archive.length>100))throw Error('Media D ZIP backup was empty');
+   if(!(archive.size>100))throw Error('Media D ZIP backup was empty');
    if(!restored.records.some(p=>p.id===place.id))throw Error('Media D ZIP lost bookmarked media');
    if(!restored.routes.some(p=>p.id==='media-route'))throw Error('Media D ZIP lost route');
    await repo.restore(archive,{conflict:'merge'});
-   return {bytes:archive.length,places:restored.records.length,routes:restored.routes.length};
+   return {bytes:archive.size,places:restored.records.length,routes:restored.routes.length};
   });
   await page.reload({waitUntil:'domcontentloaded',timeout:65000});
   await page.waitForSelector('#appDock',{timeout:27000});
