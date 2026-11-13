@@ -5,6 +5,7 @@ on:
     paths:
       - 'tests/four-systems-approved-live.test.cjs'
       - 'tests/four-systems-live-browser.test.cjs'
+      - 'v4-approved-four-systems-live-20261113/src/interaction/route-cards-v5-live.js'
       - '.github/workflows/v4-four-systems-live-e2e.yml'
   workflow_dispatch:
 permissions:
@@ -46,7 +47,7 @@ jobs:
           URL='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-approved-four-systems-live-20261113/'
           OK=0
           for i in $(seq 1 46); do
-            if curl -fsSL --max-time 15 -o /tmp/cv5-live.js "$URL"src/interaction/route-cards-v5-live.js && grep -q 'Footprint Map V4 — FULL APPROVED Interaction C V5 LIVE transplant' /tmp/cv5-live.js; then
+            if curl -fsSL --max-time 15 -o /tmp/cv5-live.js "$URL"src/interaction/route-cards-v5-live.js?v=$GITHUB_SHA && grep -Fq "!liveSavedId||!state.saved" /tmp/cv5-live.js; then
               OK=1
               break
             fi
