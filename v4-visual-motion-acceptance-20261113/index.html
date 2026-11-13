@@ -10,6 +10,27 @@
 .deck{width:min(390px,100%);height:67px;border-radius:19px;background:#203528;color:#f0f5eb;display:flex;align-items:center;gap:7px;padding:9px;box-shadow:0 6px 20px #1d2b2233}.deck button{width:40px;height:40px;flex:none;border-radius:13px;color:white;background:#39513f;font-size:21px}.deck button.next{background:#506f55}.deck .meta{flex:1;min-width:0}.deck strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.deck small{display:block;font-size:10px;color:#b2c6b3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
 @media(max-width:520px){#outer{padding:0;gap:0}.headline{display:none}.phone{width:100%;height:calc(100dvh - 73px);border-radius:0;box-shadow:none}.deck{width:100%;height:73px;border-radius:0;padding:9px 13px calc(9px + env(safe-area-inset-bottom))}.deck button{width:41px;height:41px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* V4 approved preview · tactile Dock / every-sheet vertical gesture polish. */
+.dock{isolation:isolate;contain:layout style}
+.dock .dock-glider{
+ position:absolute;z-index:0;top:6px;bottom:6px;left:6px;
+ width:calc((100% - 21px)/4);border-radius:18px;background:#e9efe6;
+ pointer-events:none;transform-origin:50% 50%;
+ will-change:left,transform;box-shadow:inset 0 0 0 1px #dce7d9;
+}
+.dock button{position:relative;z-index:1;touch-action:manipulation;transform-origin:50% 72%}
+.dock button.active{background:transparent}
+.dock button:active,.dock button.dock-pressed{transform:translateY(4px) scale(.92,.85)}
+.sheet-head{touch-action:none}
+.sheet-scroll{touch-action:pan-y}
+.sheet[data-sheet-dragging="yes"]{box-shadow:0 -20px 65px #1a32283b}
+.sheet[data-sheet-dragging="yes"] .grip:after{background:#acbdae;transform:scaleX(1.12);transition:transform .12s}
+.sheet .grip:after{transition:transform .3s cubic-bezier(.22,1,.36,1),background .2s}
+@media(prefers-reduced-motion:reduce){
+ .dock .dock-glider,.sheet .grip:after{transition:none!important;animation:none!important}
+}
+
 </style></head>
 <body><div id="outer"><div class="headline">FOOTPRINT MAP V4 · 已批准视觉 / 下一轮动效验收样板 · 不连接真实数据</div><div class="phone" id="phone">
 <div class="map"><svg class="map-art" id="mapArt" viewBox="0 0 600 960" preserveAspectRatio="xMidYMid slice"><g>
@@ -60,12 +81,12 @@ let scene=0,active='',placeLevel='peek',routeLevel='half',viewerIndex=0,viewerOr
 const H=()=>phone.getBoundingClientRect().height,levels=()=>({peek:Math.min(268,H()*.34),half:H()*.59,full:H()-6});
 function spring(node,height,done){if(motions.has(node))cancelAnimationFrame(motions.get(node));let x=parseFloat(node.style.height)||0,v=0,last=0,n=0;function tick(t){let dt=Math.min(.032,last?(t-last)/1000:.016);last=t;v+=(390*(height-x)-38*v)*dt;x+=v*dt;node.style.height=Math.max(0,x).toFixed(2)+'px';n++;if((Math.abs(height-x)<.6&&Math.abs(v)<4)||n>100){node.style.height=height+'px';motions.delete(node);done&&done();return}motions.set(node,requestAnimationFrame(tick))}motions.set(node,requestAnimationFrame(tick))}
 function reset(){sheets.forEach(n=>{if(motions.has(n))cancelAnimationFrame(motions.get(n));motions.delete(n);n.classList.remove('show');n.style.height='0px';n.inert=false});$('scrim').classList.remove('show');phone.classList.remove('dock-hidden','route-active');$('dateModal').classList.remove('show');$('viewer').classList.remove('show');active='';placeLevel='peek';$('dockMap').classList.add('active')}
-function dockSelect(id){document.querySelectorAll('.dock button').forEach(x=>x.classList.remove('active'));$(id).classList.add('active')}
+function dockSelect(id){document.querySelectorAll('.dock button').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');dockMotionSelect(id)}
 function open(node,kind,height){sheets.forEach(n=>{if(n!==node){if(motions.has(n))cancelAnimationFrame(motions.get(n));n.classList.remove('show');n.style.height='0px';n.inert=false}});node.classList.add('show');node.inert=false;active=kind;$('scrim').classList.add('show');phone.classList.add('dock-hidden');spring(node,height)}
 function close(node){node.inert=true;spring(node,0,()=>{node.classList.remove('show');node.inert=false;if(!sheets.some(n=>n.classList.contains('show'))){$('scrim').classList.remove('show');phone.classList.remove('dock-hidden','route-active')}})}
 function showPlace(l){placeLevel=l;dockSelect('dockMap');open(place,'place',levels()[l]);place.dataset.level=l}
-function showSearch(){dockSelect('dockSearch');open(search,'search',levels().full);$('searchInput').value='';renderSearch()}
-function showSaved(){dockSelect('dockSaved');open(saved,'saved',H()*.76);renderSaved('places')}
+function showSearch(){extraSheetLevels.set(search,'full');dockSelect('dockSearch');open(search,'search',levels().full);$('searchInput').value='';renderSearch()}
+function showSaved(){extraSheetLevels.set(saved,'half');dockSelect('dockSaved');open(saved,'saved',H()*.76);renderSaved('places')}
 function showRoute(l='half'){routeLevel=l;dockSelect('dockRoute');phone.classList.add('route-active');open(route,'route',levels()[l]);renderStops()}
 function emptyOrResults(){return $('searchInput').value.trim().toLowerCase()}
 function renderSearch(){const host=$('searchResults'),q=emptyOrResults();$('clearSearch').style.visibility=q?'visible':'hidden';host.replaceChildren();const t=document.createElement('div');t.className='group-label';t.textContent=q?'地点搜索结果':'我的收藏 · 演示示例';host.append(t);const list=q&&!(('山海海边灯塔书店旧城浙江山间').includes(q))?[]:[0,1,2];if(!list.length){const e=document.createElement('div');e.className='empty';e.textContent='没有找到匹配的演示地点。正式产品中将明确显示无结果、错误和重试状态。';host.append(e)}list.forEach(i=>host.append(row(['山海之间','山间书店','海边灯塔'][i],['浙江 · 海岸与旧城','建筑 · 山景 · 安静午后','海边 · 日落散步'][i],i,()=>showPlace('peek'))))}
@@ -75,8 +96,203 @@ function renderStops(){const host=$('routeStops');host.replaceChildren();stops.f
 let timer;function toast(s){const el=$('toast');el.textContent=s;el.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>el.classList.remove('show'),2450)}
 function go(i){scene=(i+scenes.length)%scenes.length;reset();document.querySelectorAll('.dock button').forEach(x=>x.classList.remove('active'));$('dockMap').classList.add('active');$('sceneTitle').textContent=String(scene+1).padStart(2,'0')+' / 09　'+scenes[scene][0];$('sceneDesc').textContent=scenes[scene][1];$('mapGuide').innerHTML=String(scene+1).padStart(2,'0')+' · '+scenes[scene][0]+'<br>'+scenes[scene][1];$('mapGuide').style.display=scene===5?'none':'block';$('homeIntro').style.display=scene===0?'block':'none';if(scene===1)showSearch();if(scene===2)showPlace('peek');if(scene===3)showPlace('half');if(scene===4)showPlace('full');if(scene===5){showPlace('full');setTimeout(()=>showViewer(0,$('heroPhoto')),500)}if(scene===6)showSaved();if(scene===7)showRoute();if(scene===8){showRoute();setTimeout(()=>$('dateModal').classList.add('show'),430)}renderToc();$('toc').classList.remove('show')}
 function renderToc(){const host=$('tocList');host.replaceChildren();scenes.forEach((x,i)=>{const b=document.createElement('button');b.className='toc-item'+(i===scene?' active':'');const n=document.createElement('b');n.textContent=String(i+1).padStart(2,'0');const meta=document.createElement('span'),title=document.createElement('strong'),sub=document.createElement('small');title.textContent=x[0];sub.textContent=x[1];meta.append(title,sub);b.append(n,meta);b.onclick=()=>go(i);host.append(b)})}
-function bindGrip(node,button,kind){let drag=null;button.addEventListener('pointerdown',e=>{drag={y:e.clientY,height:parseFloat(node.style.height)||0,moved:false};if(motions.has(node))cancelAnimationFrame(motions.get(node));motions.delete(node);button.setPointerCapture?.(e.pointerId)});button.addEventListener('pointermove',e=>{if(!drag)return;const dy=e.clientY-drag.y;if(Math.abs(dy)>4)drag.moved=true;let h=drag.height-dy,max=levels().full;if(h>max)h=max+(h-max)*.25;if(h<90)h=90+(h-90)*.25;node.style.height=Math.max(60,h)+'px'});button.addEventListener('pointerup',e=>{if(!drag)return;const dy=e.clientY-drag.y,m=drag.moved;drag=null;if(kind==='place'||kind==='route'){const a=['peek','half','full'];let old=kind==='place'?placeLevel:routeLevel,idx=a.indexOf(old);if(Math.abs(dy)>35)idx+=dy<0?1:-1;else if(!m)idx=idx===2?1:idx+1;if(idx<0){close(node)}else(kind==='place'?showPlace:showRoute)(a[Math.min(idx,2)])}else if(dy>55)close(node);else spring(node,kind==='search'?levels().full:H()*.76)});button.addEventListener('pointercancel',()=>drag=null)}
-bindGrip(place,$('placeGrip'),'place');bindGrip(search,$('searchGrip'),'search');bindGrip(saved,$('savedGrip'),'saved');bindGrip(route,$('routeGrip'),'route');
+/* One physical, elastic vertical sheet interaction for all four cards.
+   Header/grip uses pointer events; content uses cancelable touchmove, so
+   normal iPhone scrolling remains native at the full detent. */
+const extraSheetLevels=new WeakMap([[search,'full'],[saved,'half']]);
+function boundsFor(kind){
+ const d=levels(),h=H();
+ if(kind==='saved')return {peek:Math.min(d.peek,h*.35),half:h*.76,full:d.full};
+ if(kind==='search')return {peek:d.peek,half:h*.62,full:d.full};
+ return d;
+}
+function currentLevel(kind){
+ return kind==='place'?placeLevel:kind==='route'?routeLevel:
+ extraSheetLevels.get(kind==='search'?search:saved)||'half';
+}
+function sheetSnap(node,kind,key){
+ if(key==='closed'){if(active===kind)active='';close(node);return}
+ if(kind==='place')placeLevel=key;
+ else if(kind==='route')routeLevel=key;
+ else extraSheetLevels.set(node,key);
+ node.dataset.level=key;
+ const scroll=node.querySelector('.sheet-scroll');
+ if(scroll&&key!=='full'&&scroll.scrollTop>0)scroll.scrollTop=0;
+ spring(node,boundsFor(kind)[key]);
+}
+function sheetMotionStart(node,kind,y,fromGrip=false){
+ if(!node.classList.contains('show')||node.inert)return null;
+ if(motions.has(node))cancelAnimationFrame(motions.get(node));
+ motions.delete(node);
+ const h=parseFloat(node.style.height)||node.getBoundingClientRect().height;
+ return {node,kind,startY:y,lastY:y,startHeight:h,level:currentLevel(kind),
+         fromGrip,moved:false,samples:[{y,t:performance.now()}]};
+}
+function sheetMotionMove(d,y){
+ if(!d)return;
+ const dy=y-d.startY;if(Math.abs(dy)>5)d.moved=true;
+ d.lastY=y;d.samples.push({y,t:performance.now()});
+ while(d.samples.length>2&&d.samples[d.samples.length-1].t-d.samples[0].t>105)d.samples.shift();
+ const x=boundsFor(d.kind),min=x.peek,max=x.full;
+ let height=d.startHeight-dy;
+ if(height>max)height=max+(height-max)*.22;
+ if(height<min)height=min+(height-min)*.34;
+ d.node.dataset.sheetDragging='yes';
+ d.node.style.height=Math.max(95,height).toFixed(2)+'px';
+}
+function sheetMotionEnd(d,cancelled=false){
+ if(!d)return;delete d.node.dataset.sheetDragging;
+ if(cancelled){spring(d.node,boundsFor(d.kind)[d.level]);return}
+ const dy=d.lastY-d.startY;
+ const samples=d.samples,first=samples[0],last=samples[samples.length-1];
+ const velocity=(last.y-first.y)/Math.max(16,last.t-first.t);
+ const keys=['peek','half','full'];
+ const old=keys.indexOf(d.level),direction=dy<0?1:-1;
+ if(!d.moved){
+  if(d.fromGrip){const next=keys[Math.min(2,old===2?1:old+1)];sheetSnap(d.node,d.kind,next)}
+  else sheetSnap(d.node,d.kind,d.level);
+  return;
+ }
+ if(d.level==='peek'&&dy>62){sheetSnap(d.node,d.kind,'closed');return}
+ if(Math.abs(dy)<28&&Math.abs(velocity)<.4){sheetSnap(d.node,d.kind,d.level);return}
+ let idx=old;
+ if(Math.abs(dy)>35||Math.abs(velocity)>.55)idx=old+direction;
+ // Longer intentional swipes can skip a detent, like a native iOS sheet.
+ if(Math.abs(dy)>240)idx=old+direction*2;
+ idx=Math.min(2,Math.max(0,idx));
+ sheetSnap(d.node,d.kind,keys[idx]);
+}
+function wireSheet(node,grip,kind){
+ const header=node.querySelector('.sheet-head'),scroller=node.querySelector('.sheet-scroll');
+ let pointer=null,scrollTouch=null,mouse=null;
+ const interactive='button:not(.grip),a,input,textarea,select,video,[contenteditable],.media-grid';
+ // The entire non-button header, not only its narrow grab line, can drag.
+ header.addEventListener('pointerdown',e=>{
+  if(e.button!==undefined&&e.button!==0||e.target.closest(interactive))return;
+  pointer=sheetMotionStart(node,kind,e.clientY,!!e.target.closest('.grip'));
+  if(pointer){pointer.id=e.pointerId;try{header.setPointerCapture(e.pointerId)}catch(_){}}
+ });
+ header.addEventListener('pointermove',e=>{
+  if(pointer&&e.pointerId===pointer.id)sheetMotionMove(pointer,e.clientY)
+ });
+ header.addEventListener('pointerup',e=>{
+  if(!pointer||e.pointerId!==pointer.id)return;sheetMotionMove(pointer,e.clientY);
+  const d=pointer;pointer=null;sheetMotionEnd(d)
+ });
+ header.addEventListener('pointercancel',()=>{
+  if(pointer){sheetMotionEnd(pointer,true);pointer=null}
+ });
+ // Body dragging applies to all cards. In full mode, allow native content
+ // scroll; only downward pulling from scrollTop=0 takes the sheet.
+ scroller.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1||e.target.closest(interactive)){scrollTouch=null;return}
+  const t=e.touches[0];scrollTouch={id:t.identifier,x:t.clientX,y:t.clientY,engaged:false,ignored:false,data:null};
+ },{passive:true});
+ scroller.addEventListener('touchmove',e=>{
+  if(!scrollTouch||e.touches.length!==1||scrollTouch.ignored)return;
+  const t=e.touches[0],dx=t.clientX-scrollTouch.x,dy=t.clientY-scrollTouch.y;
+  if(!scrollTouch.engaged){
+   if(Math.abs(dx)>Math.abs(dy)*1.15&&Math.abs(dx)>8){scrollTouch.ignored=true;return}
+   if(Math.abs(dy)<7)return;
+   // Full-screen card keeps real reading scrolling. Only overscroll
+   // downward from the top is captured as sheet movement.
+   if(currentLevel(kind)==='full'&&(scroller.scrollTop>1||dy<0)){
+    scrollTouch.ignored=true;return;
+   }
+   scrollTouch.data=sheetMotionStart(node,kind,scrollTouch.y,false);
+   scrollTouch.engaged=!!scrollTouch.data;
+  }
+  if(scrollTouch.engaged){
+   if(e.cancelable)e.preventDefault();
+   sheetMotionMove(scrollTouch.data,t.clientY);
+  }
+ },{passive:false});
+ scroller.addEventListener('touchend',e=>{
+  if(!scrollTouch)return;
+  if(scrollTouch.engaged){
+   const touch=[...e.changedTouches].find(t=>t.identifier===scrollTouch.id);
+   if(touch)sheetMotionMove(scrollTouch.data,touch.clientY);
+   sheetMotionEnd(scrollTouch.data);
+  }
+  scrollTouch=null;
+ },{passive:true});
+ scroller.addEventListener('touchcancel',()=>{
+  if(scrollTouch?.engaged)sheetMotionEnd(scrollTouch.data,true);scrollTouch=null;
+ },{passive:true});
+ // Desktop pointer test path. Touch relies on touchmove to preserve iOS scroll.
+ scroller.addEventListener('pointerdown',e=>{
+  if(e.pointerType!=='mouse'||e.button!==0||e.target.closest(interactive))return;
+  mouse=sheetMotionStart(node,kind,e.clientY);
+  if(mouse){mouse.id=e.pointerId;scroller.setPointerCapture?.(e.pointerId)}
+ });
+ scroller.addEventListener('pointermove',e=>{
+  if(mouse&&mouse.id===e.pointerId)sheetMotionMove(mouse,e.clientY)
+ });
+ scroller.addEventListener('pointerup',e=>{
+  if(mouse&&mouse.id===e.pointerId){sheetMotionMove(mouse,e.clientY);sheetMotionEnd(mouse);mouse=null}
+ });
+ scroller.addEventListener('pointercancel',()=>{
+  if(mouse)sheetMotionEnd(mouse,true);mouse=null
+ });
+}
+wireSheet(place,$('placeGrip'),'place');
+wireSheet(search,$('searchGrip'),'search');
+wireSheet(saved,$('savedGrip'),'saved');
+wireSheet(route,$('routeGrip'),'route');
+
+/* Tactile Dock: finger compression, displaced stretch, slight overshoot,
+   then settle. The moving selection pill is the same four-tab Dock. */
+const dockShell=$('dock'),dockButtons=[...dockShell.querySelectorAll('button')];
+const dockGlider=document.createElement('span');
+dockGlider.className='dock-glider';dockGlider.setAttribute('aria-hidden','true');
+dockShell.prepend(dockGlider);
+let dockGliderX=NaN,dockPending=null;
+const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+function dockMotionSelect(id){
+ const target=$(id);if(!target||!dockShell.contains(target))return;
+ const x=target.offsetLeft,w=target.offsetWidth,from=Number.isFinite(dockGliderX)?dockGliderX:x;
+ if(dockGlider.getAnimations) dockGlider.getAnimations().forEach(a=>a.cancel());
+ dockGlider.style.width=w+'px';
+ dockGlider.style.left=x+'px';
+ if(Number.isFinite(dockGliderX)&&!reduceMotion()&&Math.abs(from-x)>2){
+  const extra=x+(x-from)*.11;
+  dockGlider.animate([
+   {left:from+'px',transform:'scaleX(1)'},
+   {left:extra+'px',transform:'scaleX(1.16)',offset:.49},
+   {left:x+'px',transform:'scaleX(.95)',offset:.77},
+   {left:x+'px',transform:'scaleX(1)'}
+  ],{duration:520,easing:'cubic-bezier(.21,.78,.3,1)'});
+ }
+ dockGliderX=x;
+}
+function dockTap(id,action){
+ if(dockPending)clearTimeout(dockPending);
+ const target=$(id);
+ dockMotionSelect(id);
+ if(target&&!reduceMotion()){
+  target.animate([
+   {transform:'translateY(4px) scale(.92,.85)',offset:0},
+   {transform:'translateY(-7px) scale(1.09,1.07)',offset:.43},
+   {transform:'translateY(2px) scale(.975,.97)',offset:.73},
+   {transform:'translateY(0) scale(1)'}
+  ],{duration:530,easing:'cubic-bezier(.22,.83,.29,1)'});
+  dockShell.animate([
+   {transform:'translateX(-50%) translateY(0) scale(1)',offset:0},
+   {transform:'translateX(-50%) translateY(3px) scale(.985,.955)',offset:.3},
+   {transform:'translateX(-50%) translateY(-3px) scale(1.015,1.014)',offset:.7},
+   {transform:'translateX(-50%) translateY(0) scale(1)'}
+  ],{duration:530,easing:'cubic-bezier(.22,.83,.29,1)'});
+ }
+ // Give the physical Dock press a readable 200ms before the bottom
+ // sheet comes forward, instead of hiding the Dock on pointer-up.
+ dockPending=setTimeout(()=>{dockPending=null;action()},reduceMotion()?0:200);
+}
+dockButtons.forEach(btn=>{
+ btn.addEventListener('pointerdown',()=>btn.classList.add('dock-pressed'));
+ ['pointerup','pointercancel','pointerleave'].forEach(type=>btn.addEventListener(type,()=>btn.classList.remove('dock-pressed')));
+});
+requestAnimationFrame(()=>dockMotionSelect('dockMap'));
+
 function showViewer(i,origin){viewerIndex=i;viewerOrigin=origin;$('viewerImg').src=photos[i];$('viewerImg').onerror=()=>{$('viewerImg').removeAttribute('src');$('viewerImg').style.background=fallbacks[i]};$('mediaCount').textContent=String(i+1).padStart(2,'0')+' / 03 · 演示影像';$('viewer').classList.add('show');const dots=$('viewerDots');dots.replaceChildren();photos.forEach((_,j)=>{let p=document.createElement('i');p.className=j===i?'active':'';dots.append(p)});if(origin?.isConnected){const a=origin.getBoundingClientRect(),b=$('viewerImg').getBoundingClientRect(),dx=a.left+a.width/2-b.left-b.width/2,dy=a.top+a.height/2-b.top-b.height/2;$('viewerImg').animate([{transform:'translate3d('+dx+'px,'+dy+'px,0) scale('+(a.width/b.width)+','+(a.height/b.height)+')',opacity:.4,borderRadius:'15px'},{transform:'none',opacity:1}],{duration:460,easing:'cubic-bezier(.19,1,.32,1)'})}}
 function closeViewer(){const img=$('viewerImg'),a=viewerOrigin?.getBoundingClientRect(),b=img.getBoundingClientRect();if(a&&b&&viewerOrigin?.isConnected){img.animate([{transform:img.style.transform||'none',opacity:1},{transform:'translate3d('+(a.left+a.width/2-b.left-b.width/2)+'px,'+(a.top+a.height/2-b.top-b.height/2)+'px,0) scale('+(a.width/b.width)+','+(a.height/b.height)+')',opacity:.2}],{duration:320,easing:'cubic-bezier(.22,1,.36,1)'}).finished.finally(()=>{$('viewer').classList.remove('show');img.style.transform=''})}else $('viewer').classList.remove('show')}
 let touch=null;$('viewer').addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;touch={x:e.clientX,y:e.clientY,dir:''};e.target.setPointerCapture?.(e.pointerId)});$('viewer').addEventListener('pointermove',e=>{if(!touch)return;const dx=e.clientX-touch.x,dy=e.clientY-touch.y;if(!touch.dir&&Math.max(Math.abs(dx),Math.abs(dy))>12)touch.dir=dy>0&&Math.abs(dy)>Math.abs(dx)*1.2?'down':'side';if(touch.dir==='down')$('viewerImg').style.transform='translateY('+Math.max(0,Math.min(340,dy))+'px) scale('+Math.max(.8,1-dy*.0005)+')'});$('viewer').addEventListener('pointerup',e=>{if(!touch)return;const dx=e.clientX-touch.x,dy=e.clientY-touch.y,dir=touch.dir;touch=null;if(dir==='down'&&dy>100){closeViewer();return}if(dir==='side'&&Math.abs(dx)>65){const i=Math.max(0,Math.min(photos.length-1,viewerIndex+(dx<0?1:-1)));showViewer(i,document.querySelector('.media-thumb[data-media="'+i+'"]'));return}$('viewerImg').style.transition='transform .28s var(--ease)';$('viewerImg').style.transform='';setTimeout(()=>$('viewerImg').style.transition='',300)});$('viewer').addEventListener('pointercancel',()=>{touch=null;$('viewerImg').style.transform=''});
@@ -84,7 +300,7 @@ document.querySelectorAll('.media-thumb').forEach(b=>b.onclick=()=>showViewer(+b
 $('mapStar').onclick=()=>showPlace('peek');$('placeX').onclick=()=>close(place);$('editAct').onclick=()=>toast('编辑器视觉将沿用相同字号与 44px 操作区');$('starAct').onclick=()=>toast('取消星标先确认；原照片和 Brief 保留');$('stageBtn').onclick=()=>toast('想去 / 已到访使用同一状态标签');$('guideBtn').onclick=()=>toast('攻略链接使用独立、轻量的阅读入口');
 $('searchInput').oninput=renderSearch;$('clearSearch').onclick=()=>{$('searchInput').value='';renderSearch();$('searchInput').focus()};$('searchX').onclick=()=>close(search);
 $('savedX').onclick=()=>close(saved);$('tabPlaces').onclick=()=>renderSaved('places');$('tabRoutes').onclick=()=>renderSaved('routes');$('dateChange').onclick=()=>$('dateModal').classList.add('show');$('dateCancel').onclick=()=>{$('dateModal').classList.remove('show');toast('已取消：日期与顺序不变')};$('dateDone').onclick=()=>{const v=$('dateInput').value;if(v){const d=new Date(v+'T12:00:00'),e=new Date(d);e.setDate(d.getDate()+2);$('dateText').textContent=(d.getMonth()+1)+'月'+d.getDate()+'日 — '+(e.getMonth()+1)+'月'+e.getDate()+'日'}$('dateModal').classList.remove('show');renderStops();toast('日期完成确认 · D 标签同步')};$('addStop').onclick=()=>toast('演示只展示入口，真实地图选点未启用');$('saveRoute').onclick=()=>toast('示意保存反馈 · 不写入真实数据');
-$('dockSearch').onclick=showSearch;$('dockMap').onclick=()=>{reset();dockSelect('dockMap')};$('dockSaved').onclick=showSaved;$('dockRoute').onclick=()=>showRoute();
+$('dockSearch').onclick=()=>dockTap('dockSearch',showSearch);$('dockMap').onclick=()=>dockTap('dockMap',()=>{reset();dockSelect('dockMap')});$('dockSaved').onclick=()=>dockTap('dockSaved',showSaved);$('dockRoute').onclick=()=>dockTap('dockRoute',()=>showRoute());
 $('scrim').onclick=()=>{if(active==='place')close(place);if(active==='search')close(search);if(active==='saved')close(saved);if(active==='route')close(route);active='';dockSelect('dockMap')};
 $('openMenu').onclick=()=>$('toc').classList.add('show');$('tocOpen').onclick=()=>$('toc').classList.add('show');$('tocClose').onclick=()=>$('toc').classList.remove('show');$('infoBtn').onclick=()=>toast('独立视觉/动效样板；不代表真实产品已集成通过');
 $('prev').onclick=()=>go(scene-1);$('next').onclick=()=>go(scene+1);
