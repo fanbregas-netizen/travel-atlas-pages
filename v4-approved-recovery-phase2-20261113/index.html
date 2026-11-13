@@ -6887,6 +6887,8 @@ window.visualViewport?.addEventListener('resize',()=>{
    const dock=$('appDock');if(!dock||!$('dockSearch'))return;
    // Final V4: the original header owns its own 44px close action.
    // The retired Stage1.30 Dock-only mutation must not steal it into the input.
+   // Keep this node reference for the existing search visibility observer.
+   const sheet=$('fpSearchSheet');
    $('dockSearch').addEventListener('click',e=>{
      e.preventDefault();closeRoute();$('closeDrawer')?.click();
      window.__footprintHome?.openSearch?.();syncNav();
