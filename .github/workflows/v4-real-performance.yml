@@ -1,0 +1,23 @@
+name: V4 compare static-demo vs real-product performance
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/v4-real-performance.cjs'
+      - '.github/workflows/v4-real-performance.yml'
+permissions:
+  contents: read
+jobs:
+  profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install chromium
+      - run: node tests/v4-real-performance.cjs
