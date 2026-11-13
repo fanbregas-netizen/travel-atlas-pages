@@ -47,7 +47,7 @@ jobs:
           assert.ok(home.includes('function init(){initSearch();mountPlace();'),'Real place card remains');
           assert.ok(home.includes('function openViewer('),'Original media viewer remains');
           assert.ok(home.includes('fp-card-location'),'Actual place address remains');
-          assert.ok(css.includes('Stage23 — system-wide iPhone polish'),'Stage23 real multi-surface visual update absent');
+          assert.ok(css.includes('Stage22 — system-wide iPhone polish'),'Stage22 full-product foundation missing');
           const bridge=str('src/interaction/real-product-bridge.js');
           assert.ok(css.includes('Stage23 | crisp geographic map')&&css.includes('body.memory-open #atlasVectorMap'),'Map blur removal is not deployed');
           assert.ok(home.includes('watchTileVideo(video)')&&home.includes('fp-viewer-immersive'),'Viewport video management or photo immersive mode missing');
