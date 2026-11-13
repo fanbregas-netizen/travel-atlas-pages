@@ -1,0 +1,66 @@
+name: V4 Stage 1.37 approved C V5 parity (real product)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/stage137-approved-order.test.cjs'
+      - 'tests/stage137-real-product-e2e.cjs'
+      - '.github/workflows/v4-stage137-approved-parity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  frozen-approved-visual-and-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact frozen C V5 and real source hashes
+        run: |
+          test "$(git hash-object interaction-b-v4-batch-c-v5-review/index.html)" = 145e33e468b3eaeb91f1e4f2da921937fc7c281f
+          test "$(git hash-object interaction-b-v4-batch-c-v5-review/route-cards-v5.js)" = 084f9b48355b37c9fa871b04aef09f86fe65bb39
+          test "$(git hash-object interaction-b-v4-batch-c-v5-review/route-cards-v5.css)" = 4e5899b6d7589c5f65effbe759139d424798b767
+          test "$(git hash-object v4-stage136-approved-real-20261113/src/visual/route-v5-integrated.css)" = be258098454c3fddac5a40273034229047c9ad14
+          test "$(git hash-object v4-stage137-approved-parity-20261113/journey.js)" = f61ebfa928152aeccf4e0d71ffc0ce2b23d9af87
+          test "$(git hash-object v4-stage137-approved-parity-20261113/src/route/date-confirm.js)" = 1692da669e6ef64f54df8d3c2fb4e18b48550841
+      - name: Run real journey reorder and date contract tests
+        run: node --test tests/stage137-approved-order.test.cjs
+  browser-real-journey:
+    needs: frozen-approved-visual-and-source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 19
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Wait for the independent new Pages release (not production root)
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-stage137-approved-parity-20261113/journey.js'
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl --silent --show-error --fail --max-time 12 -o /tmp/stage137.js "$url?v=$GITHUB_SHA" && grep -q 'let routeGeometryFrame=0' /tmp/stage137.js; then
+              ready=1
+              echo 'Stage 1.37 independent route assets are live'
+              break
+            fi
+            sleep 6
+          done
+          test "$ready" = 1
+      - name: Install real browser engines
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Test real bookmarks → map → planner → explicit dates → D labels → save → reload → map
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: node tests/stage137-real-product-e2e.cjs
