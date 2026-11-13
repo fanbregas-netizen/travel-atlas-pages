@@ -55,3 +55,5 @@ await run('STATIC','https://fanbregas-netizen.github.io/travel-atlas-pages/v4-vi
 await run('REAL','https://fanbregas-netizen.github.io/travel-atlas-pages/v4-approved-ux-real-review-20261113/');
 await browser.close();
 })().catch(e=>{console.error('PERFORMANCE DIAGNOSTIC FAILED',e.stack);process.exit(1)});
+
+// Repeat after 2026-11-13 V4 low-jank geometry and inactive-RAF fix.
