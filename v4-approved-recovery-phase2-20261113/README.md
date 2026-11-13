@@ -79,3 +79,7 @@ Actual product: shared saved-photo identity between search results and the one B
 
 ### Search layout QA correction
 The first Phase2 browser screenshot exposed an old reversed Dock layout that placed the search header below results. The actual source now removes that obsolete behavior in-place (Stage1.30 / Stage1.32) and uses a full-width header-first sheet with real photo results beneath it; updated e2e checks actual visual geometry. Source commit 37e2724a5646410322dc9e603b8be412645a8b90.
+
+
+### Native search header controls
+The old Stage1.30 JavaScript incorrectly took the original search close button from the header into the input and renamed it “取消”; the bottom popup visual was cancelled. Phase2 removes that reparenting and returns a 44px close action to the title row. B sheet search grip is now an invisible full touch region with a single 44×5 visible handle. Real WebKit and Chromium E2E checks include the header parent and visual layout.

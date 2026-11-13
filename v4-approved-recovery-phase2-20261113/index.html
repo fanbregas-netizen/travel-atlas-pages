@@ -6885,9 +6885,8 @@ window.visualViewport?.addEventListener('resize',()=>{
  }
  function init(){
    const dock=$('appDock');if(!dock||!$('dockSearch'))return;
-   // A full-width nav transforms into the existing search input in exactly the same place.
-   const sheet=$('fpSearchSheet'),bar=sheet?.querySelector('.fp-search-bar'),cancel=sheet?.querySelector('.fp-search-close');
-   if(bar&&cancel){cancel.textContent='取消';cancel.classList.add('fp30-search-cancel');cancel.setAttribute('aria-label','关闭搜索');bar.append(cancel);}
+   // Final V4: the original header owns its own 44px close action.
+   // The retired Stage1.30 Dock-only mutation must not steal it into the input.
    $('dockSearch').addEventListener('click',e=>{
      e.preventDefault();closeRoute();$('closeDrawer')?.click();
      window.__footprintHome?.openSearch?.();syncNav();

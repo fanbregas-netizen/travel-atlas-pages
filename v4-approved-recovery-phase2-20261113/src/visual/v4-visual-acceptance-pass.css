@@ -1726,7 +1726,17 @@ body.route-page #stopsDock .stop-chip:focus-visible{
  border:0!important;border-bottom:1px solid var(--fp-rc-stroke)!important;
  border-radius:0!important;box-shadow:none!important
 }
-#fpSearchSheet .fp-search-grip{margin-bottom:14px!important;background:#cfd6cb!important}
+#fpSearchSheet .fp-search-grip[data-atlas-grip]{
+ position:relative!important;display:block!important;
+ width:84px!important;min-width:84px!important;height:44px!important;min-height:44px!important;
+ margin:-10px auto -8px!important;border:0!important;
+ border-radius:0!important;background:transparent!important;
+ touch-action:none;cursor:grab
+}
+#fpSearchSheet .fp-search-grip[data-atlas-grip]::before{
+ content:'';position:absolute;top:20px;left:50%;transform:translateX(-50%);
+ width:44px;height:5px;border-radius:99px;background:#cbd4c9
+}
 #fpSearchSheet .fp-search-head{display:flex!important;align-items:center!important;min-height:51px!important;margin-bottom:11px!important}
 #fpSearchSheet .fp-search-title{display:flex;flex-direction:column;gap:3px;min-width:0}
 #fpSearchSheet .fp-search-eyebrow{font-size:10px;line-height:1.25;color:#829182;letter-spacing:.06em;font-weight:650}
