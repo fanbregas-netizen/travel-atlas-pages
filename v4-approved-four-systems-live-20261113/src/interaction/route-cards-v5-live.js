@@ -178,7 +178,7 @@ function setStage(stage){
  if(stage==='order'&&state.stops.length<2){toast('请至少选择两处地点');return}
  if(stage==='preview'&&state.stops.length<2){toast('至少选择两处地点才能预览');return}
  state.stage=stage;state.activeStop=Math.max(0,Math.min(state.activeStop,state.stops.length-1));
- renderStage();snap(stage==='preview'?'peek':stage==='order'?'half':'half');
+ renderStage();if(stage==='preview'&&window.__atlasRouteV5Live?.ready)liveMapAction();snap(stage==='preview'?'peek':stage==='order'?'half':'half');
 }
 function openFor(id){
  if(review.classList.contains('open'))review.classList.remove('open');
@@ -936,7 +936,7 @@ async function liveMountMap(){
 }
 function liveMapAction(){
  const row=footer.querySelector('[data-rc="open-real-map"]');
- if(row||state.stage!=='preview'||!liveSavedId)return;
+ if(row||state.stage!=='preview'||!liveSavedId||!state.saved)return;
  const link=document.createElement('button');
  link.type='button';link.className='rc-soft';
  link.dataset.rc='open-real-map';link.textContent='真实地图 ↗';
