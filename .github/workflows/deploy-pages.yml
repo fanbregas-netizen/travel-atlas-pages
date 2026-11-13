@@ -106,6 +106,9 @@ jobs:
           cp -R v4-systematic-review-20261113-stage23 _site/v4-systematic-review-20261113-stage23
           # Isolated approved-recovery candidate: original root and other review builds stay untouched.
           cp -R v4-approved-recovery-20261113 _site/v4-approved-recovery-20261113
+          # User-approved V4 visual+interaction REAL product; distinct iPhone acceptance namespace.
+          cp -R v4-approved-recovery-20261113 _site/v4-approved-ux-real-review-20261113
+          cp -R v4-approved-ux-real-review-20261113/. _site/v4-approved-ux-real-review-20261113/
           # Approved V4 visual recovery 2 — distinct review; root is never overwritten.
           cp -R v4-approved-recovery-phase2-20261113 _site/v4-approved-recovery-phase2-20261113
           # P1 approved V4 real-product rebuild; do not overwrite root or any existing stage.
@@ -124,6 +127,12 @@ jobs:
           test -s _site/v4-systematic-review-20261112-stage21/index.html
           test -s _site/v4-systematic-review-20261113-stage22/index.html
           test -s _site/v4-systematic-review-20261113-stage23/index.html
+          test -s _site/v4-approved-ux-real-review-20261113/index.html
+          test -s _site/v4-approved-ux-real-review-20261113/footprint-home.js
+          test -s _site/v4-approved-ux-real-review-20261113/src/visual/v4-approved-final-surfaces.css
+          test -s _site/v4-approved-ux-real-review-20261113/src/interaction/v4-approved-dock-feedback.js
+          grep -q 'fp-v4-approved-real-20261113-' _site/v4-approved-ux-real-review-20261113/index.html
+          grep -q 'home-dock-search-motion-v7.js' _site/v4-approved-ux-real-review-20261113/index.html
           test -s _site/v4-approved-recovery-20261113/index.html
           test -s _site/v4-approved-recovery-phase2-20261113/index.html
           test -s _site/v4-approved-recovery-phase2-20261113/footprint-home.js
