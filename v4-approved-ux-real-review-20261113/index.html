@@ -6035,13 +6035,22 @@ if(pane)new MutationObserver(scheduleReflow).observe(pane,{attributes:true,attri
 // attribute (e.g. canvas transform on iOS). Run only while the constellation is open.
 let sampled=0;
 function trackRealStar(){
- if(!root.hidden&&shownId){
-  const p=state();const q=p&&findAnchor(p);
-  if(q&&(!anchor||Math.hypot(q.x-anchor.x,q.y-anchor.y)>.5))scheduleReflow();
- }
+ sampled=0;
+ if(document.hidden||root.hidden||!shownId)return;
+ const p=state(),q=p&&findAnchor(p);
+ if(q&&(!anchor||Math.hypot(q.x-anchor.x,q.y-anchor.y)>.5))scheduleReflow();
  sampled=requestAnimationFrame(trackRealStar);
 }
-sampled=requestAnimationFrame(trackRealStar);
+function syncStarTracking(){
+ if(document.hidden||root.hidden||!shownId){
+  if(sampled)cancelAnimationFrame(sampled);sampled=0;return;
+ }
+ if(!sampled)sampled=requestAnimationFrame(trackRealStar);
+}
+new MutationObserver(syncStarTracking).observe(root,{attributes:true,attributeFilter:['hidden','class']});
+document.addEventListener('visibilitychange',syncStarTracking,{passive:true});
+document.addEventListener('atlas:memory-open',syncStarTracking,{passive:true});
+syncStarTracking();
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!root.hidden&&!document.getElementById('editor')?.open){e.preventDefault();hide(true)}});
 
 scheduleSync();
