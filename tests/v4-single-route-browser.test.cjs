@@ -30,6 +30,7 @@ const base=process.env.BASE||'https://fanbregas-netizen.github.io/travel-atlas-p
   await page.waitForURL('**/journey.html',{timeout:20000});
   await page.waitForFunction(()=>window.__atlasRouteV5Live?.loaded===true,null,{timeout:25000});
   await page.waitForFunction(()=>!!window.__atlasLivePlannerMap,null,{timeout:30000});
+  await page.waitForFunction(()=>!!window.__atlasLivePlannerMap?.getStyle()?.sources?.base?.tiles?.[0],null,{timeout:30000});
   const empty=await page.evaluate(()=>({
    selected:window.__atlasRouteV5Live.state.order,
    mapStyle:window.__atlasLivePlannerMap?.getStyle()?.sources?.base?.tiles?.[0],
@@ -108,6 +109,7 @@ const base=process.env.BASE||'https://fanbregas-netizen.github.io/travel-atlas-p
   await page.waitForFunction(()=>window.__atlasRouteV5Live?.loaded===true,null,{timeout:20000});
   await page.evaluate(()=>window.__atlasRouteV5Live.stage('select'));
   await page.locator('#rc-footer [data-rc="live-saved-list"]').click({timeout:15000});
+  await page.waitForFunction(()=>document.getElementById('rc-mini')?.textContent?.includes('中文旅行路线'),null,{timeout:15000});
   const savedLabel=await page.locator('#rc-mini').innerText();
   assert.ok(savedLabel.includes('中文旅行路线'));
   console.log('V4_ONE_ROUTE_SHARED_MAP_PASS '+kind+' '+JSON.stringify({home,empty,first,three,routeId:saved.id,reopened:reopened.order,map,errors:errors.slice(0,6)}));
