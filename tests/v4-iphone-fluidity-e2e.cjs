@@ -2,7 +2,9 @@
 const {chromium,webkit}=require('playwright');
 const assert=require('node:assert/strict');
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
-const url='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-iphone-fluidity-20261113/';
+const variant=process.env.V4_VARIANT||'fluidity';
+const base='https://fanbregas-netizen.github.io/travel-atlas-pages/';
+const url=base+(variant==='cacheable'?'v4-iphone-cacheable-20261113/':'v4-iphone-fluidity-20261113/');
 const which=process.env.BROWSER||'chromium';
 const Hfull=()=>620;
 async function drag(page,selector,dy){
@@ -33,6 +35,8 @@ async function drag(page,selector,dy){
   return {
    stable:window.__atlasStableMapEnabled,
    namespace:window.__atlasPreviewNamespace,
+   cacheableScript:!!document.querySelector('script[src="./v4-map-runtime.js"]'),
+   cacheablePreload:!!document.querySelector('link[rel="preload"][href="./v4-map-runtime.js"]'),
    orbitElement:!!document.getElementById('atlasOrbit'),
    oldOrbitScript:!!document.querySelector('[data-inline="atlas-orbit.js"]'),
    oldOrbitCSS:!!document.querySelector('[data-inline="atlas-orbit.css"]'),
@@ -53,7 +57,9 @@ async function drag(page,selector,dy){
  assert.equal(startup.orbitElement,false,'retired four-way constellation mounted');
  assert.equal(startup.oldOrbitScript,false);
  assert.equal(startup.oldOrbitCSS,false);
- assert.ok(startup.namespace?.startsWith('fp-v4-fluidity-'),'isolated storage prefix missing');
+ assert.ok(startup.namespace?.startsWith(variant==='cacheable'?'fp-v4-cacheable-':'fp-v4-fluidity-'),'isolated storage prefix missing');
+ assert.equal(startup.cacheableScript,variant==='cacheable','cacheable build script gate failed');
+ assert.equal(startup.cacheablePreload,variant==='cacheable','preload gate failed');
  if(startup.canvasRatio!==null){
   assert.ok(startup.canvasRatio<=2.06,'iPhone vector backing unexpectedly >2x: '+startup.canvasRatio);
   assert.ok(startup.canvasRatio>=1,'Map image must be nonzero');

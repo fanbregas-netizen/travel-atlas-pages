@@ -4,7 +4,8 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const urls={
  demo:'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-visual-motion-acceptance-20261113/',
  real:'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-approved-ux-real-review-20261113/',
- perf:'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-iphone-fluidity-20261113/'
+ perf:'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-iphone-fluidity-20261113/',
+ cacheable:'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-iphone-cacheable-20261113/'
 };
 function summarizeCPU(profile,limit=28){
  const byId=new Map(profile.nodes.map(n=>[n.id,n]));
@@ -54,10 +55,23 @@ async function profile(label,url,rate=4){
    const s=(await cdp.send('Profiler.stop')).profile;
    console.log('PROFILE_SEARCH '+JSON.stringify({elapsed:Date.now()-start,cpu:summarizeCPU(s,22),state:await page.evaluate(()=>window.__atlasSheetIntegration?.search?.getState()?.sheet),errors:errs}));
  }
+ if(label==='perf'||label==='cacheable'){
+   await cdp.send('Profiler.start');
+   await page.reload({waitUntil:'domcontentloaded',timeout:75000});
+   await wait(4000);
+   const repeat=(await cdp.send('Profiler.stop')).profile;
+   const nav=await page.evaluate(()=>{
+    const n=performance.getEntriesByType('navigation')[0];
+    return {dcl:n?.domContentLoadedEventEnd,load:n?.loadEventEnd,transfer:n?.transferSize,resources:performance.getEntriesByType('resource').length,
+      mapLoaded:document.body.classList.contains('atlas-remote-ready'),bridge:!!window.__atlasSheetIntegration};
+   });
+   console.log('PROFILE_REPEAT '+label+' '+JSON.stringify({cpu:summarizeCPU(repeat,12),navigation:nav}));
+ }
  await browser.close();
 }
 (async()=>{
  await profile('demo',urls.demo,4);
  await profile('real',urls.real,4);
  await profile('perf',urls.perf,4);
+ await profile('cacheable',urls.cacheable,4);
 })().catch(e=>{console.error('PROFILE_FAILED',e.stack);process.exit(1)});
