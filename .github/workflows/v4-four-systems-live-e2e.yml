@@ -5,6 +5,7 @@ on:
     paths:
       - 'tests/four-systems-approved-live.test.cjs'
       - 'tests/four-systems-live-browser.test.cjs'
+      - 'tests/four-systems-home-media-browser.test.cjs'
       - 'v4-approved-four-systems-live-20261113/src/interaction/route-cards-v5-live.js'
       - '.github/workflows/v4-four-systems-live-e2e.yml'
   workflow_dispatch:
@@ -62,3 +63,7 @@ jobs:
         env:
           BROWSER: ${{ matrix.browser }}
         run: node tests/four-systems-live-browser.test.cjs
+      - name: Full home visual, B sheet, map, star and Media D ZIP round-trip
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: node tests/four-systems-home-media-browser.test.cjs
