@@ -110,6 +110,8 @@ jobs:
           cp -R v4-approved-recovery-phase2-20261113 _site/v4-approved-recovery-phase2-20261113
           # P1 approved V4 real-product rebuild; do not overwrite root or any existing stage.
           cp -R v4-approved-rebuild-p1-20261113 _site/v4-approved-rebuild-p1-20261113
+          # V4 future visual/motion acceptance storyboard; isolated from approved live root.
+          cp -R v4-visual-motion-acceptance-20261113 _site/v4-visual-motion-acceptance-20261113
           # Original V4 map / card / Dock rubber-band review, independent of production and existing demo.
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
@@ -357,6 +359,8 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+      - name: Wait for Pages artifact metadata availability
+        run: sleep 18
       - id: deployment
         uses: actions/deploy-pages@v4
       - name: Verify new four-system preview returns HTTP 200 from public Pages
