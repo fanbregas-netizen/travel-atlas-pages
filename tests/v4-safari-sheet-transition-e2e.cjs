@@ -15,6 +15,10 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
  await page.goto(url,{waitUntil:'domcontentloaded',timeout:70000});
  await page.waitForFunction(()=>window.__atlasSheetIntegration?.version==='B-V3-real-product',null,{timeout:25000});
  await page.waitForSelector('#appDock',{timeout:25000});
+ const isolation=await page.evaluate(()=>({base:document.baseURI,namespace:window.__atlasPreviewNamespace}));
+ assert.ok(isolation.base.endsWith('/v4-safari-sheet-transition-20261113/'),
+  'preview inherited wrong base, silently loading old candidate: '+JSON.stringify(isolation));
+ assert.equal(isolation.namespace,'fp-v4-safari-sheet-transition-20261113-','preview shares old candidate data');
  const patches=await page.evaluate(async()=>{
   const source=await Promise.all([
    './footprint-home.js','./src/interaction/physical-sheet.js',
