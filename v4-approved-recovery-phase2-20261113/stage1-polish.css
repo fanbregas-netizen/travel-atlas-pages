@@ -1,0 +1,187 @@
+/* Footprint Map V4.Stage1.20261109.23 — source-preserving polish layer.
+   Works only on the November 8 Stage1.22 baseline. No older layouts or icons. */
+:root{--fp-paper:#faf9f5;--fp-surface:#fffdfa;--fp-ink:#292923;--fp-muted:#78766f;--fp-line:#e5e2da;--fp-gold:#f6cc3b;--fp-ease:cubic-bezier(.2,.85,.25,1);--fp-shadow:0 12px 42px rgba(35,32,25,.14)}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
+body{color:var(--fp-ink);background:var(--fp-paper)}
+button,a,input,textarea,select{touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid #b58117!important;outline-offset:3px!important}
+button:active:not(:disabled),a:active{filter:brightness(.97)}
+#map{background:var(--fp-paper)}
+body.legacy-recovery #map,body:not(.vector-active):not(.amap-active) #map{visibility:visible!important}
+body.vector-active #map,body.amap-active #map{visibility:hidden!important}
+body.vector-active #amapSurface{display:none!important}
+body:not(.vector-active) #atlasVectorMap{pointer-events:none}
+#atlasMapLoader{pointer-events:none}
+/* Search is a single high-priority entry, no nested little grey frame. */
+.search-dock{background:rgba(255,253,249,.97)!important;border:1px solid rgba(227,222,211,.95)!important;box-shadow:0 5px 22px rgba(24,24,19,.12)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.search-dock .searchbox input{font-size:16px!important;letter-spacing:0!important;line-height:1.4}
+.search-dock .dock-go{min-width:44px!important;min-height:44px!important;display:grid;place-items:center}
+.search-results{box-shadow:var(--fp-shadow);border:1px solid var(--fp-line)}
+.search-result{min-height:52px}
+/* Keep approved three-icon dock. Elevate hit targets and tone down motion. */
+#appDock{border:1px solid #e2ded4!important;background:rgba(253,252,248,.96)!important;box-shadow:0 9px 34px #17170d22!important;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+#appDock .dock-btn{min-height:56px;min-width:74px;transition:background .18s var(--fp-ease),transform .18s var(--fp-ease)}
+#appDock .dock-btn:active{transform:scale(.96)}
+#dockRoutePop{box-shadow:var(--fp-shadow)!important;animation-duration:.18s!important}
+#dockRoutePop .dock-pop-btn{min-height:50px}
+#atlasVersionBadge{opacity:.65}
+/* The bottom sheet should read as one surface, without clipped content or crowded header. */
+.drawer{background:var(--fp-paper)!important;overscroll-behavior:contain;scrollbar-gutter:stable;box-shadow:0 -18px 55px #2020182d!important}
+.drawer .drawer-head{background:var(--fp-paper)!important}
+.drawer .drawer-head h2{font-size:clamp(19px,5vw,23px)!important;line-height:1.28!important}
+.drawer .iconclose,.memory-atlas .atlas-close,.fp-card-close{min-height:44px;min-width:44px;display:grid;place-items:center}
+.spotrow{min-height:86px;background:var(--fp-surface)!important;border:1px solid var(--fp-line)!important;border-radius:17px!important;transition:background .18s,transform .18s}
+.spotrow:active{transform:scale(.992);background:#f8f3e8!important}
+.spotrow strong{font-size:14px;line-height:1.45}
+.spotrow small{line-height:1.6}
+.backuprow{margin-top:24px}
+.backuprow button{min-height:47px}
+.footnote{line-height:1.75}
+/* Intentional editor: brief-first, advanced information collapses naturally. */
+dialog.editor{width:min(540px,calc(100% - 20px));border-radius:24px!important;background:var(--fp-paper)!important;overflow:hidden!important}
+dialog.editor::backdrop{background:rgba(18,21,24,.5);backdrop-filter:blur(4px)}
+.editor .editor-scroll{max-height:min(90dvh,900px);padding:23px 23px max(24px,env(safe-area-inset-bottom));overscroll-behavior:contain}
+.editor .edit-head{align-items:flex-start;margin-bottom:15px}
+.editor .edit-head h2{margin-top:5px;font-size:23px;line-height:1.2;letter-spacing:-.03em}
+.editor-eyebrow{color:#8a806a;font-size:9px;font-weight:750;letter-spacing:.14em}
+.editor .edit-sub{font-size:11px;line-height:1.5;margin:0 0 20px;color:#89867d;overflow-wrap:anywhere}
+.editor .field{color:#4c4942;margin:18px 0 8px;font-weight:650;font-size:13px}
+.editor .field-hint{font-size:11px;font-weight:400;color:#96918a}
+.editor .input,.editor .area{font-size:16px!important;color:#292923;border:1px solid #e0ddd5!important;background:#fffefa!important;border-radius:14px!important;padding:13px 14px!important;box-shadow:none!important;outline-offset:0}
+.editor .area{min-height:118px;height:128px;resize:vertical;line-height:1.7}
+.editor .input:focus,.editor .area:focus{border-color:#d3ae4b!important;box-shadow:0 0 0 3px #f6cc3b30!important;outline:0!important}
+.atlas-stage-selector{border:0;padding:0;margin:19px 0 17px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.atlas-stage-selector legend{font-weight:650;font-size:13px;margin-bottom:9px;color:#4c4942}
+.atlas-stage-option{display:block;min-width:0;position:relative;cursor:pointer}
+.atlas-stage-option input{position:absolute;opacity:0;width:1px;height:1px}
+.atlas-stage-option span{display:flex;flex-direction:column;gap:3px;padding:11px 13px;border:1px solid #e1dfd8;background:#fffefa;border-radius:13px;min-height:69px;transition:background .18s,border-color .18s,box-shadow .18s}
+.atlas-stage-option b{font-size:14px;font-weight:750}
+.atlas-stage-option small{font-size:11px;color:#827c70}
+.atlas-stage-option input:checked+span{border-color:#e2bd53;background:#fff6d7;box-shadow:inset 0 0 0 1px #f6cc3b50}
+.atlas-stage-option input:focus-visible+span{outline:2px solid #b58117;outline-offset:2px}
+.atlas-editor-more{margin-top:18px;background:#f6f4ed;border:1px solid #e9e5d9;border-radius:15px;overflow:hidden}
+.atlas-editor-more summary{display:flex;align-items:center;gap:8px;padding:15px 15px;cursor:pointer;list-style:none;min-height:53px}
+.atlas-editor-more summary::-webkit-details-marker{display:none}
+.atlas-editor-more summary::after{content:'⌄';font-size:20px;margin-left:auto;color:#837b68;transition:transform .18s}
+.atlas-editor-more[open] summary::after{transform:rotate(180deg)}
+.atlas-editor-more summary span{font-size:13px;font-weight:750}
+.atlas-editor-more summary small{color:#8e8a81;font-size:11px}
+.atlas-editor-detail-content{padding:0 15px 16px;border-top:1px solid #e9e5d9}
+.atlas-rank-fieldset{padding:0;border:0;margin:0}
+.atlas-rank-fieldset legend{display:block;width:100%}
+.editor .rank-choices label{min-height:44px;display:flex;align-items:center}
+.editor .add-photos{min-height:72px;background:#fffefa;border-color:#d6cba5}
+.editor .photo-remove{width:30px;height:30px;border-radius:12px}
+.editor .editor-actions{margin-top:18px;gap:9px}
+.editor .primary-btn{min-height:52px;border-radius:14px!important;background:#292923!important;color:#fffefa!important;font-size:15px;box-shadow:0 6px 20px #1b1b1520}
+.editor .danger-btn{min-height:52px;background:#fff1ec!important;color:#ab4432!important}
+.editor-save-hint{text-align:center;font-size:11px;color:#8d8981;line-height:1.6;margin:10px 0 0}
+/* Make discard confirmation feel native to the product rather than a browser alert. */
+.atlas-discard-dialog{padding:0;border:1px solid #e9e5d8;border-radius:21px;max-width:min(340px,calc(100% - 38px));box-shadow:0 18px 60px #16160d4b;background:#fffefa;color:#302e28}
+.atlas-discard-dialog::backdrop{background:#1118;backdrop-filter:blur(3px)}
+.atlas-discard-inner{padding:25px 23px 23px;text-align:center}
+.discard-symbol{color:#dfb942;font-size:26px}
+.atlas-discard-inner h2{font-size:20px;margin:8px 0}
+.atlas-discard-inner p{font-size:13px;line-height:1.65;color:#827c70;margin:0 0 19px}
+.discard-actions{display:grid;gap:8px}
+.discard-actions button{min-height:47px;border-radius:13px;border:1px solid #e6e1d5;font-weight:700;background:#282821;color:#fff}
+#atlasDiscardChanges{background:#fff7f1;color:#a94c3b;border-color:#f3dfd6}
+.atlas-empty-places{text-align:center;padding:32px 12px 34px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.atlas-empty-places .empty-star{width:66px;height:66px;border:1px solid #e5d9b9;background:#fbf5e4;border-radius:22px;display:grid;place-items:center;color:var(--fp-gold);font-size:32px}
+.atlas-empty-places strong{font-size:17px;margin-top:3px}
+.atlas-empty-places p{color:#867e70;font-size:13px;line-height:1.6;max-width:265px;margin:0 0 6px}
+.atlas-empty-places button{width:min(270px,100%);min-height:47px;border:0;background:#282821;color:white;font-size:14px;font-weight:750;border-radius:14px}
+.atlas-empty-places button.quiet{background:#f4f1e7;color:#5d5546;border:1px solid #e3dfd2}
+/* Respect keyboard, reduced motion and safe areas on iPhone. */
+@media(max-width:550px){
+ .search-dock{top:calc(8px + env(safe-area-inset-top));width:calc(100% - 26px)!important;max-width:none!important}
+ .search-dock .searchbox input{font-size:16px!important}
+ .drawer{max-height:calc(92dvh - env(safe-area-inset-top));width:100%;padding-left:17px;padding-right:17px}
+ .drawer .drawer-head{margin-left:-17px;margin-right:-17px;padding-left:17px;padding-right:17px}
+ .editor .editor-scroll{padding:21px 17px calc(20px + env(safe-area-inset-bottom))}
+ .editor .edit-head h2{font-size:21px}
+ #appDock .dock-btn{min-width:0;min-height:58px}
+ .atlas-stage-option span{padding:11px 9px}
+ .atlas-editor-more summary{flex-wrap:wrap}
+ .map-controls button{min-height:44px;min-width:44px}
+}
+@media(max-height:650px){.editor .editor-scroll{max-height:85dvh}.atlas-stage-option span{min-height:59px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Travel Atlas is a supporting workspace: use the same paper, ink and gold, without changing its route layout. */
+body.journey-page{--paper:#faf9f5;--card:#fffdfa;--ink:#292923;--muted:#817b70;--line:#e5e2da;--gold:#f6cc3b;--forest:#5b5548;background:#faf9f5}
+.journey-page .topbar{border-bottom:1px solid #e5e2da;background:rgba(255,253,249,.96);box-shadow:0 4px 22px #1d1b170a}
+.journey-page .brand{font-size:18px;letter-spacing:-.035em}
+.journey-page .brand-mark{color:#cc9f28}
+.journey-page .builder{background:#faf9f5;border-color:#e7e4da}
+.journey-page .builder h1{font-size:clamp(25px,3.4vw,32px);letter-spacing:-.045em}
+.journey-page .intro{font-size:13px;line-height:1.7}
+.journey-page .block{border-color:#e7e4da}
+.journey-page .block h2,.journey-page .section-head h2{font-size:13px}
+.journey-page .block input:not([type=file]),.journey-page .block select{min-height:46px;font-size:16px;border-radius:13px;background:#fffefa;border-color:#e0ded5}
+.journey-page .place,.journey-page .choice{border-radius:15px;border-color:#e5e1d6;background:#fffdfa;min-height:52px}
+.journey-page .place:hover{border-color:#cfb46d}
+.journey-page .choice-controls button{min-height:34px;min-width:34px}
+.journey-page button.full,.journey-page .topaction{min-height:46px;border-radius:14px}
+.journey-page .accent{background:#f6cc3b;color:#302913;border-color:#e9bf4e;box-shadow:0 5px 16px #e9bf4e2e}
+.journey-page .dark{background:#292923;color:#fffdfa}
+.journey-page .atlas-view{background:radial-gradient(ellipse at 85% 15%,#f2eddd 0%,transparent 48%),#faf9f5}
+.journey-page .journey{background:#fffdfa99;border-color:#e5e1d8}
+.journey-page .stop-card{background:#fffdfa;box-shadow:0 9px 32px #20201514;border-color:#e5e1d8}
+.journey-page .journey-more{display:block;padding:0;margin-top:9px}
+.journey-page .journey-more>summary{list-style:none;display:flex;align-items:center;gap:9px;min-height:53px;padding:12px 0;font-size:13px;font-weight:750;cursor:pointer;color:#464239}
+.journey-page .journey-more>summary::-webkit-details-marker{display:none}
+.journey-page .journey-more>summary span{font-size:11px;font-weight:400;color:#979081}
+.journey-page .journey-more>summary::after{content:'⌄';margin-left:auto;font-size:19px;color:#9b906d}
+.journey-page .journey-more[open]>summary::after{transform:rotate(180deg)}
+.journey-page .journey-more-content{display:grid;gap:8px;padding:7px 0 23px}
+.journey-page .journey-more-content .accent{margin-top:0}
+.journey-page .route-empty h3{font-size:20px}
+.journey-page .route-empty p{line-height:1.7}
+body.route-page{--fp-paper:#faf9f5;--fp-ink:#292923}
+.route-page #stopsDock,.route-page #rvDetail,.route-page #addStopDialog{background:#faf9f5}
+.route-page #rvDetail .brief{background:#fffdfa;border-color:#e4e1d8}
+.route-page .rv-callout{border-color:#e5e1d7;box-shadow:0 6px 22px #201e162a}
+.route-page .stop-bubble{box-shadow:0 12px 37px #201e1633}
+.route-page .view-all:active,.route-page .atlas-back:active{transform:scale(.97)}
+.route-page dialog input,.route-page dialog select{font-size:16px}
+@media(max-width:720px){
+ .journey-page .topbar{padding:9px 12px;gap:6px}
+ .journey-page .brand small{display:none}
+ .journey-page .topaction{padding:8px 11px;min-height:44px}
+ .journey-page .builder{padding:23px 17px 24px}
+ .journey-page .atlas-view{padding:22px 12px 26px}
+ .journey-page .form-row{gap:8px}
+ .journey-page .form-row input{min-width:0}
+ .journey-page .tools{padding-bottom:14px}
+}
+
+#atlasConfirmDelete{background:#fff0e8;color:#a84231;border-color:#edd3c5}
+#atlasConfirmDelete:disabled{opacity:.5;cursor:wait}
+
+/* Stage1.24: only useful controls remain on the map; the map mode button had no action. */
+#btnLayers,#layerMenu{display:none!important}
+#helptext{display:none!important} /* first-star guidance is already handled by #atlasFirstStar */
+#drawer #atlasVersionBadge{position:static!important;display:inline-flex;align-items:center;margin:12px 0 20px;padding:8px 10px;border:1px solid #e6e0d3;background:#f4f0e6;border-radius:10px;opacity:1;transform:none!important;font-size:11px;box-shadow:none}
+#atlasUnstarDialog #atlasConfirmUnstar{color:#945225;background:#fff4e7;border-color:#ecdec8}
+#atlasUnstarDialog #atlasConfirmUnstar:disabled{opacity:.5;cursor:wait}
+#searchResults{overscroll-behavior:contain;max-height:min(48dvh,430px);overflow-y:auto}
+.search-results .search-state{font-size:13px;line-height:1.6;padding:15px 16px}
+#searchResults .search-result{display:flex;flex-direction:column;justify-content:center;gap:3px;width:100%;text-align:left;padding:11px 14px;min-height:60px}
+#searchResults .search-result:focus-visible{outline:2px solid #b78e38;outline-offset:-2px;background:#fff7df}
+#destinationStar{min-height:46px}
+#editor .editor-actions{position:sticky;bottom:-1px;padding:8px 0 calc(9px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#faf9f5d9,#faf9f5 32%);z-index:2}
+#editor .editor-save-hint{margin:0 0 5px}
+.photo-viewer{touch-action:pan-y}
+.photo-viewer .viewer-photo{touch-action:pan-y;max-height:calc(100dvh - 180px)}
+@media(max-width:550px){
+ #destinationCard .destination-actions{gap:8px}
+ #atlasFirstStar{max-width:calc(100vw - 24px)}
+ .editor .editor-scroll{max-height:calc(100dvh - 18px)}
+ #viewer .viewer-arrow{width:44px;height:44px}
+}
+
+/* Place detail clearly communicates intent without introducing another navigation level. */
+.fp-place-stage{display:inline-flex;align-items:center;min-height:30px;padding:5px 10px;border-radius:999px;border:1px solid #e6d7a9;background:#fff7dc;color:#795e28;font-size:11px;font-weight:650;white-space:nowrap;margin-top:4px}
+.fp-place-stage:before{content:'★';color:#e5b52d;margin-right:5px;font-size:12px}
+.fp-place-stage:active{transform:scale(.97)}

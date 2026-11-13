@@ -1,0 +1,48 @@
+name: Approved V4 Recovery 2 public HTTPS
+on:
+  workflow_run:
+    workflows: ["Publish Travel Atlas V4 to GitHub Pages"]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recovery-2-public:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify actual real V4 source files on separate HTTPS path
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://fanbregas-netizen.github.io/travel-atlas-pages/v4-approved-recovery-phase2-20261113"
+          for f in version.json index.html journey.html route-view.html footprint-home.js atlas-map-design.js src/visual/v4-visual-acceptance-pass.css; do
+            mkdir -p "/tmp/v4recover2/$(dirname "$f")"
+            curl --fail --location --silent --show-error --retry 15 --retry-delay 5 --max-time 35 "$base/$f?check=$(date +%s)" -o "/tmp/v4recover2/$f"
+            test -s "/tmp/v4recover2/$f"
+          done
+          node <<'NODE'
+          const assert=require('node:assert/strict'),fs=require('node:fs'),crypto=require('node:crypto');
+          const buf=p=>fs.readFileSync('/tmp/v4recover2/'+p),text=p=>buf(p).toString('utf8');
+          const blob=p=>{const b=buf(p);return crypto.createHash('sha1').update(Buffer.from('blob '+b.length+String.fromCharCode(0))).update(b).digest('hex')};
+          const version=JSON.parse(text('version.json')),html=text('index.html');
+          const map=text('atlas-map-design.js'),home=text('footprint-home.js'),css=text('src/visual/v4-visual-acceptance-pass.css');
+          assert.equal(version.stage_checkpoint,'approved-v4-recovery-2-20261113');
+          assert.equal(version.production_site_unchanged,true);
+          assert.equal(version.current_interaction_mode,'swipe-card');
+          assert.equal(blob('index.html'),version.stage_checkpoint_public_index_sha);
+          assert.equal(blob('footprint-home.js'),version.stage_checkpoint_public_script_sha);
+          assert.equal(blob('src/visual/v4-visual-acceptance-pass.css'),version.stage_checkpoint_visual_acceptance_css_sha);
+          assert.equal(blob('route-view.html'),version.stage_checkpoint_route_script_sha);
+          for(const page of ['index.html','journey.html','route-view.html'])
+            assert.ok(text(page).includes('<base href="/travel-atlas-pages/v4-approved-recovery-phase2-20261113/">'),page+' base missing');
+          assert.ok(home.includes('function savedSearchRow(p)')&&home.includes('fp-row-photo'));
+          assert.ok(home.includes('寻找下一站')&&home.includes('window.__atlasDemo?.openSaved?.(place.id)'));
+          assert.ok(css.includes('coherent live surfaces / v2.'));
+          assert.ok(css.includes('#fpSearchSheet .fp-row-stage'));
+          assert.ok(map.includes("15.15,'#414c45'")&&map.includes("16.25,'#fafaf7'"));
+          assert.ok(!html.includes('grayscale(.25) blur(5px)'));
+          assert.ok(!home.includes('mountMapOverview'));
+          console.log('PASS: real saved place identity, architectural map, four original V3 Dock, and separate Phase2 preview verified');
+          NODE

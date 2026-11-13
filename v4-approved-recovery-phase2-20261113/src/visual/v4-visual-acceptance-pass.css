@@ -1,0 +1,1821 @@
+/*
+ * Footprint Map V4 / Visual C — iPhone visual acceptance pass.
+ * 2026-11-12 · Stage 14.
+ *
+ * The video review showed approved swipe-card interaction working, but
+ * cramped titles, form-like sections and an unbalanced media strip.
+ * This stylesheet changes visual hierarchy ONLY. No transforms, sheet
+ * detents, map surfaces, star geometry, selectedPlaceId, storage or handlers.
+ * Visual tokens are taken from feature/visual: charcoal-green ink, warm
+ * off-white paper, restrained muted-gold accent, V3 original SVG icons.
+ */
+:root{
+  --fp14-ink:#27342f;
+  --fp14-sub:#58665d;
+  --fp14-muted:#8a9489;
+  --fp14-paper:#fffefa;
+  --fp14-line:#e7e8df;
+  --fp14-wash:#f3f4ed;
+  --fp14-gold:#b59a62;
+  --fp14-gold-wash:#f3eddf;
+  --fp14-focus:#a88c54;
+  --fp14-system:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+}
+:where(#fpPlaceCard,#fpSearchSheet,#drawer,#appDock,.journey-page,#rvDetail){
+  font-family:var(--fp14-system);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* One coherent location sheet. The approved B physical motion and
+   peek/half/full geometry remain solely controlled by physical-sheet.js. */
+#fpPlaceCard{
+  background:var(--fp14-paper)!important;
+  border:1px solid rgba(231,232,223,.88)!important;
+  border-radius:27px!important;
+  box-shadow:0 19px 54px rgba(29,40,31,.16)!important;
+}
+#fpPlaceCard .fp-card-header{
+  display:flex!important;
+  align-items:flex-start!important;
+  gap:9px!important;
+  padding:12px 15px 14px 20px!important;
+  background:var(--fp14-paper)!important;
+  border-bottom:1px solid var(--fp14-line)!important;
+}
+#fpPlaceCard .fp-card-title-wrap{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  gap:8px!important;
+  flex:1!important;
+  min-width:0!important;
+  padding:0 4px 0 0!important;
+}
+#fpPlaceCard .fp-card-name{
+  font-size:clamp(23px,6vw,27px)!important;
+  line-height:1.16!important;
+  font-weight:760!important;
+  color:var(--fp14-ink)!important;
+  letter-spacing:-.052em!important;
+  margin:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+#fpPlaceCard .fp-place-stage{
+  display:inline-flex!important;
+  align-items:center!important;
+  width:auto!important;
+  min-height:26px!important;
+  padding:4px 10px!important;
+  margin:0!important;
+  border:1px solid #e5d9b9!important;
+  border-radius:100px!important;
+  background:var(--fp14-gold-wash)!important;
+  color:#846b36!important;
+  font-size:11px!important;
+  line-height:1.15!important;
+  font-weight:690!important;
+  letter-spacing:.005em!important;
+  box-shadow:none!important;
+}
+#fpPlaceCard .fp-card-header .fp-unstar-btn{
+  width:41px!important;
+  min-width:41px!important;
+  height:41px!important;
+  min-height:41px!important;
+  flex:none!important;
+  border:1px solid #e6dcbf!important;
+  border-radius:14px!important;
+  background:#faf5e8!important;
+  box-shadow:none!important;
+  padding:9px!important;
+  margin:0!important;
+}
+#fpPlaceCard .fp-card-header .fp-unstar-btn img{
+  display:block!important;
+  width:22px!important;height:22px!important;
+  margin:auto!important;
+  object-fit:contain!important;
+}
+#fpPlaceCard .fp-card-header .fp-edit-toggle{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:43px!important;
+  min-height:41px!important;
+  padding:0 11px!important;
+  margin:0!important;
+  border:1px solid var(--fp14-line)!important;
+  border-radius:14px!important;
+  background:#f9f9f5!important;
+  color:var(--fp14-sub)!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  box-shadow:none!important;
+}
+#fpPlaceCard .fp-card-header .fp-card-close{
+  width:41px!important;min-width:41px!important;height:41px!important;min-height:41px!important;
+  padding:0!important;margin:0!important;
+  border:0!important;border-radius:14px!important;
+  color:#58645a!important;
+  font-size:21px!important;
+  background:transparent!important;
+}
+#fpPlaceCard .sheet-grab{margin:8px auto 0!important;background:#c6cdc5!important}
+#fpPlaceCard .fp-card-scroll{
+  padding:0 20px calc(21px + env(safe-area-inset-bottom)*.25)!important;
+  background:var(--fp14-paper)!important;
+}
+#fpPlaceCard .fp-block{
+  margin:0!important;
+  padding:19px 0 21px!important;
+  border:0!important;
+  border-bottom:1px solid var(--fp14-line)!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+#fpPlaceCard .fp-block:last-of-type{border-bottom:0!important}
+#fpPlaceCard .fp-subheading{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:7px!important;
+  min-height:35px!important;
+  margin:0 0 13px!important;
+}
+#fpPlaceCard .fp-section-index{
+  display:inline-flex;
+  justify-content:center;
+  min-width:21px;
+  margin-right:2px;
+  color:#b4a68e!important;
+  font-size:10px!important;
+  font-weight:750!important;
+  letter-spacing:.07em!important;
+  font-variant-numeric:tabular-nums;
+}
+#fpPlaceCard .fp-subheading .fp-section-label{
+  color:var(--fp14-ink)!important;
+  font-size:16px!important;
+  font-weight:735!important;
+  letter-spacing:-.035em!important;
+  line-height:1.26!important;
+}
+#fpPlaceCard .fp-subheading .fp-subaction{
+  margin-left:auto!important;
+  min-height:33px!important;
+  padding:6px 10px!important;
+  border:1px solid #ecebe4!important;
+  border-radius:10px!important;
+  background:#f9f9f5!important;
+  color:#617062!important;
+  font-size:11px!important;
+  font-weight:690!important;
+  box-shadow:none!important;
+}
+#fpPlaceCard .fp-brief-text{
+  max-height:none!important;
+  overflow:visible!important;
+  margin:0!important;
+  padding:0!important;
+  font-size:14px!important;
+  line-height:1.78!important;
+  letter-spacing:.006em!important;
+  color:#4c5c52!important;
+  white-space:pre-wrap;
+}
+#fpPlaceCard .fp-brief-text.is-empty{font-size:13px!important;color:#949b92!important}
+#fpPlaceCard .fp-photo-count{
+  justify-content:flex-start!important;
+  margin:9px 0 0!important;
+  color:#7e897d!important;
+  font-size:11px!important;
+  font-variant-numeric:tabular-nums;
+}
+#fpPlaceCard .fp-media-mosaic{
+  display:grid!important;
+  grid-template-columns:1.5fr 1fr 1fr!important;
+  grid-template-rows:repeat(2,minmax(0,1fr))!important;
+  gap:4px!important;
+  width:100%;
+  aspect-ratio:1.62!important;
+  max-height:252px!important;
+  margin:0!important;
+  overflow:hidden!important;
+  border:0!important;
+  border-radius:18px!important;
+  background:#e9ece7!important;
+}
+#fpPlaceCard .fp-media-mosaic > button{
+  display:block!important;
+  grid-column:auto!important;
+  grid-row:auto!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;min-height:0!important;
+  padding:0!important;margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  aspect-ratio:auto!important;
+  background:#e9ece7!important;
+  overflow:hidden!important;
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two) > button:first-child{
+  grid-column:1!important;
+  grid-row:1 / span 2!important;
+}
+#fpPlaceCard .fp-media-mosaic:has(>button:nth-child(3):last-child),
+#fpPlaceCard .fp-media-mosaic:has(>button:nth-child(4):last-child){
+  grid-template-columns:1.6fr 1fr!important;
+}
+#fpPlaceCard .fp-media-mosaic:has(>button:nth-child(4):last-child){
+  grid-template-rows:repeat(3,minmax(0,1fr))!important;
+}
+#fpPlaceCard .fp-media-mosaic:has(>button:nth-child(4):last-child) > button:first-child{
+  grid-row:1 / span 3!important;
+}
+#fpPlaceCard .fp-media-mosaic.one{
+  display:block!important;
+  aspect-ratio:1.62!important;
+}
+#fpPlaceCard .fp-media-mosaic.two{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:1fr!important;
+  aspect-ratio:2!important;
+}
+#fpPlaceCard .fp-media-mosaic img,
+#fpPlaceCard .fp-media-mosaic video{
+  display:block!important;
+  width:100%!important;height:100%!important;
+  max-width:none!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  border-radius:0!important;
+}
+#fpPlaceCard .fp-media-mosaic .fp-video-tile{
+  position:relative!important;
+  background:#d5dbd5!important;
+}
+#fpPlaceCard .fp-media-mosaic .fp-video-indicator{
+  position:absolute!important;
+  top:50%!important;left:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  width:31px!important;height:31px!important;
+  margin:-15.5px 0 0 -15.5px!important;
+  border:1px solid #ffffff91!important;
+  border-radius:50%!important;
+  background:#192b23ab!important;
+  color:white!important;
+  font-size:12px!important;
+  line-height:1!important;
+  box-shadow:0 2px 8px #0003!important;
+  pointer-events:none!important;
+}
+#fpPlaceCard .fp-media-mosaic .fp-tile-more{
+  background:#1d2926a6!important;
+  font-size:16px!important;
+  font-weight:740!important;
+}
+#fpPlaceCard .fp-social-list{gap:8px!important}
+#fpPlaceCard .fp-social-list a{
+  display:flex!important;
+  align-items:center!important;
+  padding:11px 13px!important;
+  border:1px solid var(--fp14-line)!important;
+  background:#f8f9f5!important;
+  border-radius:13px!important;
+  color:var(--fp14-sub)!important;
+  font-size:12px!important;
+  line-height:1.4!important;
+}
+#fpPlaceCard .fp-social-empty{margin:0!important;color:#909990!important;line-height:1.6!important}
+#fpPlaceCard .fp-inline-editor{background:#f8f9f5!important}
+#fpPlaceCard .fp-inline-editor :where(input,textarea){font-size:16px!important}
+#fpPlaceCard .fp-card-feedback{font-size:12px!important;color:#7c8a76!important;line-height:1.5!important}
+
+/* Saved collection has approved B05 sliding tabs. Strengthen title, content
+   hierarchy and thumbnail treatment, not its state or hit target geometry. */
+#drawer.fp30-detail{
+  background:var(--fp14-paper)!important;
+  border-radius:27px 27px 0 0!important;
+  box-shadow:0 -17px 51px rgba(24,39,28,.17)!important;
+}
+#drawer.fp30-detail .drawer-head{
+  padding:11px 18px 9px!important;
+  background:var(--fp14-paper)!important;
+  border-bottom:0!important;
+}
+#drawer.fp30-detail .drawer-head h2,
+#drawer.fp30-detail .drawer-cn{
+  font-size:23px!important;
+  font-weight:745!important;
+  letter-spacing:-.05em!important;
+  color:var(--fp14-ink)!important;
+}
+#drawer.fp30-detail #sheetCount{
+  display:inline-flex!important;
+  align-items:center!important;
+  margin-left:8px!important;
+  color:#7b887b!important;
+  font-size:11px!important;
+  font-weight:520!important;
+  letter-spacing:0!important;
+}
+#drawer #fpvCollectionTabs{
+  margin-top:7px!important;
+  margin-bottom:18px!important;
+  background:#eff0e9!important;
+  border:1px solid #e4e7dd!important;
+  border-radius:17px!important;
+}
+#drawer #fpvCollectionTabs .fpv-collection-tab{
+  font-size:13px!important;
+  font-weight:655!important;
+  letter-spacing:-.025em!important;
+}
+#drawer #fpvCollectionTabs .fpv-collection-tab[aria-selected="true"]{
+  font-weight:750!important;
+  color:var(--fp14-ink)!important;
+}
+#drawer.fp30-detail #spotList{gap:10px!important}
+#drawer.fp30-detail #spotList .spotrow,
+#drawer.fp30-detail #drawerRouteList .rs-row{
+  min-height:89px!important;
+  border:1px solid #e8e9e1!important;
+  border-radius:18px!important;
+  box-shadow:0 4px 16px rgba(30,47,34,.04)!important;
+  background:#fffefa!important;
+}
+#drawer.fp30-detail #spotList .spotrow>img,
+#drawer.fp30-detail #spotList .spotrow .spotempty{
+  width:62px!important;height:62px!important;
+  border-radius:14px!important;
+  object-fit:cover!important;
+  background:#f3f2eb!important;
+}
+#drawer.fp30-detail #spotList .spotrow strong,
+#drawer.fp30-detail #drawerRouteList .rs-meta b{
+  font-size:15px!important;
+  color:var(--fp14-ink)!important;
+  font-weight:745!important;
+  letter-spacing:-.03em!important;
+}
+#drawer.fp30-detail #spotList .spotrow small,
+#drawer.fp30-detail #drawerRouteList .rs-meta span{
+  font-size:11px!important;
+  color:#7d8b7f!important;
+  line-height:1.55!important;
+}
+
+/* Search inherits approved icon set; visually match the same one-surface
+   treatment and information type scale. */
+#fpSearchSheet{
+  border:1px solid rgba(230,232,224,.92)!important;
+  border-radius:25px!important;
+  background:var(--fp14-paper)!important;
+  box-shadow:0 16px 42px rgba(29,40,31,.16)!important;
+}
+#fpSearchSheet .fp-search-head h2{
+  font-size:22px!important;
+  font-weight:745!important;
+  letter-spacing:-.045em!important;
+  color:var(--fp14-ink)!important;
+}
+#fpSearchSheet .fp-search-top{border-bottom-color:var(--fp14-line)!important}
+#fpSearchSheet .fp-search-row{
+  background:var(--fp14-paper)!important;
+  border-bottom:1px solid var(--fp14-line)!important;
+}
+#fpSearchSheet .fp-search-row strong{font-size:14px!important;color:var(--fp14-ink)!important}
+#fpSearchSheet .fp-search-row small{font-size:12px!important;color:var(--fp14-muted)!important}
+#appDock{
+  background:rgba(255,254,250,.96)!important;
+  border:1px solid rgba(244,246,239,.97)!important;
+  border-radius:23px!important;
+  box-shadow:0 10px 29px rgba(24,40,28,.13)!important;
+}
+#appDock .dock-btn span{font-size:10px!important;font-weight:625!important;letter-spacing:-.012em!important;color:#53635a!important}
+#appDock .dock-btn img{width:24px!important;height:24px!important;object-fit:contain!important}
+
+/* Keep C V5 planner and route card layout but normalize its visual label
+   weights across the same approved type scale. */
+body.journey-page .builder h1{
+  font-size:clamp(22px,5vw,26px)!important;
+  font-weight:745!important;
+  letter-spacing:-.05em!important;
+}
+body.journey-page .builder .eyebrow{font-size:10px!important;color:#928b7c!important}
+body.journey-page .builder .block h2{font-size:13px!important;font-weight:720!important;color:#526354!important}
+body.journey-page .builder .choice{border-color:var(--fp14-line)!important}
+body.route-page #rvDetail h2{font-size:24px!important;font-weight:745!important;letter-spacing:-.05em!important;color:var(--fp14-ink)!important}
+body.route-page #rvDetail .brief{font-size:14px!important;line-height:1.75!important;color:var(--fp14-sub)!important}
+
+@media(max-width:390px){
+  #fpPlaceCard .fp-card-header{gap:6px!important;padding-right:12px!important;padding-left:16px!important}
+  #fpPlaceCard .fp-card-name{font-size:22px!important}
+  #fpPlaceCard .fp-card-header .fp-unstar-btn{width:39px!important;min-width:39px!important}
+  #fpPlaceCard .fp-card-header .fp-edit-toggle{padding-inline:8px!important}
+  #fpPlaceCard .fp-card-scroll{padding-inline:16px!important}
+  #fpPlaceCard .fp-subheading .fp-section-label{font-size:15px!important}
+}
+
+
+/* Stage 15 — editorial surface hierarchy across the REAL iPhone product.
+   The title must never compete for horizontal space with three controls.
+   CSS-only presentation: no changes to map, sheet detents, handlers or data. */
+#fpPlaceCard .fp-card-header{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 44px 58px 44px!important;
+  grid-template-rows:auto 44px!important;
+  column-gap:8px!important;
+  row-gap:9px!important;
+  align-items:center!important;
+  padding:14px 18px 12px!important;
+}
+#fpPlaceCard .fp-card-title-wrap{
+  display:contents!important;
+}
+#fpPlaceCard .fp-card-header .fp-card-name{
+  grid-column:1/-1;
+  grid-row:1;
+  min-width:0!important;
+  font-size:clamp(23px,6.2vw,28px)!important;
+  line-height:1.25!important;
+  letter-spacing:-.045em!important;
+  text-wrap:pretty;
+  overflow-wrap:anywhere;
+}
+#fpPlaceCard .fp-card-header .fp-place-stage{
+  grid-column:1;
+  grid-row:2;
+  justify-self:start;
+  align-self:center;
+  min-height:31px!important;
+  font-size:12px!important;
+  padding:7px 12px!important;
+}
+#fpPlaceCard .fp-card-header .fp-unstar-btn{
+  grid-column:2;
+  grid-row:2;
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+}
+#fpPlaceCard .fp-card-header .fp-edit-toggle{
+  grid-column:3;
+  grid-row:2;
+  width:58px!important;
+  min-width:58px!important;
+  height:44px!important;
+  min-height:44px!important;
+  font-size:13px!important;
+}
+#fpPlaceCard .fp-card-header .fp-card-close{
+  grid-column:4;
+  grid-row:2;
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+  background:#f4f5ef!important;
+}
+#fpPlaceCard .fp-card-scroll{padding-bottom:calc(30px + env(safe-area-inset-bottom) * .25)!important}
+#fpPlaceCard .fp-block{padding:23px 0 25px!important}
+#fpPlaceCard .fp-subheading{margin-bottom:14px!important;gap:11px!important}
+#fpPlaceCard .fp-section-index{
+  min-width:27px;
+  height:27px;
+  margin:0;
+  display:inline-grid;
+  place-items:center;
+  border-radius:9px;
+  background:#f1f2ec;
+  color:#8b927e!important;
+  font-size:10px!important;
+  font-weight:750!important;
+  letter-spacing:0!important;
+}
+#fpPlaceCard .fp-subheading .fp-section-label{
+  font-size:17px!important;
+  line-height:1.35!important;
+  font-weight:750!important;
+}
+#fpPlaceCard .fp-subheading .fp-subaction{
+  min-height:40px!important;
+  padding:9px 13px!important;
+  font-size:12px!important;
+  border-radius:12px!important;
+}
+#fpPlaceCard .fp-brief-text{font-size:15px!important;line-height:1.85!important}
+#fpPlaceCard .fp-media-mosaic{
+  border-radius:20px!important;
+  gap:5px!important;
+  aspect-ratio:1.42!important;
+  max-height:292px!important;
+}
+#fpPlaceCard .fp-media-mosaic.one{aspect-ratio:1.5!important}
+#fpPlaceCard .fp-media-mosaic.two{aspect-ratio:1.7!important}
+#fpPlaceCard .fp-media-empty{
+  min-height:112px!important;
+  padding:18px 14px!important;
+  border-radius:19px!important;
+  background:#f5f7f0!important;
+  border:1px dashed #d6ded0!important;
+}
+#fpPlaceCard .fp-media-empty .fp-empty-icon{
+  width:49px!important;
+  height:49px!important;
+  border-radius:15px!important;
+  background:#e5ecdf!important;
+}
+#fpPlaceCard .fp-media-empty .fp-empty-text strong{font-size:13px!important}
+#fpPlaceCard .fp-media-empty .fp-empty-text small{font-size:12px!important;line-height:1.55!important}
+#fpPlaceCard .fp-media-empty .fp-btn-primary{
+  min-height:43px!important;
+  padding:9px 13px!important;
+  border-radius:13px!important;
+  font-size:12px!important;
+}
+#fpPlaceCard .fp-social-list a{
+  min-height:51px!important;
+  gap:12px!important;
+  padding:13px 15px!important;
+  border-radius:15px!important;
+  font-size:13px!important;
+  line-height:1.5!important;
+}
+#fpPlaceCard .fp-social-list a span{flex:1;min-width:0;overflow-wrap:anywhere}
+#fpPlaceCard .fp-social-list a b{font-size:18px!important;color:#7a896e!important}
+#fpPlaceCard .fp-social-list button.fp-subaction{
+  display:block!important;
+  width:100%!important;
+  min-height:46px!important;
+  margin:0 0 8px!important;
+  padding:12px 15px!important;
+  text-align:left!important;
+  font-size:13px!important;
+  font-weight:670!important;
+  border:1px solid var(--fp14-line)!important;
+  border-radius:14px!important;
+  background:#f7f8f3!important;
+  color:var(--fp14-ink)!important;
+}
+#fpPlaceCard .fp-inline-editor{border-radius:18px!important;padding:15px!important}
+#fpPlaceCard .fp-inline-editor :where(input,textarea){font-size:16px!important;line-height:1.65!important}
+
+/* Collection and search belong to the same paper-and-ink system. */
+#drawer.fp30-detail .drawer-head{padding-top:17px!important}
+#drawer.fp30-detail .drawer-head h2{line-height:1.3!important}
+#drawer #fpvCollectionTabs{margin-bottom:20px!important}
+#drawer.fp30-detail #spotList{gap:12px!important}
+#drawer.fp30-detail #spotList .spotrow,
+#drawer.fp30-detail #drawerRouteList .rs-row{
+  padding:14px!important;
+  min-height:99px!important;
+  border-radius:20px!important;
+  box-shadow:0 3px 16px rgba(35,48,39,.035)!important;
+}
+#drawer.fp30-detail #spotList .spotrow>img,
+#drawer.fp30-detail #spotList .spotrow .spotempty{
+  width:66px!important;
+  height:66px!important;
+  border-radius:16px!important;
+}
+#drawer.fp30-detail #spotList .spotrow strong,
+#drawer.fp30-detail #drawerRouteList .rs-meta b{
+  font-size:16px!important;
+  line-height:1.35!important;
+}
+#drawer.fp30-detail #spotList .spotrow small{font-size:12px!important}
+#fpSearchSheet .fp-search-top{padding:14px 18px 17px!important}
+#fpSearchSheet .fp-search-bar{
+  min-height:51px!important;
+  border-radius:17px!important;
+  background:#f1f3ed!important;
+}
+#fpSearchSheet #fpSearchField{font-size:16px!important}
+#fpSearchSheet .fp-search-row{
+  min-height:75px!important;
+  padding-inline:17px!important;
+}
+#fpSearchSheet .fp-search-row strong{font-size:15px!important;font-weight:720!important}
+#fpSearchSheet .fp-search-row small{font-size:12px!important;line-height:1.5!important}
+#fpSearchSheet .fp-quick{
+  min-height:44px!important;
+  border-radius:14px!important;
+  font-size:12px!important;
+}
+
+/* C V5 itinerary builder and route detail: shared content rhythm,
+   no edits to journey-mobile-sheet.js detents or route selection state. */
+body.journey-page .builder{color:var(--fp14-ink)!important}
+body.journey-page .builder h1{
+  font-size:clamp(26px,6.2vw,31px)!important;
+  line-height:1.22!important;
+  letter-spacing:-.045em!important;
+}
+body.journey-page .builder .intro{
+  font-size:13px!important;
+  line-height:1.75!important;
+  color:#728075!important;
+}
+body.journey-page .builder .block{padding-block:22px!important}
+body.journey-page .builder .section-head h2{
+  font-size:15px!important;
+  font-weight:760!important;
+  letter-spacing:-.025em!important;
+}
+body.journey-page .builder .block label{
+  color:#56675c!important;
+  font-size:12px!important;
+  font-weight:680!important;
+}
+body.journey-page .builder .block :where(input,select,textarea){
+  min-height:46px;
+  border-radius:15px!important;
+  border-color:#dfe5dc!important;
+  background:#fffefa!important;
+  font-size:16px!important;
+}
+body.journey-page .builder .choice,
+body.journey-page .builder .chosen-list > *{
+  border-radius:17px!important;
+  border-color:#e4e9e0!important;
+}
+body.journey-page .builder #generate{
+  min-height:51px!important;
+  border-radius:16px!important;
+  font-size:14px!important;
+  font-weight:750!important;
+  background:var(--fp14-ink)!important;
+  color:var(--fp14-paper)!important;
+}
+body.journey-page .builder #autoArrange{
+  min-height:46px!important;
+  border-radius:15px!important;
+}
+body.route-page #stopsDock{
+  border-radius:24px!important;
+  padding:14px 15px 13px!important;
+}
+body.route-page #stopsDock .dock-head small{
+  color:#8b927d!important;
+  font-size:10px!important;
+  letter-spacing:.08em!important;
+}
+body.route-page #stopsDock .dock-head strong{font-size:15px!important;font-weight:750!important}
+body.route-page #stopsDock .stop-rail{gap:9px!important}
+body.route-page #stopsDock .stop-chip{
+  min-height:56px!important;
+  padding:10px 12px!important;
+  border-radius:15px!important;
+  background:#f6f7f2!important;
+}
+body.route-page #stopsDock .stop-chip.active{
+  background:#edf2e9!important;
+  border-color:#acb9a6!important;
+}
+body.route-page #stopsDock .stop-chip .chip-name{font-size:12px!important}
+body.route-page #rvDetail .brief{font-size:15px!important;line-height:1.8!important}
+body.route-page #rvDetail .rv-links a{
+  min-height:43px!important;
+  border-radius:13px!important;
+  font-size:12px!important;
+}
+body.route-page .save-route-dialog{background:var(--fp14-paper)!important}
+body.route-page .save-route-dialog :where(input,select){
+  border-radius:14px!important;
+  background:#fffefa!important;
+}
+
+@media(max-width:390px){
+  #fpPlaceCard .fp-card-header{
+    grid-template-columns:minmax(0,1fr) 44px 55px 44px!important;
+    gap:7px!important;
+    padding-inline:15px!important;
+  }
+  #fpPlaceCard .fp-card-header .fp-card-name{font-size:clamp(22px,6vw,25px)!important}
+  #fpPlaceCard .fp-card-header .fp-edit-toggle{width:55px!important;min-width:55px!important}
+  #fpPlaceCard .fp-media-empty{flex-wrap:wrap!important}
+  #fpPlaceCard .fp-media-empty .fp-empty-text{flex:1 1 calc(100% - 68px)!important}
+  #fpPlaceCard .fp-media-empty .fp-btn-primary{margin-left:61px!important}
+  #fpPlaceCard .fp-subheading .fp-section-label{font-size:16px!important}
+  body.journey-page .builder h1{font-size:25px!important}
+  body.route-page #stopsDock{padding:12px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #drawer #fpvCollectionTabs .fpv-collection-indicator{transition:none!important}
+}
+
+
+/* Stage 16 — reliable map-state presentation, evidenced by real iPhone-sized
+   WebKit capture: do not show an eternal "drawing map" spinner alongside a
+   definitive tile failure. Never fake a rendered or healthy map. */
+body.atlas-map-unavailable #atlasMapLoader{
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  animation:none!important;
+}
+body.atlas-map-unavailable #mapConnectionNote{display:none!important}
+#mapError{
+  top:calc(64px + env(safe-area-inset-top))!important;
+  width:min(398px,calc(100vw - 28px))!important;
+  max-width:calc(100vw - 28px)!important;
+  padding:12px 13px 12px 16px!important;
+  gap:12px!important;
+  align-items:center!important;
+  background:rgba(255,254,250,.97)!important;
+  color:#495a4e!important;
+  border:1px solid #e3e5d9!important;
+  border-radius:19px!important;
+  box-shadow:0 11px 36px rgba(38,50,41,.13)!important;
+  -webkit-backdrop-filter:blur(18px);
+  backdrop-filter:blur(18px);
+  font-family:var(--fp14-system)!important;
+  font-size:12px!important;
+  font-weight:530!important;
+  line-height:1.6!important;
+}
+#mapError span{min-width:0!important;flex:1!important;line-height:1.6!important}
+#mapError #retryMap{
+  display:inline-flex!important;
+  flex:none!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:44px!important;
+  min-width:62px!important;
+  padding:10px 13px!important;
+  border:1px solid #dce5d7!important;
+  border-radius:13px!important;
+  background:#eef3e9!important;
+  color:#365b43!important;
+  font-family:inherit!important;
+  font-size:13px!important;
+  font-weight:720!important;
+}
+#mapError #retryMap:active{background:#e1eadc!important}
+#mapError #retryMap:focus-visible{outline:2px solid #9aab81!important;outline-offset:2px}
+@media(max-width:390px){
+  #mapError{top:calc(58px + env(safe-area-inset-top))!important}
+}
+
+/* Stage 16: the C V5 planner keeps its approved geometry, but the background
+   itinerary and active editor have a quieter, clearer mobile hierarchy. */
+@media(max-width:700px){
+  body.journey-page.journey-live-sheet .atlas-view{
+    background:linear-gradient(155deg,#f0f4ec,#f8f9f5 63%)!important;
+  }
+  body.journey-page.journey-live-sheet .atlas-heading{
+    padding:7px 7px 4px!important;
+    gap:8px!important;
+    align-items:center!important;
+  }
+  body.journey-page.journey-live-sheet .atlas-heading h2{
+    font-size:22px!important;
+    line-height:1.22!important;
+    font-weight:750!important;
+    letter-spacing:-.04em!important;
+  }
+  body.journey-page.journey-live-sheet .atlas-heading p{font-size:11px!important;color:#7c877b!important}
+  body.journey-page.journey-live-sheet #journey{
+    background:rgba(255,254,250,.84)!important;
+    border:1px solid #e3e8dd!important;
+    box-shadow:0 8px 30px rgba(33,58,39,.04)!important;
+  }
+  body.journey-page.journey-live-sheet .builder{
+    background:#fffefa!important;
+    border-color:#e4e9e0!important;
+    box-shadow:0 -14px 50px rgba(25,44,31,.14)!important;
+  }
+  body.journey-page.journey-live-sheet .journey-sheet-toolbar{
+    border-bottom-color:#edf0e8!important;
+    background:rgba(255,254,250,.97)!important;
+  }
+  body.journey-page.journey-live-sheet .journey-sheet-summary strong{
+    font-size:14px!important;
+    font-weight:760!important;
+    letter-spacing:-.025em!important;
+    color:#364b3b!important;
+  }
+  body.journey-page.journey-live-sheet .journey-sheet-summary small{
+    font-size:11px!important;
+    color:#819087!important;
+  }
+  body.journey-page.journey-live-sheet .builder .choice{
+    background:#fffefa!important;
+    border:1px solid #e3e9e0!important;
+    border-radius:19px!important;
+    box-shadow:0 3px 14px rgba(27,45,33,.032)!important;
+  }
+  body.journey-page.journey-live-sheet .builder .choice-index{
+    background:#eaf0e7!important;
+    color:#526e53!important;
+    width:32px!important;
+    height:32px!important;
+    border-radius:12px!important;
+    font-size:12px!important;
+  }
+  body.journey-page.journey-live-sheet .builder .choice-name{
+    font-size:15px!important;
+    font-weight:760!important;
+    color:#283e31!important;
+    line-height:1.4!important;
+  }
+  body.journey-page.journey-live-sheet .builder .choice-controls :where(button,select,input){
+    border-radius:12px!important;
+  }
+}
+
+
+/* Stage 17 — visible UI hierarchy on NORMAL product screens.
+   Unlike Stage15/16 hidden error-state work, this modifies every map opening,
+   normal place card, real collection/search and C V5 journey stop list.
+   Preserves approved V3 icons, one geographic yellow star, B/C swipe motors,
+   selectedPlaceId/media/IndexedDB and existing button actions. */
+
+/* Map entry: turn four separate boxed buttons into an iPhone tab rhythm. */
+#appDock{
+ gap:3px!important;padding:7px 8px!important;
+ background:rgba(255,254,249,.97)!important;border:1px solid #dfe4d9!important;
+ border-radius:27px!important;
+ box-shadow:0 6px 24px rgba(29,43,33,.12),0 18px 48px rgba(29,43,33,.09)!important;
+ -webkit-backdrop-filter:blur(24px)!important;backdrop-filter:blur(24px)!important
+}
+#appDock .dock-btn{
+ width:clamp(60px,18.5vw,77px)!important;height:60px!important;min-height:60px!important;
+ min-width:0!important;padding:7px 5px 6px!important;gap:5px!important;
+ background:transparent!important;box-shadow:none!important;border:0!important;border-radius:19px!important
+}
+#appDock .dock-btn img{width:24px!important;height:24px!important;object-fit:contain!important}
+#appDock .dock-btn span{color:#667369!important;font-size:11px!important;font-weight:700!important;line-height:1.2!important}
+#appDock:not(:has(.dock-btn.active)) #dockMap,
+#appDock .dock-btn.active,#appDock .dock-btn[aria-current="page"],
+body.route-pick-active #appDock #dockRoute{
+ background:#e9eee5!important;box-shadow:inset 0 0 0 1px #dce5d8!important
+}
+#appDock:not(:has(.dock-btn.active)) #dockMap span,#appDock .dock-btn.active span,
+body.route-pick-active #appDock #dockRoute span{color:#2a4435!important;font-weight:810!important}
+#appDock .dock-btn:focus-visible{outline:2px solid #9cae94!important;outline-offset:2px!important}
+#dockRoutePop{background:#fffefa!important;border:1px solid #dfe4d9!important;
+ border-radius:22px!important;box-shadow:0 14px 39px rgba(26,44,32,.17)!important}
+#dockRoutePop .dock-pop-btn{box-shadow:none!important;background:#f2f5ef!important;border-radius:14px!important}
+
+/* Place identity is the headline; the action rail is deliberately subordinate. */
+#fpPlaceCard{background:#fffefa!important;border-color:#e2e6dd!important;border-radius:30px!important;
+ box-shadow:0 18px 58px rgba(27,45,33,.17)!important}
+#fpPlaceCard .fp-card-header{
+ padding:17px 20px 15px!important;row-gap:11px!important;
+ background:linear-gradient(180deg,#f6f8f3 0%,#fffefa 100%)!important;
+ border-bottom:1px solid #e5eae1!important
+}
+#fpPlaceCard .fp-card-header .fp-card-name{
+ color:#20382b!important;font-size:clamp(23px,5.8vw,27px)!important;
+ line-height:1.27!important;font-weight:790!important;letter-spacing:-.047em!important
+}
+#fpPlaceCard .fp-card-header .fp-place-stage{
+ background:#efeadd!important;border:1px solid #e3d7b4!important;
+ color:#8b6c31!important;font-size:12px!important;min-height:33px!important;padding:8px 13px!important
+}
+#fpPlaceCard .fp-card-header :is(.fp-unstar-btn,.fp-edit-toggle,.fp-card-close){
+ border-radius:16px!important;height:44px!important;min-height:44px!important;box-shadow:none!important
+}
+#fpPlaceCard .fp-card-header .fp-unstar-btn{background:#fff4d9!important;border-color:#e8d7aa!important}
+#fpPlaceCard .fp-card-header .fp-edit-toggle{background:#eef3ec!important;border-color:#dee8db!important;color:#2c4a35!important}
+#fpPlaceCard .fp-card-header .fp-card-close{background:#edf0eb!important;color:#5f6c60!important}
+#fpPlaceCard .fp-card-scroll{padding-inline:22px!important}
+#fpPlaceCard .fp-block{border-bottom:1px solid #e9ece6!important;padding:22px 0 24px!important}
+#fpPlaceCard .fp-section-index{
+ min-width:26px!important;width:26px!important;height:26px!important;
+ border-radius:9px!important;background:#e9efe8!important;
+ color:#507059!important;font-size:11px!important;font-weight:800!important
+}
+#fpPlaceCard .fp-subheading .fp-section-label{font-size:17px!important;font-weight:780!important;color:#284233!important}
+#fpPlaceCard .fp-subheading .fp-subaction{border-radius:13px!important;
+ background:#f0f4ed!important;border-color:#e0e7da!important;color:#48624b!important}
+#fpPlaceCard .fp-brief-text{font-size:15px!important;line-height:1.85!important;color:#4c5d50!important}
+#fpPlaceCard .fp-media-mosaic{
+ aspect-ratio:1.32!important;max-height:315px!important;
+ border-radius:22px!important;gap:5px!important;background:#e7ede4!important
+}
+#fpPlaceCard .fp-media-mosaic.one{aspect-ratio:1.43!important}
+#fpPlaceCard .fp-media-mosaic.two{aspect-ratio:1.65!important}
+#fpPlaceCard .fp-social-list a{
+ border:1px solid #e1e9df!important;border-radius:17px!important;
+ background:#f4f7f1!important;min-height:54px!important;padding:15px 16px!important
+}
+
+/* Saved places / routes and search stay one recognisable component family. */
+#drawer.fp30-detail .drawer-head h2,#drawer.fp30-detail .drawer-cn{
+ font-size:25px!important;letter-spacing:-.045em!important;font-weight:780!important
+}
+#drawer #fpvCollectionTabs{
+ padding:5px!important;background:#e9eee6!important;border-color:#dce5d8!important;border-radius:20px!important
+}
+#drawer #fpvCollectionTabs .fpv-collection-tab{
+ min-height:43px!important;font-size:14px!important;font-weight:710!important
+}
+#drawer.fp30-detail #spotList .spotrow,#drawer.fp30-detail #drawerRouteList .rs-row{
+ border:1px solid #e2e9df!important;background:#fdfefa!important;border-radius:22px!important;
+ min-height:99px!important;box-shadow:0 4px 17px rgba(28,52,36,.05)!important
+}
+#drawer.fp30-detail #spotList .spotrow strong,#drawer.fp30-detail #drawerRouteList .rs-meta b{
+ font-size:16px!important;font-weight:780!important
+}
+#fpSearchSheet .fp-search-top{padding:18px 20px!important}
+#fpSearchSheet .fp-search-head h2{font-size:25px!important;font-weight:780!important}
+#fpSearchSheet .fp-search-row{min-height:79px!important;padding-inline:19px!important}
+#fpSearchSheet .fp-search-row strong{font-size:16px!important;font-weight:745!important}
+
+/* The real C V5 selected stops become compact, legible timeline rows rather
+   than huge card-buttons. 44px accessible day/time/move/delete controls remain. */
+@media(max-width:700px){
+ body.journey-page.journey-live-sheet .builder{
+  background:#fffefa!important;padding:48px 16px calc(23px + env(safe-area-inset-bottom))!important
+ }
+ body.journey-page.journey-live-sheet .builder .block{
+  padding:15px 0!important;border-top:1px solid #edf0e9!important
+ }
+ body.journey-page.journey-live-sheet .builder .section-head{margin-bottom:10px!important}
+ body.journey-page.journey-live-sheet .builder .chosen-list{
+  gap:7px!important;margin-top:8px!important;overflow-y:auto!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice-day-label{
+  padding:7px 0 4px!important;color:#849481!important;font-size:11px!important;
+  font-weight:760!important;letter-spacing:.03em!important;background:transparent!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice{
+  display:grid!important;
+  grid-template-columns:32px minmax(0,1fr) 44px!important;
+  grid-template-rows:40px 44px!important;
+  column-gap:8px!important;row-gap:5px!important;align-items:center!important;
+  min-height:0!important;padding:8px 10px!important;
+  border-radius:17px!important;background:#f8faf6!important;
+  border:1px solid #e2e8de!important;box-shadow:none!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice-index{
+  grid-row:1!important;grid-column:1!important;width:30px!important;height:30px!important;
+  font-size:12px!important;font-weight:800!important;border-radius:10px!important;
+  color:#36543b!important;background:#e5ecdf!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice-body{grid-column:2!important;grid-row:1!important;min-width:0!important}
+ body.journey-page.journey-live-sheet .builder .choice-name{
+  font-size:14px!important;font-weight:780!important;color:#294233!important;letter-spacing:-.02em!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice-drag{
+  grid-column:3!important;grid-row:1!important;width:44px!important;height:44px!important;min-width:44px!important;
+  border-radius:13px!important;background:#edf1e9!important;border:1px solid #e0e6dc!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice-controls{
+  grid-column:1/-1!important;grid-row:2!important;display:grid!important;
+  grid-template-columns:62px minmax(0,1fr) repeat(3,44px)!important;
+  gap:5px!important;width:100%!important;align-items:center!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice-controls :is(button,select,input){
+  min-width:0!important;min-height:44px!important;height:44px!important;
+  border-radius:12px!important;background:#fffefa!important;
+  border:1px solid #e1e7df!important;box-shadow:none!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice-controls .day-picker{
+  width:62px!important;font-size:13px!important;padding:0 4px!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice-controls input.time-picker{
+  width:100%!important;max-width:none!important;font-size:14px!important;padding:0 6px!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice-controls button{
+  width:44px!important;padding:0!important;font-size:16px!important;color:#46604b!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice-controls button:disabled{opacity:.35!important}
+ body.journey-page.journey-live-sheet .builder .choice-controls button:last-child{color:#9b695f!important}
+ body.journey-page.journey-live-sheet .builder .block .hint{
+  line-height:1.55!important;margin-top:8px!important;font-size:11px!important
+ }
+ body.journey-page.journey-live-sheet .builder .route-review{
+  border:1px solid #e2e9de!important;border-radius:17px!important;background:#f4f7f1!important
+ }
+ body.journey-page.journey-live-sheet .atlas-heading{background:transparent!important;padding:4px 5px!important}
+ body.journey-page.journey-live-sheet .atlas-heading h2{font-size:24px!important;font-weight:790!important}
+ body.journey-page.journey-live-sheet #journey{
+  background:#fffefa!important;border-radius:23px!important;
+  box-shadow:0 9px 34px rgba(27,52,36,.065)!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice:focus-within{
+  border-color:#aec1a8!important;background:#f5f9f2!important
+ }
+}
+
+/* Route-map navigation: compact itinerary rail with a clear active stop. */
+body.route-page #stopsDock{
+ background:rgba(255,254,249,.97)!important;border:1px solid #dfe6db!important;
+ border-radius:27px!important;box-shadow:0 10px 35px rgba(27,45,34,.14)!important;
+ padding:12px 12px 10px!important
+}
+body.route-page #stopsDock .dock-head{margin-bottom:10px!important}
+body.route-page #stopsDock .dock-head strong{font-size:16px!important;font-weight:780!important}
+body.route-page #stopsDock .stop-chip{
+ min-height:52px!important;padding:8px 12px!important;gap:7px!important;border-radius:17px!important;
+ background:#f4f7f1!important;border:1px solid #e2e9dd!important;box-shadow:none!important
+}
+body.route-page #stopsDock .stop-chip.active{background:#e5eee2!important;border-color:#aebfa6!important}
+body.route-page #stopsDock .stop-chip .chip-number{
+ background:#e2e8de!important;color:#48604c!important;min-width:29px!important;
+ height:29px!important;border-radius:11px!important;font-size:12px!important
+}
+body.route-page #stopsDock .stop-chip.active .chip-number{
+ background:#294a37!important;color:#fffefa!important
+}
+body.route-page #stopsDock .stop-chip .chip-name{font-size:12px!important;font-weight:730!important}
+body.route-page #rvDetail{background:#fffefa!important;box-shadow:0 -13px 45px rgba(27,45,34,.16)!important}
+body.route-page #rvDetail h2{font-size:23px!important;font-weight:790!important}
+body.route-page #rvDetail .rv-sec{border-color:#e6ebe4!important}
+@media(max-width:375px){
+ #appDock{gap:1px!important;padding:6px!important}
+ #appDock .dock-btn{width:clamp(57px,19vw,72px)!important}
+ #fpPlaceCard .fp-card-header{padding-inline:15px!important}
+ body.journey-page.journey-live-sheet .builder .choice-controls{
+  grid-template-columns:58px minmax(0,1fr) repeat(3,44px)!important;gap:4px!important
+ }
+ body.journey-page.journey-live-sheet .builder .choice-controls .day-picker{width:58px!important}
+}
+@media(prefers-reduced-motion:reduce){#appDock .dock-btn{transition:none!important}}
+
+
+/* Stage 18 — first-viewport route cover & geographic tool hierarchy.
+   Real selected stops, not a mock; no extra sheet owner, POI data or star. */
+.fp-journey-overview{
+ position:relative;isolation:isolate;overflow:hidden;width:100%;max-width:1050px;
+ margin:15px auto 14px;padding:21px 22px 19px;
+ background:linear-gradient(128deg,#223b2d 0%,#314f3a 64%,#426047 100%);
+ color:#fffdf6;border-radius:26px;border:1px solid rgba(255,255,255,.12);
+ box-shadow:0 14px 34px rgba(28,54,35,.14);
+ font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif
+}
+.fp-journey-overview::after{
+ content:"";pointer-events:none;position:absolute;z-index:-1;right:-75px;top:-105px;
+ width:265px;height:265px;border-radius:50%;border:1px solid #e6c98440;
+ box-shadow:0 0 0 42px #e6c98409,0 0 0 92px #e6c98406
+}
+.fp-jov-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.fp-jov-kicker{color:#e9cc82;font-size:10px;letter-spacing:.16em;line-height:1.4;font-weight:800}
+.fp-jov-stats{color:#dde8d8;font-size:11px;font-weight:720;white-space:nowrap}
+.fp-jov-title{
+ margin:10px 0 3px!important;font-size:clamp(24px,4vw,31px)!important;
+ font-weight:810!important;line-height:1.23!important;letter-spacing:-.047em!important;
+ color:#fffefa!important;overflow-wrap:anywhere
+}
+.fp-jov-summary{font-size:12px!important;line-height:1.55!important;color:#d1dfd0!important;margin:0 0 12px!important}
+.fp-jov-stops{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;
+ position:relative;align-items:stretch;min-height:52px;margin-bottom:12px
+}
+.fp-jov-stop{
+ display:flex;align-items:center;gap:7px;min-width:0;padding:10px 9px;
+ background:#ffffff15;border:1px solid #e5ecdf2b;border-radius:14px
+}
+.fp-jov-number{
+ width:25px;height:25px;flex:none;border-radius:9px;
+ display:grid;place-items:center;color:#294033;background:#e4c679;
+ font-size:10px;font-weight:840;font-variant-numeric:tabular-nums
+}
+.fp-jov-label{min-width:0;display:flex;flex-direction:column;gap:3px}
+.fp-jov-label strong{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fffefa;font-size:11px;line-height:1.3;font-weight:770}
+.fp-jov-label small{display:block;color:#c1d3c0;font-size:10px;line-height:1.2;white-space:nowrap}
+.fp-jov-more{position:absolute;right:-5px;top:-9px;background:#e2c379;color:#273d31;border-radius:999px;padding:3px 7px;font-size:10px;font-weight:810}
+.fp-jov-empty{display:flex;align-items:center;grid-column:1/-1;color:#cadcc9;font-size:12px}
+.fp-jov-action{
+ display:flex;justify-content:space-between;align-items:center;
+ min-height:44px;width:100%;padding:9px 13px;
+ border-radius:13px;border:1px solid #ffffff3d;background:#ffffff20;
+ color:#fffefa;font-family:inherit;font-size:12px;font-weight:760;cursor:pointer
+}
+.fp-jov-action:active{background:#ffffff38}
+.fp-jov-action:focus-visible{outline:2px solid #f4d68b;outline-offset:2px}
+
+/* Routes remain editable in the original C V5 engine. The cover adds a
+   visible first-screen summary, not a second map or itinerary controller. */
+body.journey-page #journey{
+ background:#fffefbf2!important;border:1px solid #e3eae1!important;
+ border-radius:24px!important;box-shadow:0 8px 25px #1b34230d!important
+}
+body.journey-page #journey .route-intro{border-radius:17px!important}
+body.journey-page #journey .route-name{letter-spacing:-.035em!important;font-weight:770!important}
+
+/* iPhone map: replace three drifting white circles with one grouped tool rail.
+   Keep exact same locate / zoom handlers and 46px touch targets. */
+body:not(.route-pick-active) .map-controls{
+ display:flex!important;flex-direction:column!important;gap:2px!important;
+ right:12px!important;bottom:calc(112px + env(safe-area-inset-bottom))!important;
+ padding:5px!important;border-radius:22px!important;
+ border:1px solid #dfe5da!important;background:#fffef9f7!important;
+ box-shadow:0 8px 26px #203a2721!important;
+ -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)
+}
+body:not(.route-pick-active) .map-controls .circlebtn{
+ display:grid!important;place-items:center!important;width:46px!important;height:46px!important;
+ min-width:46px!important;min-height:46px!important;margin:0!important;padding:0!important;
+ border:0!important;border-radius:15px!important;box-shadow:none!important;
+ background:transparent!important;color:#294735!important
+}
+body:not(.route-pick-active) .map-controls #btnLocate{background:#eaf1e7!important}
+body:not(.route-pick-active) .map-controls #btnZoomIn{
+ border-top:1px solid #e5e8e1!important;border-radius:4px!important
+}
+body:not(.route-pick-active) .map-controls #btnZoomOut{border-radius:4px!important}
+body:not(.route-pick-active) .map-controls .circlebtn:active{background:#dce8d8!important}
+body:not(.route-pick-active) .map-controls #btnLayers{display:none!important}
+
+@media(max-width:700px){
+ body.journey-page.journey-live-sheet .atlas-view{
+  padding:10px 14px 16px!important;background:linear-gradient(180deg,#f1f4ed,#f8f8f4 80%)!important
+ }
+ body.journey-page.journey-live-sheet .atlas-heading{margin:0!important}
+ body.journey-page.journey-live-sheet .atlas-heading h2{
+  font-size:23px!important;line-height:1.22!important;margin:4px 0!important
+ }
+ body.journey-page.journey-live-sheet .atlas-heading p{font-size:11px!important;line-height:1.5!important}
+ body.journey-page.journey-live-sheet .fp-journey-overview{
+  margin:10px 0 14px;padding:14px 15px 13px;min-height:182px;
+  border-radius:21px;box-shadow:0 10px 30px #203d2824
+ }
+ body.journey-page.journey-live-sheet .fp-jov-title{font-size:22px!important;margin:8px 0 2px!important}
+ body.journey-page.journey-live-sheet .fp-jov-summary{font-size:11px!important;margin:0 0 9px!important}
+ body.journey-page.journey-live-sheet .fp-jov-stops{min-height:46px;margin-bottom:8px;gap:5px}
+ body.journey-page.journey-live-sheet .fp-jov-stop{padding:6px;gap:5px;border-radius:11px}
+ body.journey-page.journey-live-sheet .fp-jov-number{width:21px;height:21px;font-size:9px;border-radius:7px}
+ body.journey-page.journey-live-sheet .fp-jov-label strong{font-size:10px}
+ body.journey-page.journey-live-sheet .fp-jov-label small{font-size:9px}
+ body.journey-page.journey-live-sheet .fp-jov-action{min-height:44px;height:44px;font-size:12px}
+ body.journey-page.journey-live-sheet #journey{margin-top:8px!important;padding-top:10px!important}
+}
+@media(max-width:375px){
+ body.journey-page.journey-live-sheet .fp-journey-overview{padding-inline:12px}
+ body.journey-page.journey-live-sheet .fp-jov-stop{flex-direction:column;align-items:flex-start;gap:3px}
+}
+@media(prefers-reduced-motion:reduce){.fp-jov-action{transition:none!important}}
+
+
+/* Stage18 first-viewport half-sheet clearance: keep the live route cover's
+   real "Edit route" button visible above the C V5 half detent on 390px phones. */
+@media(max-width:700px){
+ body.journey-page.journey-live-sheet .fp-journey-overview{
+  margin-top:6px!important;margin-bottom:9px!important;
+  padding:10px 14px 10px!important;min-height:0!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-title{
+  margin:5px 0 1px!important;font-size:21px!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-summary{
+  margin:0 0 5px!important;font-size:11px!important;line-height:1.35!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stops{
+  min-height:39px!important;margin-bottom:5px!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stop{padding:5px!important}
+ body.journey-page.journey-live-sheet .fp-jov-action{
+  min-height:44px!important;height:44px!important
+ }
+}
+
+
+/* Stage18 final iPhone cover action pinned inside the visible upper-right of
+   the cover: it must never disappear under the existing half-open sheet. */
+@media(max-width:700px){
+ body.journey-page.journey-live-sheet .fp-journey-overview{
+  position:relative!important;min-height:0!important;
+  padding:12px 14px 11px!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-top{
+  display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+  justify-content:center!important;gap:2px!important;
+  padding-right:111px!important;min-height:44px!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-kicker{font-size:10px!important}
+ body.journey-page.journey-live-sheet .fp-jov-stats{font-size:11px!important}
+ body.journey-page.journey-live-sheet .fp-jov-action{
+  position:absolute!important;top:12px!important;right:12px!important;
+  width:101px!important;max-width:101px!important;
+  min-height:44px!important;height:44px!important;
+  padding:10px 10px!important;border-radius:13px!important;
+  background:rgba(255,255,255,.16)!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-title{
+  margin-top:5px!important;font-size:22px!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stops{margin-bottom:0!important}
+}
+
+
+/* Stage 19 — first-screen editorial identity and visual priority.
+   This is the real map, place sheet, gallery and route cover. The one
+   geographic gold star, V3 original icons, C V5 detents and data handlers
+   are NOT changed. Stage20 removes the unapproved map overview. */
+
+/* Selected-place identity: use the actual stored address, not invented POI. */
+#fpPlaceCard .fp-card-header:has(.fp-card-location){
+ grid-template-rows:auto minmax(18px,auto) 44px!important;
+ row-gap:6px!important;
+ padding-bottom:15px!important
+}
+#fpPlaceCard .fp-card-header .fp-card-location{
+ grid-column:1/-1!important;grid-row:2!important;
+ min-width:0;width:100%;max-width:100%;
+ margin:0 0 2px!important;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ font-size:12px;line-height:1.5;font-weight:530;
+ letter-spacing:.005em;color:#78877a
+}
+#fpPlaceCard .fp-card-header:has(.fp-card-location) :is(
+ .fp-place-stage,.fp-unstar-btn,.fp-edit-toggle,.fp-card-close){
+ grid-row:3!important
+}
+
+/* Real gallery hierarchy: one dominant image, smaller supporting frames.
+   The original image/video tile buttons and viewer handlers are retained. */
+#fpPlaceCard .fp-media-mosaic.two{
+ grid-template-columns:minmax(0,1.58fr) minmax(0,1fr)!important;
+ aspect-ratio:1.5!important;max-height:320px!important
+}
+#fpPlaceCard .fp-media-mosaic.two>button{
+ aspect-ratio:auto!important;grid-column:auto!important;
+ height:100%!important;width:100%!important
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two):has(>button:nth-child(3)):not(:has(>button:nth-child(4))){
+ grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;
+ aspect-ratio:1.38!important;max-height:350px!important
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two):has(>button:nth-child(4)):not(:has(>button:nth-child(5))){
+ grid-template-columns:minmax(0,1.65fr) minmax(0,1fr)!important;
+ grid-template-rows:repeat(3,minmax(0,1fr))!important;
+ aspect-ratio:1.25!important;max-height:365px!important
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two):has(>button:nth-child(5)){
+ grid-template-columns:minmax(0,1.45fr) repeat(2,minmax(0,.85fr))!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;
+ aspect-ratio:1.32!important;max-height:350px!important
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two)>button{
+ grid-column:auto!important;aspect-ratio:auto!important;
+ height:100%!important;width:100%!important;min-height:0!important
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two)>button:first-child{
+ grid-column:1!important;grid-row:1/-1!important
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two)>button:nth-child(2){
+ grid-column:2!important;grid-row:1!important
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two)>button:nth-child(3){
+ grid-column:2!important;grid-row:2!important
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two):has(>button:nth-child(5))>button:nth-child(3){
+ grid-column:3!important;grid-row:1!important
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two)>button:nth-child(4){
+ grid-column:2!important;grid-row:3!important
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two):has(>button:nth-child(5))>button:nth-child(4){
+ grid-column:2!important;grid-row:2!important
+}
+#fpPlaceCard .fp-media-mosaic:not(.one):not(.two)>button:nth-child(5){
+ grid-column:3!important;grid-row:2!important
+}
+#fpPlaceCard .fp-media-mosaic :is(img,video){
+ width:100%!important;height:100%!important;object-fit:cover!important
+}
+#fpPlaceCard .fp-media-mosaic>button:focus-visible{
+ outline:3px solid #e8c879!important;outline-offset:-3px!important
+}
+#fpPlaceCard .fp-photo-count{letter-spacing:.02em!important;font-size:11px!important}
+#fpPlaceCard .fp-media-empty{
+ background:linear-gradient(120deg,#f0f5ed,#fafbf6)!important;
+ border-color:#d6e1d4!important
+}
+
+/* Collection is a visual library, not a stack of identical form fields. */
+#drawer.fp30-detail #spotList .spotrow{
+ min-height:112px!important;border-radius:23px!important;
+ padding:15px!important;gap:14px!important;
+ background:#fffefa!important;box-shadow:0 4px 22px rgba(26,46,30,.055)!important
+}
+#drawer.fp30-detail #spotList .spotrow>img,
+#drawer.fp30-detail #spotList .spotrow .spotempty{
+ width:78px!important;height:78px!important;border-radius:18px!important;
+ object-fit:cover!important
+}
+#drawer.fp30-detail #spotList .spotrow strong{
+ font-size:17px!important;line-height:1.25!important;letter-spacing:-.028em!important
+}
+#drawer.fp30-detail #spotList .spotrow small{font-size:12px!important;line-height:1.6!important}
+
+/* Real C V5 itinerary: give the route itself first-viewport priority, not
+   a repeated oversized heading above the Stage18 actual-data route cover. */
+@media(max-width:700px){
+ body.journey-page.journey-live-sheet .atlas-heading{
+  padding:0 4px 2px!important;margin:0 0 4px!important
+ }
+ body.journey-page.journey-live-sheet .atlas-heading .eyebrow{display:none!important}
+ body.journey-page.journey-live-sheet .atlas-heading h2{
+  font-size:18px!important;line-height:1.25!important;
+  margin:0!important;letter-spacing:-.025em!important
+ }
+ body.journey-page.journey-live-sheet .atlas-heading p{display:none!important}
+ body.journey-page.journey-live-sheet .fp-journey-overview{
+  margin:5px 0 8px!important;border-radius:23px!important;
+  box-shadow:0 14px 35px rgba(20,52,30,.18)!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stops[data-count="1"]{
+  grid-template-columns:minmax(0,1fr)!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stops[data-count="2"]{
+  grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stops[data-count="3"]{
+  grid-template-columns:minmax(0,1.36fr) repeat(2,minmax(0,1fr))!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stop:first-child{
+  background:rgba(231,205,140,.17)!important;
+  border-color:rgba(235,209,151,.32)!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stop:first-child .fp-jov-number{
+  background:#f0d590!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stop:first-child .fp-jov-label strong{
+  font-size:12px!important;color:#fffefa!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-stop{
+  min-height:47px!important;align-items:center!important
+ }
+ body.journey-page.journey-live-sheet .fp-jov-label strong{white-space:nowrap!important}
+ body.journey-page.journey-live-sheet #journey{margin-top:7px!important}
+}
+
+
+
+/* Stage21: approved search and editor states, without new map overlays. */
+#fpSearchSheet .fp-search-saved-preview{padding-top:4px}
+#fpSearchSheet .fp-search-saved-preview .fp-search-empty{
+ margin:4px 16px 12px;padding:18px 14px;border-radius:17px;
+ background:#f5f6f1;color:#687569;font-size:13px;line-height:1.65
+}
+#fpPlaceCard .fp-editor-draft-hint{
+ display:block;margin:9px 2px 3px;font-size:11px;line-height:1.5;
+ color:#748074;letter-spacing:0
+}
+#fpPlaceCard .fp-inline-editor input:focus-visible,
+#fpPlaceCard .fp-inline-editor textarea:focus-visible{
+ outline:2px solid rgba(199,165,83,.62);outline-offset:2px
+}
+
+/* Stage22 — system-wide iPhone polish on REAL V4 DOM. Original vector map,
+   one geographic yellow star, V3 SVG icon assets, B/C sheet motion and
+   saved IDs are not modified. No Stage19 map overview or four bubbles. */
+@media(max-width:700px){
+ /* Familiar dock, original four functional icons, clearer tap feedback. */
+ #appDock{padding:7px 8px!important;border:1px solid #dde6da!important;
+  background:rgba(255,254,249,.975)!important;
+  box-shadow:0 6px 24px rgba(26,43,32,.11)!important}
+ #appDock .dock-btn{gap:4px!important;transition:scale .2s ease,background-color .2s ease!important}
+ #appDock .dock-btn img{width:26px!important;height:26px!important}
+ #appDock .dock-btn span{font-size:12px!important;letter-spacing:-.015em!important}
+ #appDock .dock-btn:active{scale:.96!important}
+ /* Detail: title first, quieter actions, more real content visible per swipe. */
+ #fpPlaceCard{background:#fffefa!important;border-color:#e6eae1!important;
+  box-shadow:0 14px 42px rgba(29,44,34,.16)!important}
+ #fpPlaceCard .fp-card-header{padding:13px 18px 11px!important;row-gap:7px!important;
+  background:#fffefa!important;border-bottom:1px solid #e9ece6!important}
+ #fpPlaceCard .fp-card-header .fp-card-name{font-size:clamp(25px,6.5vw,29px)!important;
+  font-weight:780!important;letter-spacing:-.046em!important;line-height:1.18!important;
+  color:#243b2d!important}
+ #fpPlaceCard .fp-card-header .fp-card-location{font-size:12px!important;
+  line-height:1.4!important;color:#788779!important;margin:0!important}
+ #fpPlaceCard .fp-card-header .fp-place-stage{font-size:12px!important;
+  min-height:34px!important;padding:7px 10px!important}
+ #fpPlaceCard .fp-card-header :is(.fp-unstar-btn,.fp-edit-toggle,.fp-card-close){
+  transition:scale .18s ease,background-color .18s ease!important}
+ #fpPlaceCard .fp-card-header :is(.fp-unstar-btn,.fp-edit-toggle,.fp-card-close):active{scale:.94!important}
+ #fpPlaceCard .fp-card-scroll{padding-inline:18px!important;overscroll-behavior-y:contain!important}
+ #fpPlaceCard .fp-block{padding:16px 0 18px!important;border-color:#e8ede7!important}
+ #fpPlaceCard .fp-subheading{min-height:36px!important;margin:0 0 10px!important;
+  align-items:center!important;gap:10px!important}
+ #fpPlaceCard .fp-section-index{width:28px!important;min-width:28px!important;height:28px!important;
+  border-radius:9px!important;font-size:11px!important;color:#536d57!important;
+  background:#edf1e9!important}
+ #fpPlaceCard .fp-subheading .fp-section-label{font-size:17px!important;
+  font-weight:770!important;line-height:1.3!important;color:#263e2e!important}
+ #fpPlaceCard .fp-subheading .fp-subaction{min-height:42px!important;
+  padding:9px 12px!important;border-radius:12px!important;font-size:12px!important;
+  background:#f1f4ee!important;color:#456048!important;
+  transition:scale .18s ease,background-color .18s ease!important}
+ #fpPlaceCard .fp-subheading .fp-subaction:active{scale:.97!important}
+ #fpPlaceCard .fp-brief-text{font-size:15px!important;line-height:1.72!important;
+  letter-spacing:-.01em!important;color:#45564a!important}
+ #fpPlaceCard .fp-brief-text.is-empty{color:#879287!important}
+ #fpPlaceCard .fp-media-mosaic{border-radius:18px!important;
+  aspect-ratio:1.25!important;max-height:370px!important;
+  gap:4px!important;background:#e9ede7!important}
+ #fpPlaceCard .fp-media-mosaic.one{aspect-ratio:1.26!important;max-height:390px!important}
+ #fpPlaceCard .fp-media-mosaic :is(img,video){display:block!important;object-fit:cover!important}
+ #fpPlaceCard .fp-media-mosaic>button{transition:filter .16s ease!important}
+ #fpPlaceCard .fp-media-mosaic>button:active{filter:brightness(.87)!important}
+ #fpPlaceCard .fp-photo-count{font-size:12px!important;
+  color:#788679!important;font-variant-numeric:tabular-nums!important}
+ #fpPlaceCard .fp-media-empty{min-height:100px!important;border-radius:18px!important;
+  background:#f4f7f2!important}
+ #fpPlaceCard .fp-social-list a{min-height:48px!important;padding:12px 13px!important;
+  border-radius:14px!important;font-size:13px!important}
+ #fpPlaceCard .fp-inline-actions :is(button,.fp-btn-primary,.fp-btn-muted){
+  min-height:44px!important;font-size:13px!important}
+ /* Real saved results get the same typography and touch rhythm as collection. */
+ #fpSearchSheet .fp-search-top{padding:11px 18px 14px!important;
+  background:#fffefa!important;border-bottom:1px solid #e8ece6!important}
+ #fpSearchSheet .fp-search-bar{min-height:54px!important;border-radius:17px!important;
+  background:#f3f5f0!important;border:1px solid #e1e7df!important;box-shadow:none!important}
+ #fpSearchSheet #fpSearchField{font-size:16px!important;font-weight:550!important;color:#263a2d!important}
+ #fpSearchSheet .fp-search-body{padding:13px 17px calc(26px + env(safe-area-inset-bottom))!important;
+  background:#fffefa!important}
+ #fpSearchSheet .fp-search-label{font-size:11px!important;font-weight:750!important;
+  letter-spacing:.06em!important;color:#778779!important;margin:8px 0!important}
+ #fpSearchSheet .fp-search-row{min-height:73px!important;margin-bottom:6px!important;
+  padding:12px 13px!important;border:1px solid #e9ede7!important;
+  border-radius:17px!important;background:#fff!important;
+  box-shadow:0 2px 7px rgba(32,52,38,.035)!important;
+  transition:scale .2s ease,background-color .18s ease!important}
+ #fpSearchSheet .fp-search-row:active{scale:.985!important;background:#f1f5ee!important}
+ #fpSearchSheet .fp-search-row strong{font-size:16px!important;font-weight:735!important;
+  letter-spacing:-.026em!important;line-height:1.3!important}
+ #fpSearchSheet .fp-search-row small{font-size:12px!important;line-height:1.5!important;
+  color:#809084!important}
+ #fpSearchSheet .fp-search-saved-preview .fp-search-empty{
+  border:1px solid #e8ece5!important;background:#f5f7f2!important;
+  padding:19px!important;border-radius:17px!important;font-size:13px!important}
+ /* Real collection content, less empty padding, clearer thumbnails. */
+ #drawer.fp30-detail #spotList .spotrow{min-height:98px!important;padding:12px!important;
+  gap:13px!important;border-radius:19px!important;border:1px solid #e8ece6!important;
+  box-shadow:0 2px 10px rgba(25,43,29,.045)!important;
+  transition:scale .18s ease,background-color .18s ease!important}
+ #drawer.fp30-detail #spotList .spotrow:active{scale:.99!important;background:#f7f9f4!important}
+ #drawer.fp30-detail #spotList .spotrow>img,
+ #drawer.fp30-detail #spotList .spotrow .spotempty{width:73px!important;height:73px!important;
+  border-radius:15px!important}
+ #drawer.fp30-detail #spotList .spotrow strong{font-size:16px!important;
+  font-weight:760!important;line-height:1.28!important}
+ #drawer.fp30-detail #spotList .spotrow small{font-size:12px!important;
+  line-height:1.5!important;color:#79877b!important}
+ /* Approved C V5 data and date/order interactions remain owned by original controller. */
+ body.journey-page.journey-live-sheet .fp-journey-overview{
+  border-radius:22px!important;box-shadow:0 9px 24px rgba(23,49,31,.15)!important}
+ body.journey-page.journey-live-sheet .fp-jov-title{font-size:23px!important;
+  line-height:1.15!important;font-weight:790!important;letter-spacing:-.04em!important}
+ body.journey-page.journey-live-sheet .fp-jov-stats{font-size:12px!important;font-weight:750!important}
+ body.journey-page.journey-live-sheet .fp-jov-stop{
+  min-height:51px!important;border-radius:13px!important;padding:7px!important}
+ body.journey-page.journey-live-sheet .fp-jov-label strong{font-size:12px!important;font-weight:750!important}
+ body.journey-page.journey-live-sheet .builder .choice{border-radius:16px!important;
+  padding:12px!important;border-color:#e5eae2!important;
+  box-shadow:0 2px 9px rgba(25,42,31,.045)!important}
+ body.journey-page.journey-live-sheet .builder .choice-name{font-size:15px!important;font-weight:755!important}
+ body.journey-page.journey-live-sheet .builder .choice-day-label{font-size:12px!important;color:#718374!important}
+ body.journey-page.journey-live-sheet .builder .choice-controls :is(button,input,select){
+  min-height:44px!important;font-size:12px!important}
+ body.route-page #rvDetail{background:#fffefa!important;
+  box-shadow:0 -12px 35px rgba(25,41,31,.14)!important}
+ body.route-page #rvDetail h2{font-size:25px!important;line-height:1.2!important;
+  font-weight:780!important;letter-spacing:-.04em!important}
+ body.route-page #rvDetail .rv-sec{padding-block:15px!important;border-color:#e6eae4!important}
+ body.route-page #stopsDock .stop-chip{
+  border-radius:15px!important;transition:scale .18s ease,background-color .18s ease!important}
+ body.route-page #stopsDock .stop-chip:active{scale:.97!important}
+ body.route-page #stopsDock .stop-chip .chip-name{font-size:13px!important;font-weight:760!important}
+}
+/* iPhone full-screen B01 media: remove the restrictive user-agent dialog width
+   and old 72dvh image cap; existing gestures and video controls stay native. */
+#fpMediaViewer[open]{position:fixed!important;inset:0!important;
+ width:100dvw!important;height:100dvh!important;max-width:none!important;max-height:none!important;
+ margin:0!important;border:0!important;border-radius:0!important;
+ padding:calc(63px + env(safe-area-inset-top)) 0
+  calc(55px + env(safe-area-inset-bottom))!important;
+ background:rgba(15,18,16,.965)!important;display:flex!important;
+ flex-direction:column!important;justify-content:center!important;
+ align-items:center!important;gap:0!important;overflow:hidden!important}
+#fpMediaViewer[open]::backdrop{background:rgba(10,14,12,.97)!important}
+#fpMediaViewer[open]>img,#fpMediaViewer[open]>video{
+ display:block!important;flex:1 1 auto!important;min-height:0!important;min-width:0!important;
+ width:100dvw!important;
+ height:calc(100dvh - 166px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;
+ max-width:100dvw!important;
+ max-height:calc(100dvh - 166px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;
+ object-fit:contain!important;object-position:center!important}
+#fpMediaViewer[open] .fp-viewer-close{position:absolute!important;z-index:2!important;
+ top:calc(14px + env(safe-area-inset-top))!important;right:16px!important;
+ width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important;
+ display:grid!important;place-items:center!important;border-radius:15px!important;
+ background:rgba(255,255,255,.13)!important;border:1px solid rgba(255,255,255,.12)!important;
+ color:#fff!important;font-size:28px!important;text-shadow:none!important}
+#fpMediaViewer[open] .fp-viewer-caption{flex:0 0 43px!important;
+ max-width:calc(100vw - 48px)!important;display:flex!important;
+ align-items:center!important;justify-content:center!important;
+ margin:4px auto 0!important;padding:0 12px!important;
+ white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+ font-size:12px!important;font-weight:620!important;color:#dde2db!important;
+ font-variant-numeric:tabular-nums!important}
+@media(prefers-reduced-motion:reduce){
+ #appDock .dock-btn,#fpSearchSheet .fp-search-row,
+ #drawer.fp30-detail #spotList .spotrow,
+ #fpPlaceCard .fp-media-mosaic>button,
+ body.route-page #stopsDock .stop-chip{transition:none!important}
+}
+
+
+/* Stage23 | crisp geographic map and continuous iPhone media.
+   Undo old memory-open canvas blur. The original map/POI/star geometry,
+   V3 icon assets and B physical sheet state remain unchanged. */
+body.memory-open #amapSurface,
+body.memory-open #atlasVectorMap,
+body.memory-open #offlineScene,
+body.memory-open #map,
+body.memory-open #atlasPoiOverlay,
+body.memory-open #atlasBookmarkOverlay{
+ filter:none!important;-webkit-filter:none!important;transition:filter 0s!important
+}
+body.fp-place-open #fpPlaceCard{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body.fp-place-open #fpPlaceCard .fp-card-header{isolation:isolate}
+#fpSearchSheet .fp-search-body,#fpPlaceCard .fp-card-scroll{
+ -webkit-overflow-scrolling:touch;scroll-behavior:smooth;scroll-padding-top:12px
+}
+#fpPlaceCard .fp-subheading .fp-subaction,
+#fpPlaceCard .fp-inline-actions button,
+#fpSearchSheet .fp-search-row{
+ touch-action:manipulation;pointer-events:auto;-webkit-tap-highlight-color:transparent
+}
+#fpPlaceCard .fp-inline-actions{
+ position:sticky;bottom:0;z-index:2;
+ padding-bottom:max(9px,env(safe-area-inset-bottom)*.15);
+ background:linear-gradient(180deg,rgba(255,254,250,0),#fffefa 30%)
+}
+/* Accepted photo gestures remain; tapping a photo toggles iPhone-style
+   minimal chrome without obscuring the full-screen image. */
+#fpMediaViewer[open] .fp-viewer-close,#fpMediaViewer[open] .fp-viewer-caption{
+ transition:opacity .24s ease,transform .24s ease!important
+}
+#fpMediaViewer[open].fp-viewer-immersive .fp-viewer-close{
+ opacity:0!important;pointer-events:none!important;transform:translateY(-6px)!important
+}
+#fpMediaViewer[open].fp-viewer-immersive .fp-viewer-caption{
+ opacity:0!important;pointer-events:none!important;transform:translateY(9px)!important
+}
+#drawer.fp30-detail #spotList .spotrow:focus-visible,
+#fpPlaceCard .fp-subheading .fp-subaction:focus-visible,
+#fpSearchSheet .fp-search-row:focus-visible,
+body.route-page #stopsDock .stop-chip:focus-visible{
+ outline:2px solid #c4a65b!important;outline-offset:2px!important
+}
+@media(max-width:700px){
+ body.fp-place-open .map-controls{opacity:.98!important}
+ body.fp-place-open .map-controls .circlebtn{
+  background:#fffefa!important;border-color:#e5eae2!important;
+  box-shadow:0 2px 10px rgba(35,55,42,.09)!important
+ }
+ #fpPlaceCard .fp-card-scroll{padding-bottom:calc(26px + env(safe-area-inset-bottom)*.25)!important}
+ #fpSearchSheet .fp-search-body{overscroll-behavior-y:contain!important}
+ body.journey-page.journey-live-sheet .builder .chosen-list{scroll-padding-block:14px;overscroll-behavior:contain}
+ body.route-page #rvDetail .rv-sec{scroll-margin-block:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ #fpMediaViewer[open] .fp-viewer-close,#fpMediaViewer[open] .fp-viewer-caption,
+ #fpPlaceCard .fp-subheading .fp-subaction,#fpSearchSheet .fp-search-row{
+  transition:none!important;scroll-behavior:auto!important
+ }
+}
+
+
+/* Approved V4 recovery: a real, one-place image identification inside the
+   existing three-detent B sheet header. No duplicate place sheet or star. */
+#fpPlaceCard .fp-card-header{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) repeat(3,44px)!important;
+ grid-template-rows:auto 44px!important;
+ align-items:center!important;
+ gap:8px 9px!important;
+ padding:13px 17px 12px!important;
+ background:#fffefa!important
+}
+#fpPlaceCard .fp-card-title-wrap{
+ display:grid!important;grid-column:1/-1!important;grid-row:1!important;
+ grid-template-columns:minmax(0,1fr) 92px!important;grid-template-rows:auto auto auto!important;
+ column-gap:12px!important;row-gap:4px!important;
+ width:100%!important;min-width:0!important;align-items:start!important;
+}
+#fpPlaceCard .fp-card-title-wrap .fp-card-name{
+ grid-column:1!important;grid-row:1!important;
+ font-size:clamp(23px,6vw,27px)!important;line-height:1.19!important;
+ letter-spacing:-.045em!important;max-height:2.38em!important;overflow:hidden!important;
+}
+#fpPlaceCard .fp-card-title-wrap .fp-card-location{
+ grid-column:1!important;grid-row:2!important;
+ margin:0!important;line-height:1.4!important;
+ color:#758278!important;font-size:12px!important;
+ display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;
+ overflow:hidden!important
+}
+#fpPlaceCard .fp-card-title-wrap .fp-place-stage{
+ grid-column:1!important;grid-row:3!important;
+ justify-self:start!important;align-self:end!important;min-height:29px!important
+}
+#fpPlaceCard .fp-card-title-wrap .fp-place-preview{
+ grid-column:2!important;grid-row:1 / span 3!important;
+ width:92px!important;height:98px!important;
+ min-width:0!important;min-height:0!important;
+ padding:0!important;border:0!important;border-radius:16px!important;
+ overflow:hidden!important;display:block!important;align-self:stretch!important;
+ background:#eff0e9!important;box-shadow:0 1px 6px rgba(29,44,34,.09)!important;
+ -webkit-tap-highlight-color:transparent!important
+}
+#fpPlaceCard .fp-card-title-wrap .fp-place-preview img{
+ display:block!important;width:100%!important;height:100%!important;
+ object-fit:cover!important;object-position:center!important
+}
+#fpPlaceCard .fp-card-title-wrap .fp-place-teaser{
+ grid-column:1/-1!important;grid-row:4!important;display:none!important;
+ margin:3px 0 0!important;line-height:1.6!important;
+ color:#718074!important;font-size:12px!important
+}
+#fpPlaceCard[data-atlas-snap="half"] .fp-place-teaser,
+#fpPlaceCard[data-atlas-snap="full"] .fp-place-teaser{
+ display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;
+ overflow:hidden!important
+}
+#fpPlaceCard .fp-card-header .fp-unstar-btn{grid-column:2!important;grid-row:2!important}
+#fpPlaceCard .fp-card-header .fp-edit-toggle{grid-column:3!important;grid-row:2!important}
+#fpPlaceCard .fp-card-header .fp-card-close{grid-column:4!important;grid-row:2!important}
+#fpPlaceCard .fp-card-header :is(.fp-unstar-btn,.fp-edit-toggle,.fp-card-close){
+ justify-self:stretch!important;align-self:center!important;
+ box-sizing:border-box!important;
+ min-width:0!important;width:44px!important;max-width:44px!important;
+ height:44px!important;min-height:44px!important;max-height:44px!important;
+ padding:0!important;margin:0!important
+}
+#fpPlaceCard .fp-card-header .fp-edit-toggle{
+ font-size:12px!important;white-space:nowrap!important
+}
+#fpPlaceCard .fp-card-header .fp-place-preview:active{filter:brightness(.92)!important}
+/* Peek, half and full must retain keyboard and pointer access to saved content.
+   The identity photo is a first-level shortcut, never a blocking layer. */
+#fpPlaceCard[data-atlas-snap="peek"] .fp-card-scroll,
+#fpPlaceCard[data-atlas-snap="half"] .fp-card-scroll,
+#fpPlaceCard[data-atlas-snap="full"] .fp-card-scroll{
+ overflow-y:auto!important;pointer-events:auto!important
+}
+@media(max-width:390px){
+ #fpPlaceCard .fp-card-title-wrap{grid-template-columns:minmax(0,1fr) 76px!important}
+ #fpPlaceCard .fp-card-title-wrap .fp-place-preview{width:76px!important;height:86px!important}
+ #fpPlaceCard .fp-card-title-wrap .fp-card-name{font-size:22px!important}
+ #fpPlaceCard .fp-card-header{gap:6px 7px!important;padding-inline:14px!important}
+}
+
+
+/* Approved V4 recovery · coherent live surfaces / v2.
+   This belongs to the existing canonical acceptance stylesheet, not another
+   imported patch or a second interaction owner. All data stays in-place. */
+:root{
+ --fp-rc-paper:#fffefa;--fp-rc-ink:#25362d;--fp-rc-text:#52655a;
+ --fp-rc-muted:#829087;--fp-rc-stroke:#e5e9e2;--fp-rc-sage:#eff3ec;
+ --fp-rc-gold:#b29a62;--fp-rc-ease:cubic-bezier(.22,1,.36,1)
+}
+/* Home: four approved V3 icons read as one quiet iPhone Dock. */
+@media(max-width:700px){
+ #appDock{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  align-items:center!important;width:min(372px,calc(100vw - 28px))!important;
+  padding:6px!important;gap:3px!important;border-radius:25px!important;
+  background:rgba(255,254,250,.965)!important;border:1px solid #dfe7dd!important;
+  box-shadow:0 8px 28px rgba(35,51,38,.105),0 1px 4px rgba(35,51,38,.035)!important
+ }
+ #appDock .dock-btn{
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  justify-content:center!important;width:100%!important;min-width:0!important;
+  height:59px!important;min-height:59px!important;gap:4px!important;
+  border-radius:18px!important;color:var(--fp-rc-ink)!important;
+  background:transparent!important;transition:transform .24s var(--fp-rc-ease),background-color .2s ease!important
+ }
+ #appDock .dock-btn img{width:25px!important;height:25px!important;opacity:.94!important}
+ #appDock .dock-btn span{font-size:11px!important;font-weight:650!important;line-height:1.13!important;color:#53665a!important}
+ #appDock .dock-btn:is(.active,.fp25-current,[aria-pressed="true"]){
+  background:rgba(220,230,217,.55)!important;box-shadow:none!important
+ }
+ #appDock .dock-btn:active{transform:scale(.945)!important;scale:1!important}
+}
+/* Search: a useful place library backed by actual personal photographs,
+   followed by third-party map results. No synthetic media or placeholder POIs. */
+#fpSearchSheet{
+ background:var(--fp-rc-paper)!important;color:var(--fp-rc-ink)!important;
+ border-color:#dfe6dc!important;border-radius:25px 25px 0 0!important;
+ box-shadow:0 -10px 45px rgba(29,45,33,.15)!important
+}
+#fpSearchSheet .fp-search-top{padding:11px 18px 16px!important;border-color:var(--fp-rc-stroke)!important}
+#fpSearchSheet .fp-search-grip{margin-bottom:14px!important;background:#cfd6cb!important}
+#fpSearchSheet .fp-search-head{display:flex!important;align-items:center!important;min-height:51px!important;margin-bottom:11px!important}
+#fpSearchSheet .fp-search-title{display:flex;flex-direction:column;gap:3px;min-width:0}
+#fpSearchSheet .fp-search-eyebrow{font-size:10px;line-height:1.25;color:#829182;letter-spacing:.06em;font-weight:650}
+#fpSearchSheet .fp-search-head h2{margin:0!important;font-size:22px!important;font-weight:760!important;letter-spacing:-.048em!important;line-height:1.16!important}
+#fpSearchSheet .fp-search-close{width:44px!important;min-width:44px!important;height:44px!important;border-radius:14px!important;color:#59665d!important;background:#f3f5ef!important}
+#fpSearchSheet .fp-search-bar{
+ min-height:54px!important;padding:0 13px!important;border-radius:17px!important;
+ background:#f0f4ee!important;border:1px solid #e2e8df!important;box-shadow:none!important
+}
+#fpSearchSheet .fp-search-bar:focus-within{
+ border-color:#becbba!important;box-shadow:0 0 0 3px rgba(182,194,179,.2)!important
+}
+#fpSearchSheet .fp-search-body{
+ padding:13px 16px calc(28px + env(safe-area-inset-bottom))!important;
+ background:var(--fp-rc-paper)!important;overscroll-behavior-y:contain
+}
+#fpSearchSheet .fp-search-group{margin:0 0 20px}
+#fpSearchSheet .fp-search-label{
+ display:flex!important;align-items:baseline!important;justify-content:space-between!important;
+ font-size:11px!important;font-weight:720!important;line-height:1.6!important;
+ padding:0 4px 4px!important;margin:6px 0 9px!important;color:#657869!important;
+ letter-spacing:0!important
+}
+#fpSearchSheet .fp-search-label span{color:#b0b9ae;font-size:11px;font-variant-numeric:tabular-nums;font-weight:630}
+#fpSearchSheet .fp-search-row{
+ display:grid!important;grid-template-columns:62px minmax(0,1fr) 15px!important;
+ gap:12px!important;align-items:center!important;
+ width:100%!important;min-height:84px!important;padding:9px 12px 9px 9px!important;
+ margin:0 0 8px!important;border-radius:18px!important;
+ background:#fffefa!important;border:1px solid #e5eae2!important;
+ box-shadow:0 2px 8px rgba(39,56,43,.04)!important;
+ text-align:left!important;transition:transform .2s var(--fp-rc-ease),background .2s ease!important
+}
+#fpSearchSheet .fp-search-row:active{transform:scale(.985)!important;scale:1!important;background:#f7faf5!important}
+#fpSearchSheet .fp-row-photo,#fpSearchSheet .fp-row-icon{
+ width:62px!important;height:62px!important;border-radius:14px!important;
+ grid-column:1!important;grid-row:1!important;
+ flex:none!important;overflow:hidden!important;box-sizing:border-box!important
+}
+#fpSearchSheet .fp-row-photo{display:block!important;object-fit:cover!important;object-position:center!important;background:#eff1ed!important}
+#fpSearchSheet .fp-row-icon{
+ display:grid!important;place-items:center!important;
+ font-size:20px!important;color:#8f7a4a!important;background:#eff3ec!important;border:1px solid #edf0e9!important
+}
+#fpSearchSheet .fp-row-main{
+ display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+ justify-content:center!important;min-width:0!important;gap:5px!important;grid-column:2!important;grid-row:1!important
+}
+#fpSearchSheet .fp-row-main strong{
+ max-width:100%!important;font-size:15px!important;font-weight:730!important;
+ line-height:1.25!important;letter-spacing:-.03em!important;color:var(--fp-rc-ink)!important
+}
+#fpSearchSheet .fp-row-main small{
+ display:block!important;max-width:100%!important;overflow:hidden!important;
+ white-space:nowrap!important;text-overflow:ellipsis!important;
+ color:#829086!important;font-size:11px!important;line-height:1.35!important
+}
+#fpSearchSheet .fp-row-context{display:flex;flex-wrap:wrap;align-items:center;gap:7px;font-size:10px;color:#8a978d;line-height:1.4}
+#fpSearchSheet .fp-row-stage{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:19px;padding:2px 7px;border-radius:999px;
+ background:#f3eee3;color:#897448;font-size:10px;font-weight:650
+}
+#fpSearchSheet .fp-row-arrow{grid-column:3!important;grid-row:1!important;justify-self:end!important;font-size:17px!important;color:#a6b3a6!important}
+#fpSearchSheet .fp-search-empty{font-size:13px!important;line-height:1.75!important;color:#718174!important}
+#fpSearchSheet .fp-search-saved-preview .fp-search-empty{
+ background:#f4f6f0!important;border-color:#e6eae2!important;border-radius:16px!important
+}
+/* One place card; three densities, not three separately mounted products. */
+#fpPlaceCard .fp-card-title-wrap .fp-place-teaser{
+ font-size:12px!important;color:#728073!important;line-height:1.48!important
+}
+#fpPlaceCard[data-atlas-snap="peek"] .fp-place-teaser{
+ display:-webkit-box!important;-webkit-box-orient:vertical!important;
+ -webkit-line-clamp:1!important;overflow:hidden!important
+}
+#fpPlaceCard[data-atlas-snap="half"] .fp-place-teaser,
+#fpPlaceCard[data-atlas-snap="full"] .fp-place-teaser{-webkit-line-clamp:2!important}
+#fpPlaceCard .fp-card-scroll{scrollbar-width:none!important;scroll-padding-top:10px!important}
+#fpPlaceCard .fp-card-scroll::-webkit-scrollbar{width:0;height:0}
+#fpPlaceCard .fp-block{border-color:var(--fp-rc-stroke)!important}
+#fpPlaceCard .fp-subheading .fp-section-label{color:var(--fp-rc-ink)!important}
+#fpPlaceCard .fp-media-mosaic{border-radius:18px!important}
+#fpPlaceCard .fp-brief-text{line-height:1.69!important;color:#4a6152!important}
+#fpPlaceCard .fp-place-preview:focus-visible{outline:2px solid var(--fp-rc-gold)!important;outline-offset:2px!important}
+/* Real collection and C route borrow the same image/type scale. */
+#drawer.fp30-detail #spotList .spotrow{background:#fffefa!important;border-color:#e5ebe3!important;min-height:98px!important}
+#drawer.fp30-detail #spotList .spotrow>img,
+#drawer.fp30-detail #spotList .spotrow .spotempty{width:74px!important;height:74px!important;border-radius:16px!important}
+#drawer.fp30-detail #spotList .spotrow strong{font-size:16px!important;line-height:1.25!important;letter-spacing:-.03em!important}
+#drawer.fp30-detail #spotList .spotrow small{font-size:11px!important;line-height:1.5!important}
+body.journey-page.journey-live-sheet .builder .choice{border-radius:16px!important;background:#fffefa!important;border-color:#e2e9df!important}
+body.journey-page.journey-live-sheet .builder .choice-name{color:var(--fp-rc-ink)!important;font-size:15px!important}
+body.route-page #rvDetail .rv-sec{border-color:#e5eae2!important}
+body.route-page #rvDetail .rv-sec small{font-size:11px!important;letter-spacing:.01em!important}
+@media(max-width:375px){
+ #fpSearchSheet .fp-search-row{grid-template-columns:55px minmax(0,1fr) 13px!important;gap:10px!important}
+ #fpSearchSheet .fp-row-photo,#fpSearchSheet .fp-row-icon{width:55px!important;height:55px!important}
+ #fpSearchSheet .fp-row-main strong{font-size:14px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #appDock .dock-btn,#fpSearchSheet .fp-search-row{transition:none!important;animation:none!important}
+}
