@@ -1,0 +1,23 @@
+name: V4 map pan stress with 22 saved places and four-times CPU throttle
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/v4-map-pan-stress.cjs'
+      - '.github/workflows/v4-map-pan-stress.yml'
+permissions:
+  contents: read
+jobs:
+  comparison:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install chromium
+      - run: node tests/v4-map-pan-stress.cjs
