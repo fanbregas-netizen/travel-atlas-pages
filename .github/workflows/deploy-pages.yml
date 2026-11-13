@@ -133,6 +133,10 @@ jobs:
           cp -R interaction-b-v4-rubber-review _site/interaction-b-v4-rubber-review
           # Isolated real-product interaction B home Dock search preview; root product unchanged.
           cp -R interaction-b-real-home-search-review _site/interaction-b-real-home-search-review
+          # Next-stage click/drag interactive design demo, isolated from every real product route.
+          cp -R v4-next-stage-interactive-demo-20261113 _site/v4-next-stage-interactive-demo-20261113
+          test -s _site/v4-next-stage-interactive-demo-20261113/index.html
+          grep -q '下一轮产品整改交互预演' _site/v4-next-stage-interactive-demo-20261113/index.html
           touch _site/.nojekyll
       - name: Validate isolated systematic V4 review package
         run: |
