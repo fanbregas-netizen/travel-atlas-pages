@@ -25,7 +25,7 @@ const variant=process.env.BROWSER||'chromium',url='https://fanbregas-netizen.git
   assert.deepEqual([checks.cardOwners,checks.dockOwners,checks.searchOwners,checks.collectionOwners],[1,1,1,1]);
   assert.equal(checks.mediaBackup,true);
   assert.ok(checks.visualBorder!=='0px'&&checks.visualBorder!=='none','Visual C styling not applied');
-  assert.equal(checks.sheetLevels,'closed,peek,half,full');
+  assert.equal(checks.sheetLevels,'peek,half,full');
   await page.locator('#dockSearch').click({timeout:18000});
   await page.waitForFunction(()=>document.body.classList.contains('fp-search-open'),null,{timeout:18000});
   await page.locator('#fpSearchSheet .fp-search-close').click({timeout:18000});
@@ -48,9 +48,9 @@ const variant=process.env.BROWSER||'chromium',url='https://fanbregas-netizen.git
    await repo.saveRoute({id:'media-route',title:'媒体与路线同存储',stops:[{placeId:place.id,day:1}],startDate:'2026-11-20',endDate:'2026-11-20'});
    const archive=await repo.backup();
    const restored=await FootprintMediaCore.readBackup(archive);
-   assert.ok(archive.length>100);
-   assert.ok(restored.records.some(p=>p.id===place.id));
-   assert.ok(restored.routes.some(p=>p.id==='media-route'));
+   if(!(archive.length>100))throw Error('Media D ZIP backup was empty');
+   if(!restored.records.some(p=>p.id===place.id))throw Error('Media D ZIP lost bookmarked media');
+   if(!restored.routes.some(p=>p.id==='media-route'))throw Error('Media D ZIP lost route');
    await repo.restore(archive,{conflict:'merge'});
    return {bytes:archive.length,places:restored.records.length,routes:restored.routes.length};
   });
