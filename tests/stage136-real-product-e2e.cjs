@@ -63,8 +63,17 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  await page.evaluate(()=>document.getElementById('saveRoute').click());
  await page.waitForFunction(()=>document.getElementById('saveRouteDialog').open,null,{timeout:12000});
  await page.locator('#routeSaveName').fill('Stage 1.36 验收测试');
- await page.locator('#routeSaveStart').fill('2026-11-20');
- await page.locator('#routeSaveEnd').fill('2026-11-20');
+ // The approved V4 date field is a readonly calendar trigger, not a
+ // native editable input. Keep that UI unchanged. This regression seeds the
+ // calendar's *confirmed form value* to validate storage and D-day reflow;
+ // calendar touch/confirm/cancel is checked by its existing interaction suite.
+ await page.evaluate(()=>{
+  for(const [id,value] of [['routeSaveStart','2026-11-20'],['routeSaveEnd','2026-11-20']]){
+   const el=document.getElementById(id);
+   el.value=value;
+   el.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+ });
  await page.locator('#routeSaveOrigin').fill('上海');
  await page.locator('#routeSaveDest').fill('苏州');
  await page.locator('#routeSaveConfirm').click();
