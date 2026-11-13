@@ -118,6 +118,11 @@ jobs:
           cp -R _site/v4-iphone-fluidity-20261113 _site/v4-iphone-cacheable-20261113
           cp v4-iphone-cacheable-20261113/index.html _site/v4-iphone-cacheable-20261113/index.html
           cp v4-iphone-cacheable-20261113/v4-map-runtime.js _site/v4-iphone-cacheable-20261113/v4-map-runtime.js
+          # Isolated Safari sheet/keyboard transition candidate. Inherit the
+          # exact existing cacheable app; overlay only four verified source files.
+          # The published root index.html and all prior previews are unchanged.
+          cp -R _site/v4-iphone-cacheable-20261113 _site/v4-safari-sheet-transition-20261113
+          cp -R v4-safari-sheet-transition-20261113/. _site/v4-safari-sheet-transition-20261113/
           # Approved V4 visual recovery 2 — distinct review; root is never overwritten.
           cp -R v4-approved-recovery-phase2-20261113 _site/v4-approved-recovery-phase2-20261113
           # P1 approved V4 real-product rebuild; do not overwrite root or any existing stage.
