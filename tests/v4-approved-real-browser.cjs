@@ -65,3 +65,5 @@ const assert=require('node:assert/strict');
  await browser.close();
  console.log('PASS real V4 Dock→search→close→B05 collection transitions with original data hooks');
 })().catch(e=>{console.error('FAIL real V4 review: '+e.stack);process.exit(1)});
+
+// Repeat after 2026-11-13 V4 low-jank geometry and inactive-RAF fix.
