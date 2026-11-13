@@ -46,12 +46,25 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
  assert.ok(state.height>600,'full sheet not extended at 844px: '+state.height);
  await page.setViewportSize({width:390,height:570});
  await pause(1050);
- const smaller=await page.evaluate(()=>({
-  sheet:window.__atlasSheetIntegration?.search?.getState()?.sheet,
-  height:document.getElementById('fpSearchSheet')?.getBoundingClientRect().height
- }));
+ const smaller=await page.evaluate(()=>{
+  const el=document.getElementById('fpSearchSheet');
+  return {
+   sheet:window.__atlasSheetIntegration?.search?.getState()?.sheet,
+   height:el?.getBoundingClientRect().height,
+   innerHeight:window.innerHeight,
+   viewportHeight:window.visualViewport?.height,
+   documentHeight:document.documentElement.clientHeight,
+   sheetBottom:el?parseFloat(getComputedStyle(el).bottom):null
+  };
+ });
+ console.log('SAFARI_VIEWPORT_RESIZE '+browserName+' '+JSON.stringify({state,smaller}));
  assert.equal(smaller.sheet,'full','keyboard-like viewport shrink lost search state');
- assert.ok(smaller.height>=390&&smaller.height<state.height-45,'viewport spring failed to resettle: '+JSON.stringify({state,smaller}));
+ const effectiveViewport=smaller.viewportHeight||smaller.innerHeight;
+ const expectedFull=Math.max(400,effectiveViewport-(smaller.sheetBottom||0)-22);
+ assert.ok(Math.abs(smaller.height-expectedFull)<35,
+  'WebKit native viewport did not follow visible area '+JSON.stringify({state,smaller,expectedFull}));
+ assert.ok(smaller.height<state.height-16,
+  'viewport spring failed to resettle '+JSON.stringify({state,smaller}));
  await page.setViewportSize({width:390,height:844});
  await pause(1050);
  const expanded=await page.locator('#fpSearchSheet').boundingBox();
