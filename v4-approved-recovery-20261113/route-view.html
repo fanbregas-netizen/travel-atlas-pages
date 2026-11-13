@@ -371,6 +371,16 @@ function init(){
     drag=null;
   });
   // 真实道路线 + D标
+  // This route-routing IIFE is intentionally separate from the map-boot
+  // script. Route status owns its own notice, never reaching across scopes.
+  let roadStatusTimer=null;
+  function roadNotice(message){
+    const panel=document.getElementById('atlasStatus');
+    if(!panel)return;
+    panel.textContent=message;panel.classList.remove('is-quiet');
+    if(roadStatusTimer!==null)clearTimeout(roadStatusTimer);
+    roadStatusTimer=setTimeout(()=>{panel.classList.add('is-quiet');roadStatusTimer=null},3800);
+  }
   let roadGeneration=0,roadRequest=null,roadRetry=0;
   async function reRoad(){
     const generation=++roadGeneration;
@@ -395,7 +405,7 @@ function init(){
     document.querySelectorAll('.rv-daytag').forEach(t=>t.remove());
     const pts=RV.places.map(p=>[Number(p.lng),Number(p.lat)]);
     if(pts.length<2 || pts.some(([lng,lat])=>!Number.isFinite(lng)||!Number.isFinite(lat)||Math.abs(lat)>90||Math.abs(lng)>180)){
-      if(legend){legend.textContent='至少需要两个坐标有效的地点，才能规划道路';legend.dataset.roadState='insufficient'}if(drawn)drawn.style.display='none';notice('地点已显示，尚未形成道路路线');return;
+      if(legend){legend.textContent='至少需要两个坐标有效的地点，才能规划道路';legend.dataset.roadState='insufficient'}if(drawn)drawn.style.display='none';roadNotice('地点已显示，尚未形成道路路线');return;
     }
     const timeout=setTimeout(()=>controller.abort(),10000);
     try{
@@ -411,11 +421,11 @@ function init(){
       map.addLayer({id:'rv-road-casing',type:'line',source:'rv-road',paint:{'line-color':'#fffef7','line-width':7,'line-opacity':.95},layout:{'line-cap':'round','line-join':'round'}});
       map.addLayer({id:'rv-road-line',type:'line',source:'rv-road',paint:{'line-color':'#3b4544','line-width':3.1},layout:{'line-cap':'round','line-join':'round'}});
       if(drawn)drawn.style.display='none';
-      if(legend){legend.textContent='已获取实际道路线 · 仅供规划参考';legend.dataset.roadState='ready'}notice('道路路线已匹配 · 点击编号查看地点内容');
+      if(legend){legend.textContent='已获取实际道路线 · 仅供规划参考';legend.dataset.roadState='ready'}roadNotice('道路路线已匹配 · 点击编号查看地点内容');
       roadRetry=0;
     }catch(err){
       if(generation!==roadGeneration)return;
-      if(legend){legend.textContent='仅显示站点顺序，尚未获得实际道路';legend.dataset.roadState='fallback'}if(drawn){drawn.style.display='';drawn.dataset.roadState='fallback'}notice('道路路线暂不可用，以下为站点顺序示意');
+      if(legend){legend.textContent='仅显示站点顺序，尚未获得实际道路';legend.dataset.roadState='fallback'}if(drawn){drawn.style.display='';drawn.dataset.roadState='fallback'}roadNotice('道路路线暂不可用，以下为站点顺序示意');
       if(roadRetry<1&&!controller.signal.aborted){roadRetry++;setTimeout(()=>{if(generation===roadGeneration)reRoad()},3200)}
     }finally{clearTimeout(timeout);if(roadRequest===controller)roadRequest=null}
   }
