@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<script id="atlas-preview-storage-isolation">(()=>{'use strict';
+const ns='fp-v4-single-route-unified-20261113-';window.__atlasPreviewNamespace=ns;
+const db=IDBFactory.prototype,o=db.open,d=db.deleteDatabase;
+db.open=function(name,...args){return o.call(this,ns+String(name),...args)};
+db.deleteDatabase=function(name){return d.call(this,ns+String(name))};
+const st=Storage.prototype,g=st.getItem,s=st.setItem,r=st.removeItem,k=st.key;
+st.getItem=function(n){return g.call(this,ns+String(n))};
+st.setItem=function(n,v){return s.call(this,ns+String(n),v)};
+st.removeItem=function(n){return r.call(this,ns+String(n))};
+st.clear=function(){const names=[];for(let i=0;i<this.length;i++){const n=k.call(this,i);if(n?.startsWith(ns))names.push(n)}names.forEach(n=>r.call(this,n))};
+})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#edf1e9">
+<meta name="description" content="Footprint Map V4：已确认 Interaction C V5 原生路线卡片，连接真实收藏地点与旅行数据。">
+<title>足迹地图｜路线规划</title>
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<!-- This stylesheet is byte-for-byte the C V5 approved original. -->
+<link rel="stylesheet" href="./src/interaction/demo/v5/route-cards-v5.css">
+<link rel="stylesheet" href="./src/visual/route-v5-shared-map-zh.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" media="print" onload="this.media='all'">
+<style>
+:root{color-scheme:light;--ink:#27362f;--muted:#7c897c;--paper:#fffefa;--gold:#f2c84e}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#edf1e9;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;-webkit-tap-highlight-color:transparent}
+.screen{position:fixed;inset:0;width:100%;height:100dvh;overflow:hidden;background:#edf1e9;isolation:isolate}
+#rc-live-map-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;touch-action:pan-x pan-y}
+#rc-live-map-canvas .maplibregl-control-container{font-size:9px}
+#rc-map{background:#e7eee4}
+#rc-map .rc-map-caption{pointer-events:none}
+#rc-shell{z-index:20}
+#rc-review,#rc-toggle{display:none!important}
+#rc-main,#rc-mini{font-family:inherit}
+#rc-live-note{position:fixed;top:calc(env(safe-area-inset-top) + 13px);left:14px;right:14px;z-index:35;display:flex;align-items:center;gap:7px;pointer-events:none}
+#rc-live-note a{pointer-events:auto;width:43px;height:43px;border:1px solid #eff1eb;border-radius:14px;background:#fffefae8;display:grid;place-items:center;box-shadow:0 3px 14px #1a2b201c;color:#3b5c45;font-size:23px;text-decoration:none}
+#rc-live-note span{display:inline-flex;align-items:center;padding:9px 12px;border:1px solid #e1e9dc;border-radius:14px;background:#fffefae8;color:#4e6c52;font-size:11px;font-weight:720;box-shadow:0 3px 14px #1a2b201c}
+@media(prefers-reduced-motion:reduce){#rc-main,#rc-shell{transition:none!important}}
+</style>
+<script defer src="./src/map/shared-v4-map.js"></script>
+<script defer src="./src/media/media-core.js"></script>
+<script defer src="./src/interaction/route-cards-v5-live.js"></script>
+</head>
+<body class="route-v5-live">
+<div class="screen" id="routeV5LiveRoot" role="main" aria-label="旅行路线规划">
+ <div id="rc-live-note"><a href="./index.html" aria-label="返回旅行地图">‹</a><span>路线规划 · 我的收藏</span></div>
+</div>
+<noscript>请启用 JavaScript 后查看旅行路线。</noscript>
+</body>
+</html>

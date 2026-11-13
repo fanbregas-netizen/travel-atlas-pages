@@ -1,0 +1,43 @@
+/* 唯一路线子页：直接复用经 C V5 确认的真实卡片 DOM / 手势 /
+   日期 / 顺序。仅补地图容器、地图选点与中文一致性。 */
+:root{
+ --rc-ink:#304737;--rc-text:#455d4a;--rc-quiet:#889b89;
+ --rc-paper:#fffefa;--rc-sage:#e9f1e7;--rc-line:#e4eadf;
+ --rc-gold:#edc654;
+ color-scheme:light;
+}
+html,body,.screen,#rc-shell,#rc-main,#rc-mini{
+ font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif!important;
+}
+#rc-live-map-canvas{
+ position:absolute;inset:0;width:100%;height:100%;
+ z-index:0;overflow:hidden;touch-action:pan-x pan-y;background:#f4f3ee;
+}
+#rc-live-map-canvas .maplibregl-canvas{outline:none}
+#rc-map{background:#f4f3ee!important;isolation:isolate}
+#rc-map-pins{position:absolute;inset:0;z-index:4;pointer-events:none}
+#rc-map-pins .rc-pin{pointer-events:auto}
+#rc-map svg.rc-route{z-index:3}
+#rc-map .rc-map-caption{z-index:5}
+#rc-live-map-pick-hint{
+ position:absolute;z-index:9;top:calc(117px + env(safe-area-inset-top,0px));
+ left:15px;right:15px;padding:9px 10px 9px 13px;
+ display:flex;align-items:center;gap:9px;justify-content:space-between;
+ font-size:12px;font-weight:650;color:#385845;
+ border:1px solid #d6e6d6;background:#fffefaeb;
+ border-radius:15px;box-shadow:0 5px 17px #17291c22;
+}
+#rc-live-map-pick-hint[hidden]{display:none!important}
+#rc-live-map-pick-hint span{flex:1;line-height:1.5}
+#rc-live-map-pick-hint button{
+ border:0;border-radius:11px;min-height:35px;padding:6px 12px;
+ color:#4d7254;background:#e8f0e4;font-size:12px;
+}
+#rc-mini .rc-saved-list{display:grid;gap:9px;max-height:53dvh;overflow:auto}
+#rc-mini .rc-saved-list .rc-choice{text-align:left}
+#rc-main .rc-meta button,.rc-stop{font-family:inherit}
+#rc-mini .rc-saved-list .rc-choice small{display:block;margin-top:6px;font-size:11px;color:#819784}
+#rc-live-note a{color:#3b5c45}
+@media(prefers-reduced-motion:reduce){
+ #rc-main,#rc-mini{transition:none!important}
+}
