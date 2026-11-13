@@ -21,7 +21,7 @@ const variant=process.env.BROWSER||'chromium',url='https://fanbregas-netizen.git
    visualBorder:getComputedStyle(document.getElementById('appDock')).borderRadius,
    sheetLevels:window.TravelAtlasSheet?.OPEN_LEVELS?.join(',')||''
   }));
-  assert.equal(checks.namespace,'fp-v4-four-systems-live-20261113-');
+  assert.equal(checks.namespace,'fp-v4-single-route-unified-20261113-');
   assert.deepEqual([checks.cardOwners,checks.dockOwners,checks.searchOwners,checks.collectionOwners],[1,1,1,1]);
   assert.equal(checks.mediaBackup,true);
   assert.ok(checks.visualBorder!=='0px'&&checks.visualBorder!=='none','Visual C styling not applied');
