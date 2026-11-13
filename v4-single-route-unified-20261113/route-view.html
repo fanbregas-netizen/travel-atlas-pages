@@ -23,6 +23,8 @@ st.clear=function(){const names=[];for(let i=0;i<this.length;i++){const n=k.call
 #addStop,#saveRoute,#routeSaveDialog,#routePickDialog{display:none!important}
 #routeEditV5{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:8px 12px;border:1px solid #dce8dd;border-radius:13px;background:#fffefa;color:#3a6547;font-size:12px;font-weight:720;text-decoration:none}
 .atlas-brand-top,.dock-head small{letter-spacing:.02em!important;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+/* 顶部独立入口：底部旧路线 dock-head 已被批准版隐藏。 */
+#routeEditV5{justify-self:center;white-space:nowrap;z-index:11;box-shadow:0 4px 14px #1112;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
@@ -240,6 +242,7 @@ const run=()=>init().catch(e=>empty('路线加载异常：'+e.message));if(docum
 <header class="atlas-topbar">
   <a class="atlas-back" href="./" aria-label="返回旅行地图"><span aria-hidden="true">←</span><span class="back-name">旅行地图</span></a>
   <div class="atlas-brand"><span class="atlas-brand-top">路线地图</span><strong id="tripName">我的旅行路线</strong></div>
+  <a id="routeEditV5" href="./journey.html" aria-label="使用已确认的路线卡片编辑">编辑路线</a>
   <button id="viewAll" class="view-all" type="button" aria-label="查看整条路线"><span aria-hidden="true">⌗</span><span>全览</span></button>
 </header>
 <div class="atlas-status" id="atlasStatus" role="status">正在读取本次旅行的收藏点……</div>
@@ -256,7 +259,7 @@ const run=()=>init().catch(e=>empty('路线加载异常：'+e.message));if(docum
   <div class="bubble-ops"><a id="amapNavigate" target="_blank" rel="noopener noreferrer">高德导航</a><a id="backToSource">查看收藏详情</a></div>
 </section>
 <footer class="atlas-stops" id="stopsDock" aria-label="旅行路线站点导航">
-  <div class="dock-head"><div><small>我的旅行路线</small><strong id="routeSummary">路线准备中</strong></div><div class="dock-actions"><span id="travelDates"></span><a id="routeEditV5" href="./journey.html" aria-label="使用已确认的路线卡片编辑">编辑路线</a><button type="button" id="addStop" aria-label="已停用旧路线添加入口" hidden>＋ 加点</button><button type="button" id="saveRoute" hidden aria-label="保存当前路线">保存路线 <span aria-hidden="true">⌁</span></button></div></div>
+  <div class="dock-head"><div><small>我的旅行路线</small><strong id="routeSummary">路线准备中</strong></div><div class="dock-actions"><span id="travelDates"></span><button type="button" id="addStop" aria-label="已停用旧路线添加入口" hidden>＋ 加点</button><button type="button" id="saveRoute" hidden aria-label="保存当前路线">保存路线 <span aria-hidden="true">⌁</span></button></div></div>
   <div id="stopRail" class="stop-rail" role="list"></div>
   <div class="dock-note">所有地点按原始地理坐标显示。点击编号，查看保存的图文与来源。</div>
 </footer>
