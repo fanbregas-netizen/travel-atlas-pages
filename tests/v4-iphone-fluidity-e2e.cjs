@@ -4,6 +4,7 @@ const assert=require('node:assert/strict');
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const url='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-iphone-fluidity-20261113/';
 const which=process.env.BROWSER||'chromium';
+const Hfull=()=>620;
 async function drag(page,selector,dy){
  const loc=page.locator(selector).first(),b=await loc.boundingBox();
  assert.ok(b,'gesture source missing '+selector);
@@ -25,6 +26,7 @@ async function drag(page,selector,dy){
  page.on('requestfailed',r=>failedResources.push(['network',r.url().slice(0,160)]));
  await page.goto(url,{waitUntil:'domcontentloaded',timeout:70000});
  await page.waitForSelector('#appDock',{timeout:35000});
+ await page.waitForFunction(()=>window.__atlasSheetIntegration?.version==='B-V3-real-product',null,{timeout:20000});
  await wait(4600);
  let startup=await page.evaluate(()=>{
   const map=document.querySelector('#atlasVectorMap canvas'),r=map?.getBoundingClientRect();
@@ -74,6 +76,7 @@ async function drag(page,selector,dy){
  console.log('FLUIDITY_RESOURCE_ERRORS '+which+' '+JSON.stringify({errors,consoleErrors,failedResources}));
  assert.equal(opened.focused,'fpSearchField','actual search input not focused');
  assert.ok(!opened.hidden&&opened.level==='full','real search sheet did not fully open');
+ assert.ok(opened.height>Hfull(),'search claims full state but remains visually stuck at legacy height '+opened.height);
  await drag(page,'#fpSearchSheet .fp-search-top',130);
  let down=await page.evaluate(()=>({level:window.__atlasSheetIntegration?.search?.getState()?.sheet,height:document.getElementById('fpSearchSheet')?.getBoundingClientRect().height}));
  console.log('FLUIDITY_SEARCH_DRAG '+which+' '+JSON.stringify(down));
