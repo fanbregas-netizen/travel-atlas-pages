@@ -186,13 +186,21 @@ function connect({sheet,controller,header,grip,scroll}){
  };
  on(window,'resize',resettleForViewport,{passive:true});
  on(window.visualViewport,'resize',resettleForViewport,{passive:true});
+ on(window.visualViewport,'scroll',resettleForViewport,{passive:true});
+ // iOS WebKit can change the CSS viewport (including keyboard/toolbar
+ // transitions) without delivering a window/visualViewport resize event to
+ // app listeners. Observe the document geometry without polling or layout
+ // reads on every animation frame.
+ const rootResizeObserver=typeof ResizeObserver!=='undefined'
+  ?new ResizeObserver(resettleForViewport):null;
+ rootResizeObserver?.observe(document.documentElement);
  sheet.dataset.atlasPhysicalSheet='v3';
  // Recover existing card after DOM re-render and attach only once.
  if(level!=='closed'&&!sheet.hidden){height=detents()[level];vertical=0;paint()}
  const unsubscribe=controller.subscribe(render);
  return Object.freeze({
   state:()=>({sheet:level,height,animating,placeId:place}),
-  destroy(){stop();unsubscribe();listeners.splice(0).forEach(f=>f());delete sheet.dataset.atlasPhysicalSheet},
+  destroy(){stop();rootResizeObserver?.disconnect();unsubscribe();listeners.splice(0).forEach(f=>f());delete sheet.dataset.atlasPhysicalSheet},
   snapTo:level=>controller.snapTo(level),close:()=>controller.close()
  });
 }
