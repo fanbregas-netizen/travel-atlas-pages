@@ -21,7 +21,7 @@
 }
 .dock button{position:relative;z-index:1;touch-action:manipulation;transform-origin:50% 72%}
 .dock button.active{background:transparent}
-.dock button:active,.dock button.dock-pressed{transform:translateY(4px) scale(.92,.85)}
+.dock button:active,.dock button.dock-pressed{transform:scale(.988)}
 .sheet-head{touch-action:none}
 .sheet-scroll{touch-action:pan-y}
 .sheet[data-sheet-dragging="yes"]{box-shadow:0 -20px 65px #1a32283b}
@@ -248,44 +248,41 @@ dockGlider.className='dock-glider';dockGlider.setAttribute('aria-hidden','true')
 dockShell.prepend(dockGlider);
 let dockGliderX=NaN,dockPending=null;
 const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* Restored Interaction B PR #12 V4 contract: ONE elastic Dock surface,
+   no simultaneous button bounce + moving indicator + shell bounce. */
 function dockMotionSelect(id){
  const target=$(id);if(!target||!dockShell.contains(target))return;
- const x=target.offsetLeft,w=target.offsetWidth,from=Number.isFinite(dockGliderX)?dockGliderX:x;
- if(dockGlider.getAnimations) dockGlider.getAnimations().forEach(a=>a.cancel());
+ const x=target.offsetLeft,w=target.offsetWidth;
+ dockGlider.getAnimations?.().forEach(a=>a.cancel());
  dockGlider.style.width=w+'px';
- dockGlider.style.left=x+'px';
- if(Number.isFinite(dockGliderX)&&!reduceMotion()&&Math.abs(from-x)>2){
-  const extra=x+(x-from)*.11;
-  dockGlider.animate([
-   {left:from+'px',transform:'scaleX(1)'},
-   {left:extra+'px',transform:'scaleX(1.16)',offset:.49},
-   {left:x+'px',transform:'scaleX(.95)',offset:.77},
-   {left:x+'px',transform:'scaleX(1)'}
-  ],{duration:520,easing:'cubic-bezier(.21,.78,.3,1)'});
+ if(Number.isFinite(dockGliderX)&&Math.abs(dockGliderX-x)>1&&!reduceMotion()){
+  dockGlider.animate([{left:dockGliderX+'px'},{left:x+'px'}],
+   {duration:255,easing:'cubic-bezier(.22,.88,.32,1)'});
  }
- dockGliderX=x;
+ dockGlider.style.left=x+'px';dockGliderX=x;
+}
+let dockTactileFrame=0;
+function dockRubberTouch(){
+ if(reduceMotion())return;
+ if(dockTactileFrame)cancelAnimationFrame(dockTactileFrame);
+ dockShell.getAnimations?.().forEach(a=>a.cancel());
+ // Original approved V4 used one surface stretch. Here its amplitude is
+ // reduced to fit the user's latest request for a more restrained response.
+ const anim=dockShell.animate([
+  {transform:'translateX(-50%) scale(1,1)',borderRadius:'25px',offset:0},
+  {transform:'translateX(-50%) scale(1.018,.991)',borderRadius:'26px',offset:.28},
+  {transform:'translateX(-50%) scale(.997,1.002)',borderRadius:'25px',offset:.69},
+  {transform:'translateX(-50%) scale(1,1)',borderRadius:'25px',offset:1}
+ ],{duration:325,easing:'cubic-bezier(.22,.8,.36,1)'});
+ anim.finished.catch(()=>{}).then(()=>{dockTactileFrame=0});
 }
 function dockTap(id,action){
- if(dockPending)clearTimeout(dockPending);
- const target=$(id);
  dockMotionSelect(id);
- if(target&&!reduceMotion()){
-  target.animate([
-   {transform:'translateY(4px) scale(.92,.85)',offset:0},
-   {transform:'translateY(-7px) scale(1.09,1.07)',offset:.43},
-   {transform:'translateY(2px) scale(.975,.97)',offset:.73},
-   {transform:'translateY(0) scale(1)'}
-  ],{duration:530,easing:'cubic-bezier(.22,.83,.29,1)'});
-  dockShell.animate([
-   {transform:'translateX(-50%) translateY(0) scale(1)',offset:0},
-   {transform:'translateX(-50%) translateY(3px) scale(.985,.955)',offset:.3},
-   {transform:'translateX(-50%) translateY(-3px) scale(1.015,1.014)',offset:.7},
-   {transform:'translateX(-50%) translateY(0) scale(1)'}
-  ],{duration:530,easing:'cubic-bezier(.22,.83,.29,1)'});
- }
- // Give the physical Dock press a readable 200ms before the bottom
- // sheet comes forward, instead of hiding the Dock on pointer-up.
- dockPending=setTimeout(()=>{dockPending=null;action()},reduceMotion()?0:200);
+ dockRubberTouch();
+ if(dockPending)clearTimeout(dockPending);
+ // Keep the accepted V4 search/click action immediate, so iPhone Safari
+ // can focus its input during the user's original gesture.
+ action();
 }
 dockButtons.forEach(btn=>{
  btn.addEventListener('pointerdown',()=>btn.classList.add('dock-pressed'));
