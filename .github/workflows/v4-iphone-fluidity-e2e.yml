@@ -22,6 +22,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Guard exact map runtime and original approved gesture bridge
+        run: |
+          node --check v4-iphone-fluidity-20261113/v4-map-runtime.js
+          test -s v4-iphone-fluidity-20261113/src/interaction/physical-sheet.js
+          test -s v4-iphone-fluidity-20261113/src/interaction/real-product-bridge.js
+          grep -q 'pixelRatio:mobileStableMap' v4-iphone-fluidity-20261113/v4-map-runtime.js
+          grep -q 'v4-map-runtime.js' v4-iphone-fluidity-20261113/index.html
       - run: |
           npm install --no-save --ignore-scripts playwright@1.58.2
           npx playwright install --with-deps ${{ matrix.browser }}
