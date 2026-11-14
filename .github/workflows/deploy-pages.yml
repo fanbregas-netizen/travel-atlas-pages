@@ -169,6 +169,13 @@ jobs:
           test -s _site/v4-single-route-unified-20261113/src/map/shared-v4-map.js
           test -s _site/v4-single-route-unified-20261113/src/interaction/route-cards-v5-live.js
           grep -q 'fp-v4-single-route-unified-20261113-' _site/v4-single-route-unified-20261113/index.html
+          # 历史已确认视觉与交互原件只读目录。直接沿用原 Git blob，
+          # 不修改正式站，不将早期提案冒充最后通过的用户界面。
+          cp -R v4-approved-visual-originals-20261114 _site/v4-approved-visual-originals-20261114
+          test -s _site/v4-approved-visual-originals-20261114/index.html
+          test -s _site/v4-approved-visual-originals-20261114/原始演示/05_route/route-cards-v5.js
+          test -s _site/v4-approved-visual-originals-20261114/原始演示/07_visual_source/src/visual/iphone-v4-polish.css
+          test "$(git hash-object v4-approved-visual-originals-20261114/原始演示/05_route/route-cards-v5.js)" = 084f9b48355b37c9fa871b04aef09f86fe65bb39
           touch _site/.nojekyll
       - name: Validate isolated systematic V4 review package
         run: |
