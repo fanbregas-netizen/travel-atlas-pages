@@ -1,0 +1,99 @@
+{
+  "archive": "v4-approved-visual-originals-20261114",
+  "created": "2026-11-14",
+  "immutable": true,
+  "mode": "original-blob-sha",
+  "note": "User final interaction demos are authoritative; proposals not automatically final",
+  "items": [
+    {
+      "id": "motion",
+      "name": "视觉与动效九屏",
+      "status": "已认可的视觉演示方向",
+      "group": "视觉",
+      "root": "v4-visual-motion-acceptance-20261113",
+      "dest": "01_motion",
+      "sha": "58a0534cd1c85578b0e7efc536390da88f0d2b83",
+      "summary": "地图首页｜搜索卡片｜地点预览｜地点半屏｜地点全屏｜媒体全屏｜收藏管理｜路线规划｜日期与天数"
+    },
+    {
+      "id": "base",
+      "name": "基础交互十七项",
+      "status": "17/17 已通过",
+      "group": "已确认",
+      "root": "interaction-b-v4-complete-review",
+      "dest": "02_base",
+      "sha": "12bc480a016f34315b0bff6764d4a91816a8bc21",
+      "summary": "地图首页、三档地点卡片、简介、照片、攻略、附近、搜索、收藏、路线入口等十七项"
+    },
+    {
+      "id": "place",
+      "name": "地点管理六项",
+      "status": "6/6 已通过",
+      "group": "已确认",
+      "root": "interaction-b-v4-batch-a-review",
+      "dest": "03_places",
+      "sha": "adff4b2c66f8b88fc8d2f328017e43a62ac4c8b3",
+      "summary": "类别筛选、地图选点、创建编辑、放弃未保存、更改星标、彻底删除"
+    },
+    {
+      "id": "media",
+      "name": "媒体与个人六项",
+      "status": "最终 V3 · 6/6 已通过",
+      "group": "已确认",
+      "root": "interaction-b-v4-batch-b-v3-review",
+      "dest": "04_media",
+      "sha": "b99c5077ac1c76ac808c0238f7860bcea505bdd3",
+      "summary": "照片视频全屏、旅行后添加影像、地点分享预览、导航软件、收藏管理、备份恢复"
+    },
+    {
+      "id": "route",
+      "name": "路线与异常六项",
+      "status": "最终 C V5 · 6/6 已通过",
+      "group": "已确认",
+      "root": "interaction-b-v4-batch-c-v5-review",
+      "dest": "05_route",
+      "sha": "145e33e468b3eaeb91f1e4f2da921937fc7c281f",
+      "summary": "路线入口、日期完成取消、起终点、站点拖动、地图站点卡片、保存添加点、异常空状态"
+    },
+    {
+      "id": "rubber",
+      "name": "原 Dock 弹性回弹",
+      "status": "早期已认可的交互片段",
+      "group": "辅助",
+      "root": "interaction-b-v4-rubber-review",
+      "dest": "06_dock",
+      "sha": "8fa675fbd6eef22f5968782aefe4683c6bd8a131",
+      "summary": "Dock 轻微拉伸、上滑卡片、回弹与恢复"
+    },
+    {
+      "id": "visualpr",
+      "name": "视觉 C 原始源码与页面",
+      "status": "源码记录 · 非最终全层级批准",
+      "group": "辅助",
+      "root": "visual-c-pr8-review",
+      "dest": "07_visual_source",
+      "sha": "7451c19cb2ec40a7d1890c21ae58369d567ad301",
+      "summary": "视觉 CSS、手绘图标、真实页面结构和组件排版代码原档"
+    },
+    {
+      "id": "compare",
+      "name": "最早期视觉前后对比",
+      "status": "历史设计参考",
+      "group": "提案",
+      "root": "preview/visual-v4",
+      "dest": "08_before_after",
+      "sha": "02a23c78a22986d90fcf9bc0bacd5e3f662fb89a",
+      "summary": "原版与优化版静态前后切换"
+    },
+    {
+      "id": "nov10",
+      "name": "视觉 C 十一月十日源页面",
+      "status": "历史源档 · 资源可能不完整",
+      "group": "提案",
+      "root": "visual-review-1110",
+      "dest": "09_nov10",
+      "sha": "43f4139ac5c7e26d18126de627ef774215d9ba68",
+      "summary": "当时产品视觉源页的原始 HTML"
+    }
+  ]
+}

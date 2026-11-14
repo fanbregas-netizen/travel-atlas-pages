@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f6f3">
+<title>足迹地图｜已确认视觉与交互原版目录</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;background:#f5f6f3;color:#293c31}
+*{box-sizing:border-box}body{margin:0}a{color:#376447;text-decoration:none}
+header{border-bottom:1px solid #e0e6df;background:#fffefa;padding:24px max(18px,calc((100vw - 1240px)/2));}
+header h1{font-size:clamp(21px,3vw,28px);margin:0 0 10px;letter-spacing:-.03em}
+header p{max-width:940px;line-height:1.7;font-size:13px;color:#657569;margin:0}
+main{max-width:1240px;margin:auto;padding:16px 18px 40px;display:grid;grid-template-columns:285px minmax(0,1fr);gap:18px}
+aside{align-self:start;max-height:calc(100dvh - 170px);overflow:auto;position:sticky;top:14px;padding:8px 0}
+nav button{display:block;width:100%;border:1px solid transparent;background:transparent;text-align:left;cursor:pointer;padding:11px 13px;border-radius:12px;color:#344a39;font:inherit;font-size:13px}
+nav button[aria-current="true"]{background:#fff;border-color:#d6e1d6;box-shadow:0 2px 10px #1c2b1d0d;font-weight:700}
+nav small{display:block;font-size:11px;line-height:1.6;color:#829184;margin-top:3px;font-weight:400}
+aside h2{font-size:11px;color:#849385;margin:22px 12px 9px;letter-spacing:.02em}
+.panel{min-width:0}
+.readout{padding:18px 21px;background:#fff;border:1px solid #e0e6df;border-radius:16px;margin-bottom:14px}
+.readout h2{margin:0 0 7px;font-size:21px}.readout p{line-height:1.7;font-size:12px;color:#687a6b;margin:7px 0}
+.readout .state{font-size:12px;color:#436449;font-weight:650}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.actions a{padding:10px 13px;display:inline-flex;justify-content:center;align-items:center;font-size:12px;border:1px solid #dce5dc;border-radius:12px;background:#f2f5f0;font-weight:650}
+.actions a.primary{background:#355d44;border-color:#355d44;color:white}
+.provenance{font-family:ui-monospace,SFMono-Regular,monospace;font-size:10px;color:#899c8b;overflow-wrap:anywhere}
+.viewport{background:#e3e8e2;border:1px solid #d4dfd5;border-radius:18px;padding:15px;display:grid;place-items:center;min-height:700px}
+.phone{width:min(100%,414px);height:740px;max-height:calc(100dvh - 160px);min-height:540px;background:white;border:8px solid #2c3831;box-shadow:0 10px 34px #253c2e22;border-radius:35px;overflow:hidden}
+iframe{display:block;width:100%;height:100%;border:0;background:#f4f5ef}
+.box{padding:19px;background:#fff;border:1px solid #e0e6df;border-radius:16px;margin-top:14px}
+.box h2{font-size:17px;margin:0 0 10px}.box p,.box li{font-size:12px;line-height:1.75;color:#657569}
+.box ul{margin:8px 0 0;padding-left:20px}
+sup{color:#738573}
+@media(max-width:760px){header{padding:19px 17px}main{display:block;padding:12px 10px 35px}
+aside{position:static;max-height:none;overflow:visible;padding:0 0 12px}
+nav{display:flex;gap:7px;overflow-x:auto;padding-bottom:9px;scroll-snap-type:x proximity}
+nav button{flex:0 0 160px;scroll-snap-align:start;border:1px solid #e4e9e3;background:#fff}
+aside h2{font-size:11px;margin:10px 3px 8px}
+.readout{padding:14px 15px}.readout h2{font-size:19px}
+.viewport{padding:4px;min-height:unset;border-radius:11px}
+.phone{border:0;border-radius:8px;box-shadow:none;height:calc(100dvh - 170px);max-height:790px;min-height:440px}
+}
+</style></head>
+<body><header><h1>Footprint Map V4｜已确认视觉原版目录</h1>
+<p>这里收录的是原来已经存在的验收演示和源文件，未重画任何演示画面。优先展示通过的最终交互版本；早期视觉提案单独标明，不能替代后续认可的设计。本页不是完整产品，也不修改正式网站。</p></header>
+<main><aside id="side"><h2>原始演示导航</h2><nav id="nav"></nav></aside>
+<div class="panel"><section class="readout"><h2 id="title">视觉与动效九屏</h2>
+<div class="state" id="status"></div><p id="summary"></p><p id="details"></p>
+<div class="actions"><a id="full" class="primary" target="_blank" rel="noopener noreferrer">全屏打开未修改的原演示</a>
+<a id="historical" target="_blank" rel="noopener noreferrer">打开历史原入口</a><a id="code" target="_blank" rel="noopener noreferrer">查看原始代码</a></div>
+<p class="provenance" id="hash"></p></section>
+<div class="viewport"><div class="phone"><iframe id="frame" title="原版互动演示" loading="eager" referrerpolicy="no-referrer"></iframe></div></div>
+<section class="box"><h2>一比一还原的核对规则</h2>
+<p>原件中的结构、字体、颜色、边界、手绘图标、卡片位置及手势代码不作改动。新产品只应调用这些最终已确认的表现，并把演示数据接回真实地点、日期、影像和路线数据库。</p>
+<ul><li>单颗黄色星标；地图不随上滑卡片被推动；不恢复四向气泡和漂浮星星。</li>
+<li>地点三档卡片、搜索、总览和收藏应保持一致的上下滑动与克制回弹。</li>
+<li>媒体最终验收用 B V3 的 iPhone 式缩略图／全屏／原位返回。</li>
+<li>路线唯一标准为 C V5：日期完成／取消、站点顺序与天数同步、地图和卡片联动。</li>
+<li>正式产品只保留中文；原件内的历史中英文内容原样存档，不表示继续采用英文。</li></ul></section>
+<section class="box"><h2>历史视觉资料与当前冲突</h2>
+<p>聊天里原有的《视觉深化验收稿》十页、《全层级 Dock 视觉验收》十屏、《真实产品结构视觉优化》八屏，以及多张视觉对比图，均在随附的本地原件包中。它们包含早期提案，有些仍采用三入口 Dock；后来的九屏视效演示是四栏 Dock。不得用早期静态提案覆盖较新的确认结果。</p>
+<p>2026-11-14 的 22.5 秒录屏中：首页与路线地图颜色不一致，搜索时键盘挤压内容，收藏列表大面积留白，地点详情和路线卡片的标题与操作区不一致。逐项产品修复应对照本目录的原始页面，而不是重新设计。</p></section></div></main>
+<script>
+const ITEMS=[{"id":"motion","name":"视觉与动效九屏","status":"已认可的视觉演示方向","group":"视觉","root":"v4-visual-motion-acceptance-20261113","dest":"01_motion","scope":"index","summary":"地图首页｜搜索卡片｜地点预览｜地点半屏｜地点全屏｜媒体全屏｜收藏管理｜路线规划｜日期与天数","detail":"演示原件保留全部九屏及原动画。视觉方向被认可，但不应把它当作真实产品已完成的证明。","sha":"58a0534cd1c85578b0e7efc536390da88f0d2b83","src":"./原始演示/01_motion/index.html","original":"https://fanbregas-netizen.github.io/travel-atlas-pages/v4-visual-motion-acceptance-20261113/","source":"https://github.com/fanbregas-netizen/travel-atlas-pages/blob/main/v4-visual-motion-acceptance-20261113/index.html"},{"id":"base","name":"基础交互十七项","status":"17/17 已通过","group":"已确认","root":"interaction-b-v4-complete-review","dest":"02_base","scope":"index","summary":"地图首页、三档地点卡片、简介、照片、攻略、附近、搜索、收藏、路线入口等十七项","detail":"原有 Dock、地图、地点卡片和上下文内容的操作体验。保留原版按钮和动作。","sha":"12bc480a016f34315b0bff6764d4a91816a8bc21","src":"./原始演示/02_base/index.html","original":"https://fanbregas-netizen.github.io/travel-atlas-pages/interaction-b-v4-complete-review/","source":"https://github.com/fanbregas-netizen/travel-atlas-pages/blob/main/interaction-b-v4-complete-review/index.html"},{"id":"place","name":"地点管理六项","status":"6/6 已通过","group":"已确认","root":"interaction-b-v4-batch-a-review","dest":"03_places","scope":"index","summary":"类别筛选、地图选点、创建编辑、放弃未保存、更改星标、彻底删除","detail":"地点选择与内容数据操作的原验收流程。","sha":"adff4b2c66f8b88fc8d2f328017e43a62ac4c8b3","src":"./原始演示/03_places/index.html","original":"https://fanbregas-netizen.github.io/travel-atlas-pages/interaction-b-v4-batch-a-review/","source":"https://github.com/fanbregas-netizen/travel-atlas-pages/blob/main/interaction-b-v4-batch-a-review/index.html"},{"id":"media","name":"媒体与个人六项","status":"最终 V3 · 6/6 已通过","group":"已确认","root":"interaction-b-v4-batch-b-v3-review","dest":"04_media","scope":"index","summary":"照片视频全屏、旅行后添加影像、地点分享预览、导航软件、收藏管理、备份恢复","detail":"特别保留 iPhone Photos 风格的共享元素转场，不能用 B 初版或 V2 替代。","sha":"b99c5077ac1c76ac808c0238f7860bcea505bdd3","src":"./原始演示/04_media/index.html","original":"https://fanbregas-netizen.github.io/travel-atlas-pages/interaction-b-v4-batch-b-v3-review/","source":"https://github.com/fanbregas-netizen/travel-atlas-pages/blob/main/interaction-b-v4-batch-b-v3-review/index.html"},{"id":"route","name":"路线与异常六项","status":"最终 C V5 · 6/6 已通过","group":"已确认","root":"interaction-b-v4-batch-c-v5-review","dest":"05_route","scope":"all","summary":"路线入口、日期完成取消、起终点、站点拖动、地图站点卡片、保存添加点、异常空状态","detail":"锁定 C V5 原 HTML、CSS、JS。修改日期必须有完成和取消，站点顺序与日期天数标签不能乱。","sha":"145e33e468b3eaeb91f1e4f2da921937fc7c281f","src":"./原始演示/05_route/index.html","original":"https://fanbregas-netizen.github.io/travel-atlas-pages/interaction-b-v4-batch-c-v5-review/","source":"https://github.com/fanbregas-netizen/travel-atlas-pages/blob/main/interaction-b-v4-batch-c-v5-review/index.html"},{"id":"rubber","name":"原 Dock 弹性回弹","status":"早期已认可的交互片段","group":"辅助","root":"interaction-b-v4-rubber-review","dest":"06_dock","scope":"index","summary":"Dock 轻微拉伸、上滑卡片、回弹与恢复","detail":"它是动作参考，不允许替代更新的完整交互最终版，也不增加过度抖动。","sha":"8fa675fbd6eef22f5968782aefe4683c6bd8a131","src":"./原始演示/06_dock/index.html","original":"https://fanbregas-netizen.github.io/travel-atlas-pages/interaction-b-v4-rubber-review/","source":"https://github.com/fanbregas-netizen/travel-atlas-pages/blob/main/interaction-b-v4-rubber-review/index.html"},{"id":"visualpr","name":"视觉 C 原始源码与页面","status":"源码记录 · 非最终全层级批准","group":"辅助","root":"visual-c-pr8-review","dest":"07_visual_source","scope":"all","summary":"视觉 CSS、手绘图标、真实页面结构和组件排版代码原档","detail":"原样收录全部文件作为视觉来源；文件存在不代表所有实际页面已达到最终设计。","sha":"7451c19cb2ec40a7d1890c21ae58369d567ad301","src":"./原始演示/07_visual_source/index.html","original":"https://fanbregas-netizen.github.io/travel-atlas-pages/visual-c-pr8-review/","source":"https://github.com/fanbregas-netizen/travel-atlas-pages/blob/main/visual-c-pr8-review/index.html"},{"id":"compare","name":"最早期视觉前后对比","status":"历史设计参考","group":"提案","root":"preview/visual-v4","dest":"08_before_after","scope":"index","summary":"原版与优化版静态前后切换","detail":"只是设计比对的起点，不应覆盖最新互动验收。","sha":"02a23c78a22986d90fcf9bc0bacd5e3f662fb89a","src":"./原始演示/08_before_after/index.html","original":"https://fanbregas-netizen.github.io/travel-atlas-pages/preview/visual-v4/","source":"https://github.com/fanbregas-netizen/travel-atlas-pages/blob/main/preview/visual-v4/index.html"},{"id":"nov10","name":"视觉 C 十一月十日源页面","status":"历史源档 · 资源可能不完整","group":"提案","root":"visual-review-1110","dest":"09_nov10","scope":"index","summary":"当时产品视觉源页的原始 HTML","detail":"保留当时文件，不把此页当成用户批准的后续所有层级。页面内历史依赖可能不完整。","sha":"43f4139ac5c7e26d18126de627ef774215d9ba68","src":"./原始演示/09_nov10/index.html","original":"https://fanbregas-netizen.github.io/travel-atlas-pages/visual-review-1110/","source":"https://github.com/fanbregas-netizen/travel-atlas-pages/blob/main/visual-review-1110/index.html"}];
+const nav=document.getElementById("nav"),frame=document.getElementById("frame");
+const title=document.getElementById("title"),status=document.getElementById("status"),summary=document.getElementById("summary"),details=document.getElementById("details"),hash=document.getElementById("hash");
+const labels={已确认:"已通过验收的交互原件",视觉:"认可的视效样板",辅助:"辅助来源及源文件",提案:"早期提案，仅供核对"};
+let current="";
+for(const group of ["视觉","已确认","辅助","提案"]){
+const h=document.createElement("h2");h.textContent=labels[group];nav.parentElement.insertBefore(h,nav);
+const buttons=ITEMS.filter(x=>x.group===group);
+for(const i of buttons){const b=document.createElement("button");b.type="button";b.dataset.id=i.id;b.innerHTML=i.name+"<small>"+i.status+"</small>";b.addEventListener("click",()=>select(i.id));nav.append(b);}
+}
+function select(id){
+ const item=ITEMS.find(x=>x.id===id);if(!item)return;
+ current=id;title.textContent=item.name;status.textContent=item.status;
+ summary.textContent=item.summary;details.textContent=item.detail;
+ hash.textContent="原始源文件校验码："+item.sha;
+ document.getElementById("full").href=item.src;
+ document.getElementById("historical").href=item.original;
+ document.getElementById("code").href=item.source;
+ frame.src=item.src;
+ for(const b of nav.querySelectorAll("button"))b.setAttribute("aria-current",String(b.dataset.id===id));
+ history.replaceState(null,"","#"+encodeURIComponent(id));
+}
+select(decodeURIComponent(location.hash.slice(1))||"motion");
+</script></body></html>

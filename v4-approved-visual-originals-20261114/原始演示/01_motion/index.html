@@ -1,0 +1,309 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#f7f8f4"><title>Footprint Map V4 · 视觉与交互动效验收样板</title>
+<style>
+:root{--paper:#fffefa;--bg:#f4f6f1;--ink:#26382e;--sub:#667669;--muted:#87978a;--line:#e4eae1;--sage:#edf3ec;--gold:#b49d69;--yellow:#f4cb46;--ease:cubic-bezier(.22,1,.36,1);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;color:var(--ink)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#dce4dd;overflow:hidden}button,input{font:inherit}button{border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:3px}img{object-fit:cover}h1,h2,h3,p{margin-top:0}#outer{height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:12px}.headline{font-size:11px;color:#597064;font-weight:700;letter-spacing:.04em}.phone{position:relative;width:min(390px,100%);height:min(813px,calc(100dvh - 108px));border-radius:35px;overflow:hidden;background:#f4f5f1;box-shadow:0 22px 80px #263a2a36;isolation:isolate;touch-action:pan-y}
+.map{position:absolute;inset:0;overflow:hidden;background:#eeefec}.map-art{position:absolute;width:145%;height:125%;left:-21%;top:-11%;transform:rotate(-6deg);transition:scale .6s var(--ease)}.map-art .block{fill:#dce1da;stroke:#cbd4cc;stroke-width:1}.map-art .block-inner{fill:#d1d8d0;opacity:.46}.map-art .road-edge{stroke:#dce2dc;stroke-width:27;fill:none}.map-art .road{stroke:#fffefa;stroke-width:22;fill:none}.map-art .lane{stroke:#fffefa;stroke-width:11;fill:none}.map-art text{font:13px -apple-system,"PingFang SC";fill:#89958b;letter-spacing:2px}.map:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#f7f8f5b0,transparent 23%,transparent 70%,#f7f8f27a)}.logo{position:absolute;z-index:3;top:calc(15px + env(safe-area-inset-top));left:18px}.logo strong{font-size:18px;font-weight:750;letter-spacing:-.055em}.logo small{display:block;font-size:10px;color:#819084;margin-top:3px}.map-nav{position:absolute;z-index:5;top:calc(13px + env(safe-area-inset-top));right:15px;display:flex;gap:7px}.navbtn{width:41px;height:41px;border-radius:14px;background:#fffefaed;border:1px solid #e1e9e0;box-shadow:0 5px 16px #233e2d1b;color:#526b56;font-size:22px}.navbtn img{width:22px;height:22px;object-fit:contain}.map-tools{position:absolute;z-index:5;right:14px;top:37%;display:flex;flex-direction:column;background:#fffefafa;border:1px solid #e1e8df;border-radius:17px;padding:4px;box-shadow:0 8px 23px #1e34251c}.map-tools button{width:42px;height:43px;background:none;color:#66776a;font-size:23px}.map-tools button+button{border-top:1px solid var(--line)}.map-tools img{width:23px;height:23px}.map-star{position:absolute;z-index:4;left:42%;top:42%;background:transparent;width:65px;height:65px;padding:5px;filter:drop-shadow(0 6px 6px #4a492337);transition:transform .3s var(--ease)}.map-star:active{transform:scale(.88)}.map-star img{width:54px;height:54px}.map-place{position:absolute;z-index:3;top:52%;left:27%;font-size:11px;color:#68786d}.bottom-intro{position:absolute;z-index:3;bottom:108px;left:19px;max-width:240px;padding:11px 13px;font-size:11px;line-height:1.6;color:#6c7e70;border:1px solid #e9eee5;border-radius:15px;background:#fffefaad}.map-guide{position:absolute;z-index:6;top:calc(83px + env(safe-area-inset-top));left:17px;max-width:226px;border-radius:13px;border:1px solid #e2e9df;background:#fffefadd;padding:10px 12px;font-size:11px;color:#68786a;line-height:1.55;pointer-events:none}.dock{position:absolute;z-index:15;bottom:calc(12px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(366px,calc(100% - 28px));height:76px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;padding:6px;border-radius:25px;background:#fffefaf5;border:1px solid #dfe8de;box-shadow:0 9px 31px #253d2b24;backdrop-filter:blur(17px);transition:opacity .2s ease,transform .3s var(--ease)}.dock button{display:flex;min-width:0;flex-direction:column;justify-content:center;align-items:center;gap:3px;border-radius:18px;background:transparent;transition:background .2s,transform .25s var(--ease)}.dock button.active{background:#e9efe6}.dock button:active{transform:scale(.93)}.dock img{height:26px;width:26px;object-fit:contain}.dock span{font-size:11px;font-weight:670;color:#56685b}.dock-hidden .dock{opacity:0;pointer-events:none;transform:translate(-50%,16px)}
+.scrim{position:absolute;z-index:10;inset:0;background:#1a2a2022;opacity:0;pointer-events:none;transition:opacity .25s}.scrim.show{opacity:1;pointer-events:auto}.sheet{position:absolute;z-index:20;bottom:0;left:8px;right:8px;height:0;visibility:hidden;overflow:hidden;background:var(--paper);border:1px solid #e2e9e1;border-bottom:0;border-radius:27px 27px 0 0;box-shadow:0 -16px 60px #1d35262c;display:flex;flex-direction:column;will-change:height}.sheet.show{visibility:visible}.sheet.fullwidth{left:0;right:0}.sheet-head{position:relative;flex:none;padding:40px 17px 13px;border-bottom:1px solid #e9ede7}.grip{position:absolute;top:0;left:50%;transform:translateX(-50%);width:130px;height:40px;background:none;touch-action:none;cursor:grab}.grip:after{content:"";position:absolute;width:45px;height:5px;background:#c6d1c7;border-radius:99px;left:calc(50% - 22.5px);top:16px}.identity{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:12px}.kicker{font-size:10px;color:#9ca699;letter-spacing:.07em;font-weight:690;margin-bottom:6px}.identity h2,.main-heading{font-size:24px;line-height:1.17;letter-spacing:-.05em;font-weight:760;margin-bottom:8px}.identity p{font-size:11px;line-height:1.5;color:#869386;margin-bottom:9px}.pill{border:1px solid #e8dcc0;background:#f4efe3;border-radius:25px;color:#846e41;font-size:10px;font-weight:700;padding:6px 10px}.hero-photo{width:90px;height:102px;padding:0;overflow:hidden;border-radius:15px;background:linear-gradient(130deg,#9eb8b1,#b9bda1)}.hero-photo img{width:100%;height:100%}.card-actions{display:flex;align-items:center;gap:7px;margin-top:13px}.one-line{font-size:11px;color:#7b8b7f;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.iconbtn{width:44px;height:44px;min-width:44px;border-radius:13px;border:1px solid #e5ebe4;background:#f3f5f0;display:grid;place-items:center;font-size:21px;color:#69786d}.iconbtn img{width:22px;height:22px;object-fit:contain}.iconbtn.gold{background:#f6efe0;border-color:#e8dec7}.sheet-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:13px 17px 42px}.sect{padding:16px 0 18px;border-bottom:1px solid #e9eee8}.sect:first-child{padding-top:5px}.sect-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.sect-head strong{font-size:12px;color:#42594b}.sect-head small{font-size:10px;color:#ad986f}.sect p{font-size:13px;line-height:1.78;color:#657567;margin:0}.media-grid{display:grid;grid-template-columns:1.14fr .86fr;grid-template-rows:89px 89px;gap:5px;overflow:hidden;border-radius:16px}.media-grid button{padding:0;background:#ced9d1;overflow:hidden}.media-grid button:first-child{grid-row:span 2}.media-grid img{width:100%;height:100%;object-fit:cover}.linked{width:100%;display:flex;align-items:center;justify-content:space-between;background:#f2f5ef;border-radius:13px;padding:15px;text-align:left;font-size:12px;color:#607264}.linked b{color:#a68c56}.hint{font-size:10px;color:#96a494;line-height:1.7;margin-top:8px}
+.titlebar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}.titlebar small{display:block;color:#8b998d;font-size:10px;margin-bottom:4px}.titlebar h2{margin:0;font-size:23px;line-height:1.2;letter-spacing:-.05em}.searchbar{display:flex;align-items:center;background:#f0f4ed;border:1px solid #e0e9de;border-radius:16px;padding:0 13px;min-height:54px;gap:8px}.searchbar span{font-size:23px;color:#93a497}.searchbar input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:16px;color:#304333}.searchbar input::placeholder{color:#9daa9d}.searchbar button{font-size:23px;background:none;color:#8d9d91}.group-label{font-size:11px;font-weight:730;color:#728675;letter-spacing:.02em;margin:15px 0 10px}.result{display:flex;align-items:center;width:100%;gap:11px;background:var(--paper);border:1px solid #e2eae1;border-radius:17px;text-align:left;padding:8px;margin-bottom:8px;min-height:80px;transition:transform .23s var(--ease)}.result:active{transform:scale(.985)}.result img{width:61px;height:61px;border-radius:12px;flex:none;background:#dae4db}.result strong{display:block;font-size:14px;color:#2d4133;margin-bottom:5px}.result small{display:block;color:#879789;font-size:11px;line-height:1.5}.result em{font-size:10px;color:#a58f63;font-style:normal}.empty{padding:16px;background:#f1f4ed;border:1px dashed #e1e9df;border-radius:15px;color:#788a7c;font-size:12px;line-height:1.7}.seg{display:flex;padding:4px;gap:4px;background:#eef2eb;border-radius:15px;margin:16px 0 3px}.seg button{flex:1;background:transparent;border-radius:12px;height:41px;font-size:12px;font-weight:680;color:#849285}.seg button.active{background:#fff;box-shadow:0 2px 9px #293c2920;color:#35543c}.route-bg{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .3s}.route-bg svg{width:100%;height:100%}.route-bg path{fill:none;stroke:#b19863;stroke-width:3.4;stroke-dasharray:8 7}.route-bg circle{fill:#fffefa;stroke:#ab925b;stroke-width:3}.route-bg text{font:700 12px -apple-system,sans-serif;fill:#6c5631}.route-active .route-bg{opacity:1}.route-active .map-star{display:none}.route-active .map-tools{display:none}.route-label{position:absolute;z-index:4;top:27%;left:18px;background:#fffefae8;border-radius:14px;padding:12px;border:1px solid #e1e8dd;box-shadow:0 7px 16px #21362418;color:#607160;font-size:11px;display:none}.route-active .route-label{display:block}.dates{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#f2f6f0;border:1px solid #e4eae2;padding:13px;border-radius:15px}.dates strong{font-size:12px}.dates small{display:block;color:#93a094;font-size:10px;margin-top:5px}.softbtn{background:#e5eee4;color:#526f59;border-radius:12px;padding:10px 12px;font-size:11px;font-weight:700}.stop{display:flex;align-items:center;gap:9px;border-bottom:1px solid #ebefea;padding:12px 4px}.day{width:35px;height:35px;flex:none;border-radius:11px;background:#ecf2e9;display:grid;place-items:center;font-size:11px;font-weight:740;color:#667d67}.stop-info{flex:1;min-width:0}.stop-info strong{display:block;font-size:13px}.stop-info small{display:block;font-size:10px;color:#95a298;margin-top:4px}.drag{width:44px;height:44px;border-radius:12px;background:#f0f4ee;color:#87968d;font-size:21px;touch-action:none}.pair{display:flex;gap:9px;margin-top:19px}.pair button{flex:1;min-height:45px;border-radius:13px;font-size:12px;font-weight:700;color:#57705c;background:#ecf1e9}.pair button.primary{background:#345e43;color:#fff}
+.modal{position:absolute;inset:0;z-index:70;background:#18271cb5;display:grid;place-items:center;padding:22px;visibility:hidden;opacity:0;transition:opacity .25s}.modal.show{visibility:visible;opacity:1}.modal-inner{width:100%;background:var(--paper);border-radius:23px;padding:22px 19px;box-shadow:0 20px 70px #101b154d}.modal-inner h2{font-size:21px;letter-spacing:-.04em;margin-bottom:7px}.modal-inner p{font-size:12px;line-height:1.65;color:#829284}.modal-inner input{width:100%;font-size:16px;margin:13px 0;padding:13px;background:#f3f5f0;border:1px solid #e1e9de;border-radius:13px}.viewer{position:absolute;inset:0;z-index:90;background:#121712f5;display:none;align-items:center;justify-content:center;touch-action:none}.viewer.show{display:flex}.viewer-img{height:66%;width:100%;object-fit:contain;will-change:transform}.viewer-top{position:absolute;z-index:4;top:calc(18px + env(safe-area-inset-top));left:17px;right:17px;display:flex;justify-content:space-between;align-items:center;color:#dde6de;font-size:12px}.viewer-top button{width:44px;height:44px;border-radius:14px;background:#ffffff1a;color:#fff;font-size:23px}.viewer-bottom{position:absolute;bottom:calc(28px + env(safe-area-inset-bottom));color:#e1e8e0ad;font-size:11px;text-align:center}.dots{display:flex;gap:6px;justify-content:center;margin-top:11px}.dots i{height:5px;width:5px;border-radius:9px;background:#869288}.dots i.active{width:18px;background:#e4f0e4}
+.toc{position:absolute;inset:0;z-index:100;background:#15291fe9;color:#fff;padding:calc(24px + env(safe-area-inset-top)) 17px 20px;visibility:hidden;opacity:0;overflow-y:auto;transition:opacity .25s}.toc.show{visibility:visible;opacity:1}.toc h2{font-size:23px;letter-spacing:-.045em}.toc p{font-size:12px;color:#c6d6c8;line-height:1.75}.toc > button{position:absolute;right:18px;top:calc(15px + env(safe-area-inset-top));width:40px;height:40px;background:#ffffff20;color:#fff;font-size:22px;border-radius:12px}.toc-item{width:100%;display:flex;gap:13px;align-items:center;background:#ffffff12;color:#fff;border:1px solid #ffffff21;padding:12px;border-radius:13px;text-align:left;margin-bottom:7px}.toc-item.active{background:#ffffff26;border-color:#dfcba2}.toc-item b{color:#d9c18c;font-size:11px}.toc-item strong{display:block;font-size:13px}.toc-item small{display:block;font-size:10px;color:#bfd2c1;margin-top:4px}.toast{position:absolute;z-index:110;bottom:100px;left:50%;transform:translate(-50%,12px);font-size:12px;color:#fff;max-width:calc(100% - 30px);width:max-content;background:#2a4230e8;padding:11px 14px;border-radius:15px;opacity:0;pointer-events:none;transition:.25s var(--ease)}.toast.show{opacity:1;transform:translate(-50%,0)}
+.deck{width:min(390px,100%);height:67px;border-radius:19px;background:#203528;color:#f0f5eb;display:flex;align-items:center;gap:7px;padding:9px;box-shadow:0 6px 20px #1d2b2233}.deck button{width:40px;height:40px;flex:none;border-radius:13px;color:white;background:#39513f;font-size:21px}.deck button.next{background:#506f55}.deck .meta{flex:1;min-width:0}.deck strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.deck small{display:block;font-size:10px;color:#b2c6b3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
+@media(max-width:520px){#outer{padding:0;gap:0}.headline{display:none}.phone{width:100%;height:calc(100dvh - 73px);border-radius:0;box-shadow:none}.deck{width:100%;height:73px;border-radius:0;padding:9px 13px calc(9px + env(safe-area-inset-bottom))}.deck button{width:41px;height:41px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* V4 approved preview · tactile Dock / every-sheet vertical gesture polish. */
+.dock{isolation:isolate;contain:layout style}
+.dock .dock-glider{
+ position:absolute;z-index:0;top:6px;bottom:6px;left:6px;
+ width:calc((100% - 21px)/4);border-radius:18px;background:#e9efe6;
+ pointer-events:none;transform-origin:50% 50%;
+ will-change:left,transform;box-shadow:inset 0 0 0 1px #dce7d9;
+}
+.dock button{position:relative;z-index:1;touch-action:manipulation;transform-origin:50% 72%}
+.dock button.active{background:transparent}
+.dock button:active,.dock button.dock-pressed{transform:scale(.988)}
+.sheet-head{touch-action:none}
+.sheet-scroll{touch-action:pan-y}
+.sheet[data-sheet-dragging="yes"]{box-shadow:0 -20px 65px #1a32283b}
+.sheet[data-sheet-dragging="yes"] .grip:after{background:#acbdae;transform:scaleX(1.12);transition:transform .12s}
+.sheet .grip:after{transition:transform .3s cubic-bezier(.22,1,.36,1),background .2s}
+@media(prefers-reduced-motion:reduce){
+ .dock .dock-glider,.sheet .grip:after{transition:none!important;animation:none!important}
+}
+
+</style></head>
+<body><div id="outer"><div class="headline">FOOTPRINT MAP V4 · 已批准视觉 / 下一轮动效验收样板 · 不连接真实数据</div><div class="phone" id="phone">
+<div class="map"><svg class="map-art" id="mapArt" viewBox="0 0 600 960" preserveAspectRatio="xMidYMid slice"><g>
+<rect class="block" x="5" y="3" width="170" height="120" rx="5"/><rect class="block" x="203" y="3" width="119" height="120" rx="5"/><rect class="block" x="343" y="3" width="240" height="120" rx="5"/>
+<rect class="block" x="4" y="153" width="110" height="132" rx="4"/><rect class="block" x="135" y="153" width="185" height="132" rx="4"/><rect class="block" x="345" y="153" width="237" height="132" rx="4"/>
+<rect class="block" x="4" y="311" width="187" height="143" rx="4"/><rect class="block" x="214" y="311" width="108" height="143" rx="4"/><rect class="block" x="347" y="311" width="236" height="143" rx="4"/>
+<rect class="block" x="4" y="481" width="112" height="139" rx="4"/><rect class="block" x="135" y="481" width="185" height="139" rx="4"/><rect class="block" x="345" y="481" width="238" height="139" rx="4"/>
+<rect class="block" x="4" y="647" width="184" height="134" rx="4"/><rect class="block" x="213" y="647" width="109" height="134" rx="4"/><rect class="block" x="346" y="647" width="237" height="134" rx="4"/>
+<rect class="block" x="4" y="807" width="109" height="146" rx="4"/><rect class="block" x="135" y="807" width="187" height="146" rx="4"/><rect class="block" x="346" y="807" width="237" height="146" rx="4"/>
+<path class="block-inner" d="M19 18h56v42H19zM90 18h65v42H90zM19 77h139v31H19zM220 22h87v83h-87zM359 20h204v37H359zM360 74h86v34h-86zM462 74h101v34H462zM21 170h75v98H21zM151 171h68v97h-68zM235 171h71v97h-71zM361 171h82v98h-82zM460 171h104v98H460zM20 329h68v49H20zM104 329h67v108h-67zM21 394h67v45H21zM231 327h74v108h-74zM362 329h88v105h-88zM467 329h96v46h-96zM467 390h96v45h-96zM19 502h79v101H19zM151 503h69v101h-69zM236 504h69v100h-69zM360 500h203v43H360zM360 561h89v42h-89zM467 561h96v42h-96zM19 665h151v45H19zM19 730h151v34H19zM230 665h74v100h-74zM363 667h92v99h-92zM474 665h91v101h-91zM19 824h79v111H19zM151 823h154v52H151zM151 895h154v42H151zM363 824h200v53H363zM363 894h89v42h-89zM472 894h91v42h-91z"/>
+<path class="road-edge" d="M200 -30V995M332 -30V995M-40 295H650M-40 468H650M-40 635H650"/><path class="road" d="M200 -30V995M332 -30V995M-40 295H650M-40 468H650M-40 635H650"/><path class="lane" d="M126 -30V995M-40 140H650M-40 794H650"/>
+<text x="244" y="198">宁 静 路</text><text x="380" y="392">老 城 街 区</text><text x="24" y="548">沿 街 建 筑</text><text x="227" y="726">缓 慢 旅 行</text></g></svg>
+<div class="logo"><strong>Footprint Map</strong><small>你的私人旅行地图</small></div>
+<div class="map-nav"><button class="navbtn" id="openMenu" aria-label="查看演示目录">☷</button><button class="navbtn" id="infoBtn" aria-label="演示说明">···</button></div>
+<div class="map-tools"><button id="zoomIn">+</button><button id="locateBtn"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%20aria-label%3D%22Locate%22%3E%0A%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%23161616%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%0A%20%20%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2215%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%224%22%20fill%3D%22%23161616%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M32%208%20L32%2016%20M32%2048%20L32%2056%20M8%2032%20L16%2032%20M48%2032%20L56%2032%22%2F%3E%0A%20%3C%2Fg%3E%0A%3C%2Fsvg%3E" alt=""></button><button id="zoomOut">−</button></div>
+<button class="map-star" id="mapStar" aria-label="点击黄星打开地点"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%20aria-label%3D%22Saved%22%3E%0A%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%23161616%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%0A%20%20%3Cpath%20d%3D%22M32%208%20L39.2%2023.2%20L56%2025.4%20L43.2%2037.2%20L46.1%2054.4%20L31.7%2045.8%20L16.8%2054.4%20L20%2037.4%20L8.1%2025.3%20L24.8%2023Z%22%20fill%3D%22%23F6CC3B%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M25%2025%20L30%2014%22%20stroke-width%3D%221.3%22%2F%3E%0A%20%3C%2Fg%3E%0A%3C%2Fsvg%3E" alt=""></button><div class="map-place">唯一黄星 · 地点收藏</div>
+<div class="bottom-intro" id="homeIntro">收藏旅行灵感，写下为什么想去。<br>到达之后，再添上照片与旅行记忆。</div>
+<div class="route-bg"><svg viewBox="0 0 390 810" preserveAspectRatio="none"><path d="M78 231 C92 298 199 315 184 394 S254 500 315 578"/><circle cx="78" cy="231" r="12"/><circle cx="184" cy="394" r="12"/><circle cx="315" cy="578" r="12"/><text x="74" y="235">1</text><text x="180" y="398">2</text><text x="311" y="582">3</text></svg></div><div class="route-label">旅行路线 · 3 站<br>地图内容仍然可见</div>
+</div>
+<div id="mapGuide" class="map-guide">01 · 首页 Dock<br>浅灰建筑底图、黄色星标与统一手绘图标。</div>
+<nav class="dock" id="dock"><button id="dockSearch"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%20aria-label%3D%22Search%22%3E%0A%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%23161616%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%0A%20%20%3Cpath%20d%3D%22M27%2010%20C36%2010%2043%2016%2045%2025%20C48%2034%2042%2043%2032%2046%20C22%2049%2013%2044%2011%2034%20C8%2024%2016%2013%2024%2011%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M42%2043%20Q50%2050%2056%2057%22%20stroke-width%3D%224.3%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M18%2020%20Q22%2016%2027%2016%22%20stroke-width%3D%221.6%22%2F%3E%0A%20%3C%2Fg%3E%0A%3C%2Fsvg%3E" alt=""><span>搜索</span></button><button class="active" id="dockMap"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%20aria-label%3D%22Map%22%3E%0A%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%23161616%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%0A%20%20%3Cpath%20d%3D%22M32%207%20C44%207%2054%2014%2057%2025%20C59%2037%2054%2049%2043%2055%20C32%2061%2019%2057%2012%2047%20C4%2035%208%2021%2017%2013%20C22%209%2027%207%2032%207Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M10%2036%20C20%2030%2030%2034%2038%2030%20C46%2026%2052%2028%2056%2031%22%20stroke-width%3D%221.6%22%20opacity%3D%22.55%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M30%209%20C27%2020%2029%2034%2026%2046%20C25%2051%2026%2055%2028%2058%22%20stroke-width%3D%221.6%22%20opacity%3D%22.55%22%2F%3E%0A%20%3C%2Fg%3E%0A%3C%2Fsvg%3E" alt=""><span>地图</span></button><button id="dockSaved"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%20aria-label%3D%22Star%22%3E%0A%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%23161616%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%0A%20%20%3Cpath%20d%3D%22M32%208%20L39.2%2023.2%20L56%2025.4%20L43.2%2037.2%20L46.1%2054.4%20L31.7%2045.8%20L16.8%2054.4%20L20%2037.4%20L8.1%2025.3%20L24.8%2023Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M24%2025%20L30%2013%22%20stroke-width%3D%221.3%22%2F%3E%0A%20%3C%2Fg%3E%0A%3C%2Fsvg%3E" alt=""><span>收藏</span></button><button id="dockRoute"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%20aria-label%3D%22Route%22%3E%0A%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%23161616%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%0A%20%20%3Ccircle%20cx%3D%2214%22%20cy%3D%2247%22%20r%3D%225.5%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M20%2046%20C30%2044%2020%2026%2033%2026%20C44%2026%2039%2016%2047%2015%22%20stroke-dasharray%3D%223%206%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M45%209%20L54%2014%20L45%2020%22%2F%3E%0A%20%3C%2Fg%3E%0A%3C%2Fsvg%3E" alt=""><span>路线</span></button></nav>
+<div class="scrim" id="scrim"></div>
+<section class="sheet" id="placeSheet" role="dialog" aria-label="三档地点卡片"><div class="sheet-head"><button class="grip" id="placeGrip" aria-label="向上或向下滑动卡片"></button>
+<div class="identity"><div><div class="kicker">私人旅行地图 / 收藏地点</div><h2>山海之间</h2><p>浙江 · 海岸与旧城交界处</p><button class="pill" id="stageBtn">想去 · 灵感</button></div><button class="hero-photo" id="heroPhoto" aria-label="打开旅行照片"><img data-photo="0" alt="示意影像"></button></div>
+<div class="card-actions"><span class="one-line">想沿着街巷一直走到海边。</span><button class="iconbtn gold" id="starAct"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%20aria-label%3D%22Saved%22%3E%0A%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%23161616%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%0A%20%20%3Cpath%20d%3D%22M32%208%20L39.2%2023.2%20L56%2025.4%20L43.2%2037.2%20L46.1%2054.4%20L31.7%2045.8%20L16.8%2054.4%20L20%2037.4%20L8.1%2025.3%20L24.8%2023Z%22%20fill%3D%22%23F6CC3B%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M25%2025%20L30%2014%22%20stroke-width%3D%221.3%22%2F%3E%0A%20%3C%2Fg%3E%0A%3C%2Fsvg%3E" alt=""></button><button class="iconbtn" id="editAct"><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%20aria-label%3D%22Edit%22%3E%0A%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%23161616%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%0A%20%20%3Cpath%20d%3D%22M15%2045%20L14%2054%20L24%2052%20L51%2025%20L42%2016%20Z%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M39%2018%20L49%2028%20M19%2043%20L26%2050%20M12%2056%20L51%2056%22%20stroke-width%3D%222.3%22%2F%3E%0A%20%3C%2Fg%3E%0A%3C%2Fsvg%3E" alt=""></button><button class="iconbtn" id="placeX">×</button></div>
+</div><div class="sheet-scroll" id="placeScroll"><div class="sect"><div class="sect-head"><strong>01　为什么想去</strong><small>Brief</small></div><p>想去看看海岸线尽头的老街，留一点时间给不赶路的下午。像读一本私人旅行手账，而不是一排功能表单。</p></div>
+<div class="sect"><div class="sect-head"><strong>02　照片与视频</strong><small>轻触打开</small></div><div class="media-grid"><button class="media-thumb" data-media="0"><img data-photo="0" alt="示意风景一"></button><button class="media-thumb" data-media="1"><img data-photo="1" alt="示意风景二"></button><button class="media-thumb" data-media="2"><img data-photo="2" alt="示意风景三"></button></div><div class="hint">点击缩略图进入全屏。左右滑动切换，下拉缩回。</div></div>
+<div class="sect"><div class="sect-head"><strong>03　相关攻略</strong><small>灵感链接</small></div><button class="linked" id="guideBtn"><span>沿海建筑散步 · 收藏攻略</span><b>↗</b></button></div>
+<div class="sect"><div class="sect-head"><strong>04　附近地点</strong><small>继续探索</small></div><p>附近地点按真实 POI 呈现；未加载时显示明确状态，不制造新的浮动气泡。</p></div>
+</div></section>
+<section class="sheet fullwidth" id="searchSheet" role="dialog" aria-label="地点搜索"><div class="sheet-head"><button class="grip" id="searchGrip" aria-label="下滑关闭搜索"></button><div class="titlebar"><div><small>从地图出发</small><h2>寻找下一站</h2></div><button class="iconbtn" id="searchX">×</button></div><div class="searchbar"><span>⌕</span><input id="searchInput" type="search" placeholder="搜索城市、地点或收藏" autocomplete="off"><button id="clearSearch">×</button></div></div><div class="sheet-scroll"><div class="hint">搜索区域上置，收藏和地点结果下置。示例内容不读取真实数据。</div><div id="searchResults"></div></div></section>
+<section class="sheet fullwidth" id="savedSheet" role="dialog" aria-label="收藏列表"><div class="sheet-head"><button class="grip" id="savedGrip" aria-label="下滑关闭收藏"></button><div class="titlebar"><div><small>私人旅行手账</small><h2>我的收藏</h2></div><button class="iconbtn" id="savedX">×</button></div><div class="seg"><button id="tabPlaces" class="active">收藏地点</button><button id="tabRoutes">已保存路线</button></div></div><div class="sheet-scroll" id="savedList"></div></section>
+<section class="sheet fullwidth" id="routeSheet" role="dialog" aria-label="路线规划"><div class="sheet-head"><button class="grip" id="routeGrip" aria-label="向上拖动路线卡片"></button><div class="titlebar" style="margin:0"><div><small>TRAVEL ATLAS / 路线</small><h2>规划一次旅行</h2></div><span class="pill">草稿 · 3 站</span></div></div><div class="sheet-scroll"><div class="dates"><div><strong id="dateText">11月20日 — 11月22日</strong><small>3 天 · D1 — D3</small></div><button class="softbtn" id="dateChange">修改日期</button></div><div class="group-label">路线站点 · 拖动右侧手柄调整顺序</div><div id="routeStops"></div><div class="pair"><button id="addStop">＋ 添加停靠点</button><button class="primary" id="saveRoute">保存路线</button></div><div class="hint">地图始终可见。实际应用的地图与路线服务不在本演示中调用。</div></div></section>
+<div class="modal" id="dateModal"><div class="modal-inner"><h2>调整旅行日期</h2><p>日期只有「完成 / 取消」。确认后 D1–D3 与日期匹配，不擅自改变路线顺序。</p><input type="date" id="dateInput" value="2026-11-20"><div class="pair"><button id="dateCancel">取消</button><button class="primary" id="dateDone">完成</button></div></div></div>
+<div class="viewer" id="viewer" role="dialog" aria-label="照片全屏查看"><div class="viewer-top"><span id="mediaCount">01 / 03 · 演示影像</span><button id="viewerX">×</button></div><img class="viewer-img" id="viewerImg" alt="旅行影像示意"><div class="viewer-bottom">左右滑动切换 · 下滑返回原缩略图<div class="dots" id="viewerDots"></div></div></div>
+<div class="toc" id="toc"><button id="tocClose">×</button><h2>视效验收目录</h2><p>依次查看 9 个关键界面。你也可以直接点击地图、Dock、卡片与照片操作。这里只约定视觉与动效目标，不修改真实数据。</p><div id="tocList"></div></div>
+<div class="toast" id="toast"></div>
+</div>
+<nav class="deck"><button id="prev">‹</button><button id="tocOpen">☷</button><div class="meta"><strong id="sceneTitle">01 / 09 · 首页</strong><small id="sceneDesc">手绘图标、黄色星标、地图与 Dock</small></div><button class="next" id="next">›</button></nav></div>
+<script>
+(function(){'use strict';
+const $=id=>document.getElementById(id),phone=$('phone'),place=$('placeSheet'),search=$('searchSheet'),saved=$('savedSheet'),route=$('routeSheet');
+const scenes=[['地图首页','地图安静、黄星突出、四栏 Dock 统一'],['搜索卡片','上置搜索、下置真实结果的信息结构'],['地点预览 Peek','只呈现地点身份、照片与简短 Brief'],['地点半屏 Half','层级清晰的 Brief 与媒体纵向阅读'],['地点全屏 Full','完整资料可滚动，统一操作位置'],['媒体全屏','缩略图与全屏共享元素，横滑和下拉'],['收藏管理','地点与路线同层切换，影像化列表'],['路线规划','C V5 卡片层级、地图留白及站点排序'],['日期与 Dn','完成 / 取消确认，D 标签与日期同步']];
+const photos=['https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=900&q=85&auto=format&fit=crop','https://images.unsplash.com/photo-1500534623283-312aade485b7?w=900&q=85&auto=format&fit=crop','https://images.unsplash.com/photo-1519681393784-d120267933ba?w=900&q=85&auto=format&fit=crop'];
+const fallbacks=['linear-gradient(135deg,#7a9e9b,#c1d0b7 60%,#688676)','linear-gradient(135deg,#bfc8ba,#e6dfc8 45%,#78909a)','linear-gradient(135deg,#899eaa,#c0cdd2 52%,#67757e)'];
+document.querySelectorAll('[data-photo]').forEach(el=>{let i=+el.dataset.photo;el.src=photos[i];el.onerror=()=>{el.removeAttribute('src');el.style.background=fallbacks[i]}});
+let scene=0,active='',placeLevel='peek',routeLevel='half',viewerIndex=0,viewerOrigin=null;let stops=['海岸旧城','山间书店','海边灯塔'];const sheets=[place,search,saved,route],motions=new Map();
+const H=()=>phone.getBoundingClientRect().height,levels=()=>({peek:Math.min(268,H()*.34),half:H()*.59,full:H()-6});
+function spring(node,height,done){if(motions.has(node))cancelAnimationFrame(motions.get(node));let x=parseFloat(node.style.height)||0,v=0,last=0,n=0;function tick(t){let dt=Math.min(.032,last?(t-last)/1000:.016);last=t;v+=(390*(height-x)-38*v)*dt;x+=v*dt;node.style.height=Math.max(0,x).toFixed(2)+'px';n++;if((Math.abs(height-x)<.6&&Math.abs(v)<4)||n>100){node.style.height=height+'px';motions.delete(node);done&&done();return}motions.set(node,requestAnimationFrame(tick))}motions.set(node,requestAnimationFrame(tick))}
+function reset(){sheets.forEach(n=>{if(motions.has(n))cancelAnimationFrame(motions.get(n));motions.delete(n);n.classList.remove('show');n.style.height='0px';n.inert=false});$('scrim').classList.remove('show');phone.classList.remove('dock-hidden','route-active');$('dateModal').classList.remove('show');$('viewer').classList.remove('show');active='';placeLevel='peek';$('dockMap').classList.add('active')}
+function dockSelect(id){document.querySelectorAll('.dock button').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');dockMotionSelect(id)}
+function open(node,kind,height){sheets.forEach(n=>{if(n!==node){if(motions.has(n))cancelAnimationFrame(motions.get(n));n.classList.remove('show');n.style.height='0px';n.inert=false}});node.classList.add('show');node.inert=false;active=kind;$('scrim').classList.add('show');phone.classList.add('dock-hidden');spring(node,height)}
+function close(node){node.inert=true;spring(node,0,()=>{node.classList.remove('show');node.inert=false;if(!sheets.some(n=>n.classList.contains('show'))){$('scrim').classList.remove('show');phone.classList.remove('dock-hidden','route-active')}})}
+function showPlace(l){placeLevel=l;dockSelect('dockMap');open(place,'place',levels()[l]);place.dataset.level=l}
+function showSearch(){extraSheetLevels.set(search,'full');dockSelect('dockSearch');open(search,'search',levels().full);$('searchInput').value='';renderSearch()}
+function showSaved(){extraSheetLevels.set(saved,'half');dockSelect('dockSaved');open(saved,'saved',H()*.76);renderSaved('places')}
+function showRoute(l='half'){routeLevel=l;dockSelect('dockRoute');phone.classList.add('route-active');open(route,'route',levels()[l]);renderStops()}
+function emptyOrResults(){return $('searchInput').value.trim().toLowerCase()}
+function renderSearch(){const host=$('searchResults'),q=emptyOrResults();$('clearSearch').style.visibility=q?'visible':'hidden';host.replaceChildren();const t=document.createElement('div');t.className='group-label';t.textContent=q?'地点搜索结果':'我的收藏 · 演示示例';host.append(t);const list=q&&!(('山海海边灯塔书店旧城浙江山间').includes(q))?[]:[0,1,2];if(!list.length){const e=document.createElement('div');e.className='empty';e.textContent='没有找到匹配的演示地点。正式产品中将明确显示无结果、错误和重试状态。';host.append(e)}list.forEach(i=>host.append(row(['山海之间','山间书店','海边灯塔'][i],['浙江 · 海岸与旧城','建筑 · 山景 · 安静午后','海边 · 日落散步'][i],i,()=>showPlace('peek'))))}
+function row(name,sub,i,fn){const b=document.createElement('button');b.className='result';const im=document.createElement('img');im.src=photos[i];im.onerror=()=>{im.removeAttribute('src');im.style.background=fallbacks[i]};const meta=document.createElement('span'),st=document.createElement('strong'),sm=document.createElement('small'),em=document.createElement('em');st.textContent=name;sm.textContent=sub;em.textContent='想去 · 3 件影像';meta.append(st,sm,em);b.append(im,meta);b.onclick=fn;return b}
+function renderSaved(tab){$('tabPlaces').classList.toggle('active',tab==='places');$('tabRoutes').classList.toggle('active',tab==='routes');const host=$('savedList');host.replaceChildren();const lab=document.createElement('div');lab.className='group-label';lab.textContent=tab==='places'?'已收藏 · 3 个示意地点':'已保存路线 · 示例';host.append(lab);if(tab==='places'){['山海之间','山间书店','海边灯塔'].forEach((x,i)=>host.append(row(x,['海岸与旧城','山景与建筑','灯塔与日落'][i],i,()=>showPlace('peek'))))}else host.append(row('沿海的三天','11月20日—11月22日 · 3天 · 3站',1,()=>showRoute('half')))}
+function renderStops(){const host=$('routeStops');host.replaceChildren();stops.forEach((s,i)=>{const item=document.createElement('div');item.className='stop';const day=document.createElement('span');day.className='day';day.textContent='D'+(i+1);const info=document.createElement('div');info.className='stop-info';const n=document.createElement('strong'),c=document.createElement('small');n.textContent=s;c.textContent=['海岸 · 老街','建筑 · 山景','灯塔 · 海边'][i];info.append(n,c);const grip=document.createElement('button');grip.className='drag';grip.textContent='☰';grip.setAttribute('aria-label','拖动'+s);item.append(day,info,grip);host.append(item);let y=null;grip.addEventListener('pointerdown',e=>{y=e.clientY;item.style.background='#edf3e9';grip.setPointerCapture?.(e.pointerId)});grip.addEventListener('pointerup',e=>{if(y===null)return;const dy=e.clientY-y;y=null;item.style.background='';const next=Math.max(0,Math.min(stops.length-1,i+(dy>24?1:dy< -24?-1:0)));if(i!==next){const t=stops.splice(i,1)[0];stops.splice(next,0,t);renderStops();toast('站点顺序与 D 标签已同步')}else toast('向上 / 向下拖动手柄调整站点')});grip.addEventListener('pointercancel',()=>{y=null;item.style.background=''})})}
+let timer;function toast(s){const el=$('toast');el.textContent=s;el.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>el.classList.remove('show'),2450)}
+function go(i){scene=(i+scenes.length)%scenes.length;reset();document.querySelectorAll('.dock button').forEach(x=>x.classList.remove('active'));$('dockMap').classList.add('active');$('sceneTitle').textContent=String(scene+1).padStart(2,'0')+' / 09　'+scenes[scene][0];$('sceneDesc').textContent=scenes[scene][1];$('mapGuide').innerHTML=String(scene+1).padStart(2,'0')+' · '+scenes[scene][0]+'<br>'+scenes[scene][1];$('mapGuide').style.display=scene===5?'none':'block';$('homeIntro').style.display=scene===0?'block':'none';if(scene===1)showSearch();if(scene===2)showPlace('peek');if(scene===3)showPlace('half');if(scene===4)showPlace('full');if(scene===5){showPlace('full');setTimeout(()=>showViewer(0,$('heroPhoto')),500)}if(scene===6)showSaved();if(scene===7)showRoute();if(scene===8){showRoute();setTimeout(()=>$('dateModal').classList.add('show'),430)}renderToc();$('toc').classList.remove('show')}
+function renderToc(){const host=$('tocList');host.replaceChildren();scenes.forEach((x,i)=>{const b=document.createElement('button');b.className='toc-item'+(i===scene?' active':'');const n=document.createElement('b');n.textContent=String(i+1).padStart(2,'0');const meta=document.createElement('span'),title=document.createElement('strong'),sub=document.createElement('small');title.textContent=x[0];sub.textContent=x[1];meta.append(title,sub);b.append(n,meta);b.onclick=()=>go(i);host.append(b)})}
+/* One physical, elastic vertical sheet interaction for all four cards.
+   Header/grip uses pointer events; content uses cancelable touchmove, so
+   normal iPhone scrolling remains native at the full detent. */
+const extraSheetLevels=new WeakMap([[search,'full'],[saved,'half']]);
+function boundsFor(kind){
+ const d=levels(),h=H();
+ if(kind==='saved')return {peek:Math.min(d.peek,h*.35),half:h*.76,full:d.full};
+ if(kind==='search')return {peek:d.peek,half:h*.62,full:d.full};
+ return d;
+}
+function currentLevel(kind){
+ return kind==='place'?placeLevel:kind==='route'?routeLevel:
+ extraSheetLevels.get(kind==='search'?search:saved)||'half';
+}
+function sheetSnap(node,kind,key){
+ if(key==='closed'){if(active===kind)active='';close(node);return}
+ if(kind==='place')placeLevel=key;
+ else if(kind==='route')routeLevel=key;
+ else extraSheetLevels.set(node,key);
+ node.dataset.level=key;
+ const scroll=node.querySelector('.sheet-scroll');
+ if(scroll&&key!=='full'&&scroll.scrollTop>0)scroll.scrollTop=0;
+ spring(node,boundsFor(kind)[key]);
+}
+function sheetMotionStart(node,kind,y,fromGrip=false){
+ if(!node.classList.contains('show')||node.inert)return null;
+ if(motions.has(node))cancelAnimationFrame(motions.get(node));
+ motions.delete(node);
+ const h=parseFloat(node.style.height)||node.getBoundingClientRect().height;
+ return {node,kind,startY:y,lastY:y,startHeight:h,level:currentLevel(kind),
+         fromGrip,moved:false,samples:[{y,t:performance.now()}]};
+}
+function sheetMotionMove(d,y){
+ if(!d)return;
+ const dy=y-d.startY;if(Math.abs(dy)>5)d.moved=true;
+ d.lastY=y;d.samples.push({y,t:performance.now()});
+ while(d.samples.length>2&&d.samples[d.samples.length-1].t-d.samples[0].t>105)d.samples.shift();
+ const x=boundsFor(d.kind),min=x.peek,max=x.full;
+ let height=d.startHeight-dy;
+ if(height>max)height=max+(height-max)*.22;
+ if(height<min)height=min+(height-min)*.34;
+ d.node.dataset.sheetDragging='yes';
+ d.node.style.height=Math.max(95,height).toFixed(2)+'px';
+}
+function sheetMotionEnd(d,cancelled=false){
+ if(!d)return;delete d.node.dataset.sheetDragging;
+ if(cancelled){spring(d.node,boundsFor(d.kind)[d.level]);return}
+ const dy=d.lastY-d.startY;
+ const samples=d.samples,first=samples[0],last=samples[samples.length-1];
+ const velocity=(last.y-first.y)/Math.max(16,last.t-first.t);
+ const keys=['peek','half','full'];
+ const old=keys.indexOf(d.level),direction=dy<0?1:-1;
+ if(!d.moved){
+  if(d.fromGrip){const next=keys[Math.min(2,old===2?1:old+1)];sheetSnap(d.node,d.kind,next)}
+  else sheetSnap(d.node,d.kind,d.level);
+  return;
+ }
+ if(d.level==='peek'&&dy>62){sheetSnap(d.node,d.kind,'closed');return}
+ if(Math.abs(dy)<28&&Math.abs(velocity)<.4){sheetSnap(d.node,d.kind,d.level);return}
+ let idx=old;
+ if(Math.abs(dy)>35||Math.abs(velocity)>.55)idx=old+direction;
+ // Longer intentional swipes can skip a detent, like a native iOS sheet.
+ if(Math.abs(dy)>240)idx=old+direction*2;
+ idx=Math.min(2,Math.max(0,idx));
+ sheetSnap(d.node,d.kind,keys[idx]);
+}
+function wireSheet(node,grip,kind){
+ const header=node.querySelector('.sheet-head'),scroller=node.querySelector('.sheet-scroll');
+ let pointer=null,scrollTouch=null,mouse=null;
+ const interactive='button:not(.grip),a,input,textarea,select,video,[contenteditable],.media-grid';
+ // The entire non-button header, not only its narrow grab line, can drag.
+ header.addEventListener('pointerdown',e=>{
+  if(e.button!==undefined&&e.button!==0||e.target.closest(interactive))return;
+  pointer=sheetMotionStart(node,kind,e.clientY,!!e.target.closest('.grip'));
+  if(pointer){pointer.id=e.pointerId;try{header.setPointerCapture(e.pointerId)}catch(_){}}
+ });
+ header.addEventListener('pointermove',e=>{
+  if(pointer&&e.pointerId===pointer.id)sheetMotionMove(pointer,e.clientY)
+ });
+ header.addEventListener('pointerup',e=>{
+  if(!pointer||e.pointerId!==pointer.id)return;sheetMotionMove(pointer,e.clientY);
+  const d=pointer;pointer=null;sheetMotionEnd(d)
+ });
+ header.addEventListener('pointercancel',()=>{
+  if(pointer){sheetMotionEnd(pointer,true);pointer=null}
+ });
+ // Body dragging applies to all cards. In full mode, allow native content
+ // scroll; only downward pulling from scrollTop=0 takes the sheet.
+ scroller.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1||e.target.closest(interactive)){scrollTouch=null;return}
+  const t=e.touches[0];scrollTouch={id:t.identifier,x:t.clientX,y:t.clientY,engaged:false,ignored:false,data:null};
+ },{passive:true});
+ scroller.addEventListener('touchmove',e=>{
+  if(!scrollTouch||e.touches.length!==1||scrollTouch.ignored)return;
+  const t=e.touches[0],dx=t.clientX-scrollTouch.x,dy=t.clientY-scrollTouch.y;
+  if(!scrollTouch.engaged){
+   if(Math.abs(dx)>Math.abs(dy)*1.15&&Math.abs(dx)>8){scrollTouch.ignored=true;return}
+   if(Math.abs(dy)<7)return;
+   // Full-screen card keeps real reading scrolling. Only overscroll
+   // downward from the top is captured as sheet movement.
+   if(currentLevel(kind)==='full'&&(scroller.scrollTop>1||dy<0)){
+    scrollTouch.ignored=true;return;
+   }
+   scrollTouch.data=sheetMotionStart(node,kind,scrollTouch.y,false);
+   scrollTouch.engaged=!!scrollTouch.data;
+  }
+  if(scrollTouch.engaged){
+   if(e.cancelable)e.preventDefault();
+   sheetMotionMove(scrollTouch.data,t.clientY);
+  }
+ },{passive:false});
+ scroller.addEventListener('touchend',e=>{
+  if(!scrollTouch)return;
+  if(scrollTouch.engaged){
+   const touch=[...e.changedTouches].find(t=>t.identifier===scrollTouch.id);
+   if(touch)sheetMotionMove(scrollTouch.data,touch.clientY);
+   sheetMotionEnd(scrollTouch.data);
+  }
+  scrollTouch=null;
+ },{passive:true});
+ scroller.addEventListener('touchcancel',()=>{
+  if(scrollTouch?.engaged)sheetMotionEnd(scrollTouch.data,true);scrollTouch=null;
+ },{passive:true});
+ // Desktop pointer test path. Touch relies on touchmove to preserve iOS scroll.
+ scroller.addEventListener('pointerdown',e=>{
+  if(e.pointerType!=='mouse'||e.button!==0||e.target.closest(interactive))return;
+  mouse=sheetMotionStart(node,kind,e.clientY);
+  if(mouse){mouse.id=e.pointerId;scroller.setPointerCapture?.(e.pointerId)}
+ });
+ scroller.addEventListener('pointermove',e=>{
+  if(mouse&&mouse.id===e.pointerId)sheetMotionMove(mouse,e.clientY)
+ });
+ scroller.addEventListener('pointerup',e=>{
+  if(mouse&&mouse.id===e.pointerId){sheetMotionMove(mouse,e.clientY);sheetMotionEnd(mouse);mouse=null}
+ });
+ scroller.addEventListener('pointercancel',()=>{
+  if(mouse)sheetMotionEnd(mouse,true);mouse=null
+ });
+}
+wireSheet(place,$('placeGrip'),'place');
+wireSheet(search,$('searchGrip'),'search');
+wireSheet(saved,$('savedGrip'),'saved');
+wireSheet(route,$('routeGrip'),'route');
+
+/* Tactile Dock: finger compression, displaced stretch, slight overshoot,
+   then settle. The moving selection pill is the same four-tab Dock. */
+const dockShell=$('dock'),dockButtons=[...dockShell.querySelectorAll('button')];
+const dockGlider=document.createElement('span');
+dockGlider.className='dock-glider';dockGlider.setAttribute('aria-hidden','true');
+dockShell.prepend(dockGlider);
+let dockGliderX=NaN,dockPending=null;
+const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* Restored Interaction B PR #12 V4 contract: ONE elastic Dock surface,
+   no simultaneous button bounce + moving indicator + shell bounce. */
+function dockMotionSelect(id){
+ const target=$(id);if(!target||!dockShell.contains(target))return;
+ const x=target.offsetLeft,w=target.offsetWidth;
+ dockGlider.getAnimations?.().forEach(a=>a.cancel());
+ dockGlider.style.width=w+'px';
+ if(Number.isFinite(dockGliderX)&&Math.abs(dockGliderX-x)>1&&!reduceMotion()){
+  dockGlider.animate([{left:dockGliderX+'px'},{left:x+'px'}],
+   {duration:255,easing:'cubic-bezier(.22,.88,.32,1)'});
+ }
+ dockGlider.style.left=x+'px';dockGliderX=x;
+}
+let dockTactileFrame=0;
+function dockRubberTouch(){
+ if(reduceMotion())return;
+ if(dockTactileFrame)cancelAnimationFrame(dockTactileFrame);
+ dockShell.getAnimations?.().forEach(a=>a.cancel());
+ // Original approved V4 used one surface stretch. Here its amplitude is
+ // reduced to fit the user's latest request for a more restrained response.
+ const anim=dockShell.animate([
+  {transform:'translateX(-50%) scale(1,1)',borderRadius:'25px',offset:0},
+  {transform:'translateX(-50%) scale(1.018,.991)',borderRadius:'26px',offset:.28},
+  {transform:'translateX(-50%) scale(.997,1.002)',borderRadius:'25px',offset:.69},
+  {transform:'translateX(-50%) scale(1,1)',borderRadius:'25px',offset:1}
+ ],{duration:325,easing:'cubic-bezier(.22,.8,.36,1)'});
+ anim.finished.catch(()=>{}).then(()=>{dockTactileFrame=0});
+}
+function dockTap(id,action){
+ dockMotionSelect(id);
+ dockRubberTouch();
+ if(dockPending)clearTimeout(dockPending);
+ // Keep the accepted V4 search/click action immediate, so iPhone Safari
+ // can focus its input during the user's original gesture.
+ action();
+}
+dockButtons.forEach(btn=>{
+ btn.addEventListener('pointerdown',()=>btn.classList.add('dock-pressed'));
+ ['pointerup','pointercancel','pointerleave'].forEach(type=>btn.addEventListener(type,()=>btn.classList.remove('dock-pressed')));
+});
+requestAnimationFrame(()=>dockMotionSelect('dockMap'));
+
+function showViewer(i,origin){viewerIndex=i;viewerOrigin=origin;$('viewerImg').src=photos[i];$('viewerImg').onerror=()=>{$('viewerImg').removeAttribute('src');$('viewerImg').style.background=fallbacks[i]};$('mediaCount').textContent=String(i+1).padStart(2,'0')+' / 03 · 演示影像';$('viewer').classList.add('show');const dots=$('viewerDots');dots.replaceChildren();photos.forEach((_,j)=>{let p=document.createElement('i');p.className=j===i?'active':'';dots.append(p)});if(origin?.isConnected){const a=origin.getBoundingClientRect(),b=$('viewerImg').getBoundingClientRect(),dx=a.left+a.width/2-b.left-b.width/2,dy=a.top+a.height/2-b.top-b.height/2;$('viewerImg').animate([{transform:'translate3d('+dx+'px,'+dy+'px,0) scale('+(a.width/b.width)+','+(a.height/b.height)+')',opacity:.4,borderRadius:'15px'},{transform:'none',opacity:1}],{duration:460,easing:'cubic-bezier(.19,1,.32,1)'})}}
+function closeViewer(){const img=$('viewerImg'),a=viewerOrigin?.getBoundingClientRect(),b=img.getBoundingClientRect();if(a&&b&&viewerOrigin?.isConnected){img.animate([{transform:img.style.transform||'none',opacity:1},{transform:'translate3d('+(a.left+a.width/2-b.left-b.width/2)+'px,'+(a.top+a.height/2-b.top-b.height/2)+'px,0) scale('+(a.width/b.width)+','+(a.height/b.height)+')',opacity:.2}],{duration:320,easing:'cubic-bezier(.22,1,.36,1)'}).finished.finally(()=>{$('viewer').classList.remove('show');img.style.transform=''})}else $('viewer').classList.remove('show')}
+let touch=null;$('viewer').addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;touch={x:e.clientX,y:e.clientY,dir:''};e.target.setPointerCapture?.(e.pointerId)});$('viewer').addEventListener('pointermove',e=>{if(!touch)return;const dx=e.clientX-touch.x,dy=e.clientY-touch.y;if(!touch.dir&&Math.max(Math.abs(dx),Math.abs(dy))>12)touch.dir=dy>0&&Math.abs(dy)>Math.abs(dx)*1.2?'down':'side';if(touch.dir==='down')$('viewerImg').style.transform='translateY('+Math.max(0,Math.min(340,dy))+'px) scale('+Math.max(.8,1-dy*.0005)+')'});$('viewer').addEventListener('pointerup',e=>{if(!touch)return;const dx=e.clientX-touch.x,dy=e.clientY-touch.y,dir=touch.dir;touch=null;if(dir==='down'&&dy>100){closeViewer();return}if(dir==='side'&&Math.abs(dx)>65){const i=Math.max(0,Math.min(photos.length-1,viewerIndex+(dx<0?1:-1)));showViewer(i,document.querySelector('.media-thumb[data-media="'+i+'"]'));return}$('viewerImg').style.transition='transform .28s var(--ease)';$('viewerImg').style.transform='';setTimeout(()=>$('viewerImg').style.transition='',300)});$('viewer').addEventListener('pointercancel',()=>{touch=null;$('viewerImg').style.transform=''});
+document.querySelectorAll('.media-thumb').forEach(b=>b.onclick=()=>showViewer(+b.dataset.media,b));$('heroPhoto').onclick=()=>showViewer(0,$('heroPhoto'));$('viewerX').onclick=closeViewer;
+$('mapStar').onclick=()=>showPlace('peek');$('placeX').onclick=()=>close(place);$('editAct').onclick=()=>toast('编辑器视觉将沿用相同字号与 44px 操作区');$('starAct').onclick=()=>toast('取消星标先确认；原照片和 Brief 保留');$('stageBtn').onclick=()=>toast('想去 / 已到访使用同一状态标签');$('guideBtn').onclick=()=>toast('攻略链接使用独立、轻量的阅读入口');
+$('searchInput').oninput=renderSearch;$('clearSearch').onclick=()=>{$('searchInput').value='';renderSearch();$('searchInput').focus()};$('searchX').onclick=()=>close(search);
+$('savedX').onclick=()=>close(saved);$('tabPlaces').onclick=()=>renderSaved('places');$('tabRoutes').onclick=()=>renderSaved('routes');$('dateChange').onclick=()=>$('dateModal').classList.add('show');$('dateCancel').onclick=()=>{$('dateModal').classList.remove('show');toast('已取消：日期与顺序不变')};$('dateDone').onclick=()=>{const v=$('dateInput').value;if(v){const d=new Date(v+'T12:00:00'),e=new Date(d);e.setDate(d.getDate()+2);$('dateText').textContent=(d.getMonth()+1)+'月'+d.getDate()+'日 — '+(e.getMonth()+1)+'月'+e.getDate()+'日'}$('dateModal').classList.remove('show');renderStops();toast('日期完成确认 · D 标签同步')};$('addStop').onclick=()=>toast('演示只展示入口，真实地图选点未启用');$('saveRoute').onclick=()=>toast('示意保存反馈 · 不写入真实数据');
+$('dockSearch').onclick=()=>dockTap('dockSearch',showSearch);$('dockMap').onclick=()=>dockTap('dockMap',()=>{reset();dockSelect('dockMap')});$('dockSaved').onclick=()=>dockTap('dockSaved',showSaved);$('dockRoute').onclick=()=>dockTap('dockRoute',()=>showRoute());
+$('scrim').onclick=()=>{if(active==='place')close(place);if(active==='search')close(search);if(active==='saved')close(saved);if(active==='route')close(route);active='';dockSelect('dockMap')};
+$('openMenu').onclick=()=>$('toc').classList.add('show');$('tocOpen').onclick=()=>$('toc').classList.add('show');$('tocClose').onclick=()=>$('toc').classList.remove('show');$('infoBtn').onclick=()=>toast('独立视觉/动效样板；不代表真实产品已集成通过');
+$('prev').onclick=()=>go(scene-1);$('next').onclick=()=>go(scene+1);
+let zoom=1;$('zoomIn').onclick=()=>{$('mapArt').style.scale=String(zoom=Math.min(1.4,zoom+.1));toast('此处仅模拟底图层级')};$('zoomOut').onclick=()=>$('mapArt').style.scale=String(zoom=Math.max(.85,zoom-.1));$('locateBtn').onclick=()=>toast('定位按钮动效示意，不获取真实位置');
+window.addEventListener('resize',()=>{if(active==='place')spring(place,levels()[placeLevel]);else if(active==='search')spring(search,levels().full);else if(active==='route')spring(route,levels()[routeLevel]);else if(active==='saved')spring(saved,H()*.76)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('toc').classList.remove('show');if($('viewer').classList.contains('show'))closeViewer();else reset()}});
+go(0);
+})();
+</script></body></html>
