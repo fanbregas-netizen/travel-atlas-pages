@@ -66,7 +66,7 @@ const title=document.getElementById("title"),status=document.getElementById("sta
 const labels={已确认:"已通过验收的交互原件",视觉:"认可的视效样板",辅助:"辅助来源及源文件",提案:"早期提案，仅供核对"};
 let current="";
 for(const group of ["视觉","已确认","辅助","提案"]){
-const h=document.createElement("h2");h.textContent=labels[group];nav.parentElement.insertBefore(h,nav);
+const h=document.createElement("h2");h.textContent=labels[group];nav.append(h);
 const buttons=ITEMS.filter(x=>x.group===group);
 for(const i of buttons){const b=document.createElement("button");b.type="button";b.dataset.id=i.id;b.innerHTML=i.name+"<small>"+i.status+"</small>";b.addEventListener("click",()=>select(i.id));nav.append(b);}
 }
