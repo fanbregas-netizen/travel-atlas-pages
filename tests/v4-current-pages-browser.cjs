@@ -71,7 +71,21 @@ async function probe(){
     });
     result.poi=poi;
     assert.ok(poi.morph>=3,'real SVG water path morph not connected');
-    assert.match(poi.anim,/fpInternalPinScaleReturn/,'reviewed scale not playing');
+    assert.match(poi.anim,/fp14PoiArtworkElastic/,'reviewed controlled elastic SVG scale not playing');
+    // V4 .14 must keep the existing real navigation chooser functional.
+    result.navigation=await page.evaluate(()=>{
+      const source=typeof window.__atlasOpenNavigation==='function';
+      if(source)window.__atlasOpenNavigation({lat:31.224361,lng:121.456569,title:'导航验收'});
+      const chooser=document.getElementById('navigationChooser');
+      return {source,visible:!!chooser?.classList.contains('visible'),links:chooser?.querySelectorAll('#navLinks a').length||0};
+    });
+    assert.ok(result.navigation.source&&result.navigation.visible&&result.navigation.links>=3,
+      'card header must use the original functional 高德/百度/Apple navigator');
+    await page.locator('#closeNavigationChooser').click({timeout:5000});
+    assert.equal(await page.locator('#navigationChooser').evaluate(el=>el.classList.contains('visible')),false,'navigation did not dismiss');
+    const headerSrc=fs.readFileSync('v4-review-20261116/footprint-home.js','utf8');
+    assert.ok(headerSrc.includes('head.append(titlewrap,navButton,headActions)'),'real place header missing navigation action');
+    assert.ok(!headerSrc.includes("const firstPhoto=media.find("),'duplicate header photo still appears');
     const star=await page.evaluate(()=>{
      const e=document.createElement('span');e.id='starMotionAcceptanceProbe';e.innerHTML='<svg viewBox="0 0 40 40"><path d="M20 3.7 25.2 13.5 36.1 15.2 28.3 23 30.1 34 20 28.7 9.9 34 11.7 23 3.9 15.2 14.8 13.5Z" fill="#D7B36E" /></svg>';document.body.append(e);
      window.AtlasPOIMotion.playStar(e);return {before:e.querySelectorAll('animate').length};
