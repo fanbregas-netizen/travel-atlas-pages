@@ -19,7 +19,7 @@ fs.mkdirSync('v4-current-pages-evidence',{recursive:true});
   const page=await ctx.newPage();const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url+'index.html?v19=live-rebound-'+width,{waitUntil:'domcontentloaded',timeout:60000});
-  await page.waitForFunction(()=>!!window.__atlasDemo?.select&&!!window.FootprintElasticHandoff?.revealCard&&!!window.FootprintRubberSpring?.step&&!!window.FootprintV5Spring?.step,null,{timeout:22000});
+  await page.waitForFunction(()=>!!window.__atlasDemo?.select&&!!window.FootprintElasticHandoff?.revealCard&&!!window.FootprintRubberSpring?.step&&!!window.FootprintV5Spring?.step&&!!window.__atlasSearchHistorySpring18,null,{timeout:22000});
   const first=await page.evaluate(async()=>{
     const initial=window.__atlasQA?.()?.zoom||null;
     window.__atlasDemo.select('中山公园',31.224361,121.456569);
@@ -40,9 +40,10 @@ fs.mkdirSync('v4-current-pages-evidence',{recursive:true});
   await page.waitForTimeout(920);
   const settled=await page.evaluate(()=>{
     const card=document.getElementById('destinationCard');
-    return {visible:card.classList.contains('visible'),state:card.dataset.fpElasticState,translate:card.style.translate,scale:card.style.scale};
+    return {visible:card.classList.contains('visible'),state:card.dataset.fpElasticState,translate:card.style.translate,scale:card.style.scale,overshoot:card.dataset.fpElasticOvershoot};
   });
   assert.ok(settled.visible&&settled.state==='idle'&&settled.translate===''&&settled.scale==='','card spring failed to settle');
+  assert.equal(settled.overshoot,'1','card never physically overshot the rest position: animation is only an ease-in');
   const change=await page.evaluate(async()=>{
     window.__atlasDemo.select('古猗园',31.291361,121.479569);
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
@@ -83,7 +84,10 @@ fs.mkdirSync('v4-current-pages-evidence',{recursive:true});
   });
   assert.equal(history.engine,'cv5','search history did not enter the C V5 physical motor');
   await page.waitForTimeout(1100);
-  assert.equal(await page.locator('#fpSearchSheet').evaluate(e=>e.style.scale),'','history did not settle to default scale');
+  const historyRest=await page.locator('#fpSearchSheet').evaluate(e=>({scale:e.style.scale,peak:Number(e.dataset.fpElasticHistoryPeak),settled:e.dataset.fpElasticHistorySettled}));
+  assert.equal(historyRest.scale,'','history did not settle to default scale');
+  assert.equal(historyRest.settled,'1','history motor did not complete');
+  assert.ok(historyRest.peak>1.02,'history did not physically overshoot 1.02x: '+JSON.stringify(historyRest));
   await page.locator('#fpSearchActiveTop .fp-search-cancel').click();
   assert.deepEqual(errors,[],'browser JS failures');
   report.push({width,first,settled,change,closed,history});
