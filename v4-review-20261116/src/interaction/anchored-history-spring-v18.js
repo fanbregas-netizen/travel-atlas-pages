@@ -16,14 +16,14 @@ function reveal(small=false){
  if(!sheet||sheet.hidden||!meaningful()||!document.body.classList.contains('fp-search-open'))return;
  clear();
  if(reduced.matches||!motor()?.animate)return;
- const from=small?.978:.90;
+ const from=small?.94:.74;
  active=motor().animate({
-  from,to:1,epsilon:.0015,maxMs:700,
+  from,to:1,epsilon:.0015,maxMs:850,
   onFrame:value=>{
    if(!sheet||sheet.hidden){clear();return}
    const normalized=Math.max(0,Math.min(1,(value-from)/(1-from)));
    sheet.style.setProperty('scale','1 '+value.toFixed(5));
-   sheet.style.setProperty('translate','0 '+(-10*(1-normalized)).toFixed(2)+'px');
+   sheet.style.setProperty('translate','0 '+(-24*(1-normalized)).toFixed(2)+'px');
    sheet.style.setProperty('opacity',String(.45+.55*normalized));
   },
   onDone:()=>{active=null;clear()}
