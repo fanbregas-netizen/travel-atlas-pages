@@ -302,9 +302,79 @@ const sc=h('div','fp-card-scroll');
  if(!media.length){const box=h('div','fp-media-empty');box.append(h('span','fp-empty-text','暂无照片或视频'),btn('添加影像',()=>filePicker.click(),'fp-btn-primary'));cardMedia.append(box)}else{const tiles=media.slice(0,5);const mosaic=h('div','fp-media-mosaic'+(tiles.length===1?' one':tiles.length===2?' two':''));tiles.forEach((m,i)=>{const tile=btn('',()=>openViewer(media,i,tile),m.kind==='video'?'fp-video-tile':'');if(m.kind==='photo'){const img=h('img');img.src=m.src;img.alt='旅行照片 '+(i+1);img.loading='lazy';tile.append(img)}else {const video=h('video');video.muted=true;video.defaultMuted=true;video.playsInline=true;video.setAttribute('playsinline','');video.setAttribute('webkit-playsinline','');video.loop=true;video.autoplay=false;video.preload='metadata';video.controls=false;video.setAttribute('aria-label','旅行视频动态预览');try{const blob=m.blob instanceof Blob?m.blob:new Blob([m.bytes],{type:m.type||'video/mp4'});const objectUrl=URL.createObjectURL(blob);video.dataset.sourceUrl=objectUrl;video.src=objectUrl;tileVideos.add(video);video.addEventListener('canplay',()=>{if(activePlaceId===id)syncTilePlayback(video)},{once:true});watchTileVideo(video)}catch(err){console.debug('视频预览不可用',err)}tile.append(video,h('span','fp-video-indicator','▶'))}if(i===tiles.length-1&&media.length>tiles.length)tile.append(h('span','fp-tile-more','+'+(media.length-tiles.length)));mosaic.append(tile)});cardMedia.append(mosaic);cardMedia.append(h('div','fp-photo-count',`${(p.photos||[]).length} 张照片 · ${(p.videos||[]).length} 条视频`))}
  const cardLinks=h('section','fp-block');
  cardLinks.append(sectionHeading('03','相关攻略',btn(editorDrafts.get(draftKey(id,'link'))?.dirty&&editMode!=='link'?'继续编辑':'＋ 链接',()=>{editMode=editMode==='link'?'':'link';renderPlace(id)},'fp-subaction')));
- const links=linksOf(p);if(links.length){const list=h('div','fp-social-list');links.slice(0,12).forEach(x=>{const a=h('a');a.href=x.url;a.target='_blank';a.rel='noopener noreferrer';a.title=x.url;a.append(h('span','',`${sourceName(x.url)} · ${x.title||'查看原文'}`),h('b','','↗'));list.append(a)});cardLinks.append(list)}else cardLinks.append(h('p','fp-social-empty','暂无相关资料'));
- if(editMode==='link'){const edit=h('div','fp-inline-editor');edit.style.marginTop='12px';const draft=editorDraft(id,'link',{url:'',title:''});const url=h('input');url.type='url';url.placeholder='粘贴微信、小红书或视频链接';url.setAttribute('inputmode','url');url.autocomplete='off';const name=h('input');name.type='text';name.placeholder='给这条资料写个标题（可选）';name.maxLength=150;url.value=draft.value.url||'';name.value=draft.value.title||'';const keep=()=>{draft.value={url:url.value,title:name.value};draft.dirty=!!url.value.trim()||!!name.value.trim()};url.addEventListener('input',keep);name.addEventListener('input',keep);const acts=h('div','fp-inline-actions');acts.append(btn('保存链接',async()=>{const u=urlOf(url.value);if(!u){feedback('请输入有效的 http 或 https 链接');return}if(busy)return;busy=true;try{const fresh=await readPlace(id);const before=linksOf(fresh);if(before.some(x=>x.url===u)){if(activePlaceId===id)feedback('这个链接已经保存过了');return}if(!window.FootprintMediaCore)throw Error('存储模块未加载');await window.FootprintMediaCore.createRepository(window.indexedDB).saveGuide(id,{url:u,title:name.value.trim()||sourceName(u),createdAt:new Date().toISOString()});editorDrafts.delete(draftKey(id,'link'));try{await window.__atlasFlowRefresh?.()}catch(_){}if(activePlaceId===id){editMode='';await renderPlace(id)}}catch(e){if(activePlaceId===id)feedback('保存链接失败：'+e.message)}finally{busy=false}},'fp-btn-primary'),btn('取消',()=>{if(!discardEditorDraft(id,'link'))return;editMode='';renderPlace(id)},'fp-btn-muted'));edit.append(url,name,h('small','fp-editor-draft-hint','未保存的链接草稿会随地点保留在当前页面。'),acts);cardLinks.append(edit);queueMicrotask(()=>{if(activePlaceId===id&&editMode==='link')edit.scrollIntoView({block:'nearest',behavior:'smooth'})})}
- const nearby=h('section','fp-block');
+ const links=linksOf(p);
+  if(links.length){
+   const list=h('div','fp-guide-list');
+   links.slice(0,12).forEach(x=>{
+    const row=h('div','fp-guide-row');
+    const link=h('a','fp-guide-open');
+    link.href=x.url;link.target='_blank';link.rel='noopener noreferrer';
+    link.title='使用浏览器或对应平台打开：'+x.url;
+    const identity=h('span','fp-guide-identity');
+    identity.append(h('small','fp-guide-source',x.source||sourceName(x.url)),
+      h('strong','fp-guide-title',x.title||'查看原始内容'));
+    link.append(identity,h('span','fp-guide-arrow','↗'));
+    const copy=btn('复制',async()=>{
+     try{await navigator.clipboard.writeText(x.url);feedback('攻略链接已复制')}
+     catch{window.prompt('复制链接后在原平台打开',x.url)}
+    },'fp-guide-copy');
+    copy.setAttribute('aria-label','复制'+(x.title||'攻略')+'的链接');
+    row.append(link,copy);list.append(row);
+   });
+   cardLinks.append(list,h('p','fp-guide-footnote','部分平台内容需要登录或在原 App 中打开。'));
+  }else cardLinks.append(h('p','fp-guide-empty','还没有攻略链接。可从其他平台复制分享文字到这里。'));
+  if(editMode==='link'){
+   const edit=h('div','fp-inline-editor fp-guide-editor');
+   const draft=editorDraft(id,'link',{url:'',title:''});
+   const url=h('textarea');url.rows=3;
+   url.placeholder='粘贴微信公众号、小红书、抖音或视频平台的分享文字／链接';
+   url.autocomplete='off';url.maxLength=4200;
+   const name=h('input');name.type='text';
+   name.placeholder='攻略标题（可选，留空自动识别）';name.maxLength=150;
+   url.value=draft.value.url||'';name.value=draft.value.title||'';
+   const detection=h('p','fp-guide-detection','粘贴分享文字后自动识别链接，不访问第三方内容。');
+   const updateDetection=()=>{
+    const matched=window.FootprintGuideLinks?.parse(url.value,name.value);
+    if(!url.value.trim()){detection.textContent='粘贴分享文字后自动识别链接，不访问第三方内容。';return}
+    detection.textContent=matched?.ok?'已识别：'+matched.source+(matched.isShortLink?' · 平台短链接':''):'未找到完整链接，请确认分享内容中包含 https://';
+   };
+   const keep=()=>{
+    draft.value={url:url.value,title:name.value};
+    draft.dirty=!!url.value.trim()||!!name.value.trim();updateDetection();
+   };
+   url.addEventListener('input',keep);
+   name.addEventListener('input',keep);
+   updateDetection();
+   const acts=h('div','fp-inline-actions');
+   acts.append(btn('保存链接',async()=>{
+     const parsed=window.FootprintGuideLinks?.parse(url.value,name.value);
+     if(!parsed?.ok){feedback(parsed?.error||'请粘贴包含 https:// 的有效分享链接');return}
+     if(busy)return;busy=true;
+     try{
+      const fresh=await readPlace(id);
+      if(!fresh)throw Error('地点不存在');
+      const before=linksOf(fresh);
+      if(before.some(x=>x.url===parsed.url)){
+       feedback('这个链接已经收藏过了');return;
+      }
+      if(!window.FootprintMediaCore)throw Error('存储模块未加载');
+      await window.FootprintMediaCore.createRepository(window.indexedDB).saveGuide(id,{
+       url:parsed.url,title:parsed.title,source:parsed.source,
+       originalText:parsed.originalText,createdAt:new Date().toISOString()
+      });
+      editorDrafts.delete(draftKey(id,'link'));
+      try{await window.__atlasFlowRefresh?.()}catch(_){}
+      if(activePlaceId===id){editMode='';await renderPlace(id);feedback('攻略链接已保存');}
+     }catch(error){if(activePlaceId===id)feedback('保存失败：'+error.message)}
+     finally{busy=false}
+    },'fp-btn-primary'),btn('取消',()=>{
+     if(!discardEditorDraft(id,'link'))return;editMode='';renderPlace(id)
+    },'fp-btn-muted'));
+   edit.append(url,name,detection,acts);
+   cardLinks.append(edit);
+   queueMicrotask(()=>{if(activePlaceId===id&&editMode==='link')edit.scrollIntoView({block:'nearest',behavior:'smooth'})});
+  }
+  const nearby=h('section','fp-block');
  const status=h('div','fp-social-list');
  const load=btn('查看附近',async()=>{
    load.disabled=true;status.textContent='正在查找…';
