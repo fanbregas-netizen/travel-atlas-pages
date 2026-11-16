@@ -33,7 +33,7 @@ function inspect(){
  if(!sheet)return;
  const visible=!sheet.hidden&&document.body.classList.contains('fp-search-open');
  const has=meaningful();
- if(!visible){lastVisible=false;lastHasItems=false;clear();return}
+ if(!visible){lastVisible=false;lastHasItems=false;delete sheet.dataset.fpElasticHistory;clear();return}
  if(has&&(!lastVisible||!lastHasItems))reveal(false);
  lastVisible=visible;lastHasItems=has;
 }
@@ -54,6 +54,16 @@ function mount(){
  new MutationObserver(inspect).observe(document.body,{attributes:true,attributeFilter:['class']});
  inspect();
 }
+// A real event from the original search controller makes the motor reliable
+// after returning from either saved-place or native POI cards. The observer
+// remains for asynchronous result updates; both use exactly the same motor.
+document.addEventListener('atlas:search-history-ready',()=>{
+ requestAnimationFrame(()=>{
+  if(!sheet)mount();
+  if(sheet&&!sheet.hidden&&meaningful()&&document.body.classList.contains('fp-search-open')
+     &&sheet.dataset.fpElasticHistory!=='cv5')reveal(false);
+ });
+});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
 else mount();
 if(!sheet){
