@@ -1,7 +1,7 @@
 {
-  "version": "V4.C.PagesParityMotion.20261116.17",
+  "version": "V4.C.PagesParityMotion.20261116.18",
   "base": "V4.Stage1.20261110.34.7",
   "date": "2026-11-16",
   "interaction": "swipe-card",
-  "review": "Verified in real headless iPhone Chrome: 22/22 POI categories, sea's three internal SVG morphs, real scale animation, yellow-star morph, media, route pages and top search. Build .17 correction: B05 collection spring was present but vertical swipes on actual favorite rows had been excluded; restore row and grip finger tracking, physical half/full/peek snap, opening detent synchronization and Safari touch fallback without a second controller. Remove heavy fullscreen photo X background, retain 44px target and safe inset. Recheck with real mobile touch events and avoid an untested pass claim. Independent Pages only; official homepage untouched."
+  "review": "Verified in real headless iPhone Chrome: 22/22 POI categories, sea's three internal SVG morphs, real scale animation, yellow-star morph, media, route pages and top search. Build .18: implement explicitly approved standalone four-screen iPhone layout (detail, collection, route, viewer) with NO home search field visible above an opened card. Compact two-row detail identity, consistent section rhythm, and one media add entry. Reuse the exact approved C V5 0.105/.75 spring motor for anchored search history and the inner POI SVG scale-return, preserving all category-specific SMIL waves/rotations and stable geographic anchors. Retain original B05 sheet physics, backups, routes and all media. Original Pages root untouched; final Safari tactile inspection remains user-controlled."
 }
