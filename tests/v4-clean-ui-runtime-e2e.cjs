@@ -91,8 +91,8 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  // pointermove when isMobile+hasTouch, even though it dispatches pointerup.
  // Explicit touch events exercise the iPhone path that B05 actually handles.
  const useNativeTouchPath=which==='webkit';
- const touchEvent=async(type,cx,cy)=>page.evaluate(({type,cx,cy})=>{
-  const header=document.querySelector('#drawer .drawer-head');
+ const touchEvent=async(type,cx,cy,selector='#drawer .drawer-head')=>page.evaluate(({type,cx,cy,selector})=>{
+  const header=document.querySelector(selector);
   // Headless WebKit disallows constructing Touch/TouchEvent (Illegal
   // constructor), despite real iPhone Safari delivering them normally.
   // Model the same public TouchEvent fields on a cancelable DOM event.
@@ -104,7 +104,7 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
   });
   header.dispatchEvent(ev);
   return {defaultPrevented:ev.defaultPrevented,driver:'touch'};
- },{type,cx,cy});
+ },{type,cx,cy,selector});
  if(useNativeTouchPath)await touchEvent('touchstart',x,y);
  else{await page.mouse.move(x,y);await page.mouse.down()}
  for(let i=1;i<=12;i++){
@@ -218,6 +218,30 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  assert.ok(cardLayout.titleTop-cardLayout.gripTop>27,'visible grip overlaps the Chinese place title: '+JSON.stringify(cardLayout));
  await page.locator('#fpPlaceCard .fp-card-close').click({timeout:12000});
  await page.waitForFunction(()=>document.getElementById('fpPlaceCard')?.hidden,null,{timeout:9000});
+ // The saved collection must work with REAL populated place rows, not only
+ // the empty-state header. Test vertical drag from inside an interactive row.
+ await page.locator('#dockStars').click({timeout:14000});
+ await page.waitForSelector('#drawer.visible #spotList .spotrow',{timeout:14000});
+ await pause(800);
+ const row=page.locator('#spotList .spotrow').first();
+ assert.ok((await row.innerText()).includes('测试收藏地点'),'saved place missing from collection list');
+ await page.screenshot({path:path.join(OUT,'06b-collection-saved.png')});
+ const rb=await row.boundingBox();
+ const rowX=rb.x+Math.min(30,rb.width/3),rowY=rb.y+rb.height/2;
+ const rowBefore=(await state(page)).drawer.height;
+ await touchEvent('touchstart',rowX,rowY,'#spotList .spotrow');
+ for(let i=1;i<=10;i++){
+  await touchEvent('touchmove',rowX,rowY-i*10,'#spotList .spotrow');
+  await pause(20);
+ }
+ const rowDuring=(await state(page)).drawer.height;
+ await touchEvent('touchend',rowX,rowY-100,'#spotList .spotrow');
+ diagnostics.collectionSavedRowDrag={before:rowBefore,during:rowDuring};
+ assert.ok(rowDuring>rowBefore+15,
+  'saved place row did not hand vertical touch to B05 sheet '+JSON.stringify(diagnostics.collectionSavedRowDrag));
+ await pause(650);
+ await page.locator('#closeDrawer').click({timeout:14000});
+ await page.waitForFunction(()=>!document.getElementById('drawer')?.classList.contains('visible'),null,{timeout:9000});
  // The only route entry must hand off to the actual C V5 route page; verify
  // existing controls, real route state and spring motor on 375/390/430px.
  assert.ok(await page.locator('#dockRoute').count(),'approved C V5 route Dock missing');
