@@ -12,10 +12,20 @@ body.route-v5-live:has(#rc-main) #fpTopSearch{
 }
 /* The existing physical sheet owns height and touch; only its accepted
    TITLE + CLOSE / STAGE + TWO ICONS composition is revised here. */
-body #fpPlaceCard .sheet-grab{
- width:44px!important;height:5px!important;
- border-radius:999px!important;background:#c7d0c7!important;
- margin:9px auto 3px!important;
+/* There is one real .atlas-card-grip inside the existing header.
+   Reserve its top band BEFORE the title row, no duplicate decorative bar. */
+body #fpPlaceCard .fp-card-header .atlas-card-grip{
+ position:absolute!important;top:0!important;left:50%!important;
+ transform:translateX(-50%)!important;
+ min-height:44px!important;width:92px!important;
+ z-index:4!important;
+ background:transparent!important;border:0!important;
+}
+body #fpPlaceCard .fp-card-header .atlas-card-grip::before{
+ content:""!important;position:absolute!important;
+ top:14px!important;left:50%!important;transform:translateX(-50%)!important;
+ width:44px!important;height:5px!important;border-radius:999px!important;
+ background:#c7d0c7!important;
 }
 body #fpPlaceCard .fp-card-header{
  display:grid!important;
@@ -23,7 +33,7 @@ body #fpPlaceCard .fp-card-header{
  /* Longer Chinese place names need a natural first row, not a clipping box. */
  grid-template-rows:minmax(44px,auto) 44px!important;
  gap:9px 8px!important;
- padding:5px 18px 14px!important;
+ padding:29px 18px 14px!important;
  align-items:center!important;
  background:var(--fp18-paper)!important;
  border-bottom:1px solid var(--fp18-line)!important;

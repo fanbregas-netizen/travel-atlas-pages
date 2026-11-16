@@ -4,6 +4,9 @@ const base=path.resolve(__dirname,'../v4-review-20261116');
 const read=p=>fs.readFileSync(path.join(base,p),'utf8');
 const html=read('index.html'),runtime=read('v4-map-runtime.js');
 const home=read('footprint-home.js');
+assert.ok(!home.includes("placeCard.append(grab)"),'duplicate decorative grip reintroduced');
+assert.match(accepted,/atlas-card-grip::before/);
+
 const collection=read('src/interaction/v4-approved-collection-sheet.js');
 const poi=read('src/interaction/poi-card-handoff-v19.js');
 const accepted=read('src/visual/accepted-four-screen-v18.css');

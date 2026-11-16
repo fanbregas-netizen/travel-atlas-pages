@@ -249,7 +249,9 @@ async function showPlaceCard(id){
 }
 async function renderPlace(id){const revision=++renderRevision;const p=await readPlace(id);if(!p||id!==activePlaceId||revision!==renderRevision)return false;const media=mediaOf(p);const keepReadingPosition=placeCard.dataset.placeId===id;
  const previousScroll=keepReadingPosition?(placeCard.querySelector('.fp-card-scroll')?.scrollTop||0):0;
- stopTileVideos();placeCard.replaceChildren();placeCard.classList.remove('fp-editing');const grab=h('div','sheet-grab');grab.setAttribute('aria-hidden','true');placeCard.append(grab);const head=h('header','fp-card-header'),titlewrap=h('div','fp-card-title-wrap');titlewrap.append(h('h2','fp-card-name',p.title||'未命名地点'));const address=String(p.address||'').trim();if(address)titlewrap.append(h('p','fp-card-location',address.slice(0,120)));const stageBtn=btn(p.stage==='visited'?'已到访':'想去',async()=>{
+ stopTileVideos();placeCard.replaceChildren();placeCard.classList.remove('fp-editing');// One actual, keyboard-accessible grip is installed by real-product-bridge.
+ // The old decorative sheet-grab occupied a second row and overlapped titles.
+ const head=h('header','fp-card-header'),titlewrap=h('div','fp-card-title-wrap');titlewrap.append(h('h2','fp-card-name',p.title||'未命名地点'));const address=String(p.address||'').trim();if(address)titlewrap.append(h('p','fp-card-location',address.slice(0,120)));const stageBtn=btn(p.stage==='visited'?'已到访':'想去',async()=>{
   if(busy)return;busy=true;
   try{
    const next=p.stage==='visited'?'plan':'visited';

@@ -147,10 +147,14 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  const cardLayout=await page.evaluate(()=>{
   const p=document.getElementById('fpPlaceCard'),header=p.querySelector('.fp-card-header'),
     scroll=p.querySelector('.fp-card-scroll'),r=p.getBoundingClientRect(),h=header.getBoundingClientRect(),s=scroll.getBoundingClientRect();
-  return {card:r.height,header:h.height,scroll:s.height,scrollHeight:scroll.scrollHeight,overflow:getComputedStyle(scroll).overflowY};
+  const grip=p.querySelector('.atlas-card-grip')?.getBoundingClientRect();
+  const title=p.querySelector('.fp-card-name')?.getBoundingClientRect();
+  return {card:r.height,header:h.height,scroll:s.height,scrollHeight:scroll.scrollHeight,
+    overflow:getComputedStyle(scroll).overflowY,gripTop:grip?.top,titleTop:title?.top};
  });
  diagnostics.placeLayout=cardLayout;
  assert.ok(cardLayout.card>400&&cardLayout.scroll>120&&cardLayout.overflow==='auto','detail half-sheet content clipped '+JSON.stringify(cardLayout));
+ assert.ok(cardLayout.titleTop-cardLayout.gripTop>27,'visible grip overlaps the Chinese place title: '+JSON.stringify(cardLayout));
  await page.locator('#fpPlaceCard .fp-card-close').click({timeout:12000});
  await page.waitForFunction(()=>document.getElementById('fpPlaceCard')?.hidden,null,{timeout:9000});
  // Route entry must still exist; do not install a second routing system.
