@@ -26,7 +26,7 @@ fs.mkdirSync(out,{recursive:true});
    const id='v16-qa-'+width;
    const pixel='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5pbiQAAAAASUVORK5CYII=';
    await page.evaluate(({id,pixel})=>window.__atlasPlaceStore.save({id,lat:31.22436,lng:121.45657,title:'卡片验收地点',starred:true,stage:'plan',rank:2,note:'原始手记',date:'',photos:[{name:'验收像素',src:pixel}],videos:[],references:[],guides:[]}),{id,pixel});
-   await page.evaluate(id=>window.__atlasDemo.openSaved(id),id);
+   await page.evaluate(async id=>{await window.__atlasSetBookmarkStarred(id,false);await window.__atlasSetBookmarkStarred(id,true);window.__atlasDemo.openSaved(id)},id);
    await page.waitForSelector('#fpPlaceCard:not([hidden]) .fp-section-edit',{timeout:12000});
    const buttons=page.locator('#fpPlaceCard .fp-subheading > .fp-subaction');
    assert.ok(await buttons.count()>=4,'section actions missing');
