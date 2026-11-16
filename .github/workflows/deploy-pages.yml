@@ -487,6 +487,8 @@ jobs:
         run: node tests/v4-guide-state-v15.cjs
       - name: Verify CURRENT V4 Pages product, 22 SVG motions and user actions (375/390/430 iPhone)
         run: node tests/v4-current-pages-browser.cjs
+      - name: Verify V4 .15 real reversible star, guide storage and place header on iPhone
+        run: node tests/v4-current-places-v15-browser.cjs
       - name: Upload current V4 Pages motion and layout evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
