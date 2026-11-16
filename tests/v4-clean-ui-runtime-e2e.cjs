@@ -42,10 +42,11 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  await new Promise(resolve=>server.listen(8765,'127.0.0.1',resolve));
  const browser=await ({chromium,webkit})[which].launch({headless:true,...(which==='chromium'?{args:['--no-sandbox']}:{})});
  const ctx=await browser.newContext({
-  viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true,
+  viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true,serviceWorkers:'block',
   userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1'
  });
  const page=await ctx.newPage(),errors=[],diagnostics={browser:which};
+ page.setDefaultTimeout(16000);
  page.on('pageerror',e=>errors.push(String(e.stack||e)));
  const origin='http://127.0.0.1:8765/travel-atlas-pages/v4-review-20261116/';
  await page.goto(origin,{waitUntil:'domcontentloaded',timeout:75000});
@@ -149,5 +150,9 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  fs.writeFileSync(path.join(OUT,'evidence.json'),JSON.stringify(diagnostics,null,2));
  console.log('PASS V4 CLEAN UI REAL BROWSER '+which+' '+JSON.stringify({collection:diagnostics.collection,drag:diagnostics.collectionDrag,poiOffsets:Math.max(...offsets),place:cardLayout,errors:fatal}));
  await browser.close();
-})().catch(e=>{console.error('FAIL V4 CLEAN UI '+which+' '+e.stack);process.exitCode=1})
- .finally(()=>{server.close()});
+})().catch(e=>{
+ console.error('FAIL V4 CLEAN UI '+which+' '+e.stack);
+ // A failed assertion must not leave WebKit/Chromium children alive for the
+ // full 18-minute job timeout. The upload step still runs with if:always().
+ process.exit(1);
+}).finally(()=>{server.close()});
