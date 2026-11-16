@@ -14,8 +14,8 @@ assert.deepEqual(markers,Array.from({length:32},(_,i)=>i+1),'all historic style 
 // Exact old/new CSS-text parity, not a subjective "looks the same" claim.
 const cp=require('node:child_process');
 const original=cp.execFileSync('git',['show','origin/main:v4-review-20261116/index.html'],{encoding:'utf8',maxBuffer:8*1024*1024});
-const blocks=[...original.matchAll(/<style\\b[^>]*>([\\s\\S]*?)<\\/style>/gi)].map(m=>m[1].trim());
-const copied=[...legacy.matchAll(/\\/\\* ===== original inline style \\d+\\/32[^\\n]*\\n([\\s\\S]*?)(?=\\n\\/\\* ===== original inline style|$)/g)].map(m=>m[1].trim());
+const blocks=[...original.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map(m=>m[1].trim());
+const copied=[...legacy.matchAll(/\/\* ===== original inline style \d+\/32[^\n]*\n([\s\S]*?)(?=\n\/\* ===== original inline style|$)/g)].map(m=>m[1].trim());
 assert.equal(blocks.length,32,'baseline changed; manual review required');
 assert.deepEqual(copied,blocks,'CSS content differs from original! Not a mechanical extraction');
 assert.ok(external.length>=17,'removed an expected review stylesheet');
