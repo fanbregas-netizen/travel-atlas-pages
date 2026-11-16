@@ -60,7 +60,7 @@ function savedSearchRow(p){
  const photoCount=Array.isArray(p.photos)?p.photos.length:0;
  const videoCount=Array.isArray(p.videos)?p.videos.length:0;
  return {id:p.id,name:p.title,saved:true,lat:p.lat,lon:p.lng,
-  stage:p.stage==='visited'?'已到访':'想去',preview:photo?.src||'',
+  stage:p.starred===false?'未收藏':p.stage==='visited'?'已到访':'想去',preview:photo?.src||'',
   mediaCount:photoCount+videoCount,
   description:String(p.address||p.note||'').trim().slice(0,72)};
 }
@@ -162,7 +162,7 @@ window.__fpCloseSearch=()=>closeSearch();
 async function searchNow(q,submitted){q=String(q||'').trim();searchReset();if(!q){drawSearchStart();return}
  // Only surface history/results if meaningful content is present.
  if(activeSearch)searchSheet.hidden=false;
- searchUsed=true;const token=++searchToken;const matches=await readPlaces().then(rows=>rows.filter(p=>p.starred!==false&&String(p.title||'').toLocaleLowerCase().includes(q.toLocaleLowerCase())).slice(0,7).map(savedSearchRow)).catch(()=>[]);if(token!==searchToken||!activeSearch)return;searchBody.replaceChildren();if(matches.length)searchBody.append(searchRows(matches,'我的收藏'));
+ searchUsed=true;const token=++searchToken;const matches=await readPlaces().then(rows=>rows.filter(p=>String(p.title||'').toLocaleLowerCase().includes(q.toLocaleLowerCase())).slice(0,7).map(savedSearchRow)).catch(()=>[]);if(token!==searchToken||!activeSearch)return;searchBody.replaceChildren();if(matches.length)searchBody.append(searchRows(matches,'我的地点'));
  if(!submitted&&q.length<2){if(!matches.length)searchSheet.hidden=true;return}
  if(!window.AtlasServices?.search){if(!matches.length)searchBody.append(h('div','fp-search-empty','地图搜索服务未准备好，请重试。'));return}
  searchController=new AbortController();const controller=searchController;const status=h('div','fp-search-empty','正在搜索真实地点…');searchBody.append(status);
