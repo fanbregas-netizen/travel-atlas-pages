@@ -3,6 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const base=path.resolve(__dirname,'../v4-review-20261116');
 const read=p=>fs.readFileSync(path.join(base,p),'utf8');
 const html=read('index.html'),runtime=read('v4-map-runtime.js');
+const home=read('footprint-home.js');
 const collection=read('src/interaction/v4-approved-collection-sheet.js');
 const poi=read('src/interaction/poi-card-handoff-v19.js');
 const accepted=read('src/visual/accepted-four-screen-v18.css');
@@ -23,6 +24,6 @@ for(const file of ['v4-map-runtime.js','src/interaction/v4-approved-collection-s
  new (require('node:vm').Script)(read(file),{filename:file});
 }
 for(const id of ['destinationCard','fpPlaceCard','drawer','fpSearchSheet']){
- assert.ok(html.includes(id)||runtime.includes(id),'missing real sheet: '+id);
+ assert.ok(html.includes(id)||runtime.includes(id)||home.includes(id),'missing real sheet owner: '+id);
 }
 console.log('PASS: collection uses one B05 controller with opening/closing spring; POI reuses one real card and defers title commit; single-route collection removes redundant layout. Safari motion remains unverified.');
