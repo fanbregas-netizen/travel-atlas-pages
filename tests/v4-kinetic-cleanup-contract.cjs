@@ -19,6 +19,13 @@ assert.match(collection,/window\.__atlasCollectionSheet=\{reveal,requestClose/);
 assert.match(collection,/el\.inert=true/);
 assert.match(collection,/if\(visible===wasVisible\)return/);
 assert.match(collection,/let wasVisible=el\.classList\.contains\('visible'\)/);
+assert.match(poi,/el\.inert=!!renew/);
+assert.match(poi,/const poiMotion=new WeakMap/);
+const journey=read('journey.html'),route=read('src/interaction/route-cards-v5-live.js');
+assert.ok(journey.indexOf('v5-unified-spring.js')<journey.indexOf('route-cards-v5-live.js'));
+assert.match(route,/window\.FootprintV5Spring/);
+new (require('node:vm').Script)(route,{filename:'route-cards-v5-live.js'});
+
 assert.match(accepted,/body\.fp-single-route-owner #drawer\.fp30-detail #fpvCollectionTabs/);
 assert.match(accepted,/grid-template-rows:minmax\(44px,auto\) 44px!important/);
 assert.match(accepted,/overflow-y:auto!important;overscroll-behavior:contain!important/);

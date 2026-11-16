@@ -140,9 +140,22 @@ function springTo(target){
  cancelAnimationFrame(sheetMotion);
  targetHeight=target;
  if(reduce()){sheetVelocity=0;paintHeight(target);scheduleMapLayout();return}
- function tick(){
-  sheetVelocity=(sheetVelocity+(targetHeight-height)*.105)*.75;
-  paintHeight(height+sheetVelocity);
+ let lastFrame=0;
+ function tick(now){
+  // Approved C V5 (.105 / .75) is preserved at 60 Hz; use elapsed-time
+  // compensation so 120 Hz iPhone Safari and dropped frames have the same feel
+  // as the real place/collection sheets instead of twice the speed.
+  const elapsed=lastFrame?Math.max(7.5,Math.min(34,now-lastFrame)):16.67;
+  lastFrame=now;
+  const motor=window.FootprintV5Spring;
+  if(motor?.step){
+   const next=motor.step(height,targetHeight,sheetVelocity,elapsed);
+   sheetVelocity=next.velocity;paintHeight(next.value);
+  }else{
+   const frames=Math.max(.45,Math.min(2,elapsed/16.67));
+   sheetVelocity=(sheetVelocity+(targetHeight-height)*.105*frames)*Math.pow(.75,frames);
+   paintHeight(height+sheetVelocity*frames);
+  }
   if(Math.abs(targetHeight-height)<.65&&Math.abs(sheetVelocity)<.4){paintHeight(targetHeight);sheetVelocity=0;sheetMotion=0;scheduleMapLayout();return}
   sheetMotion=requestAnimationFrame(tick);
  }

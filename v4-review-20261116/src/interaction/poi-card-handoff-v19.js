@@ -7,6 +7,7 @@
 const reduced=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
 const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 const motion=new WeakMap();
+const poiMotion=new WeakMap();
 function stop(el){
  const prev=motion.get(el);
  prev?.cancel?.();
@@ -15,6 +16,9 @@ function stop(el){
  el.style.removeProperty('translate');
  el.style.removeProperty('scale');
  el.style.removeProperty('will-change');
+ // The old card must not retain an inert/pointer-blocked state if the user
+ // closes it or rapidly selects another map POI mid-flight.
+ el.inert=false;
  for(const selector of ['.destination-title','.destination-category']){
   el.querySelector(selector)?.style.removeProperty('opacity');
  }
@@ -28,6 +32,9 @@ function revealCard(el,{renew=false,commit}={}){
  if(reduced()||typeof motor?.animate!=='function'){
   commit?.();stop(el);return;
  }
+ // During POI-to-POI handoff, buttons still refer to the outgoing place
+ // until its label changes. Ignore taps inside that transient old card.
+ el.inert=!!renew;
  el.dataset.fpElasticState=renew?'switching':'entering';
  el.dataset.fpElasticOvershoot='0';
  el.style.willChange='translate,scale';
@@ -46,8 +53,9 @@ function revealCard(el,{renew=false,commit}={}){
     const node=el.querySelector(selector);
     if(node)node.style.setProperty('opacity',alpha.toFixed(3));
    }
-   el.style.setProperty('translate','0 '+(dip*43).toFixed(2)+'px','important');
-   el.style.setProperty('scale','1 '+(1-.055*dip).toFixed(5),'important');
+   const rebound=Math.max(0,t-1);
+   el.style.setProperty('translate','0 '+(dip*43-rebound*48).toFixed(2)+'px','important');
+   el.style.setProperty('scale','1 '+(1-.055*dip+rebound*.07).toFixed(5),'important');
   }else{
    if(!committed){committed=true;commit?.()}
    const overshoot=1-t;
@@ -65,19 +73,34 @@ function revealCard(el,{renew=false,commit}={}){
  });
  motion.set(el,m);
 }
+function stopPoi(node){
+ const active=poiMotion.get(node);active?.cancel();
+ poiMotion.delete(node);
+ if(!node)return;
+ node.style.removeProperty('scale');node.style.removeProperty('will-change');
+ node.dataset.fpElasticPoi='rest';
+}
 function acknowledgePoi(node){
- if(!node||reduced())return;
+ if(!node)return;
+ // A new tap owns the same original SVG. Cancel both the old grow and its
+ // pending return; otherwise two motors fight over scale on fast selections.
+ stopPoi(node);
+ if(reduced())return;
  const motor=window.FootprintRubberSpring;
- if(!motor?.animate)return;
+ if(typeof motor?.animate!=='function')return;
  let p=1;
+ const running={current:null,cancel(){this.current?.cancel()}};
+ poiMotion.set(node,running);
  node.dataset.fpElasticPoi='active';
  node.style.willChange='scale';
- const burst=motor.animate({from:1,to:1.14,epsilon:.006,maxMs:260,
-  onFrame:x=>{p=x;node.style.setProperty('scale',x.toFixed(5),'important')},
+ const finish=()=>{if(poiMotion.get(node)===running)stopPoi(node)};
+ running.current=motor.animate({from:1,to:1.14,epsilon:.006,maxMs:260,
+  onFrame:x=>{p=x;if(node.isConnected)node.style.setProperty('scale',x.toFixed(5),'important');else finish()},
   onDone:()=>{
-   motor.animate({from:p,to:1,epsilon:.001,maxMs:570,
-    onFrame:x=>node.style.setProperty('scale',x.toFixed(5),'important'),
-    onDone:()=>{node.style.removeProperty('scale');node.style.removeProperty('will-change');node.dataset.fpElasticPoi='rest'}
+   if(poiMotion.get(node)!==running)return;
+   running.current=motor.animate({from:p,to:1,epsilon:.001,maxMs:570,
+    onFrame:x=>{if(node.isConnected)node.style.setProperty('scale',x.toFixed(5),'important');else finish()},
+    onDone:finish
    });
   }
  });
