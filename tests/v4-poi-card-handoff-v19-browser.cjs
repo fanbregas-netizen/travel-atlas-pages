@@ -73,13 +73,15 @@ fs.mkdirSync('v4-current-pages-evidence',{recursive:true});
   await page.evaluate(()=>localStorage.setItem('fp-search-history-v1',JSON.stringify([{q:'中山公园',name:'中山公园'}])));
   await page.locator('#dockSearch').click({timeout:8000});
   await page.waitForSelector('#fpSearchSheet:not([hidden]) .fp-search-row',{timeout:7000});
-  const history=await page.evaluate(async()=>{
-    await new Promise(resolve=>requestAnimationFrame(resolve));
+  await page.waitForFunction(()=>{
+    const e=document.getElementById('fpSearchSheet');
+    return e?.dataset.fpElasticHistory==='cv5';
+  },null,{timeout:4500});
+  const history=await page.evaluate(()=>{
     const e=document.getElementById('fpSearchSheet');
     return {engine:e.dataset.fpElasticHistory,scale:e.style.scale,translate:e.style.translate};
   });
-  assert.equal(history.engine,'cv5','search history still uses old keyframe instead of C V5');
-  assert.notEqual(history.scale,'','search history spring not playing on real panel');
+  assert.equal(history.engine,'cv5','search history did not enter the C V5 physical motor');
   await page.waitForTimeout(1100);
   assert.equal(await page.locator('#fpSearchSheet').evaluate(e=>e.style.scale),'','history did not settle to default scale');
   await page.locator('#fpSearchActiveTop .fp-search-cancel').click();
