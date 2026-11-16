@@ -1104,15 +1104,15 @@ body.fp-place-open .map-controls .circlebtn{width:44px;height:44px;min-height:44
 .route-map-strip #routeMapContinue img{width:21px;height:21px;opacity:.45;transition:opacity .2s}
 .route-map-strip #routeMapContinue.ready{background:#eac35c!important;border-color:#ddb04a!important;box-shadow:0 4px 14px #caa53c55}
 .route-map-strip #routeMapContinue.ready img{opacity:1}
-.route-bar-pop{position:fixed;z-index:1660;left:50%;transform:translateX(-50%);bottom:calc(238px + env(safe-area-inset-bottom));width:min(430px,calc(100vw - 22px));border-radius:22px;border:1px solid #ece2c8;background:#fffdf7f5;box-shadow:0 12px 36px #1418202e;padding:12px 14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:tpCardUp .26s cubic-bezier(.2,.9,.25,1.1)}
-.route-bar-pop[hidden]{display:none!important}
-.rb-pop-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.rb-pop-head strong{font-size:14px;color:#3d3524}
-.rb-pop-head button{border:0;background:transparent;border-radius:0;width:40px;height:40px;font-size:26px;font-weight:300;color:#8a8577;cursor:pointer;line-height:1}
-.rb-pop-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.rb-pop-grid label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#6e716c}
-.rb-pop-grid input{font-size:16px;min-width:0;width:100%;border-radius:10px;border:1px solid #dedbd3;padding:9px 7px;background:#fff;min-height:41px}
-.rb-pop-grid input.field-missing{border-color:#c26a4a;box-shadow:0 0 0 3px #c26a4a22}
+
+
+
+
+
+
+
+
+
 .route-search-foot{display:none!important}
 .fav-route-card{display:flex;align-items:center;gap:12px;width:calc(100% - 28px);margin:12px 14px 4px;padding:14px 15px;border:1px solid #e8d9ae;border-radius:22px;background:linear-gradient(180deg,#fffaf0,#fdf4dd);box-shadow:0 6px 18px #d8b24c26;cursor:pointer;text-align:left;font-family:inherit}
 .fav-route-card>img{width:40px;height:40px;flex:0 0 auto}
@@ -1135,8 +1135,8 @@ body.fp-place-open .map-controls .circlebtn{width:44px;height:44px;min-height:44
 .searchbox,.search-dock{border:0!important;outline:0!important}
 .searchbox{box-shadow:0 5px 24px #14263b1e!important}
 /* dock 规划胶囊（日期｜起终点）+ 生成键灰→金 */
-.tp-dock-pill{flex:none;border:0!important;background:#f4f0e4!important;border-radius:14px!important;height:34px!important;width:auto!important;min-width:0;padding:0 9px!important;font-size:11px!important;font-weight:750!important;color:#6b5c33!important;white-space:nowrap;cursor:pointer}
-.tp-dock-pill small{font-size:11px;font-weight:750;letter-spacing:-.02em}
+
+
 #searchForm .dock-go.ready{background:#eac35c!important;color:#4a3a12!important}
 /* 收藏面板：去英文标题/冗余说明/✕边框 */
 #drawer .script-label{display:none!important}
@@ -1147,15 +1147,15 @@ body.fp-place-open .map-controls .circlebtn{width:44px;height:44px;min-height:44
 #spotList .spotrow.tp-sel .arrow img{opacity:1;filter:drop-shadow(0 0 6px #eac35c)}
 #spotList .spotrow.tp-sel{background:#fdf6e0!important;border-radius:14px}
 /* 收藏选点托盘：小卡 + 制定路线 icon */
-.fav-tray{display:flex;align-items:center;gap:8px;margin:0 15px 10px;padding:10px 10px 10px 12px;background:linear-gradient(135deg,#fffaf0,#fdf4dd);border:1px solid #ecd9a8;border-radius:22px}
-.fav-tray[hidden]{display:none}
-.fav-tray-cards{display:flex;gap:9px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;padding:6px 2px 2px 6px}
-.fav-tray-cards::-webkit-scrollbar{display:none}
-.fav-tray-card{position:relative;display:inline-flex;align-items:center;gap:6px;flex:none;background:#fff;border:1px solid #eee3c4;border-radius:14px;padding:7px 8px;font-size:12px;font-weight:700;color:#3d3a2e;box-shadow:0 2px 8px #b8943f22}
-.fav-tray-card img{width:15px;height:15px}
-.fav-tray-card b{max-width:96px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:700}
-.fav-tray-card i{position:absolute;top:-7px;left:-5px;width:16px;height:16px;border-radius:50%;background:#2c3433;color:#fff;font-size:11px;font-style:normal;font-weight:800;display:grid;place-items:center}
-.fav-tray-x{position:absolute;top:-10px;right:-7px;width:22px;height:22px;border-radius:0;border:0;background:transparent;color:#a3987c;font-size:16px;font-weight:700;line-height:1;display:grid;place-items:center;cursor:pointer;padding:0}
+
+
+
+
+
+
+
+
+
 
 #favTrayGo.ready img{opacity:1}
 /* 详情大卡：苹果式三卡片（Brief/影像/社交资料） */
@@ -1165,20 +1165,20 @@ body.fp-place-open .map-controls .circlebtn{width:44px;height:44px;min-height:44
 .fp-block .fp-brief-text{margin:0}
 .fp-block .fp-social-empty{margin:0}
 /* 条件弹卡（锚在 dock 上方） */
-.route-bar-pop{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));z-index:1400;width:min(430px,calc(100vw - 22px));background:#fffefa;border:1px solid #ede7d6;border-radius:22px;box-shadow:0 18px 55px #1a1c1438;padding:14px 16px 16px}
-.route-bar-pop .rb-pop-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.route-bar-pop .rb-pop-head strong{font-size:14px}
-.route-bar-pop #routeBarPopClose{width:40px;height:40px;border:0;border-radius:0;background:transparent;font-size:26px;font-weight:300;color:#8a8577;cursor:pointer;line-height:1}
-.route-bar-pop .rb-pop-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.route-bar-pop label{font-size:11px;font-weight:750;color:#7a6c48;display:grid;gap:5px}
-.route-bar-pop input{width:100%;min-height:42px;font-size:14px;padding:9px 10px;border-radius:14px;border:1px solid #ddd6c6;background:#fff;color:#2d2b25}
-.route-bar-pop input.field-missing{border-color:#c96b4a;box-shadow:0 0 0 3px #c96b4a22}
+
+
+
+
+
+
+
+
 /* 目的地卡出现时右栏上移避让（同类情况参照执行） */
 @media(max-width:550px){body.destination-selected .map-controls{bottom:calc(238px + env(safe-area-inset-bottom))!important;top:auto!important}}
 @media(min-width:551px){body.destination-selected .map-controls{bottom:250px!important;top:auto!important;transform:none!important}}
 /* pin 放大+抖动（参考苹果地图选中弹跳） */
 @keyframes tpPinBounce{0%{transform:scale(1) rotate(0)}32%{transform:scale(1.55) rotate(-7deg)}52%{transform:scale(1.24) rotate(6deg)}70%{transform:scale(1.4) rotate(-3.5deg)}86%{transform:scale(1.3) rotate(2deg)}100%{transform:scale(1.32) rotate(0)}}
-.tp-pulse>img,.tp-pulse>span:first-child,.tp-pulse>svg{animation:tpPinBounce .9s cubic-bezier(.34,1.56,.64,1) both;transform-origin:50% 88%}
+
 @media (prefers-reduced-motion:reduce){.tp-pulse>img,.tp-pulse>span:first-child,.tp-pulse>svg{animation:none}}
 
 /* build .17 · 底部三图标 dock + 路线侧弹 + 规划条（dock 上方） */
@@ -1199,50 +1199,50 @@ body.fp-place-open .map-controls .circlebtn{width:44px;height:44px;min-height:44
 body.fp-place-open #appDock,body.fp-place-open #dockRoutePop,body.fp-search-open #appDock,body.fp-search-open #dockRoutePop,body.destination-selected #appDock,body.destination-selected #dockRoutePop,body.memory-open #appDock,body.memory-open #dockRoutePop{opacity:0;pointer-events:none}
 #appDock,#dockRoutePop{transition:opacity .18s ease}
 /* build .20 · 规划模式下 dock 让位：规划条独占底部，不再两层堆叠（录屏批注） */
-body.route-pick-active #appDock,body.route-pick-active #dockRoutePop{opacity:0;pointer-events:none}
-body.route-pick-active .tp-bar{bottom:calc(14px + env(safe-area-inset-bottom))}
+
+
 /* build .19 · dock 隐藏后底部卡贴底,不再悬在半空 */
 body.destination-selected #destinationCard{bottom:calc(14px + env(safe-area-inset-bottom))!important}
 /* 规划条：日期｜起终点｜生成｜退出，浮在 dock 上方 */
-.tp-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom));z-index:984;display:flex;gap:8px;align-items:center;padding:8px 10px;background:rgba(251,250,246,.97);border:1px solid #e4e0d5;border-radius:22px;box-shadow:0 12px 34px rgba(28,30,29,.2)}
-.tp-bar[hidden]{display:none!important}
+
+
 /* 收藏选点时抽屉(z1250)会盖住规划条：规划条浮到抽屉之上，抽屉底部留出它的空间 */
-body.route-pick-active .tp-bar{z-index:1260}
-body.route-pick-active .drawer{padding-bottom:calc(160px + env(safe-area-inset-bottom))}
-.tp-pill{border:0;background:#f4f0e4;border-radius:14px;height:38px;padding:0 12px;font-size:12px;font-weight:750;color:#6b5c33;white-space:nowrap;cursor:pointer;touch-action:manipulation}
-.tp-pill small{font-size:12px;font-weight:750;letter-spacing:-.02em}
-.tp-go,.tp-x{width:40px;height:40px;border:0;border-radius:14px;display:grid;place-items:center;cursor:pointer;background:#f0eee7;touch-action:manipulation}
-.tp-go img,.tp-x img{width:21px;height:21px;display:block;pointer-events:none}
-.tp-go.ready{background:#eac35c}
-.tp-x{background:#253248}
-.tp-x img{filter:invert(1)}
+
+
+
+
+
+
+
+
+
 /* build .22 · ★n 已选计数胶囊：有选点变金，不再让用户猜 */
-.tp-count{background:#f4f0e4;min-width:52px}
-.tp-count.has{background:#eac35c;color:#4a3a12}
-.tp-count.has small{font-weight:850}
+
+
+
 /* build .22 · 图6批注：规划条吸附到抽屉额头之下（收藏选点模式），与抽屉同宽同风格 */
-.tp-bar.tp-docked{position:sticky;left:0;transform:none;width:100%;z-index:6;margin:-4px 0 10px;bottom:auto;border-radius:14px;box-shadow:0 4px 14px rgba(28,30,29,.10)}
-body.route-pick-active .tp-bar.tp-docked{z-index:6}
+
+
 /* build .22 · 图7批注「★候选★」：候选区成段，标题常驻 */
-.fav-tray{flex-direction:column;align-items:stretch;gap:6px}
-.fav-tray-head{font-size:11px;font-weight:850;letter-spacing:.04em;color:#8a6d22;padding:0 2px}
+
+
 /* build .22 · 图6批注：保存路线/保存点合并为一个框（点击→下拉列表→选择） */
-.savebox{position:relative;margin:12px 0 4px}
-.savebox-main{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border:1px solid #eee3c4;background:linear-gradient(135deg,#fffaf0,#fdf4dd);border-radius:14px;cursor:pointer;font:inherit;touch-action:manipulation}
-.savebox-main img{width:22px;height:22px;flex:none}
-.savebox-main span{flex:1;text-align:left;font-size:13px;font-weight:750;color:#4a4130}
-.savebox-main b{color:#b89a55;font-size:12px;font-weight:750}
-.savebox-caret{width:9px;height:9px;border-right:2px solid #b89a55;border-bottom:2px solid #b89a55;transform:rotate(45deg);margin-right:4px;transition:transform .16s}
-.savebox-main[aria-expanded="true"] .savebox-caret{transform:rotate(-135deg)}
-.savebox-menu{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:9;background:#fffefa;border:1px solid #e9e2cf;border-radius:14px;box-shadow:0 12px 34px rgba(28,30,29,.18);overflow:hidden}
-.savebox-menu[hidden]{display:none}
-.savebox-menu button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:13px 14px;font:inherit;font-size:13px;font-weight:750;color:#4a4130;cursor:pointer;text-align:left}
-.savebox-menu button+button{border-top:1px solid #f0ead9}
-.savebox-menu button:active{background:#f8f2df}
-.savebox-menu img{width:20px;height:20px;flex:none}
-.savebox-menu span{color:#b89a55;font-weight:750;font-size:12px}
-.savebox-menu button span{margin-left:auto}
-.savebox-empty{padding:22px 14px;color:#8b8c87;font-size:12px;line-height:1.7}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #drawerRouteList .rs-row{display:flex;align-items:center;gap:11px;min-height:54px;border:1px solid #e9e5da;border-radius:14px;background:#fff;padding:9px 13px;text-decoration:none;color:#2e2f2a;margin:9px 0}
 #drawerRouteList .rs-badge{flex:none;width:34px;height:34px;border-radius:14px;background:#f1d98f;color:#54411c;display:grid;place-items:center;font-size:14px}
 #drawerRouteList .rs-meta{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
@@ -1254,9 +1254,9 @@ body.route-pick-active .tp-bar.tp-docked{z-index:6}
 /* 收藏面板：已保存的路线卡 */
 /* build .20 · 底部弹卡统一「眉头」抓手（用户批注：卡片顶部没有眉头看着怪） */
 .sheet-grab{width:44px;height:5px;border-radius:3px;background:#d8d2c2;margin:0 auto 12px;flex:none}
-.rb-od-quick{display:flex;gap:8px;margin-top:10px}
-.rb-od-quick button{flex:1;height:36px;border:1px solid #e7ddc4;background:#fbf7ea;border-radius:14px;font-size:12px;font-weight:750;color:#5c4c26;cursor:pointer;touch-action:manipulation}
-.rb-od-quick button:active{transform:scale(.96)}
+
+
+
 
 
 
@@ -1345,17 +1345,9 @@ body.destination-selected #btnZoomIn,body.destination-selected #btnZoomOut{opaci
 body.fp-place-open #selectionFeedback{display:none!important}
 
 /* Native bookmark marker contains its own trip order: never draw independent stars. */
-body.route-pick-active #atlasBookmarkOverlay .atlas-bookmark-hit.route-pick-chosen,
-body.route-pick-active .star-pin.route-pick-chosen{position:absolute;z-index:20!important;overflow:visible!important;isolation:isolate}
-body.route-pick-active .route-pick-chosen[data-trip-order]::after{
- content:attr(data-trip-order)!important;position:absolute!important;right:-7px!important;top:-8px!important;
- z-index:4!important;width:22px!important;height:22px!important;
- display:grid!important;place-items:center!important;font-size:12px!important;line-height:1!important;
- background:#27312e!important;color:white!important;border:2px solid white!important;
- border-radius:50%!important;box-shadow:0 2px 8px #12161444!important;
- transform:none!important;pointer-events:none!important;
-}
-body.route-pick-active #atlasBookmarkOverlay{overflow:visible!important}
+
+
+
 
 /* Photos are editorial content first; controls remain secondary. */
 #fpPlaceCard{border-radius:22px!important;background:#fffefa!important;box-shadow:0 18px 52px #11181626}
@@ -1392,7 +1384,7 @@ html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi i{display:block;flex:0 
 html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi.is-named{background:rgba(255,254,251,.95);border:1px solid #e5e1d7;border-radius:14px;box-shadow:0 2px 9px #14171417;padding:5px 8px;min-height:33px}
 html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi span{font-size:11px;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi:active{transform:translate(-50%,-50%) scale(.96)}
-body.route-pick-active #atlasPoiOverlay .atlas-mobile-poi{pointer-events:none!important;opacity:.15}
+
 body.fp-place-open #atlasPoiOverlay .atlas-mobile-poi{pointer-events:none!important;opacity:.28}
 .atlas-light-selection-pin{position:absolute;width:39px;height:52px;transform:translate(-50%,-100%);pointer-events:none;z-index:7;filter:drop-shadow(0 3px 5px #2224);animation:atlasPinDrop .24s cubic-bezier(.22,.8,.31,1)}
 .atlas-light-selection-pin:before{content:"";position:absolute;left:5px;top:4px;width:30px;height:30px;background:#f5c44b;border:2px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg)}
@@ -1407,16 +1399,9 @@ body.fp-place-open #atlasPoiOverlay .atlas-mobile-poi{pointer-events:none!import
  transition:none!important;animation:none!important;will-change:height;
 }
 /* Preserve the exact native yellow-star location and order badge inside that marker. */
-body.route-pick-active .atlas-bookmark-hit.route-pick-chosen::after,
-body.route-pick-active .star-pin.route-pick-chosen::after{
- z-index:7!important;right:-9px!important;top:-12px!important;
- width:24px!important;height:24px!important;
- color:#fff!important;border-radius:50%!important;
- background:#263631!important;border:2px solid #fff!important;
- box-shadow:0 2px 10px rgba(0,0,0,.34)!important;
-}
-body.route-pick-active .atlas-bookmark-hit{overflow:visible!important}
-body.route-pick-active #atlasBookmarkOverlay{overflow:visible!important}
+
+
+
 /* The secondary POI callout never duplicates the iPhone location sheet. */
 #selectionFeedback{display:none!important}
 /* Keep the original search bar, zoom and star controls available in map browsing mode. */
@@ -2135,7 +2120,7 @@ body{color:#27363B;background:#EFF3F1}
 #appDock #dockMap::after{display:none!important;content:none!important}
 #appDock #dockMap{position:static!important}
 /* Prevent Stage1.29 from painting a large yellow active tile. */
-body.route-pick-active #dockRoute{background:transparent!important;color:var(--fp30-ink)!important}
+
 /* Search uses the real top-header / scrollable-results bottom sheet.
    Stage1.30 compact reversed Dock panel was cancelled by approved V4. */
 body.fp-search-open #appDock{opacity:0!important;pointer-events:none!important}
@@ -2191,14 +2176,14 @@ body.fp-search-open #appDock{opacity:0!important;pointer-events:none!important}
 /* Keep the bottom search controls visible when the keyboard is not present. */
 #fpSearchSheet .fp-search-empty{font-size:12px;color:#76888b}
 /* Planning temporarily replaces the four tabs with task actions; same size, tint and typography. */
-body.route-pick-active .tp-bar:not(.tp-docked){width:min(338px,calc(100vw - 36px))!important;min-height:69px!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:22px!important;background:var(--fp30-frost)!important;box-shadow:0 9px 26px rgba(25,42,46,.13)!important;padding:6px!important;gap:4px!important}
-body.route-pick-active .tp-bar.tp-docked{border:0!important;border-radius:15px!important;background:#f7f9f8!important;box-shadow:0 3px 12px rgba(25,42,46,.08)!important}
-body.route-pick-active .tp-bar .tp-pill{height:44px!important;border:0!important;background:transparent!important;border-radius:13px!important;color:#455c5f!important;padding:0 8px!important;font-size:12px!important;font-weight:575!important}
-body.route-pick-active .tp-bar .tp-pill small{font-size:12px!important;font-weight:600!important}
-body.route-pick-active .tp-bar .tp-count.has{background:#e6edeb!important;color:#345054!important}
-body.route-pick-active .tp-bar .tp-go,body.route-pick-active .tp-bar .tp-x{width:44px!important;height:44px!important;border-radius:14px!important;border:0!important;background:#eaf0ee!important;color:var(--fp30-ink)!important}
-body.route-pick-active .tp-bar .tp-go.ready{background:#dce9e4!important}
-body.route-pick-active .tp-bar .tp-x{background:#40575a!important}
+
+
+
+
+
+
+
+
 /* Disable legacy full-height search sheet snap sizes. This is now an anchored dock field. */
 #fpSearchSheet,#fpSearchSheet[data-atlas-snap]{height:max-content!important;min-height:0!important}
 

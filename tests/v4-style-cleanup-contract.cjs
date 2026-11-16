@@ -18,13 +18,21 @@ for(const file of ['atlas-services.js','atlas-constellation-core.js','atlas-rout
 }
 
 assert.deepEqual(markers,Array.from({length:32},(_,i)=>i+1),'all historic style blocks must remain ordered');
-// Exact old/new CSS-text parity, not a subjective "looks the same" claim.
+// Prove that ONLY mechanically identified rules from the RETIRED route
+// controller differ from baseline. Every other original selector/declaration
+// and the order of the 32 historic blocks must remain byte-for-byte equal.
 const cp=require('node:child_process');
 const original=cp.execFileSync('git',['show','origin/main:v4-review-20261116/index.html'],{encoding:'utf8',maxBuffer:8*1024*1024});
 const blocks=[...original.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map(m=>m[1].trim());
 const copied=[...legacy.matchAll(/\/\* ===== original inline style \d+\/32[^\n]*\n([\s\S]*?)(?=\n\/\* ===== original inline style|$)/g)].map(m=>m[1].trim());
 assert.equal(blocks.length,32,'baseline changed; manual review required');
-assert.deepEqual(copied,blocks,'CSS content differs from original! Not a mechanical extraction');
+const {stripRetiredRouteRules}=require('./v4-retired-route-css-filter.cjs');
+const stripped=blocks.map(block=>stripRetiredRouteRules(block));
+assert.deepEqual(copied,stripped.map(x=>x.css.trim()),
+ 'A non-retired CSS selector/declaration differs from the original; manual review required');
+assert.equal(stripped.reduce((n,x)=>n+x.removed,0),84,'expected 84 known-retired top-level route rules');
+assert.equal(stripRetiredRouteRules(legacy).removed,0,'retired route styles reintroduced');
+assert.ok(legacy.length>300000,'unrelated map, media or card styles were removed');
 assert.ok(external.length>=17,'removed an expected review stylesheet');
 for(const href of external.filter(x=>x.startsWith('./'))){
  const file=href.split('?')[0];
@@ -41,4 +49,4 @@ for(const script of ['v4-map-runtime.js','footprint-home.js','v4-approved-collec
  assert.ok(html.includes(script)||fs.existsSync(path.join(base,'src/interaction',script)),
    'important integration entry absent: '+script);
 }
-console.log('PASS structural extraction: 32/32 source-ordered CSS blocks, no inline style, all stylesheet refs present. Visual parity NOT YET TESTED.');
+console.log('PASS 32/32 baseline CSS blocks; 84 retired route rules removed by deterministic filter; all other properties byte-identical. Safari visual parity remains separate.');
