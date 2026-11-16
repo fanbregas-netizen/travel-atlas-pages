@@ -143,7 +143,7 @@
     ++destinationRevealToken;
     if(destinationRevealTimer){clearTimeout(destinationRevealTimer);destinationRevealTimer=null}
     if(!selectedDestination&&!$('destinationCard').classList.contains('visible')&&$('selectionFeedback').hidden)return;
-    stableSelectionMarker?.remove();stableSelectionMarker=null;selectedDestination=null;if(isOfficial())updateOfficialSelectionPin(null);if(vectorSelectionMarker){vectorSelectionMarker.remove();vectorSelectionMarker=null;}$('destinationCard').classList.remove('visible');$('selectionFeedback').hidden=true;document.body.classList.remove('destination-selected')}
+    stableSelectionMarker?.remove();stableSelectionMarker=null;selectedDestination=null;if(isOfficial())updateOfficialSelectionPin(null);if(vectorSelectionMarker){vectorSelectionMarker.remove();vectorSelectionMarker=null;}$('destinationCard').classList.remove('visible');window.FootprintElasticHandoff?.stop($('destinationCard'));$('selectionFeedback').hidden=true;document.body.classList.remove('destination-selected')}
 
   function cancelBookmark(id){
     const p=places.find(item=>item.id===id);
@@ -187,17 +187,21 @@
     $('destinationCategory').textContent=(d.address?String(d.address).slice(0,76)+' · ':'')+poiCategory(d.category);
     $('destinationStar').textContent=existing?.starred!==false&&existing?'查看这段回忆':existing?'恢复收藏':'收藏并记录';
     $('destinationUnstar').hidden=!(existing&&existing.starred!==false);
-    $('destinationCard').classList.remove('visible');
+    // Retain the existing card during fast POI-to-POI switches: a
+    // remove/re-add resets Safari's CSS entry transform and flickers.
     document.body.classList.add('destination-selected');
-    // Distinct icon acknowledgment first; show the real detail card as camera settles.
+    // V4 .19: no 240ms blank gap between POI tap and card. The REAL
+    // destinationCard receives the SAME physical spring motor as C V5.
+    // The camera pans only if necessary and does not delay the card.
     const reveal=()=>{
       destinationRevealTimer=null;
-      if(revealToken===destinationRevealToken&&selectedDestination===chosen)
-        $('destinationCard').classList.add('visible');
+      if(revealToken!==destinationRevealToken||selectedDestination!==chosen)return;
+      const card=$('destinationCard');
+      const wasVisible=card.classList.contains('visible');
+      card.classList.add('visible');
+      window.FootprintElasticHandoff?.revealCard(card,{renew:wasVisible});
     };
-    if(moving&&!matchMedia('(prefers-reduced-motion: reduce)').matches)
-      destinationRevealTimer=setTimeout(reveal,240);
-    else requestAnimationFrame(reveal);
+    requestAnimationFrame(reveal);
     $('selectionFeedback').hidden=true;
     $('selectionCaption').textContent=selectedDestination.name;
     if(isVector())showVectorSelection(selectedDestination);
@@ -385,6 +389,7 @@
     if(!officialSelectionMarker){officialSelectionMarker=new officialSDK.Marker({map:officialMap,position:pos,content,offset:new officialSDK.Pixel(-27,-58),anchor:'bottom-center'})}
     else{officialSelectionMarker.setPosition(pos);officialSelectionMarker.setContent(content);officialSelectionMarker.setMap(officialMap)}
     if(token)window.AtlasPOIMotion?.play(token,place.category,place.name);
+    else if(content instanceof Element)window.FootprintElasticHandoff?.acknowledgePoi(content);
     lockOfficialNorthUp();
   }
   function hideOfficial(){
@@ -452,9 +457,9 @@
     };
     // The card begins entering while the camera decelerates, not before the
     // selected point can be recognized. Avoid a forced delay for reduced motion.
-    if(animated&&!matchMedia('(prefers-reduced-motion: reduce)').matches)
-      selectionRevealTimer=setTimeout(reveal,250);
-    else requestAnimationFrame(reveal);
+    // The approved physical sheet already eases from below the viewport.
+    // Do not add another arbitrary 250ms gap after a map camera transition.
+    requestAnimationFrame(reveal);
   }
 
   /* build .21 · 与矢量模式同一原则：星 pin DOM 复用，mapmove 只更新坐标——高德模式下照片 pin 也不再闪白框 */
@@ -870,9 +875,23 @@
     const lat=Number(place?.lat),lng=Number(place?.lng);
     if(place?.lat==null||place?.lng==null||!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>85.05||Math.abs(lng)>180)return false;
     const z=Math.max(2,Number(currentZoom())||12);
-    // A moderate zoom-in is intentional: never zoom OUT from the user's detail view.
-    const target=Math.min(18,Math.max(z,Math.min(16.3,Math.max(14.55,z+1.55))));
-    setMapView(lat,lng,target,true,780);
+    // V4 .19: the old forced +1.55 zoom/780ms flyTo reloaded whole map
+    // tiles during every POI tap. Safari displayed a grey/blank basemap
+    // BEFORE the delayed card reveal. Keep the current zoom. Pan only when
+    // the point would otherwise be obscured or beyond the visual corridor.
+    let pt=null;
+    try{
+      if(isVector()&&vectorMap?.project)pt=vectorMap.project([lng,lat]);
+      else if(isOfficial()&&officialMap&&officialSDK){
+        const xy=wgsToGcj(lng,lat);
+        const q=officialMap.lngLatToContainer(new officialSDK.LngLat(xy[0],xy[1]));
+        pt={x:Number(q.getX?.()??q.x),y:Number(q.getY?.()??q.y)};
+      }else if(map?.project)pt=map.project([lng,lat]);
+    }catch(_){pt=null}
+    const w=innerWidth,h=innerHeight;
+    if(pt&&Number.isFinite(pt.x)&&Number.isFinite(pt.y)
+       &&pt.x>38&&pt.x<w-38&&pt.y>95&&pt.y<Math.min(h*.68,h-240))return false;
+    setMapView(lat,lng,z,true,420);
     return true;
   }
   /* dock「总览」：收起面板后缩放到全部足迹 */
@@ -1685,8 +1704,10 @@
     const token=document.createElement('span');token.className='fp-vector-token';
     const img=document.createElement('img');img.src=window.AtlasPOIIcons?.fileFor(place.category,place.name)||'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJOZWFyYnkiPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMzEgMTAgQzQxIDkgNDggMTcgNDcgMjcgQzQ2IDM2IDM5IDQxIDMxIDUxIEMyNCA0MiAxNiAzNCAxNiAyNiBDMTYgMTYgMjMgMTAgMzEgMTBaIi8+CiAgPGNpcmNsZSBjeD0iMzEiIGN5PSIyNiIgcj0iNi4xIi8+CiAgPHBhdGggZD0iTTE1IDQ3IEM5IDQ5IDggNTMgMTQgNTUgQzIyIDU5IDQxIDU5IDUwIDU1IEM1NSA1MyA1NCA0OSA0NyA0NyIgc3Ryb2tlLXdpZHRoPSIyLjQiLz4KIDwvZz4KPC9zdmc+';img.alt='';img.setAttribute('aria-hidden','true');token.append(img);pin.append(token);
     vectorSelectionMarker=new window.maplibregl.Marker({element:pin,anchor:'center'}).setLngLat([+place.lng,+place.lat]).addTo(vectorMap);
-    window.AtlasPOIMotion?.play(token,place.category,place.name);
-    // Map position is owned only by MapLibre; SVG inner lines and scale acknowledge selection.
+    if(window.AtlasPOIMotion?.categoryId(place.category,place.name))
+      window.AtlasPOIMotion.play(token,place.category,place.name);
+    else window.FootprintElasticHandoff?.acknowledgePoi(token);
+    // Map position is owned only by MapLibre; the symbol alone rebounds.
   }
   function guessPoiCategory(props){return props.class||props.subclass||props.type||props.category||'地点'}
   function readPoiName(props){return props['name:zh']||props.name_zh||props.name||props['name:en']||props.name_en||props.ref||''}
