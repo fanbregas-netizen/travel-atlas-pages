@@ -18,7 +18,7 @@ const rest=ms=>new Promise(r=>setTimeout(r,ms));
    const page=await ctx.newPage(),errors=[];
    page.on('pageerror',err=>errors.push(err.message));
    await page.goto(base+'index.html?v17-gesture-'+width,{waitUntil:'domcontentloaded',timeout:60000});
-   await page.waitForFunction(()=>!!window.__atlasCollectionSheet?.getState && !!document.getElementById('spotList'),null,{timeout:18000});
+   await page.waitForFunction(()=>!!window.__atlasCollectionSheet?.getState && !!window.__atlasPlaceStore?.save && !!window.__atlasDemo?.openSaved && !!document.getElementById('spotList'),null,{timeout:25000});
    await page.evaluate(()=>{
     const drawer=document.getElementById('drawer');
     const list=document.getElementById('spotList');
@@ -33,6 +33,19 @@ const rest=ms=>new Promise(r=>setTimeout(r,ms));
     drawer.scrollTop=0;
    });
    await rest(1100);
+   // Runtime collection initialization can replace the synthetic row. Install
+   // it after app initialization, only in this disposable browser DOM.
+   await page.evaluate(()=>{
+    const drawer=document.getElementById('drawer');
+    const list=document.getElementById('spotList');
+    const b=document.createElement('button');
+    b.className='spotrow';b.type='button';b.textContent='手势测试地点';
+    b.addEventListener('click',()=>window.__b05TapCount=(window.__b05TapCount||0)+1);
+    list.hidden=false;list.style.display='block';list.replaceChildren(b);
+    drawer.classList.add('fp30-detail','visible');
+    drawer.scrollTop=0;
+   });
+   await rest(150);
    const first=await page.evaluate(()=>{
     const drawer=document.getElementById('drawer'),row=document.querySelector('#spotList .spotrow');
     const rect=row.getBoundingClientRect(),hdr=document.querySelector('#drawer .drawer-head').getBoundingClientRect();
