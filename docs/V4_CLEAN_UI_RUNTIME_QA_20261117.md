@@ -32,3 +32,29 @@
 ## 不变合同
 
 保持原 PR #15 视觉语言、B V3/B05 三档卡片与橡皮筋、唯一地理黄星、V3 手绘 Icon、原地图实例、媒体与 IndexedDB、C V5 唯一路线、简体中文 UI，不重新设计。
+
+## 2026-11-17 后续实施（本次继续，不是旧版摘要）
+
+**隔离分支代码 HEAD（测试前）：** `7ed03b8c3ad948a85af209e6fe8c8c2f3b8a953a`。正式网站和 main 均未写入。
+
+### 实际删除/修复
+- 从首页直接移除已退出正式路线流程的 `trip-picker.js` **内嵌执行脚本**及隐藏的旧路线/收藏下拉菜单；清掉 `sw.js` 对旧路线选择脚本/CSS 的离线预取。首页由 141,090 进一步减为 **116,087 字符**（削减 25,003）。备份按钮、真实收藏行与原独立地点详情保持原有模块，不重建界面。历史独立脚本文件暂保留供 Git 历史审计，不再运行。
+- `showSection('routes')` 的残留入口直达 `journey.html`，而不是重新启用两套旧路线页面。
+- 将 C V5 路线与新选的非收藏地图途经点由**两次**写入改成 Media D **同一笔 IndexedDB 事务**。路线保存失败、地图点 ID 与已有收藏冲突、储存中止时不留下孤立站点，不覆盖原收藏的 Brief/照片。成功写入后才释放内存中的未保存临时点。
+- 保留旧 C V5 卡片、路线排序/日期/地图数据结构，保留 Media D 的 ZIP 二进制/CRC 和原始收藏数据键名。
+
+### 新增、已验证的场景
+- [路线真实保存、重新打开、已保存路线载入、ZIP 完整备份和恢复；WebKit + Chromium 双通过](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43971895580)；包含失败时的路线/地图途经点原子回滚和「既有照片不被新点覆盖」。
+- [移除旧路线执行入口后，主地图/收藏/POI/媒体真实浏览器回归；WebKit + Chromium 双通过](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43972681926)。
+- [去除旧路线后，真实 C V5、媒体 ZIP 备份/恢复与按钮导出/导入；WebKit + Chromium 双通过](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43973189377)。
+- [Brief 编辑/保存/取消、攻略链接、想去/已到访、取消收藏保留原内容、导航选择、后续加照片及刷新恢复；WebKit + Chromium 双通过](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43973740074)。
+- [旧样式源序与模块合同（未更改正式 main）](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43972693919)。
+
+### 保守 CSS 审计
+- `legacy-inline-cascade.css`：314,944 字符；32 组原样历史样式；约 2,093 个顶层规则/块、2,243 次 `!important`。精确重复的顶层样式仅有 6 组、约 476 字符，**不能因为文件很大便推断删除大部分规则无风险**。
+- 已定位退役路线选择器（`.tp-*`、`.route-bar-pop`、`.fav-tray`、`.route-pick-active` 等）仍留在旧 CSS 中。正式删规则必须逐个确认选择器不被已确认子系统复用，并验证 iPhone 多档卡片和地图渲染。基于当前证据，不对剩余历史 CSS 宣称“完全清理”。
+- 页面源代码、隐藏控制器和路由数据的可确认冲突已经减少；后续 CSS 清理优先按真实 CSSOM / 动态页面覆盖率审计，而非全局覆盖或再加 v20 样式表。
+
+### 正式交付尚待
+- 仍未按完整 35/35 全链路逐屏覆盖真实 iPhone Safari、极端地图缩放和 WebGL 恢复、视频实际解码（不等于仅保留二进制）、全部异常/权限以及多个跨设备恢复场景。
+- 没有把 Draft PR #8 合并到 main，也没有创建并冒称已通过 iPhone Safari 的独立正式验收 URL。**本轮的 Headless WebKit 通过，只是模拟 Safari 内核，不等于真实 Safari 上手体验通过。**
