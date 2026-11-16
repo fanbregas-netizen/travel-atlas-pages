@@ -27,6 +27,7 @@ function revealCard(el,{renew=false}={}){
  // changes; fresh selections enter with a clear physical stretch/rebound.
  const from=renew?.42:0;
  el.dataset.fpElasticState='entering';
+ el.dataset.fpElasticOvershoot='0';
  el.style.willChange='translate,scale';
  let m=null;
  const apply=p=>{
@@ -34,6 +35,7 @@ function revealCard(el,{renew=false}={}){
   const t=clamp(p,-.10,1.2), bounded=clamp(t,0,1);
   const stretch=Math.sin(Math.PI*bounded);
   const displacement=(1-t)*(renew?22:38);
+  if(displacement< -1)el.dataset.fpElasticOvershoot='1';
   const sy=1-(1-t)*(renew?.075:.13)-stretch*.018;
   const sx=1+stretch*.012;
   el.style.setProperty('translate','0 '+displacement.toFixed(2)+'px','important');
