@@ -1,0 +1,36 @@
+name: V4 C V5 route + Media D backup actual E2E (no deploy)
+on:
+  push:
+    branches: [refactor/v4-clean-ui-20261116]
+    paths:
+      - 'v4-review-20261116/**'
+      - 'tests/v4-system-wide-persistence-e2e.cjs'
+      - '.github/workflows/v4-system-wide-persistence.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  system:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [webkit, chromium]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --ignore-scripts playwright@1.58.2
+      - run: npx playwright install --with-deps \${{ matrix.browser }}
+      - name: Test route saving and complete local media ZIP backup/restore
+        env:
+          BROWSER: \${{ matrix.browser }}
+        run: node tests/v4-system-wide-persistence-e2e.cjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v4-system-\${{ matrix.browser }}
+          path: v4-system-evidence/\${{ matrix.browser }}/
+          if-no-files-found: warn
