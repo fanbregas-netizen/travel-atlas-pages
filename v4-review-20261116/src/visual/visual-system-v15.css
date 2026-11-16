@@ -1,0 +1,255 @@
+/* Footprint Map V4 .15 | one visual language for place identity and subsections.
+   Overrides only the isolated Pages preview; original physical swipe/spring untouched. */
+:root{
+ --fp15-paper:#fffefa;
+ --fp15-ink:#293c31;
+ --fp15-muted:#78877c;
+ --fp15-line:#e4e9e1;
+ --fp15-soft:#f4f6f1;
+ --fp15-gold:#D7B36E; /* exact saved-star color on the geographic map */
+}
+body #fpPlaceCard .fp-card-header{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) 104px 44px!important;
+ grid-template-rows:auto auto 46px!important;
+ align-items:center!important;
+ column-gap:9px!important;row-gap:7px!important;
+ padding:34px 17px 14px!important;
+ background:var(--fp15-paper)!important;
+ border-bottom:1px solid var(--fp15-line)!important;
+}
+body #fpPlaceCard .fp-card-title-wrap{display:contents!important}
+body #fpPlaceCard .fp-card-header .fp-card-name{
+ grid-column:1 / 3!important;grid-row:1!important;
+ margin:0!important;padding:0!important;
+ align-self:center!important;min-width:0!important;
+ max-height:none!important;overflow-wrap:break-word!important;
+ font-size:clamp(22px,5.7vw,26px)!important;
+ line-height:1.24!important;font-weight:720!important;
+ letter-spacing:-.036em!important;color:var(--fp15-ink)!important;
+}
+body #fpPlaceCard .fp-card-header .fp-card-location{
+ grid-column:1 / 3!important;grid-row:2!important;
+ margin:0!important;min-width:0!important;
+ color:var(--fp15-muted)!important;
+ font-size:12px!important;line-height:1.45!important;
+ display:-webkit-box!important;-webkit-box-orient:vertical!important;
+ -webkit-line-clamp:2!important;overflow:hidden!important;
+}
+body #fpPlaceCard .fp-card-header .fp-place-stage{
+ grid-column:1!important;grid-row:3!important;
+ justify-self:start!important;align-self:center!important;
+ width:auto!important;max-width:100%!important;
+ margin:0!important;padding:6px 12px!important;
+ min-height:31px!important;
+ border:1px solid #e5d8bc!important;border-radius:999px!important;
+ background:#f7f3e8!important;color:#8b794e!important;
+ font-size:12px!important;font-weight:630!important;
+ box-shadow:none!important;white-space:nowrap!important;
+}
+body #fpPlaceCard .fp-card-header > .fp-card-close{
+ grid-column:3!important;grid-row:1!important;
+ justify-self:end!important;align-self:start!important;
+ display:grid!important;place-items:center!important;
+ width:44px!important;height:44px!important;
+ min-width:44px!important;min-height:44px!important;
+ padding:0!important;margin:-5px -4px 0 0!important;
+ border:0!important;background:transparent!important;
+ box-shadow:none!important;color:#819087!important;
+ border-radius:12px!important;font-size:26px!important;
+ font-weight:330!important;line-height:1!important;
+}
+body #fpPlaceCard .fp-card-head-actions{
+ grid-column:2 / 4!important;grid-row:3!important;
+ justify-self:end!important;align-self:center!important;
+ display:flex!important;align-items:center!important;
+ justify-content:flex-end!important;gap:8px!important;
+ width:auto!important;min-width:0!important;
+ margin:0!important;padding:0!important;
+}
+body #fpPlaceCard .fp-card-head-actions > button{
+ position:relative!important;
+ flex:0 0 46px!important;width:46px!important;height:46px!important;
+ min-width:46px!important;min-height:46px!important;
+ margin:0!important;padding:9px!important;
+ box-sizing:border-box!important;
+ display:grid!important;place-items:center!important;
+ border-radius:14px!important;box-shadow:none!important;
+ background:var(--fp15-soft)!important;
+ border:1px solid #e0e7dd!important;
+ touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+ transition:background-color .18s ease,scale .3s cubic-bezier(.22,.78,.25,1)!important;
+}
+body #fpPlaceCard .fp-card-head-actions > button:active{scale:.958!important;background:#e9efe6!important}
+body #fpPlaceCard .fp-card-head-actions > .fp-star-toggle[data-starred="true"]{
+ background:#f5f2e9!important;border-color:#e4d8b7!important;
+}
+body #fpPlaceCard .fp-card-head-actions > button img{
+ display:block!important;width:27px!important;height:27px!important;
+ object-fit:contain!important;max-width:100%!important;max-height:100%!important;
+}
+body #fpPlaceCard .fp-card-header .fp-place-navigation{
+ grid-column:auto!important;grid-row:auto!important;
+ justify-self:auto!important;align-self:auto!important;
+}
+body #fpPlaceCard .fp-card-head-actions .fp-star-toggle:focus-visible,
+body #fpPlaceCard .fp-card-head-actions .fp-place-navigation:focus-visible,
+body #fpPlaceCard .fp-card-header .fp-card-close:focus-visible{
+ outline:2px solid var(--fp15-gold)!important;outline-offset:2px!important;
+}
+body #fpPlaceCard .fp-card-header .fp-edit-toggle{display:none!important}
+/* Single card grammar: the same border, spacing, numbering and action weight
+   throughout Brief, photos, guides and nearby. */
+body #fpPlaceCard .fp-card-scroll{
+ background:var(--fp15-paper)!important;
+ padding:14px 17px 20px!important;
+}
+body #fpPlaceCard .fp-block{
+ margin:0 0 12px!important;
+ padding:17px 16px 18px!important;
+ border:1px solid var(--fp15-line)!important;
+ border-radius:20px!important;
+ background:var(--fp15-paper)!important;
+ box-shadow:none!important;
+}
+body #fpPlaceCard .fp-subheading{
+ display:flex!important;align-items:center!important;
+ gap:9px!important;
+ margin:0 0 14px!important;
+ min-height:36px!important;
+}
+body #fpPlaceCard .fp-subheading .fp-section-index{
+ display:grid!important;place-items:center!important;
+ width:34px!important;height:34px!important;min-width:34px!important;
+ border-radius:10px!important;
+ background:#f1f4ee!important;color:#83948a!important;
+ font-size:12px!important;font-weight:720!important;
+ line-height:1!important;letter-spacing:0!important;
+}
+body #fpPlaceCard .fp-subheading .fp-section-label{
+ flex:1!important;min-width:0!important;
+ color:var(--fp15-ink)!important;
+ font-size:17px!important;font-weight:710!important;
+ line-height:1.35!important;letter-spacing:-.025em!important;
+}
+body #fpPlaceCard .fp-subheading > .fp-subaction{
+ flex:none!important;min-height:36px!important;
+ padding:7px 12px!important;margin:0!important;
+ border:1px solid #e2e8df!important;border-radius:12px!important;
+ background:#f1f4ef!important;color:#526a5a!important;
+ font-size:12px!important;font-weight:650!important;
+ box-shadow:none!important;
+}
+body #fpPlaceCard .fp-brief-text{
+ margin:0!important;
+ font-size:14px!important;line-height:1.75!important;
+ font-weight:425!important;color:#4d5d52!important;
+ overflow-wrap:anywhere!important;
+}
+body #fpPlaceCard .fp-guide-empty{
+ margin:1px 0 2px!important;padding:0!important;
+ color:#97a198!important;font-size:13px!important;line-height:1.65!important;
+}
+body #fpPlaceCard .fp-guide-list{
+ display:flex!important;flex-direction:column!important;gap:8px!important;
+ margin:0!important;
+}
+body #fpPlaceCard .fp-guide-row{
+ display:flex!important;gap:7px!important;align-items:stretch!important;
+ padding:0!important;margin:0!important;min-width:0!important;
+}
+body #fpPlaceCard .fp-guide-open{
+ display:flex!important;align-items:center!important;gap:10px!important;
+ flex:1 1 auto!important;min-width:0!important;
+ min-height:62px!important;padding:11px 12px!important;
+ background:#f7f8f4!important;border:1px solid #e6ebe3!important;
+ border-radius:13px!important;
+ color:var(--fp15-ink)!important;text-decoration:none!important;
+ -webkit-tap-highlight-color:transparent;
+}
+body #fpPlaceCard .fp-guide-identity{
+ flex:1!important;min-width:0!important;
+ display:flex!important;flex-direction:column!important;gap:4px!important;
+}
+body #fpPlaceCard .fp-guide-source{
+ color:#819187!important;font-size:11px!important;
+ font-weight:625!important;line-height:1.25!important;
+}
+body #fpPlaceCard .fp-guide-title{
+ display:block!important;min-width:0!important;
+ color:var(--fp15-ink)!important;font-size:13px!important;
+ line-height:1.45!important;font-weight:650!important;
+ overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+}
+body #fpPlaceCard .fp-guide-arrow{
+ flex:none!important;color:#7e9485!important;font-size:18px!important;
+}
+body #fpPlaceCard .fp-guide-copy{
+ flex:0 0 49px!important;min-width:49px!important;
+ border:1px solid #e6ebe3!important;border-radius:13px!important;
+ background:#fffefa!important;color:#66776a!important;
+ font-size:11px!important;font-weight:650!important;
+ padding:0 5px!important;
+}
+body #fpPlaceCard .fp-guide-footnote,
+body #fpPlaceCard .fp-guide-detection{
+ margin:10px 2px 0!important;
+ color:#8b988e!important;font-size:11px!important;line-height:1.55!important;
+}
+body #fpPlaceCard .fp-guide-editor{
+ display:flex!important;flex-direction:column!important;gap:10px!important;
+ margin:12px 0 0!important;padding:0!important;
+ background:transparent!important;border:0!important;
+ border-radius:0!important;box-shadow:none!important;
+}
+body #fpPlaceCard .fp-guide-editor textarea,
+body #fpPlaceCard .fp-guide-editor input{
+ width:100%!important;box-sizing:border-box!important;
+ margin:0!important;padding:13px 14px!important;
+ background:#fcfdfa!important;border:1px solid #dfe6dd!important;
+ border-radius:13px!important;
+ font:400 16px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif!important;
+ color:var(--fp15-ink)!important;box-shadow:none!important;
+ outline:none!important;
+}
+body #fpPlaceCard .fp-guide-editor textarea{
+ min-height:90px!important;resize:vertical!important;
+}
+body #fpPlaceCard .fp-guide-editor :is(textarea,input):focus{
+ border-color:#b1c0b3!important;box-shadow:0 0 0 2px #dce8dd77!important;
+}
+body #fpPlaceCard .fp-guide-editor .fp-inline-actions{
+ display:flex!important;gap:9px!important;
+ align-items:center!important;justify-content:flex-start!important;
+ padding:5px 0 0!important;margin:0!important;
+ background:transparent!important;
+}
+body #fpPlaceCard .fp-guide-editor .fp-btn-primary{
+ min-height:44px!important;border-radius:12px!important;
+ background:#e8ce81!important;border:1px solid #e0c674!important;
+ color:#3e3b2e!important;box-shadow:none!important;
+}
+body #fpPlaceCard .fp-guide-editor .fp-btn-muted{
+ min-height:44px!important;border-radius:12px!important;
+ background:#f7f8f4!important;border:1px solid #e6e9e2!important;
+ color:#5a675f!important;box-shadow:none!important;
+}
+@media(max-width:375px){
+ body #fpPlaceCard .fp-card-header{
+  padding-inline:14px!important;
+  grid-template-columns:minmax(0,1fr) 96px 40px!important;column-gap:6px!important;
+ }
+ body #fpPlaceCard .fp-card-head-actions{gap:6px!important}
+ body #fpPlaceCard .fp-card-head-actions > button{
+  width:44px!important;min-width:44px!important;flex-basis:44px!important;
+  height:44px!important;min-height:44px!important;
+ }
+ body #fpPlaceCard .fp-card-header > .fp-card-close{
+  width:40px!important;min-width:40px!important;
+  height:40px!important;min-height:40px!important;
+ }
+ body #fpPlaceCard .fp-block{padding:15px 13px 16px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body #fpPlaceCard .fp-card-head-actions > button{transition:none!important;scale:1!important}
+}
