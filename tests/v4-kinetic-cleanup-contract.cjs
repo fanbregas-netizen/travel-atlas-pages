@@ -17,6 +17,8 @@ assert.match(poi,/const dip=Math\.sin\(Math\.PI\*p\)/);
 assert.match(collection,/window\.__atlasCollectionSheet=\{reveal,requestClose/);
 assert.match(collection,/el\.inert=true/);
 assert.match(accepted,/body\.fp-single-route-owner #drawer\.fp30-detail #fpvCollectionTabs/);
+assert.match(accepted,/grid-template-rows:minmax\(44px,auto\) 44px!important/);
+assert.match(accepted,/overflow-y:auto!important;overscroll-behavior:contain!important/);
 for(const file of ['v4-map-runtime.js','src/interaction/v4-approved-collection-sheet.js','src/interaction/poi-card-handoff-v19.js']){
  new (require('node:vm').Script)(read(file),{filename:file});
 }

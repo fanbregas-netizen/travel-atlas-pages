@@ -23,8 +23,12 @@ for(const href of external.filter(x=>x.startsWith('./'))){
  const file=href.split('?')[0];
  assert.ok(fs.existsSync(path.resolve(base,file)),'missing CSS reference: '+file);
 }
+// Real #fpPlaceCard and #fpSearchSheet are created by the original product
+// controller. They cannot be required as static HTML attributes.
+const home=fs.readFileSync(path.join(base,'footprint-home.js'),'utf8');
+const runtime=fs.readFileSync(path.join(base,'v4-map-runtime.js'),'utf8');
 for(const id of ['fpPlaceCard','fpSearchSheet','drawer','destinationCard','atlasPoiOverlay']){
- assert.ok(html.includes(id),'product DOM accidentally removed: '+id);
+ assert.ok((html+'\\n'+home+'\\n'+runtime).includes(id),'product sheet/overlay owner missing: '+id);
 }
 for(const script of ['v4-map-runtime.js','footprint-home.js','v4-approved-collection-sheet.js','route-cards-v5-live.js']){
  assert.ok(html.includes(script)||fs.existsSync(path.join(base,'src/interaction',script)),
