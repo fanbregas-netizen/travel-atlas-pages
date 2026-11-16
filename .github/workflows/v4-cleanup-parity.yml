@@ -1,0 +1,21 @@
+name: V4 cleanup structural parity (no Pages deploy)
+on:
+  pull_request:
+    paths:
+      - 'v4-review-20261116/**'
+      - 'tests/v4-style-cleanup-contract.cjs'
+      - 'docs/V4_CLEANUP_AUDIT_20261116.md'
+      - '.github/workflows/v4-cleanup-parity.yml'
+permissions:
+  contents: read
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Refresh upstream baseline
+        run: git fetch origin main:refs/remotes/origin/main
+      - name: Check 32 source-ordered CSS snapshots and all active stylesheets
+        run: node tests/v4-style-cleanup-contract.cjs
