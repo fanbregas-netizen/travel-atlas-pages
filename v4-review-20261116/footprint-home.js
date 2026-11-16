@@ -196,8 +196,8 @@ async function readPlace(id){
  }
 }
 const mediaOf=p=>[...(Array.isArray(p.photos)?p.photos:[]).filter(x=>typeof x.src==='string'&&/^data:image\/(jpeg|png|webp);base64,/i.test(x.src)).map(x=>({...x,kind:'photo'})),...(Array.isArray(p.videos)?p.videos:[]).filter(x=>x.bytes||x.blob).map(x=>({...x,kind:'video'}))];
-const linksOf=p=>{const o=[...(Array.isArray(p.references)?p.references:[]),...(Array.isArray(p.guides)?p.guides:[])];if(p.url)o.push(p.url);if(p.link)o.push(p.link);const u=new Set();return o.map(x=>typeof x==='string'?{url:x,title:''}:{url:x?.url||x?.link||'',title:x?.title||''}).filter(x=>{x.url=urlOf(x.url);if(!x.url||u.has(x.url))return false;u.add(x.url);return true})};
-function sourceName(url){try{const host=new URL(url).hostname.replace(/^www\./,'');return /xiaohongshu/.test(host)?'小红书':/bilibili/.test(host)?'Bilibili':/youtube|youtu\.be/.test(host)?'YouTube':/weixin|qq\.com/.test(host)?'微信公众号':host}catch{return '社交链接'}}
+const linksOf=p=>{const o=[...(Array.isArray(p.references)?p.references:[]),...(Array.isArray(p.guides)?p.guides:[])];if(p.url)o.push(p.url);if(p.link)o.push(p.link);const u=new Set();return o.map(x=>typeof x==='string'?{url:x,title:''}:{...x,url:x?.url||x?.link||'',title:x?.title||''}).filter(x=>{x.url=urlOf(x.url);if(!x.url||u.has(x.url))return false;u.add(x.url);return true})};
+function sourceName(url){return window.FootprintGuideLinks?.provider?.(url)||'网页'}
 function sectionHeading(number,name,button){const bar=h('div','fp-subheading');bar.append(h('span','fp-section-index',number),h('strong','fp-section-label',name));if(button)bar.append(button);return bar}
 function feedback(msg){const e=$('fpCardFeedback');if(e)e.textContent=msg}
 function mountPlace(){if(placeCard)return;placeCard=h('article');placeCard.id='fpPlaceCard';placeCard.hidden=true;placeCard.setAttribute('role','dialog');placeCard.setAttribute('aria-modal','false');placeCard.setAttribute('aria-label','收藏地点详情');document.body.append(placeCard); /* V3 physical B owns all card swipes: no additional legacy touch handlers. */
@@ -244,7 +244,18 @@ async function showPlaceCard(id){
 }
 async function renderPlace(id){const revision=++renderRevision;const p=await readPlace(id);if(!p||id!==activePlaceId||revision!==renderRevision)return false;const media=mediaOf(p);const keepReadingPosition=placeCard.dataset.placeId===id;
  const previousScroll=keepReadingPosition?(placeCard.querySelector('.fp-card-scroll')?.scrollTop||0):0;
- stopTileVideos();placeCard.replaceChildren();if(editMode)placeCard.classList.add('fp-editing');const grab=h('div','sheet-grab');grab.setAttribute('aria-hidden','true');placeCard.append(grab);const head=h('header','fp-card-header'),titlewrap=h('div','fp-card-title-wrap');titlewrap.append(h('h2','fp-card-name',p.title||'未命名地点'));const address=String(p.address||'').trim();if(address)titlewrap.append(h('p','fp-card-location',address.slice(0,120)));const stageBtn=btn(p.stage==='visited'?'已到访':'想去',()=>window.__atlasEditPlace?.(id),'fp-place-stage');stageBtn.setAttribute('aria-label','更改地点状态，当前：'+(p.stage==='visited'?'已到访':'想去'));titlewrap.append(stageBtn);
+ stopTileVideos();placeCard.replaceChildren();placeCard.classList.remove('fp-editing');const grab=h('div','sheet-grab');grab.setAttribute('aria-hidden','true');placeCard.append(grab);const head=h('header','fp-card-header'),titlewrap=h('div','fp-card-title-wrap');titlewrap.append(h('h2','fp-card-name',p.title||'未命名地点'));const address=String(p.address||'').trim();if(address)titlewrap.append(h('p','fp-card-location',address.slice(0,120)));const stageBtn=btn(p.stage==='visited'?'已到访':'想去',async()=>{
+  if(busy)return;busy=true;
+  try{
+   const next=p.stage==='visited'?'plan':'visited';
+   await window.__atlasSetPlaceStage(id,next);
+   if(activePlaceId===id){await renderPlace(id);feedback(next==='visited'?'已标记为已到访':'已调整为想去');}
+  }catch(error){feedback('状态更新失败：'+error.message)}
+  finally{busy=false}
+ },'fp-place-stage');
+ stageBtn.setAttribute('aria-label','当前'+(p.stage==='visited'?'已到访':'想去')+'，点按切换');
+ stageBtn.title='点按切换想去／已到访';
+ titlewrap.append(stageBtn);
 /* V4 .14: replace the header thumbnail with the approved drawn navigation icon.
    Photos remain in Media, and the Brief stays in its single reading section. */
 const navButton=btn('',()=>{
@@ -257,11 +268,30 @@ navButton.setAttribute('aria-label','导航前往'+(p.title||'这个地点'));
 navButton.title='导航';
 const navigationIcon=h('img');navigationIcon.src='./icons/40_direction.svg';navigationIcon.alt='';navigationIcon.setAttribute('aria-hidden','true');
 navButton.append(navigationIcon);
-const editToggle=btn(placeCard.classList.contains('fp-editing')?'完成':'编辑',()=>{placeCard.classList.toggle('fp-editing');if(!placeCard.classList.contains('fp-editing'))editMode='';renderPlace(id)},'fp-subaction fp-edit-toggle');
- /* build .20 · 用户批注：收藏点卡片上始终要有「取消收藏」——金星即已收藏，点它取消（影像保留） */
- const unstarBtn=btn('',async()=>{const changed=await window.__atlasCancelBookmark?.(id);if(changed&&activePlaceId===id)closePlace(true)},'fp-unstar-btn');
- unstarBtn.innerHTML='<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTYXZlZCI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0zMiA4IEwzOS4yIDIzLjIgTDU2IDI1LjQgTDQzLjIgMzcuMiBMNDYuMSA1NC40IEwzMS43IDQ1LjggTDE2LjggNTQuNCBMMjAgMzcuNCBMOC4xIDI1LjMgTDI0LjggMjNaIiBmaWxsPSIjRjZDQzNCIi8+CiAgPHBhdGggZD0iTTI1IDI1IEwzMCAxNCIgc3Ryb2tlLXdpZHRoPSIxLjMiLz4KIDwvZz4KPC9zdmc+" alt="" aria-hidden="true">';unstarBtn.setAttribute('aria-label','取消收藏这颗星');unstarBtn.title='已收藏 · 点按取消收藏';
- const headActions=h('div','fp-card-head-actions');headActions.append(unstarBtn,editToggle,btn('×',()=>closePlace(),'fp-card-close'));head.append(titlewrap,navButton,headActions);placeCard.append(head);const sc=h('div','fp-card-scroll');
+/* Reversible bookmark; retained place/media/Brief remain accessible. */
+const isStarred=p.starred!==false;
+const starButton=btn('',async()=>{
+ if(busy)return;busy=true;
+ try{
+  const changed=await window.__atlasSetBookmarkStarred(id,!isStarred);
+  if(changed&&activePlaceId===id){
+   await renderPlace(id);
+   feedback(changed.starred?'已加入收藏':'已取消收藏；地点、文字、照片和攻略仍保留。');
+  }
+ }catch(error){feedback('收藏状态更新失败：'+error.message)}
+ finally{busy=false}
+},'fp-unstar-btn fp-star-toggle');
+starButton.dataset.starred=String(isStarred);
+starButton.setAttribute('aria-pressed',String(isStarred));
+starButton.setAttribute('aria-label',isStarred?'取消收藏地点':'收藏地点');
+starButton.title=isStarred?'已收藏 · 点按取消':'未收藏 · 点按收藏';
+const starImage=h('img');starImage.src=isStarred?'./icons/04_star_saved.svg':'./icons/03_star.svg';
+starImage.alt='';starImage.setAttribute('aria-hidden','true');starButton.append(starImage);
+const headActions=h('div','fp-card-head-actions');headActions.append(starButton,navButton);
+const closeButton=btn('×',()=>closePlace(),'fp-card-close');
+closeButton.setAttribute('aria-label','关闭地点卡片');
+head.append(titlewrap,headActions,closeButton);placeCard.append(head);
+const sc=h('div','fp-card-scroll');
  /* build .16 · 详情大卡规整为三块卡片（参考苹果排版）：Brief / 影像 / 社交资料 */
  const cardBrief=h('section','fp-block');
  cardBrief.append(sectionHeading('01',p.stage==='visited'?'旅行手记':'为什么想去',btn(editMode==='brief'?'收起':editorDrafts.get(draftKey(id,'brief'))?.dirty?'继续编辑':'编辑',()=>{editMode=editMode==='brief'?'':'brief';renderPlace(id)},'fp-subaction')));
