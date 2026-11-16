@@ -1,0 +1,36 @@
+name: V4 cleanup candidate real WebKit / Chromium (NO Pages deploy)
+on:
+  push:
+    branches: [refactor/v4-clean-ui-20261116]
+    paths:
+      - 'v4-review-20261116/**'
+      - 'tests/v4-clean-ui-runtime-e2e.cjs'
+      - '.github/workflows/v4-clean-ui-runtime-e2e.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [webkit, chromium]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --ignore-scripts playwright@1.58.2
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Exercise actual V4 candidate with pointer gestures and frame evidence
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: node tests/v4-clean-ui-runtime-e2e.cjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clean-ui-${{ matrix.browser }}-evidence
+          path: v4-clean-ui-evidence/${{ matrix.browser }}/
+          if-no-files-found: warn
