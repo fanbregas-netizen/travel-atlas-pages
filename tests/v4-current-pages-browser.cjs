@@ -10,7 +10,7 @@ const artifact='v4-current-pages-evidence';
 fs.mkdirSync(artifact,{recursive:true});
 const chrome=['google-chrome','google-chrome-stable','chromium'].map(x=>{try{return cp.execFileSync('which',[x],{encoding:'utf8'}).trim()}catch{return null}}).find(Boolean);
 if(!chrome)throw Error('Chrome not installed');
-const stamp='V4.C.PagesParityMotion.20261116.17';
+const stamp='V4.C.PagesParityMotion.20261116.18';
 async function probe(){
  const browser=await chromium.launch({headless:true,executablePath:chrome,args:['--no-sandbox','--disable-dev-shm-usage']});
  const report=[];
@@ -67,11 +67,11 @@ async function probe(){
      const morph=svg?.querySelectorAll('animate[attributeName="d"]').length||0;
      const anim=getComputedStyle(shell).animationName;
      const transform=getComputedStyle(shell).scale;
-     return {internalPaths,morph,anim,transform,content:p?.innerHTML.slice(0,270)};
+     return {internalPaths,morph,anim,transform,motor:shell?.dataset.springEngine,content:p?.innerHTML.slice(0,270)};
     });
     result.poi=poi;
     assert.ok(poi.morph>=3,'real SVG water path morph not connected');
-    assert.match(poi.anim,/fp14PoiArtworkElastic/,'reviewed controlled elastic SVG scale not playing');
+    assert.equal(poi.motor,'cv5','POI must use actual C V5 motor, not the old keyframe animation');
     // V4 .14 must keep the existing real navigation chooser functional.
     result.navigation=await page.evaluate(()=>{
       const source=typeof window.__atlasOpenNavigation==='function';
