@@ -145,11 +145,24 @@ function play(target,category,name){
   const svg=template.cloneNode(true);
   const shell=document.createElement('span');shell.className='fp-internal-poi-envelope';shell.append(svg);
   target.replaceChildren(shell);
-  // Force ONLY the artwork's scale; the map library owns georeferenced location.
-  // Newly inserted node: class activation needs no forced synchronous reflow.
-  shell.classList.add('fp-internal-poi-animate');
+  // Same C-V5 physical motor as the cards and search history, applied
+  // ONLY to the SVG artwork. Outer POI anchor and its map coordinates do not
+  // transform. All existing SMIL waves/rotations remain independent.
   begin(svg);
-  shell.addEventListener('animationend',()=>shell.classList.remove('fp-internal-poi-animate'),{once:true});
+  const motor=window.FootprintRubberSpring;
+  shell.dataset.springEngine='cv5';
+  if(!motor?.animate)return;
+  let value=1;
+  shell.style.willChange='scale';
+  const apply=n=>{if(!shell.isConnected)return;value=n; shell.style.setProperty('scale',n.toFixed(5),'important')};
+  motor.animate({from:1,to:1.105,epsilon:.008,maxMs:290,onFrame:apply,
+    onDone:()=>{
+      if(!shell.isConnected)return;
+      motor.animate({from:value,to:1,epsilon:.0015,maxMs:580,onFrame:apply,
+        onDone:()=>{if(!shell.isConnected)return;shell.style.removeProperty('scale');shell.style.willChange='auto'}
+      });
+    }
+  });
  }).catch(error=>{
   // Retain original icon, but never silently conceal a broken live animation.
   if(!motionFailures.has(entry.id))console.warn('[Footprint Map] SVG motion unavailable:',entry.id,error);
@@ -201,5 +214,5 @@ function prewarm(){
 }
 if(document.readyState==='complete')setTimeout(prewarm,550);
 else window.addEventListener('load',()=>setTimeout(prewarm,550),{once:true});
-window.AtlasPOIMotion=Object.freeze({play,playStar,categoryId,version:'v4-internal-svg-13'});
+window.AtlasPOIMotion=Object.freeze({play,playStar,categoryId,version:'v4-internal-svg-18'});
 })();
