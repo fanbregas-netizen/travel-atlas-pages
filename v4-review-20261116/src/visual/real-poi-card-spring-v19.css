@@ -43,3 +43,9 @@ body.destination-selected #destinationCard{
 body.destination-selected #fpTopSearch{
  visibility:hidden!important;opacity:0!important;pointer-events:none!important;
 }
+
+/* An active POI is already selected: first-star onboarding must not sit
+   behind the real destination card in a fresh Safari profile. */
+body.destination-selected #atlasFirstStar{
+ display:none!important;pointer-events:none!important;
+}
