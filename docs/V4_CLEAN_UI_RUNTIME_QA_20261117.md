@@ -58,3 +58,21 @@
 ### 正式交付尚待
 - 仍未按完整 35/35 全链路逐屏覆盖真实 iPhone Safari、极端地图缩放和 WebGL 恢复、视频实际解码（不等于仅保留二进制）、全部异常/权限以及多个跨设备恢复场景。
 - 没有把 Draft PR #8 合并到 main，也没有创建并冒称已通过 iPhone Safari 的独立正式验收 URL。**本轮的 Headless WebKit 通过，只是模拟 Safari 内核，不等于真实 Safari 上手体验通过。**
+## 2026-11-17 后续专项：退役样式、日期与视频
+
+### 已实际完成并保留的代码
+
+1. 在实际加载的 `legacy-inline-cascade.css` 删除 **84 条仅由已退出首页的 Stage1 路线控制器使用的顶层样式规则**，合计 10,316 字符。目标仅限 `.tp-*`、`.rb-*`、`.route-bar-pop`、`.fav-tray`、`.savebox`、`body.route-pick-active` 等独立旧路线选择器；**不碰**活跃 C V5/B05、地图、地点详情与已确认设计。
+2. 新增 `tests/v4-retired-route-css-filter.cjs`，结构合同现在把 GitHub `origin/main` 原始 32 段 CSS 逐段应用同一个白名单过滤器，确认当前 CSS 的所有其他声明与排序**逐字相同**。删除旧规则不等于所有旧 CSS 都已完成去重。
+3. 更新独立分支首页对旧 CSS 的资源查询版本，避免今后单独部署验收时 Safari 从旧 URL 缓存读取未清理样式。
+4. C V5 路线实际产品中把“演示最多选 30 天”的旧演示文案调整为“单次行程最长支持30天”，没有改日历和交互视觉；保留原有日期草稿、取消、自动 D 标签调整与撤销。
+5. 新增纯本地原创 0.625 秒 H.264/MP4 视频（32×32 色块）作为可解码测试资产，测试真实文件上传、缩略图生成、全屏视频容器、关闭与刷新后数据恢复，不再以 8 字节假视频冒充播放测试；可播放性仍取决于测试内核上的解码器。
+
+### 最新真实证据
+
+- [CSS 32/32 段逐字限定过滤；结构及旧新版合同全部通过](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43980059085)
+- [清理 84 条旧规则后地图、三档卡片、POI 切换、搜索、媒体 WebKit + Chromium 双通过](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43979646833)
+- [C V5 站点键盘排序、日期草稿取消、D3 缩短至 D2、撤销、重新打开，以及真实 MP4 上传/浏览与媒体/路线备份恢复；双浏览器通过](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43980051017)
+- [旧独立预览测试复测通过](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43980059051)（此项检查的是 `integration-v4-real-e2e-review`，不能替代当前候选产品专项 E2E）。
+
+**发布门槛仍未解除**：暂未完成原全量 35/35 的所有例外场景、iPhone Safari 真机视觉和 60/120Hz 连续手势、视频在真实设备上的长时间播放/音频/系统全屏，以及全部 CSS 计算样式审计。本轮没有修改正式 `main` 或生产 Pages，也没有发布最终验收入口。
