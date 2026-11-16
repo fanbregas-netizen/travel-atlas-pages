@@ -10,7 +10,7 @@ const artifact='v4-current-pages-evidence';
 fs.mkdirSync(artifact,{recursive:true});
 const chrome=['google-chrome','google-chrome-stable','chromium'].map(x=>{try{return cp.execFileSync('which',[x],{encoding:'utf8'}).trim()}catch{return null}}).find(Boolean);
 if(!chrome)throw Error('Chrome not installed');
-const stamp='V4.C.PagesParityMotion.20261116.14';
+const stamp='V4.C.PagesParityMotion.20261116.15';
 async function probe(){
  const browser=await chromium.launch({headless:true,executablePath:chrome,args:['--no-sandbox','--disable-dev-shm-usage']});
  const report=[];
@@ -84,8 +84,19 @@ async function probe(){
     await page.locator('#closeNavigationChooser').click({timeout:5000});
     assert.equal(await page.locator('#navigationChooser').evaluate(el=>el.classList.contains('visible')),false,'navigation did not dismiss');
     const headerSrc=fs.readFileSync('v4-review-20261116/footprint-home.js','utf8');
-    assert.ok(headerSrc.includes('head.append(titlewrap,navButton,headActions)'),'real place header missing navigation action');
+    assert.ok(headerSrc.includes('head.append(titlewrap,headActions,closeButton)'),'real place header missing navigation action');
+    assert.ok(headerSrc.includes('headActions.append(starButton,navButton)'),'saved star and navigator must share the same row');
     assert.ok(!headerSrc.includes("const firstPhoto=media.find("),'duplicate header photo still appears');
+    result.guideAndState=await page.evaluate(()=>{
+      const parsed=window.FootprintGuideLinks?.parse('上海散步 https://xhslink.com/test12 复制分享文案');
+      return {
+       parser:parsed?.ok===true&&parsed.source==='小红书'&&parsed.isShortLink===true,
+       bookmark:typeof window.__atlasSetBookmarkStarred==='function',
+       optionalStage:typeof window.__atlasSetPlaceStage==='function',
+       guideStyles:!!document.querySelector('link[href*="visual-system-v15.css"]')
+      };
+    });
+    assert.ok(Object.values(result.guideAndState).every(Boolean),'V4 .15 guide/state UI contract missing: '+JSON.stringify(result.guideAndState));
     const star=await page.evaluate(()=>{
      const e=document.createElement('span');e.id='starMotionAcceptanceProbe';e.innerHTML='<svg viewBox="0 0 40 40"><path d="M20 3.7 25.2 13.5 36.1 15.2 28.3 23 30.1 34 20 28.7 9.9 34 11.7 23 3.9 15.2 14.8 13.5Z" fill="#D7B36E" /></svg>';document.body.append(e);
      window.AtlasPOIMotion.playStar(e);return {before:e.querySelectorAll('animate').length};
