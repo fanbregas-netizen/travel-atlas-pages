@@ -158,19 +158,26 @@ for(const content of [el.querySelector('#spotList'),el.querySelector('#drawerRou
  },{passive:true});
  content.addEventListener('touchcancel',()=>{if(bodyTouch?.active)end(true);bodyTouch=null},{passive:true});
 }
+// The collection has legitimate subview class changes (fp30-hub/detail/routes).
+// Only a genuine visible<->hidden transition may start/stop the sheet spring.
+// The previous observer restarted snap() for EVERY class change, including
+// switching a content tab, which made the card jump under the user's finger.
+let wasVisible=el.classList.contains('visible');
 new MutationObserver(()=>{
- if(!el.classList.contains('visible')){
+ const visible=el.classList.contains('visible');
+ if(visible===wasVisible)return;
+ wasVisible=visible;
+ if(!visible){
   if(frame)cancelAnimationFrame(frame);frame=0;
   if(dragFrame)cancelAnimationFrame(dragFrame);dragFrame=0;pendingHeight=null;lastPainted=-1;lastResizeGoal=null;d=null;level='half';
   el.style.removeProperty('height');el.style.removeProperty('max-height');
   cancelLayer();el.style.removeProperty('translate');layerOffset=0;layerPhase='hidden';closeAfterMotion=null;
   el.inert=false;el.style.removeProperty('pointer-events');
- }else{
-  // Opening goes directly to the approved B05 half detent. Otherwise the
-  // CSS default height and the JS spring's "half" state disagree until the
-  // user first touches the card, making the first drag jump.
-  requestAnimationFrame(()=>{if(el.classList.contains('visible')&&!d){snap(level);if(layerPhase==='hidden')reveal()}});
+  return;
  }
+ // Only opening from hidden sets the initial B05 half detent. Subsequent
+ // internal content/class changes retain the live finger-driven height.
+ requestAnimationFrame(()=>{if(el.classList.contains('visible')&&!d){snap(level);if(layerPhase==='hidden')reveal()}});
 }).observe(el,{attributes:true,attributeFilter:['class']});
 let resizeFrame=0;
 window.addEventListener('resize',()=>{
