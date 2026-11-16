@@ -10,6 +10,10 @@ const accepted=read('src/visual/accepted-four-screen-v18.css');
 assert.ok(!home.includes("placeCard.append(grab)"),'duplicate decorative grip reintroduced');
 assert.match(accepted,/atlas-card-grip::before/);
 assert.match(html,/collectionTabs\.hidden=singleRoute&&section==='places'/);
+assert.ok(!html.includes('data-inline="trip-picker.js"'),'retired route engine still executes on map');
+assert.ok(!html.includes('id="drawerSaveBox"'),'hidden second route/collection selector still present');
+assert.match(html,/if\(section==='routes'\)\{location\.assign\('\.\/journey\.html'\);return\}/);
+
 assert.match(html,/fp30DetailHead'\)\.hidden=singleRoute&&section==='places'/);
 assert.match(runtime,/__atlasCollectionSheet\?\.requestClose\?\.\(finish\)/);
 assert.match(runtime,/__atlasCollectionSheet\?\.reveal\?\.\(\)/);

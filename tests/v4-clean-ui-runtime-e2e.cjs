@@ -57,9 +57,13 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
   ns:window.__atlasPreviewNamespace,owner:window.__atlasSheetIntegration?.version,
   styleLinks:document.querySelectorAll('link[rel=stylesheet]').length,
   inlineStyles:document.querySelectorAll('style').length,
-  routeOwner:document.body.classList.contains('fp-single-route-owner')
+  routeOwner:document.body.classList.contains('fp-single-route-owner'),
+  retiredPickerDom:document.querySelectorAll('#tpBar,#routeBarPop,#favTray,#drawerSaveBox').length,
+  oldPickerAPI:typeof window.__atlasTripPicker
  }));
  assert.equal(diagnostics.start.ns,'atlas-v4-review-20261116-','preview namespace differs');
+ assert.equal(diagnostics.start.retiredPickerDom,0,'old route-picker still renders hidden controls');
+ assert.equal(diagnostics.start.oldPickerAPI,'undefined','old route controller still active');
  await page.screenshot({path:path.join(OUT,'01-home.png')});
  // Collection must animate the real #drawer and not leave an old second heading.
  await page.locator('#dockStars').click({timeout:15000});
