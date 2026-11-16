@@ -18,17 +18,63 @@ let level='half',d=null,frame=0,dragFrame=0,pendingHeight=null,lastPainted=-1,la
 // actual height, content scroll and 3 detents; there is no extra card DOM.
 let layerMotion=null,layerOffset=0,layerPhase='hidden',closeAfterMotion=null;
 function setLayerOffset(y){
- layerOffset=y;el.style.setProperty('translate','0 '+Math.max(0,y).toFixed(2)+'px','important');
+ layerOffset=y;
+ // The native compositor must own the active WAAPI property. An inline
+ // !important translate suppresses its interpolation in WebKit.
+ el.style.setProperty('translate','0 '+Math.max(-16,y).toFixed(2)+'px');
+}
+function readLayerOffset(){
+ const str=getComputedStyle(el).translate;
+ const parts=str?.match(/-?[0-9.]+px/g);
+ const y=parts?.length?parseFloat(parts[parts.length-1]):NaN;
+ return Number.isFinite(y)?y:layerOffset;
 }
 function cancelLayer(){
- if(layerMotion){layerMotion.cancel();layerMotion=null}
+ if(layerMotion){
+  const y=readLayerOffset();
+  layerMotion.cancel();layerMotion=null;setLayerOffset(y);
+ }
+}
+function makeSpringFrames(from,to){
+ // Sample EXACT approved C V5 0.105/0.75 motor at 60 Hz, then allow
+ // WebKit's compositor to animate when main-thread requestAnimationFrame
+ // is delayed by map tile/geometry work. No second visual language.
+ const motor=window.FootprintRubberSpring;
+ const frames=[{translate:'0 '+from.toFixed(2)+'px'}];
+ let pos=from,velocity=0;
+ for(let n=0;n<49;n++){
+  const next=motor.step(pos,to,velocity,1000/60);
+  pos=next.value;velocity=next.velocity;
+  frames.push({translate:'0 '+Math.max(-16,pos).toFixed(2)+'px'});
+  if(n>=20&&Math.abs(pos-to)<.65&&Math.abs(velocity)<.4)break;
+ }
+ frames.push({translate:'0 '+to.toFixed(2)+'px'});
+ return frames;
 }
 function moveLayer(from,to,done){
  cancelLayer();setLayerOffset(from);
  const motor=window.FootprintRubberSpring;
- if(reduced.matches||typeof motor?.animate!=='function'){
+ if(reduced.matches||typeof motor?.step!=='function'){
   setLayerOffset(to);done?.();return;
  }
+ if(typeof el.animate==='function'){
+  try{
+   const frames=makeSpringFrames(from,to);
+   const animation=el.animate(frames,{
+    duration:(frames.length-1)*(1000/60),easing:'linear',fill:'both'
+   });
+   const handle={cancel:()=>animation.cancel()};
+   layerMotion=handle;
+   animation.onfinish=()=>{
+    if(layerMotion!==handle)return;
+    layerMotion=null;setLayerOffset(to);
+    animation.cancel();done?.();
+   };
+   return;
+  }catch(error){console.debug('Collection compositor spring fallback',error)}
+ }
+ // Older browsers fall back to the same solver on the main thread.
+ if(typeof motor.animate!=='function'){setLayerOffset(to);done?.();return}
  let motion=null;
  motion=motor.animate({from,to,epsilon:.6,maxMs:840,
    onFrame:y=>setLayerOffset(y),
@@ -38,7 +84,7 @@ function moveLayer(from,to,done){
 }
 function reveal(){
  if(!el.classList.contains('visible')||layerPhase==='entering'||layerPhase==='shown')return;
- const from=layerPhase==='closing'?layerOffset:Math.max(320,detents()[level]+35);
+ const from=layerPhase==='closing'?readLayerOffset():Math.max(320,detents()[level]+35);
  closeAfterMotion=null;layerPhase='entering';el.inert=false;el.style.removeProperty('pointer-events');
  moveLayer(from,0,()=>{layerPhase='shown';el.style.removeProperty('translate');layerOffset=0});
 }
@@ -49,7 +95,7 @@ function requestClose(done){
  layerPhase='closing';d=null;
  el.inert=true;el.style.setProperty('pointer-events','none','important');
  const dest=Math.max(320,el.getBoundingClientRect().height+44);
- moveLayer(layerOffset,dest,()=>{layerPhase='hidden';const fn=closeAfterMotion;closeAfterMotion=null;fn?.()});
+ moveLayer(readLayerOffset(),dest,()=>{layerPhase='hidden';const fn=closeAfterMotion;closeAfterMotion=null;fn?.()});
  return true;
 }
 // WebKit may pause rAF while the map is compositing or resuming a tab.

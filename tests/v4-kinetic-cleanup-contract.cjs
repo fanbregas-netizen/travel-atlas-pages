@@ -23,6 +23,8 @@ assert.match(collection,/if\(visible===wasVisible\)return/);
 assert.match(collection,/document\.addEventListener\('pointermove'/);
 assert.match(collection,/document\.addEventListener\('pointerup'/);
 assert.match(collection,/now-pendingSince>=32/);
+assert.match(collection,/const animation=el\.animate\(frames/);
+assert.match(collection,/function makeSpringFrames\(from,to\)/);
 assert.match(collection,/let wasVisible=el\.classList\.contains\('visible'\)/);
 assert.match(poi,/el\.inert=!!renew/);
 assert.match(home,/window\.__atlasDemo\?\.close\?\.\(\)/);
