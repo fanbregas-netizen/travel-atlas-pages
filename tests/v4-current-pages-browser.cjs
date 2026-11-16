@@ -25,7 +25,7 @@ async function probe(){
    const response=await page.goto(root+'index.html?verify='+Date.now(),{waitUntil:'domcontentloaded',timeout:60000});
    await page.waitForTimeout(1800);
    const home=await page.evaluate(()=>({
-    version:document.querySelector('meta[name="atlas-app-version"]')?.content||document.documentElement.innerHTML.match(/V4\.C\.ApprovedPoiSVG\.20261116\.9/)?.[0],
+    version:document.querySelector('meta[name="atlas-pages-preview"]')?.getAttribute('content')||document.querySelector('meta[name="atlas-release"]')?.getAttribute('content')||null,
     status:document.readyState,
     modules:{poi:typeof window.AtlasPOIMotion?.play==='function',poiIcon:typeof window.AtlasPOIIcons?.categoryFor==='function',physical:!!window.TravelAtlasPhysicalSheet,media:!!window.FootprintMediaCore?.createRepository,app:!!window.__atlasDemo},
     dock:[...document.querySelectorAll('#appDock > button')].map(b=>b.id),
