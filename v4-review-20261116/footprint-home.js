@@ -146,6 +146,11 @@ function openSearch(){
  // Focus synchronously in the tap handler: mobile Safari will open the keyboard.
  // Avoid the old 380 ms delayed re-focus that could make the keyboard jump.
  searchInput.focus({preventScroll:true});
+ // Start the real dropdown physical motor AFTER the history rows have been
+ // inserted and the same original field has moved into its top search slot.
+ // Previously an observer-only trigger was missed after POI card handoffs.
+ requestAnimationFrame(()=>{if(activeSearch&&!searchSheet.hidden)
+   document.dispatchEvent(new Event('atlas:search-history-ready'))});
 }
 function closeSearch(){
  if(!activeSearch)return;
