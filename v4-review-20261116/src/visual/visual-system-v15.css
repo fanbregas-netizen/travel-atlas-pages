@@ -92,6 +92,20 @@ body #fpPlaceCard .fp-card-header .fp-place-navigation{
  grid-column:auto!important;grid-row:auto!important;
  justify-self:auto!important;align-self:auto!important;
 }
+/* Override the earlier .14 navigation-button geometry at equal-or-greater
+   selector specificity: both actions must be precisely the same size. */
+body #fpPlaceCard .fp-card-head-actions > .fp-place-navigation,
+body #fpPlaceCard .fp-card-head-actions > .fp-star-toggle{
+ flex:0 0 46px!important;
+ width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ padding:9px!important;
+ border-radius:14px!important;
+}
+body #fpPlaceCard .fp-card-head-actions > .fp-star-toggle[data-starred="false"]{
+ background:var(--fp15-soft)!important;
+ border-color:#e0e7dd!important;
+}
 body #fpPlaceCard .fp-card-head-actions .fp-star-toggle:focus-visible,
 body #fpPlaceCard .fp-card-head-actions .fp-place-navigation:focus-visible,
 body #fpPlaceCard .fp-card-header .fp-card-close:focus-visible{
