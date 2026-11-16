@@ -87,7 +87,11 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  const x=grab.x+grab.width/2,y=grab.y+grab.height/2;
  const before=(await state(page)).drawer.height;
  await page.mouse.move(x,y);await page.mouse.down();
- await page.mouse.move(x,y-115,{steps:14});const during=(await state(page)).drawer.height;
+ // Real fingers move over multiple browser frames, not 14 synthetic mouse
+ // events packed inside one <16ms frame. Sample the live rAF-painted height.
+ for(let i=1;i<=12;i++){await page.mouse.move(x,y-115*i/12);await pause(19)}
+ await pause(45);
+ const during=(await state(page)).drawer.height;
  await page.mouse.up();await pause(950);
  diagnostics.collectionDrag={before,during,after:(await state(page)).drawer.height};
  assert.ok(during>before+18,'B05 sheet did not follow upward drag: '+JSON.stringify(diagnostics.collectionDrag));
@@ -118,7 +122,9 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  diagnostics.searchOpen=await state(page);
  assert.equal(diagnostics.searchOpen.search.anchored,'anchored');
  await page.screenshot({path:path.join(OUT,'05-search.png')});
- await page.locator('#fpSearchSheet .fp-search-close').click({timeout:12000});
+ // Anchored search moves the functional "取消" control into the real top portal;
+ // the legacy nested header X is intentionally hidden by the accepted layout.
+ await page.locator('#fpSearchActiveTop .fp-search-cancel').click({timeout:12000});
  await page.waitForFunction(()=>!document.body.classList.contains('fp-search-open'),null,{timeout:9000});
  // Real business action: save an ordinary POI, then open its physical detail.
  await page.evaluate(({lat,lng})=>window.__atlasDemo.select('测试收藏地点',lat+0.0002,lng+0.0002),map);
