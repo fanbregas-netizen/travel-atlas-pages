@@ -4,7 +4,11 @@
 const el=document.getElementById('drawer');if(!el||el.dataset.physicalB05)return;
 el.dataset.physicalB05='v4';
 const header=el.querySelector('.drawer-head');
-const skip='button,a,input,select,textarea,[contenteditable],.spotrow,.rs-row';
+const headerSkip='button,a,input,select,textarea,[contenteditable]';
+// Rows are clickable, but a deliberate vertical swipe on one must drag the
+// entire sheet (not be discarded as an interactive target). Keep text fields,
+// embedded links and separate actions native/tappable.
+const bodySkip='input,select,textarea,[contenteditable],button:not(.spotrow):not(.rs-row),a:not(.rs-row)';
 const reduced=matchMedia('(prefers-reduced-motion:reduce)');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const detents=()=>{const h=window.visualViewport?.height||innerHeight||844;
@@ -61,19 +65,39 @@ if(header){
  header.style.touchAction='none';
  let pointer=null;
  header.addEventListener('pointerdown',e=>{
-  if(e.button!==undefined&&e.button!==0||e.target.closest(skip))return;
+  if(e.button!==undefined&&e.button!==0||e.target.closest(headerSkip))return;
   start(e.clientX,e.clientY);if(d){pointer=e.pointerId;header.setPointerCapture?.(pointer)}
  });
  header.addEventListener('pointermove',e=>{if(pointer===e.pointerId)move(e.clientX,e.clientY,e)});
  header.addEventListener('pointerup',e=>{if(pointer===e.pointerId){move(e.clientX,e.clientY,e);pointer=null;end()}});
  header.addEventListener('pointercancel',()=>{pointer=null;end(true)});
+ // Safari's native touch events are a fallback for iPhone builds where pointer
+ // capture is interrupted by the composited sticky heading.
+ let touch=null;
+ header.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1||e.target.closest(headerSkip)){touch=null;return}
+  const t=e.touches[0];touch=t.identifier;
+  if(pointer===null)start(t.clientX,t.clientY);
+ },{passive:true});
+ header.addEventListener('touchmove',e=>{
+  if(pointer!==null||touch===null||e.touches.length!==1)return;
+  const t=e.touches[0];if(t.identifier!==touch)return;
+  move(t.clientX,t.clientY,e);
+ },{passive:false});
+ header.addEventListener('touchend',e=>{
+  if(touch===null)return;
+  const t=[...e.changedTouches].find(x=>x.identifier===touch);
+  if(pointer===null&&t){move(t.clientX,t.clientY);end()}
+  touch=null;
+ },{passive:true});
+ header.addEventListener('touchcancel',()=>{if(pointer===null)end(true);touch=null},{passive:true});
  for(const type of ['touchstart','touchmove','touchend'])header.addEventListener(type,e=>e.stopPropagation(),{passive:type!=='touchmove'});
 }
 let bodyTouch=null;
 for(const content of [el.querySelector('#spotList'),el.querySelector('#drawerRouteList')]){
  if(!content)continue;
  content.addEventListener('touchstart',e=>{
-  if(e.touches.length!==1||e.target.closest(skip)){bodyTouch=null;return}
+  if(e.touches.length!==1||e.target.closest(bodySkip)){bodyTouch=null;return}
   const t=e.touches[0];bodyTouch={id:t.identifier,x:t.clientX,y:t.clientY,active:false,ignore:false};
   e.stopPropagation();
  },{passive:true});
@@ -82,7 +106,7 @@ for(const content of [el.querySelector('#spotList'),el.querySelector('#drawerRou
   const t=e.touches[0],dy=t.clientY-bodyTouch.y,dx=t.clientX-bodyTouch.x;
   if(!bodyTouch.active){
    if(Math.abs(dx)>Math.abs(dy)*1.2){bodyTouch.ignore=true;return}
-   if(Math.abs(dy)<8)return;
+   if(Math.abs(dy)<10)return;
    if(el.scrollTop>1&&dy>0||level==='full'&&dy<0){bodyTouch.ignore=true;return}
    start(bodyTouch.x,bodyTouch.y);bodyTouch.active=!!d;
   }
@@ -100,6 +124,11 @@ new MutationObserver(()=>{
   if(frame)cancelAnimationFrame(frame);frame=0;
   if(dragFrame)cancelAnimationFrame(dragFrame);dragFrame=0;pendingHeight=null;lastPainted=-1;lastResizeGoal=null;d=null;level='half';
   el.style.removeProperty('height');el.style.removeProperty('max-height');
+ }else{
+  // Opening goes directly to the approved B05 half detent. Otherwise the
+  // CSS default height and the JS spring's "half" state disagree until the
+  // user first touches the card, making the first drag jump.
+  requestAnimationFrame(()=>{if(el.classList.contains('visible')&&!d)snap(level)});
  }
 }).observe(el,{attributes:true,attributeFilter:['class']});
 let resizeFrame=0;
@@ -115,5 +144,5 @@ window.addEventListener('resize',()=>{
   snap(level);
  });
 },{passive:true});
-window.__atlasCollectionSheet={getState:()=>({level,dragging:!!d})};
+window.__atlasCollectionSheet={getState:()=>({level,dragging:!!d,height:el.getBoundingClientRect().height,opened:el.classList.contains('visible')})};
 })();
