@@ -10,7 +10,7 @@ const artifact='v4-current-pages-evidence';
 fs.mkdirSync(artifact,{recursive:true});
 const chrome=['google-chrome','google-chrome-stable','chromium'].map(x=>{try{return cp.execFileSync('which',[x],{encoding:'utf8'}).trim()}catch{return null}}).find(Boolean);
 if(!chrome)throw Error('Chrome not installed');
-const stamp='V4.C.PagesParityMotion.20261116.16';
+const stamp='V4.C.PagesParityMotion.20261116.17';
 async function probe(){
  const browser=await chromium.launch({headless:true,executablePath:chrome,args:['--no-sandbox','--disable-dev-shm-usage']});
  const report=[];
