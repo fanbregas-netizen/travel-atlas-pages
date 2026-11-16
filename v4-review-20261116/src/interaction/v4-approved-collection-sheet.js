@@ -19,9 +19,9 @@ let level='half',d=null,frame=0,dragFrame=0,pendingHeight=null,lastPainted=-1,la
 let layerMotion=null,layerOffset=0,layerPhase='hidden',closeAfterMotion=null;
 function setLayerOffset(y){
  layerOffset=y;
- // The native compositor must own the active WAAPI property. An inline
- // !important translate suppresses its interpolation in WebKit.
- el.style.setProperty('translate','0 '+Math.max(-16,y).toFixed(2)+'px');
+ // Legacy V4 styles still use !important transforms: this dedicated
+ // individual translation is the sole owner of existing drawer travel.
+ el.style.setProperty('translate','0 '+Math.max(-16,y).toFixed(2)+'px','important');
 }
 function readLayerOffset(){
  const css=getComputedStyle(el),str=css.translate;
@@ -39,54 +39,43 @@ function cancelLayer(){
   layerMotion.cancel();layerMotion=null;setLayerOffset(y);
  }
 }
-function makeSpringFrames(from,to){
- // Sample EXACT approved C V5 0.105/0.75 motor at 60 Hz, then allow
- // WebKit's compositor to animate when main-thread requestAnimationFrame
- // is delayed by map tile/geometry work. No second visual language.
- const motor=window.FootprintRubberSpring;
- const frames=[{transform:'translate(-50%, '+from.toFixed(2)+'px)'}];
- let pos=from,velocity=0;
- for(let n=0;n<49;n++){
-  const next=motor.step(pos,to,velocity,1000/60);
-  pos=next.value;velocity=next.velocity;
-  frames.push({transform:'translate(-50%, '+Math.max(-16,pos).toFixed(2)+'px)'});
-  if(n>=20&&Math.abs(pos-to)<.65&&Math.abs(velocity)<.4)break;
- }
- frames.push({transform:'translate(-50%, '+to.toFixed(2)+'px)'});
- return frames;
-}
 function moveLayer(from,to,done){
  cancelLayer();setLayerOffset(from);
  const motor=window.FootprintRubberSpring;
  if(reduced.matches||typeof motor?.step!=='function'){
   setLayerOffset(to);done?.();return;
  }
- if(typeof el.animate==='function'){
-  try{
-   const frames=makeSpringFrames(from,to);
-   // Safari/WebKit reliably composites transform, but some builds silently
-   // ignore WAAPI keyframes on the individual translate property.
-   el.style.removeProperty('translate');
-   const animation=el.animate(frames,{
-    duration:(frames.length-1)*(1000/60),easing:'linear',fill:'both'
-   });
-   const handle={cancel:()=>animation.cancel()};
-   layerMotion=handle;
-   animation.onfinish=()=>{
-    if(layerMotion!==handle)return;
-    layerMotion=null;animation.cancel();setLayerOffset(to);done?.();
-   };
+ // A single C V5 spring owns every opening/closing frame. Safari can defer
+ // requestAnimationFrame while repainting the map, so one 32ms timer wakes
+ // the SAME motor if the frame callback has not fired. Whichever callback
+ // executes first cancels the other; this is not a competing CSS animation.
+ let pos=from,velocity=0,raf=0,timer=0,active=true;
+ let last=performance.now(),started=last;
+ const handle={cancel(){
+  active=false;
+  if(raf)cancelAnimationFrame(raf);raf=0;
+  if(timer)clearTimeout(timer);timer=0;
+ }};
+ const tick=()=>{
+  if(!active)return;
+  if(raf)cancelAnimationFrame(raf);raf=0;
+  if(timer)clearTimeout(timer);timer=0;
+  const now=performance.now(),elapsed=Math.max(7.5,Math.min(38,now-last));
+  last=now;
+  const next=motor.step(pos,to,velocity,elapsed);
+  pos=next.value;velocity=next.velocity;
+  setLayerOffset(pos);
+  if((Math.abs(pos-to)<.65&&Math.abs(velocity)<.4)||now-started>920){
+   handle.cancel();
+   if(layerMotion===handle){layerMotion=null;setLayerOffset(to);done?.()}
    return;
-  }catch(error){console.debug('Collection compositor spring fallback',error)}
- }
- // Older browsers fall back to the same solver on the main thread.
- if(typeof motor.animate!=='function'){setLayerOffset(to);done?.();return}
- let motion=null;
- motion=motor.animate({from,to,epsilon:.6,maxMs:840,
-   onFrame:y=>setLayerOffset(y),
-   onDone:()=>{if(layerMotion!==motion)return;layerMotion=null;setLayerOffset(to);done?.()}
- });
- layerMotion=motion;
+  }
+  raf=requestAnimationFrame(tick);
+  timer=setTimeout(tick,32);
+ };
+ layerMotion=handle;
+ raf=requestAnimationFrame(tick);
+ timer=setTimeout(tick,32);
 }
 function reveal(){
  if(!el.classList.contains('visible')||layerPhase==='entering'||layerPhase==='shown')return;
