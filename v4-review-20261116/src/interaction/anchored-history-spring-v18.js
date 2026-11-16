@@ -16,6 +16,8 @@ function reveal(small=false){
  if(!sheet||sheet.hidden||!meaningful()||!document.body.classList.contains('fp-search-open'))return;
  clear();
  if(reduced.matches||!motor()?.animate)return;
+ // Set a truthful runtime marker ONLY when the real motor is started.
+ sheet.dataset.fpElasticHistory='cv5';
  const from=small?.94:.74;
  active=motor().animate({
   from,to:1,epsilon:.0015,maxMs:850,
