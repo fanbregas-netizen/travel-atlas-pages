@@ -86,14 +86,37 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  assert.ok(grab,'collection grip unavailable');
  const x=grab.x+grab.width/2,y=grab.y+grab.height/2;
  const before=(await state(page)).drawer.height;
- await page.mouse.move(x,y);await page.mouse.down();
- // Real fingers move over multiple browser frames, not 14 synthetic mouse
- // events packed inside one <16ms frame. Sample the live rAF-painted height.
- for(let i=1;i<=12;i++){await page.mouse.move(x,y-115*i/12);await pause(19)}
+ // Real mouse drags in Chromium and true DOM TouchEvent fallback in
+ // WebKit. Headless WebKit's page.mouse does not emit intermediate
+ // pointermove when isMobile+hasTouch, even though it dispatches pointerup.
+ // Explicit touch events exercise the iPhone path that B05 actually handles.
+ const useNativeTouchPath=which==='webkit';
+ const touchEvent=async(type,cx,cy)=>page.evaluate(({type,cx,cy})=>{
+  const header=document.querySelector('#drawer .drawer-head');
+  const touch=new Touch({identifier:77,target:header,clientX:cx,clientY:cy,screenX:cx,screenY:cy,pageX:cx,pageY:cy});
+  const ended=type==='touchend';
+  const ev=new TouchEvent(type,{
+   bubbles:true,cancelable:true,composed:true,
+   touches:ended?[]:[touch],targetTouches:ended?[]:[touch],changedTouches:[touch]
+  });
+  header.dispatchEvent(ev);
+  return {defaultPrevented:ev.defaultPrevented,driver:'touch'};
+ },{type,cx,cy});
+ if(useNativeTouchPath)await touchEvent('touchstart',x,y);
+ else{await page.mouse.move(x,y);await page.mouse.down()}
+ for(let i=1;i<=12;i++){
+  const py=y-115*i/12;
+  if(useNativeTouchPath)await touchEvent('touchmove',x,py);
+  else await page.mouse.move(x,py);
+  await pause(19);
+ }
  await pause(45);
  const duringState=await state(page),during=duringState.drawer.height;
- await page.mouse.up();await pause(950);
- diagnostics.collectionDrag={before,during,live:duringState.drawer,physics:await page.evaluate(()=>window.__atlasCollectionSheet.getState()),after:(await state(page)).drawer.height};
+ const livePhysics=await page.evaluate(()=>window.__atlasCollectionSheet.getState());
+ if(useNativeTouchPath)await touchEvent('touchend',x,y-115);
+ else await page.mouse.up();
+ await pause(950);
+ diagnostics.collectionDrag={before,during,live:duringState.drawer,physics:livePhysics,driver:useNativeTouchPath?'dom-touch':'mouse-pointer',after:(await state(page)).drawer.height};
  console.log('V4_DRAG_DEBUG '+which+' '+JSON.stringify(diagnostics.collectionDrag));
  assert.ok(during>before+18,'B05 sheet did not follow upward drag: '+JSON.stringify(diagnostics.collectionDrag));
  // Closing must have nonzero visible travel rather than class-disappearing.
