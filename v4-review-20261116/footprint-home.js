@@ -245,22 +245,23 @@ async function showPlaceCard(id){
 async function renderPlace(id){const revision=++renderRevision;const p=await readPlace(id);if(!p||id!==activePlaceId||revision!==renderRevision)return false;const media=mediaOf(p);const keepReadingPosition=placeCard.dataset.placeId===id;
  const previousScroll=keepReadingPosition?(placeCard.querySelector('.fp-card-scroll')?.scrollTop||0):0;
  stopTileVideos();placeCard.replaceChildren();if(editMode)placeCard.classList.add('fp-editing');const grab=h('div','sheet-grab');grab.setAttribute('aria-hidden','true');placeCard.append(grab);const head=h('header','fp-card-header'),titlewrap=h('div','fp-card-title-wrap');titlewrap.append(h('h2','fp-card-name',p.title||'未命名地点'));const address=String(p.address||'').trim();if(address)titlewrap.append(h('p','fp-card-location',address.slice(0,120)));const stageBtn=btn(p.stage==='visited'?'已到访':'想去',()=>window.__atlasEditPlace?.(id),'fp-place-stage');stageBtn.setAttribute('aria-label','更改地点状态，当前：'+(p.stage==='visited'?'已到访':'想去'));titlewrap.append(stageBtn);
-/* Approved V4: an actual saved photo belongs to the first-level place identity.
-   Never substitute an invented image or replace the only geographic yellow star. */
-const firstPhoto=media.find(m=>m.kind==='photo'&&typeof m.src==='string'&&m.src);
-if(firstPhoto){
- const image=btn('',()=>openViewer(media,media.indexOf(firstPhoto),image),'fp-place-preview');
- image.setAttribute('aria-label','查看'+(p.title||'这个地点')+'的照片');
- const picture=h('img');picture.src=firstPhoto.src;picture.alt=(p.title||'地点')+'的真实收藏照片';
- picture.loading='eager';image.append(picture);titlewrap.append(image);
-}
-const intro=String(p.note||'').replace(/^原高德地址[：:][^\n]*\n?/,'').trim();
-if(intro)titlewrap.append(h('p','fp-place-teaser',intro.slice(0,90)));
+/* V4 .14: replace the header thumbnail with the approved drawn navigation icon.
+   Photos remain in Media, and the Brief stays in its single reading section. */
+const navButton=btn('',()=>{
+ const location={lat:Number(p.lat),lng:Number(p.lng),title:p.title||'目的地'};
+ if(!Number.isFinite(location.lat)||!Number.isFinite(location.lng))return;
+ if(typeof window.__atlasOpenNavigation==='function')window.__atlasOpenNavigation(location);
+ else window.open('https://maps.apple.com/?daddr='+encodeURIComponent(location.lat+','+location.lng),'_blank','noopener,noreferrer');
+},'fp-place-navigation');
+navButton.setAttribute('aria-label','导航前往'+(p.title||'这个地点'));
+navButton.title='导航';
+const navigationIcon=h('img');navigationIcon.src='./icons/40_direction.svg';navigationIcon.alt='';navigationIcon.setAttribute('aria-hidden','true');
+navButton.append(navigationIcon);
 const editToggle=btn(placeCard.classList.contains('fp-editing')?'完成':'编辑',()=>{placeCard.classList.toggle('fp-editing');if(!placeCard.classList.contains('fp-editing'))editMode='';renderPlace(id)},'fp-subaction fp-edit-toggle');
  /* build .20 · 用户批注：收藏点卡片上始终要有「取消收藏」——金星即已收藏，点它取消（影像保留） */
  const unstarBtn=btn('',async()=>{const changed=await window.__atlasCancelBookmark?.(id);if(changed&&activePlaceId===id)closePlace(true)},'fp-unstar-btn');
  unstarBtn.innerHTML='<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJTYXZlZCI+CiA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Ik0zMiA4IEwzOS4yIDIzLjIgTDU2IDI1LjQgTDQzLjIgMzcuMiBMNDYuMSA1NC40IEwzMS43IDQ1LjggTDE2LjggNTQuNCBMMjAgMzcuNCBMOC4xIDI1LjMgTDI0LjggMjNaIiBmaWxsPSIjRjZDQzNCIi8+CiAgPHBhdGggZD0iTTI1IDI1IEwzMCAxNCIgc3Ryb2tlLXdpZHRoPSIxLjMiLz4KIDwvZz4KPC9zdmc+" alt="" aria-hidden="true">';unstarBtn.setAttribute('aria-label','取消收藏这颗星');unstarBtn.title='已收藏 · 点按取消收藏';
- const headActions=h('div','fp-card-head-actions');headActions.append(unstarBtn,editToggle,btn('×',()=>closePlace(),'fp-card-close'));head.append(titlewrap,headActions);placeCard.append(head);const sc=h('div','fp-card-scroll');
+ const headActions=h('div','fp-card-head-actions');headActions.append(unstarBtn,editToggle,btn('×',()=>closePlace(),'fp-card-close'));head.append(titlewrap,navButton,headActions);placeCard.append(head);const sc=h('div','fp-card-scroll');
  /* build .16 · 详情大卡规整为三块卡片（参考苹果排版）：Brief / 影像 / 社交资料 */
  const cardBrief=h('section','fp-block');
  cardBrief.append(sectionHeading('01',p.stage==='visited'?'旅行手记':'为什么想去',btn(editMode==='brief'?'收起':editorDrafts.get(draftKey(id,'brief'))?.dirty?'继续编辑':'编辑',()=>{editMode=editMode==='brief'?'':'brief';renderPlace(id)},'fp-subaction')));
