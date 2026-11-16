@@ -248,10 +248,21 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  await page.reload({waitUntil:'domcontentloaded',timeout:60000});
  await page.waitForFunction(()=>window.__atlasDemo?.getSaved?.().some(x=>x.title==='测试收藏地点'),null,{timeout:25000});
  const restored=await page.evaluate(()=>window.__atlasDemo.getSaved().find(x=>x.title==='测试收藏地点'));
- assert.ok(restored?.photos?.length>=1,'saved photo did not persist across a real browser reload');
+ const restoredMetadata={id:restored?.id,photosArray:restored?.photos?.length||0,
+   keys:restored?Object.keys(restored).slice(0,18):[]};
+ console.log('V4_RELOAD_METADATA '+which+' '+JSON.stringify(restoredMetadata));
  await page.evaluate(id=>window.__atlasDemo.openSaved(id),restored.id);
- await page.waitForSelector('#fpPlaceCard .fp-media-mosaic img',{timeout:15000});
- diagnostics.persistence={savedId:restored.id,photos:restored.photos.length,afterReload:true};
+ try{await page.waitForSelector('#fpPlaceCard .fp-media-mosaic img',{timeout:15000})}
+ catch(error){
+  const ui=await page.evaluate(()=>({
+   placeVisible:!document.getElementById('fpPlaceCard')?.hidden,
+   mediaLabel:document.getElementById('fpPlaceCard')?.querySelector('.fp-media-empty')?.innerText,
+   mediaCount:document.getElementById('fpPlaceCard')?.querySelector('.fp-photo-count')?.innerText,
+   mediaTiles:document.querySelectorAll('#fpPlaceCard .fp-media-mosaic img').length
+  }));
+  throw new Error('saved photo not rendered after reload: '+JSON.stringify({restoredMetadata,ui}));
+ }
+ diagnostics.persistence={savedId:restored.id,photos:restored.photos?.length||0,afterReload:true,rendered:true};
  await page.screenshot({path:path.join(OUT,'06c-reloaded-photo.png')});
  await page.locator('#fpPlaceCard .fp-card-close').click({timeout:15000});
  await page.waitForFunction(()=>document.getElementById('fpPlaceCard')?.hidden,null,{timeout:12000});
