@@ -15,34 +15,53 @@ function stop(el){
  el.style.removeProperty('translate');
  el.style.removeProperty('scale');
  el.style.removeProperty('will-change');
+ for(const selector of ['.destination-title','.destination-category']){
+  el.querySelector(selector)?.style.removeProperty('opacity');
+ }
  el.dataset.fpElasticState='idle';
 }
-function revealCard(el,{renew=false}={}){
+function revealCard(el,{renew=false,commit}={}){
  if(!el)return;
  const motor=window.FootprintRubberSpring;
- if(!motor?.animate||reduced()){stop(el);return}
  const previous=motion.get(el);
  if(previous){previous.cancel();motion.delete(el)}
- // Already visible cards have a smaller, continuous response on destination
- // changes; fresh selections enter with a clear physical stretch/rebound.
- const from=renew?.42:0;
- el.dataset.fpElasticState='entering';
+ if(reduced()||typeof motor?.animate!=='function'){
+  commit?.();stop(el);return;
+ }
+ el.dataset.fpElasticState=renew?'switching':'entering';
  el.dataset.fpElasticOvershoot='0';
  el.style.willChange='translate,scale';
- let m=null;
- const apply=p=>{
+ let committed=false,m=null;
+ const apply=value=>{
   if(!el.isConnected){m?.cancel();return}
-  const t=clamp(p,-.10,1.2), bounded=clamp(t,0,1);
-  const stretch=Math.sin(Math.PI*bounded);
-  const displacement=(1-t)*(renew?22:38);
-  if(displacement< -1)el.dataset.fpElasticOvershoot='1';
-  const sy=1-(1-t)*(renew?.075:.13)-stretch*.018;
-  const sx=1+stretch*.012;
-  el.style.setProperty('translate','0 '+displacement.toFixed(2)+'px','important');
-  el.style.setProperty('scale',sx.toFixed(5)+' '+sy.toFixed(5),'important');
+  const t=clamp(value,-.12,1.18),p=clamp(t,0,1);
+  if(renew){
+   // Whole sheet lowers while its previous title fades. Only at the low
+   // point do we commit the NEXT location. No card removal, new popover,
+   // jumping map projection or direct in-place text swap.
+   const dip=Math.sin(Math.PI*p);
+   if(p>=.5&&!committed){committed=true;commit?.()}
+   const alpha=Math.max(0,1-dip*1.12);
+   for(const selector of ['.destination-title','.destination-category']){
+    const node=el.querySelector(selector);
+    if(node)node.style.setProperty('opacity',alpha.toFixed(3));
+   }
+   el.style.setProperty('translate','0 '+(dip*43).toFixed(2)+'px','important');
+   el.style.setProperty('scale','1 '+(1-.055*dip).toFixed(5),'important');
+  }else{
+   if(!committed){committed=true;commit?.()}
+   const overshoot=1-t;
+   if(overshoot<-.008)el.dataset.fpElasticOvershoot='1';
+   const dy=overshoot*84;
+   el.style.setProperty('translate','0 '+dy.toFixed(2)+'px','important');
+   el.style.setProperty('scale','1 '+(1-.085*overshoot).toFixed(5),'important');
+  }
  };
- m=motor.animate({from,to:1,epsilon:.001,maxMs:730,onFrame:apply,
-  onDone:()=>{if(motion.get(el)!==m)return;stop(el)}
+ m=motor.animate({from:0,to:1,epsilon:.0015,maxMs:790,onFrame:apply,
+  onDone:()=>{if(motion.get(el)!==m)return;
+   if(!committed)commit?.();
+   stop(el);
+  }
  });
  motion.set(el,m);
 }

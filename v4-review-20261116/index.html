@@ -1275,7 +1275,14 @@ window.visualViewport?.addEventListener('resize',()=>{
    const d=$('drawer');if(!d)return;
    d.classList.remove('fp30-hub','fp30-route-pick');d.classList.add('fp30-detail');d.classList.toggle('fp30-routes',section==='routes');
    // Match approved B05 sliding indicator without rebuilding either tab.
-   $('fpvCollectionTabs').dataset.active=section;
+   const singleRoute=document.body.classList.contains('fp-single-route-owner');
+   const collectionTabs=$('fpvCollectionTabs');
+   if(collectionTabs){
+     collectionTabs.dataset.active=section;
+     // The C V5 route owns saved journeys; a one-option segmented control
+     // must not leave an empty bar above the actual collection list.
+     collectionTabs.hidden=singleRoute&&section==='places';
+   }
    // Update the two real-content tabs in place, never replacing the tab DOM.
    for(const tab of [$('fpvPlacesTab'),$('fpvRoutesTab')]){
      if(!tab)continue;
@@ -1283,7 +1290,10 @@ window.visualViewport?.addEventListener('resize',()=>{
      tab.setAttribute('aria-selected',String(chosen));
      tab.tabIndex=chosen?0:-1;
    }
-   $('fp30DetailHead').hidden=false;$('fp30DetailTitle').textContent=section==='routes'?'已保存路线':'收藏地点';
+   // The already-visible "我的收藏" heading identifies this exact list.
+   // Hide the repeated second heading only in the sole-route places view.
+   $('fp30DetailHead').hidden=singleRoute&&section==='places';
+   $('fp30DetailTitle').textContent=section==='routes'?'已保存路线':'收藏地点';
    $('fp30NewRoute').hidden=section!=='routes';
    d.querySelector('.backuprow').hidden=section==='routes';d.querySelector('.footnote').hidden=section==='routes';
    const old=$('saveBoxMenu')?.querySelector(`button[data-view="${section}"]`);

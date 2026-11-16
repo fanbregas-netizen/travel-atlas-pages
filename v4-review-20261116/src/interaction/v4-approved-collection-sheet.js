@@ -14,6 +14,44 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const detents=()=>{const h=window.visualViewport?.height||innerHeight||844;
 return {peek:Math.min(h*.43,360),half:Math.min(h*.72,630),full:Math.max(h*.72+40,h-40)}};
 let level='half',d=null,frame=0,dragFrame=0,pendingHeight=null,lastPainted=-1,lastResizeGoal=null;
+// One composited translation for the EXISTING drawer. B05 still owns the
+// actual height, content scroll and 3 detents; there is no extra card DOM.
+let layerMotion=null,layerOffset=0,layerPhase='hidden',closeAfterMotion=null;
+function setLayerOffset(y){
+ layerOffset=y;el.style.setProperty('translate','0 '+Math.max(0,y).toFixed(2)+'px','important');
+}
+function cancelLayer(){
+ if(layerMotion){layerMotion.cancel();layerMotion=null}
+}
+function moveLayer(from,to,done){
+ cancelLayer();setLayerOffset(from);
+ const motor=window.FootprintRubberSpring;
+ if(reduced.matches||typeof motor?.animate!=='function'){
+  setLayerOffset(to);done?.();return;
+ }
+ let motion=null;
+ motion=motor.animate({from,to,epsilon:.6,maxMs:840,
+   onFrame:y=>setLayerOffset(y),
+   onDone:()=>{if(layerMotion!==motion)return;layerMotion=null;setLayerOffset(to);done?.()}
+ });
+ layerMotion=motion;
+}
+function reveal(){
+ if(!el.classList.contains('visible')||layerPhase==='entering'||layerPhase==='shown')return;
+ const from=layerPhase==='closing'?layerOffset:Math.max(320,detents()[level]+35);
+ closeAfterMotion=null;layerPhase='entering';el.inert=false;el.style.removeProperty('pointer-events');
+ moveLayer(from,0,()=>{layerPhase='shown';el.style.removeProperty('translate');layerOffset=0});
+}
+function requestClose(done){
+ if(!el.classList.contains('visible'))return false;
+ closeAfterMotion=done;
+ if(layerPhase==='closing')return true;
+ layerPhase='closing';d=null;
+ el.inert=true;el.style.setProperty('pointer-events','none','important');
+ const dest=Math.max(320,el.getBoundingClientRect().height+44);
+ moveLayer(layerOffset,dest,()=>{layerPhase='hidden';const fn=closeAfterMotion;closeAfterMotion=null;fn?.()});
+ return true;
+}
 function scheduleDragPaint(h){pendingHeight=h;if(dragFrame)return;
  dragFrame=requestAnimationFrame(()=>{dragFrame=0;const next=pendingHeight;pendingHeight=null;if(next!==null)paint(next)});
 }
@@ -37,7 +75,8 @@ function snap(next){
  frame=requestAnimationFrame(tick);
 }
 function start(x,y){
- if(!el.classList.contains('visible')||d)return;
+ if(!el.classList.contains('visible')||d||layerPhase==='closing')return;
+ if(layerPhase==='entering'){cancelLayer();setLayerOffset(0);el.style.removeProperty('translate');layerPhase='shown'}
  if(frame)cancelAnimationFrame(frame);frame=0;
  setMaxHeight();
  d={x,y,last:y,h:el.getBoundingClientRect().height,moved:false};
@@ -124,11 +163,13 @@ new MutationObserver(()=>{
   if(frame)cancelAnimationFrame(frame);frame=0;
   if(dragFrame)cancelAnimationFrame(dragFrame);dragFrame=0;pendingHeight=null;lastPainted=-1;lastResizeGoal=null;d=null;level='half';
   el.style.removeProperty('height');el.style.removeProperty('max-height');
+  cancelLayer();el.style.removeProperty('translate');layerOffset=0;layerPhase='hidden';closeAfterMotion=null;
+  el.inert=false;el.style.removeProperty('pointer-events');
  }else{
   // Opening goes directly to the approved B05 half detent. Otherwise the
   // CSS default height and the JS spring's "half" state disagree until the
   // user first touches the card, making the first drag jump.
-  requestAnimationFrame(()=>{if(el.classList.contains('visible')&&!d)snap(level)});
+  requestAnimationFrame(()=>{if(el.classList.contains('visible')&&!d){snap(level);if(layerPhase==='hidden')reveal()}});
  }
 }).observe(el,{attributes:true,attributeFilter:['class']});
 let resizeFrame=0;
@@ -144,5 +185,5 @@ window.addEventListener('resize',()=>{
   snap(level);
  });
 },{passive:true});
-window.__atlasCollectionSheet={getState:()=>({level,dragging:!!d,height:el.getBoundingClientRect().height,opened:el.classList.contains('visible')})};
+window.__atlasCollectionSheet={reveal,requestClose,getState:()=>({level,phase:layerPhase,dragging:!!d,height:el.getBoundingClientRect().height,opened:el.classList.contains('visible')})};
 })();

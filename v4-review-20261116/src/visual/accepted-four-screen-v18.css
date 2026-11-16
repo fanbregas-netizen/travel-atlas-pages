@@ -181,6 +181,20 @@ body #drawer.fp30-detail #spotList .spotrow small{
  color:var(--fp18-mute)!important;
 }
 body #drawer.fp30-detail #spotList .spotrow .arrow{opacity:.65!important;}
+/* The approved single C V5 route removes the second route choice.
+   The collection already opens directly to places; neither a one-tab
+   switcher nor another "收藏地点" heading belongs below "我的收藏". */
+body.fp-single-route-owner #drawer.fp30-detail #fpvCollectionTabs,
+body.fp-single-route-owner #drawer.fp30-detail #fpvCollectionTabs[hidden],
+body.fp-single-route-owner #drawer.fp30-detail #fp30DetailHead[hidden]{
+ display:none!important;
+}
+body.fp-single-route-owner #drawer.fp30-detail .drawer-head{
+ padding-bottom:8px!important;
+}
+body.fp-single-route-owner #drawer.fp30-detail #spotList{
+ padding-top:7px!important;
+}
 /* Approved route sheet composition, keeping C V5 stop selection and Dock
    behavior untouched. No additional search bar above the sheet. */
 body.route-v5-live #rc-main #rc-grab{
