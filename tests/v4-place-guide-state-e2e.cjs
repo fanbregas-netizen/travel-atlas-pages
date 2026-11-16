@@ -87,6 +87,35 @@ const target='http://127.0.0.1:8767/travel-atlas-pages/v4-review-20261116/index.
   await page.waitForSelector('#fpMediaViewer',{state:'visible',timeout:10000});
   await page.locator('#fpMediaViewer .fp-viewer-close').click();
   await page.waitForFunction(()=>!document.getElementById('fpMediaViewer'),null,{timeout:12000});
+  // Unlike a synthetic 8-byte storage sentinel this is a genuine, original
+  // 0.625-second H264/MP4 clip (32×32 cyan frame, generated locally).
+  // Exercise the product's video INPUT, video tile, fullscreen viewer, close,
+  // then IndexedDB after-reload persistence without needing an external URL.
+  const clip=fs.readFileSync(path.join(__dirname,'fixtures/qa-original-0.625s-h264.mp4'));
+  await sections.nth(1).locator('input[type=file]').setInputFiles({
+    name:'本地视频.mp4',mimeType:'video/mp4',buffer:clip
+  });
+  await page.waitForFunction(id=>window.FootprintMediaCore.createRepository(indexedDB).read(id).then(p=>p.videos?.length===1),
+    id,{timeout:17000});
+  await page.waitForSelector('#fpPlaceCard .fp-media-mosaic .fp-video-tile video',{timeout:13000});
+  await page.locator('#fpPlaceCard .fp-media-mosaic .fp-video-tile').first().click();
+  await page.waitForSelector('#fpMediaViewer video[controls]',{state:'visible',timeout:12000});
+  const mediaState=await page.evaluate(async()=>{
+    const video=document.querySelector('#fpMediaViewer video');
+    await Promise.race([
+      new Promise(done=>{video.addEventListener('loadedmetadata',done,{once:true});
+        video.addEventListener('error',done,{once:true});}),
+      new Promise(done=>setTimeout(done,3000))
+    ]);
+    return {duration:video.duration,readyState:video.readyState,
+      canDecode:video.canPlayType('video/mp4; codecs="avc1.42E01E"'),
+      errorCode:video.error?.code||null};
+  });
+  assert.ok(mediaState.readyState>=1 || mediaState.canDecode==='' ||
+    mediaState.canDecode===null,
+    'browser claimed H264 support but failed to decode original sample '+JSON.stringify(mediaState));
+  await page.locator('#fpMediaViewer .fp-viewer-close').click();
+  await page.waitForFunction(()=>!document.getElementById('fpMediaViewer'),null,{timeout:12000});
   await page.screenshot({path:path.join(out,'06-place-guide-state.png')});
   await page.reload({waitUntil:'domcontentloaded',timeout:60000});
   await page.waitForFunction(()=>!!window.__atlasDemo?.openSaved,null,{timeout:20000});
@@ -95,9 +124,11 @@ const target='http://127.0.0.1:8767/travel-atlas-pages/v4-review-20261116/index.
   const final=await page.evaluate(async id=>{
    const p=await window.FootprintMediaCore.createRepository(indexedDB).read(id);
    return {stage:p.stage,starred:p.starred,note:p.note,photoCount:p.photos.length,guideCount:p.guides.length,
-    visiblePhotos:document.querySelectorAll('#fpPlaceCard .fp-media-mosaic img').length};
+    videoCount:p.videos?.length||0,
+    visiblePhotos:document.querySelectorAll('#fpPlaceCard .fp-media-mosaic img').length,
+    visibleVideos:document.querySelectorAll('#fpPlaceCard .fp-video-tile video').length};
   },id);
-  assert.deepEqual(final,{stage:'visited',starred:true,note:storedNote,photoCount:2,guideCount:1,visiblePhotos:2});
+  assert.deepEqual(final,{stage:'visited',starred:true,note:storedNote,photoCount:2,guideCount:1,videoCount:1,visiblePhotos:2,visibleVideos:1});
   assert.deepEqual(errors.filter(x=>/TypeError|ReferenceError|SyntaxError/.test(x)),[],'uncaught browser errors');
   fs.writeFileSync(path.join(out,'place-guide-state.json'),JSON.stringify({browser:which,retained,guide,final,errors},null,2));
   console.log('PASS V4 PLACE BRIEF GUIDE MEDIA STATE '+which+' '+JSON.stringify(final));
