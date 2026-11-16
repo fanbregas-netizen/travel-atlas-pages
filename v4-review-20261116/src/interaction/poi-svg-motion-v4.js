@@ -110,7 +110,10 @@ function sourceFor(id){
  templateCache.set(id,promise);return promise;
 }
 function categoryId(category,name){
- const kind=window.AtlasPOIIcons?.categoryFor?.(category,name);
+ const raw=String(category||'').trim().toLowerCase();
+ // Upstream may supply the canonical POI category (sea, town, food, etc.)
+ // rather than a full OSM tag. Do not silently drop reviewed animations.
+ const kind=categoryToFile[raw]?raw:window.AtlasPOIIcons?.categoryFor?.(category,name);
  return categoryToFile[kind]?{kind,id:categoryToFile[kind]}:null;
 }
 function begin(svg){for(const node of svg.querySelectorAll('[data-animation]')){
@@ -163,5 +166,5 @@ function playStar(marker){
   a.remove();svg.classList.remove('fp-internal-star-animate');starActive.delete(svg);
  },960);
 }
-window.AtlasPOIMotion=Object.freeze({play,playStar,categoryId,version:'v4-internal-svg-9'});
+window.AtlasPOIMotion=Object.freeze({play,playStar,categoryId,version:'v4-internal-svg-10'});
 })();

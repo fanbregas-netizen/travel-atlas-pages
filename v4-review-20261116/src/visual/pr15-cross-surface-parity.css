@@ -1376,3 +1376,48 @@ body .star-pin svg.fp-internal-star-animate{
 .atlas-light-selection-pin.fp-fallback-motion-poi .fp-vector-token img{
  width:26px;height:26px;
 }
+
+
+/* True unified search axis for Pages/iPhone: collapsed field, active field
+   and short history card share the SAME horizontal origin and outer width.
+   The cancel action lives INSIDE the active field, not as a shifting sibling. */
+body #fpTopSearch,
+body #fpSearchActiveTop{
+ left:50%!important;right:auto!important;
+ width:min(342px,calc(100vw - 40px))!important;
+ max-width:342px!important;
+ transform:translateX(-50%)!important;
+ margin:0!important;
+}
+body #fpSearchActiveTop{
+ gap:0!important;
+}
+body #fpSearchActiveTop .fp-search-bar{
+ flex:1 1 100%!important;
+ width:100%!important;
+ max-width:100%!important;
+ padding-inline:15px 67px!important;
+}
+body #fpSearchActiveTop .fp-search-cancel{
+ position:absolute!important;
+ top:2px!important;right:7px!important;z-index:3!important;
+ min-width:44px!important;max-width:54px!important;
+ width:54px!important;height:48px!important;
+ display:grid!important;place-items:center!important;
+ margin:0!important;
+}
+body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]{
+ left:50%!important;right:auto!important;
+ width:min(342px,calc(100vw - 40px))!important;
+ max-width:342px!important;
+ transform:translateX(-50%)!important;
+}
+@media(max-width:375px){
+ body #fpTopSearch,body #fpSearchActiveTop,
+ body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]{
+  width:calc(100vw - 36px)!important;
+ }
+ body #fpSearchActiveTop .fp-search-bar{
+  padding-inline:13px 62px!important;
+ }
+}

@@ -24,7 +24,7 @@ jobs:
           # Independent approved POI SVG animation review; root site remains byte-identical.
           cp -R v4-review-20261116 _site/v4-review-20261116
           test -s _site/v4-review-20261116/src/interaction/poi-svg-motion-v4.js
-          grep -q 'V4.C.ApprovedPoiSVG.20261116.9' _site/v4-review-20261116/index.html
+          grep -q 'V4.C.PagesParity.20261116.10' _site/v4-review-20261116/index.html
           cp index.html route-view.html atlas-map-preview.html amap-import.html journey.html journey.css journey.js trip-picker.js trip-picker.css route-picking.css footprint-flow.js footprint-flow.css star-collage.js star-collage.css footprint-home.js footprint-home.css atlas-visit-media.js atlas-stage4-media.css atlas-stage5-archive.js atlas-stage5-backup-ui.js atlas-stage5-backup.css atlas-stage6-qa.js atlas-stage6-qa.css atlas-map-design.js atlas-route-buildings.js atlas-route-fallback.js atlas-road-routing.js atlas-stage3-itinerary.js atlas-stage3-itinerary.css atlas-phase1.js atlas-phase1.css atlas-mobile-poi.js atlas-orbit.css atlas-orbit.js atlas-stage5.js atlas-services.js sw.js manifest.webmanifest icon.svg _site/
           mkdir -p _site/v18
           cp v18/index.html _site/v18/index.html
@@ -479,6 +479,15 @@ jobs:
           node tests/approved35-pages-browser-smoke.cjs
       - name: Verify new systematic V4 public preview at 375/390/430 iPhone widths
         run: node tests/systematic-v4-pages-browser.cjs
+      - name: Verify CURRENT V4 Pages product, 22 SVG motions and user actions (375/390/430 iPhone)
+        run: node tests/v4-current-pages-browser.cjs
+      - name: Upload current V4 Pages motion and layout evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: current-v4-pages-browser-evidence
+          path: v4-current-pages-evidence/
+          if-no-files-found: ignore
       - name: Upload isolated V4 browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

@@ -1,7 +1,7 @@
 {
-  "version": "V4.C.ApprovedPoiSVG.20261116.9",
+  "version": "V4.C.PagesParity.20261116.10",
   "base": "V4.Stage1.20261110.34.7",
   "date": "2026-11-16",
   "interaction": "swipe-card",
-  "review": "Real map uses approved 22 original POI SVG internal part motions plus real yellow-star path morph, each with one subtle 1.00→1.10→1.00 return; no full-icon bounce, no map coordinate transforms; cache selected icon only, skip reduced motion; B05 original card interaction / C PR15 original visual / C V5 route unchanged; runtime Safari motion still requires acceptance."
+  "review": "Complete previous Vercel source runtime parity on isolated GitHub Pages, 22 semantic SVG part motions including canonical category handling, stable DOM across POI zoom and pan, 1.00→1.10→1.00 return, single yellow-star morph, centered aligned top search/results, unchanged production homepage; iPhone real browser audit required"
 }
