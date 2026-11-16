@@ -1,7 +1,7 @@
 {
-  "version": "V4.C.PagesParityMotion.20261116.16",
+  "version": "V4.C.PagesParityMotion.20261116.17",
   "base": "V4.Stage1.20261110.34.7",
   "date": "2026-11-16",
   "interaction": "swipe-card",
-  "review": "Verified in real headless iPhone Chrome: 22/22 POI categories, sea's three internal SVG morphs, real scale animation, yellow-star morph, media, route pages and top search. Build .16: repair the old global-mode CSS that made per-section editors transparent and untappable. Enable independent Brief edit/save/cancel, always-visible media add, guide edit/save/cancel. Unify existing place, collection and route sheet header alignment and restrained visuals. Give both legacy collection and modern place fullscreen photo viewer X a strict 44px safe-area-aware visible target. Preserve B/C approved card physics, media, search, route and whole product. Root unchanged; Safari hardware acceptance pending."
+  "review": "Verified in real headless iPhone Chrome: 22/22 POI categories, sea's three internal SVG morphs, real scale animation, yellow-star morph, media, route pages and top search. Build .17 correction: B05 collection spring was present but vertical swipes on actual favorite rows had been excluded; restore row and grip finger tracking, physical half/full/peek snap, opening detent synchronization and Safari touch fallback without a second controller. Remove heavy fullscreen photo X background, retain 44px target and safe inset. Recheck with real mobile touch events and avoid an untested pass claim. Independent Pages only; official homepage untouched."
 }
