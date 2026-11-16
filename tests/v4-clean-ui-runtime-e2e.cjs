@@ -126,8 +126,10 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  await page.locator('#closeDrawer').click({timeout:15000});
  diagnostics.collectionExitFrames=await sample(page,17,30);
  await page.waitForFunction(()=>!document.getElementById('drawer')?.classList.contains('visible'),null,{timeout:5000});
- const exitValues=diagnostics.collectionExitFrames.map(q=>parseFloat(q.drawer.translate?.split(' ')[1]||0)).filter(Number.isFinite);
- assert.ok(Math.max(...exitValues)>40,'collection close had no composited travel '+JSON.stringify(exitValues));
+ const exitValues=diagnostics.collectionExitFrames.map(q=>q.drawer.header?.top).filter(Number.isFinite);
+ const uniquePositions=new Set(exitValues.map(x=>Math.round(x/5)*5));
+ assert.ok(Math.max(...exitValues)-Math.min(...exitValues)>40&&uniquePositions.size>=3,
+  'collection close had no multi-frame composited travel '+JSON.stringify(exitValues));
  await page.screenshot({path:path.join(OUT,'03-collection-closed.png')});
  // Real destination card: consecutive POI must hand off old and new content.
  const map=await page.evaluate(()=>window.__atlasCameraQA?.()||{lat:31.23,lng:121.47});

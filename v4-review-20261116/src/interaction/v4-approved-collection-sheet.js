@@ -24,9 +24,13 @@ function setLayerOffset(y){
  el.style.setProperty('translate','0 '+Math.max(-16,y).toFixed(2)+'px');
 }
 function readLayerOffset(){
- const str=getComputedStyle(el).translate;
+ const css=getComputedStyle(el),str=css.translate;
  const parts=str?.match(/-?[0-9.]+px/g);
  const y=parts?.length?parseFloat(parts[parts.length-1]):NaN;
+ if(Number.isFinite(y)&&Math.abs(y)>.05)return y;
+ // While the compositor drives transform, the final matrix component is Y.
+ const m=css.transform?.match(/^matrix\(([^)]+)\)$/);
+ if(m){const vals=m[1].split(',').map(Number);if(Number.isFinite(vals[5]))return vals[5]}
  return Number.isFinite(y)?y:layerOffset;
 }
 function cancelLayer(){
@@ -40,15 +44,15 @@ function makeSpringFrames(from,to){
  // WebKit's compositor to animate when main-thread requestAnimationFrame
  // is delayed by map tile/geometry work. No second visual language.
  const motor=window.FootprintRubberSpring;
- const frames=[{translate:'0 '+from.toFixed(2)+'px'}];
+ const frames=[{transform:'translate(-50%, '+from.toFixed(2)+'px)'}];
  let pos=from,velocity=0;
  for(let n=0;n<49;n++){
   const next=motor.step(pos,to,velocity,1000/60);
   pos=next.value;velocity=next.velocity;
-  frames.push({translate:'0 '+Math.max(-16,pos).toFixed(2)+'px'});
+  frames.push({transform:'translate(-50%, '+Math.max(-16,pos).toFixed(2)+'px)'});
   if(n>=20&&Math.abs(pos-to)<.65&&Math.abs(velocity)<.4)break;
  }
- frames.push({translate:'0 '+to.toFixed(2)+'px'});
+ frames.push({transform:'translate(-50%, '+to.toFixed(2)+'px)'});
  return frames;
 }
 function moveLayer(from,to,done){
@@ -60,6 +64,9 @@ function moveLayer(from,to,done){
  if(typeof el.animate==='function'){
   try{
    const frames=makeSpringFrames(from,to);
+   // Safari/WebKit reliably composites transform, but some builds silently
+   // ignore WAAPI keyframes on the individual translate property.
+   el.style.removeProperty('translate');
    const animation=el.animate(frames,{
     duration:(frames.length-1)*(1000/60),easing:'linear',fill:'both'
    });
@@ -67,8 +74,7 @@ function moveLayer(from,to,done){
    layerMotion=handle;
    animation.onfinish=()=>{
     if(layerMotion!==handle)return;
-    layerMotion=null;setLayerOffset(to);
-    animation.cancel();done?.();
+    layerMotion=null;animation.cancel();setLayerOffset(to);done?.();
    };
    return;
   }catch(error){console.debug('Collection compositor spring fallback',error)}
