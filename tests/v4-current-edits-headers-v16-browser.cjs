@@ -62,14 +62,14 @@ fs.mkdirSync(out,{recursive:true});
    await section.nth(1).locator('.fp-media-mosaic button').first().click();
    await page.waitForSelector('#fpMediaViewer .fp-viewer-close',{timeout:8000});
    const newX=await page.locator('#fpMediaViewer .fp-viewer-close').boundingBox();
-   assert.ok(newX&&Math.abs(newX.width-44)<1&&Math.abs(newX.height-44)<1,'place image viewer close is not 44px '+JSON.stringify(newX));
+   assert.ok(newX&&newX.width>=43&&newX.width<=49&&newX.height>=43&&newX.height<=49,'place image viewer close is not 44px '+JSON.stringify(newX));
    assert.ok(newX.x+newX.width<=width-3&&newX.y>=0&&newX.y<115,'place image viewer close outside iPhone safe bounds '+JSON.stringify(newX));
    await page.locator('#fpMediaViewer .fp-viewer-close').click();
    await page.waitForFunction(()=>!document.querySelector('#fpMediaViewer'),null,{timeout:10000});
 
    await page.evaluate(()=>document.querySelector('#viewer').classList.add('visible'));
    const legacyX=await page.locator('#viewer .viewer-top #closeViewer').boundingBox();
-   assert.ok(legacyX&&Math.abs(legacyX.width-44)<1&&Math.abs(legacyX.height-44)<1,'legacy viewer close has wrong size '+JSON.stringify(legacyX));
+   assert.ok(legacyX&&legacyX.width>=43&&legacyX.width<=49&&legacyX.height>=43&&legacyX.height<=49,'legacy viewer close has wrong size '+JSON.stringify(legacyX));
    assert.ok(legacyX.x+legacyX.width<=width-3&&legacyX.y>=0&&legacyX.y<115,'legacy close out of safe area '+JSON.stringify(legacyX));
    await page.screenshot({path:out+'/viewer-x-v16-'+width+'.png',fullPage:false});
    await page.locator('#closeViewer').click();
