@@ -18,24 +18,28 @@ function reveal(small=false){
  if(reduced.matches||!motor()?.animate)return;
  // Set a truthful runtime marker ONLY when the real motor is started.
  sheet.dataset.fpElasticHistory='cv5';
+ sheet.dataset.fpElasticHistoryPeak='0';
+ sheet.dataset.fpElasticHistorySettled='0';
  const from=small?.94:.74;
  active=motor().animate({
   from,to:1,epsilon:.0015,maxMs:850,
   onFrame:value=>{
    if(!sheet||sheet.hidden){clear();return}
    const normalized=Math.max(0,Math.min(1,(value-from)/(1-from)));
+   if(value>Number(sheet.dataset.fpElasticHistoryPeak||0))
+     sheet.dataset.fpElasticHistoryPeak=value.toFixed(5);
    sheet.style.setProperty('scale','1 '+value.toFixed(5));
    sheet.style.setProperty('translate','0 '+(-24*(1-normalized)).toFixed(2)+'px');
    sheet.style.setProperty('opacity',String(.45+.55*normalized));
   },
-  onDone:()=>{active=null;clear()}
+  onDone:()=>{sheet.dataset.fpElasticHistorySettled='1';active=null;clear()}
  });
 }
 function inspect(){
  if(!sheet)return;
  const visible=!sheet.hidden&&document.body.classList.contains('fp-search-open');
  const has=meaningful();
- if(!visible){lastVisible=false;lastHasItems=false;delete sheet.dataset.fpElasticHistory;clear();return}
+ if(!visible){lastVisible=false;lastHasItems=false;delete sheet.dataset.fpElasticHistory;delete sheet.dataset.fpElasticHistoryPeak;delete sheet.dataset.fpElasticHistorySettled;clear();return}
  if(has&&(!lastVisible||!lastHasItems))reveal(false);
  lastVisible=visible;lastHasItems=has;
 }
