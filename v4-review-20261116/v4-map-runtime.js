@@ -880,6 +880,28 @@
   /* build .20 · 供选点规划读取：当前位置（顺路排序锚点/我的城市反查）与取消收藏 */
   window.__atlasUserCoords=()=>currentUserCoords;
   window.__atlasCancelBookmark=id=>cancelBookmark(id);
+   // The place sheet and map share one persistence authority. Toggling a star
+   // must never delete the place or its Brief, media, guides, or route references.
+   window.__atlasSetBookmarkStarred=async(id,next)=>{
+     const original=(await allStored()).find(place=>place.id===id);
+     if(!original)throw Error('地点不存在');
+     const desired=!!next;
+     if((original.starred!==false)!==desired){
+       await upsert({...original,starred:desired});
+       await refresh();
+     }
+     return {id,starred:desired};
+   };
+   window.__atlasSetPlaceStage=async(id,next)=>{
+     if(!['plan','visited'].includes(next))throw Error('无效的地点状态');
+     const original=(await allStored()).find(place=>place.id===id);
+     if(!original)throw Error('地点不存在');
+     if(original.stage!==next){
+       await upsert({...original,stage:next});
+       await refresh();
+     }
+     return {id,stage:next};
+   };
   function markerHTML(active=false){return `<div class="star-pin ${active?'selected':''}" role="button" tabindex="0" aria-label="打开收藏"><svg width="44" height="44" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 3.7 25.2 13.5 36.1 15.2 28.3 23 30.1 34 20 28.7 9.9 34 11.7 23 3.9 15.2 14.8 13.5Z" fill="#D7B36E" stroke="#344149" stroke-width="2.2" stroke-linejoin="round"/><path d="M20 3.7 25.2 13.5 36.1 15.2 28.3 23 30.1 34 20 28.7 9.9 34 11.7 23 3.9 15.2 14.8 13.5Z" fill="none" stroke="#8c5b05" stroke-width=".5"/></svg></div>`}
   function renderMapPin(lat,lng,id,title,active){
     const el=document.createElement('div');el.innerHTML=markerHTML(active);const pin=el.firstElementChild;
