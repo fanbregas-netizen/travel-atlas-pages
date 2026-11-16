@@ -52,11 +52,34 @@ function requestClose(done){
  moveLayer(layerOffset,dest,()=>{layerPhase='hidden';const fn=closeAfterMotion;closeAfterMotion=null;fn?.()});
  return true;
 }
-function scheduleDragPaint(h){pendingHeight=h;if(dragFrame)return;
- dragFrame=requestAnimationFrame(()=>{dragFrame=0;const next=pendingHeight;pendingHeight=null;if(next!==null)paint(next)});
+// WebKit may pause rAF while the map is compositing or resuming a tab.
+// Preserve normal one-write-per-frame behavior, but never let touch deltas
+// queue up invisibly for the entire drag (observed: 608px rendered / 723px
+// pending, then snap only on release). If a queued frame is >32ms late,
+// flush the latest height from the gesture that actually arrived.
+let pendingSince=0;
+function scheduleDragPaint(h){
+ pendingHeight=h;
+ const now=performance.now();
+ if(dragFrame){
+  if(now-pendingSince>=32){
+   cancelAnimationFrame(dragFrame);dragFrame=0;pendingSince=0;
+   const next=pendingHeight;pendingHeight=null;
+   if(next!==null)paint(next);
+  }
+  return;
+ }
+ pendingSince=now;
+ dragFrame=requestAnimationFrame(()=>{
+  dragFrame=0;pendingSince=0;
+  const next=pendingHeight;pendingHeight=null;if(next!==null)paint(next);
+ });
 }
-function flushDragPaint(){if(dragFrame){cancelAnimationFrame(dragFrame);dragFrame=0}
- if(pendingHeight!==null){const h=pendingHeight;pendingHeight=null;paint(h)}}
+function flushDragPaint(){
+ if(dragFrame){cancelAnimationFrame(dragFrame);dragFrame=0}
+ pendingSince=0;
+ if(pendingHeight!==null){const h=pendingHeight;pendingHeight=null;paint(h)}
+}
 function setMaxHeight(){el.style.setProperty('max-height','calc(100dvh - 32px)','important')}
 function paint(h){const px=Math.max(110,Math.round(h));if(px!==lastPainted){lastPainted=px;el.style.setProperty('height',px+'px','important')}}
 function snap(next){
@@ -203,5 +226,5 @@ window.addEventListener('resize',()=>{
   snap(level);
  });
 },{passive:true});
-window.__atlasCollectionSheet={reveal,requestClose,getState:()=>({level,phase:layerPhase,dragging:!!d,height:el.getBoundingClientRect().height,opened:el.classList.contains('visible'),lastPainted,pendingHeight,dragFrame,pointerY:d?.last??null,dragged:d?.moved??false})};
+window.__atlasCollectionSheet={reveal,requestClose,getState:()=>({level,phase:layerPhase,dragging:!!d,height:el.getBoundingClientRect().height,opened:el.classList.contains('visible'),lastPainted,pendingHeight,dragFrame,pendingSince,pointerY:d?.last??null,dragged:d?.moved??false})};
 })();
