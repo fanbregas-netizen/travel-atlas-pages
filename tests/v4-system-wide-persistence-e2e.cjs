@@ -116,8 +116,45 @@ const url='http://127.0.0.1:8766/travel-atlas-pages/v4-review-20261116/';
    return {photos:p.photos.length,videos:p.videos.length,routeId:window.__atlasRouteV5Live.state.savedId};
   });
   assert.deepEqual(after,{photos:1,videos:1,routeId:savedId});
+  // Exercise the ACTUAL collection-backup controls (not only Media D API).
+  // The original main-site ZIP belongs to this isolated user-data namespace.
+  await page.goto(url+'index.html',{waitUntil:'domcontentloaded',timeout:60000});
+  await page.waitForFunction(()=>!!window.__atlasDemo?.getSaved&&!!window.FootprintMediaCore?.createRepository,null,{timeout:30000});
+  await page.locator('#dockStars').click({timeout:15000});
+  await page.waitForSelector('#drawer.visible',{timeout:10000});
+  await page.waitForFunction(()=>document.querySelector('#drawer .backuprow')?.hidden===false,null,{timeout:12000});
+  const downloadEvent=page.waitForEvent('download',{timeout:20000});
+  await page.locator('#exportBtn').click({timeout:15000});
+  const downloaded=await downloadEvent;
+  const zipPath=path.join(OUT,'05-user-export.zip');
+  await downloaded.saveAs(zipPath);
+  const zipBuffer=fs.readFileSync(zipPath);
+  assert.ok(zipBuffer.length>100&&downloaded.suggestedFilename().endsWith('.zip'),
+    'export control generated no valid local ZIP');
+  const fromUi=await page.evaluate(async bytes=>{
+    const snapshot=await window.FootprintMediaCore.readBackup(new Uint8Array(bytes));
+    const first=snapshot.records.find(x=>x.id==='qa-real-route-A');
+    const route=snapshot.routes.find(x=>x.title==='真实路线保存回归');
+    return {photo:first?.photos?.length,video:first?.videos?.length,routeId:route?.id};
+  },[...zipBuffer]);
+  assert.deepEqual(fromUi,{photo:1,video:1,routeId:savedId},
+    'export button ZIP lost media or route');
+  page.on('dialog',dialog=>dialog.accept());
+  await page.locator('#importFile').setInputFiles({
+    name:'qa-restorable.zip',mimeType:'application/zip',buffer:zipBuffer
+  });
+  await page.waitForFunction(()=>document.getElementById('toast')?.textContent.includes('已完整恢复'),
+    null,{timeout:16000});
+  const uiImport=await page.evaluate(async()=>{
+    const r=window.FootprintMediaCore.createRepository(indexedDB);
+    const a=await r.read('qa-real-route-A'),routes=await r.listRoutes();
+    return {photo:a?.photos?.length,video:a?.videos?.length,
+      saved:routes.some(x=>x.title==='真实路线保存回归')};
+  });
+  assert.deepEqual(uiImport,{photo:1,video:1,saved:true},
+    'import button altered existing media or route');
   assert.deepEqual(errors.filter(x=>/TypeError|SyntaxError|ReferenceError/.test(x)),[],'runtime errors');
-  const evidence={browserName,before,ordering,savedId,reopened,backup,after,errors};
+  const evidence={browserName,before,ordering,savedId,reopened,backup,after,fromUi,uiImport,errors};
   fs.writeFileSync(path.join(OUT,'evidence.json'),JSON.stringify(evidence,null,2));
   console.log('PASS REAL V4 ROUTE SAVE + MEDIA BACKUP '+browserName+' '+JSON.stringify({savedId,backup,after}));
   await ctx.close();
