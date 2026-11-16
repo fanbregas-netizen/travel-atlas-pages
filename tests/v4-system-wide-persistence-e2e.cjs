@@ -89,6 +89,25 @@ const url='http://127.0.0.1:8766/travel-atlas-pages/v4-review-20261116/';
   assert.ok(backup.bytes>100&&backup.placeCount>=2&&backup.routeCount>=1);
   assert.equal(backup.photoCount,1);assert.equal(backup.videoCount,1);
   assert.equal(backup.videoLength,8);assert.ok(backup.checksumRejected,'corrupt backup accepted');
+  // A duplicate pending map-point ID must abort the route and ALL new
+  // points together. Reusing a saved place ID may NEVER overwrite its photos.
+  const atomic=await page.evaluate(async()=>{
+   const r=window.FootprintMediaCore.createRepository(indexedDB);
+   const good={id:'qa-temporary-new-point',title:'新临时点',lat:31.25,lng:121.49,
+     starred:false,routeOnly:true,photos:[],videos:[],guides:[]};
+   const bad={id:'qa-real-route-A',title:'不应覆盖原点',lat:31.222,lng:121.463,
+     starred:false,routeOnly:true,photos:[],videos:[]};
+   const row={id:'qa-will-rollback',title:'原子失败测试',
+     stops:[{placeId:good.id,day:1},{placeId:bad.id,day:1}]};
+   let rejected=false;
+   try{await r.saveRoute(row,{places:[good,bad]})}catch(e){rejected=true}
+   const orphan=await r.read(good.id),original=await r.read(bad.id);
+   const routes=await r.listRoutes();
+   return {rejected,orphan:!!orphan,originalPhoto:original.photos?.length,
+     incorrectlySaved:routes.some(x=>x.id===row.id)};
+  });
+  assert.deepEqual(atomic,{rejected:true,orphan:false,originalPhoto:1,incorrectlySaved:false},
+   'route save/temporary points not atomic '+JSON.stringify(atomic));
   await page.reload({waitUntil:'domcontentloaded',timeout:55000});
   await page.waitForFunction(()=>window.__atlasRouteV5Live?.ready,null,{timeout:26000});
   const after=await page.evaluate(async()=>{

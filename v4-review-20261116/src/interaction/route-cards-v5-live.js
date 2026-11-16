@@ -1013,21 +1013,9 @@ function livePickedPoint(lng,lat){
  toast(mode==='add'?'已在路线中间添加地图途经点':'已选中真实地图位置');
  return true;
 }
-async function liveStoreRouteOnlyStops(){
+function livePendingRouteStops(){
  const chosen=new Set(state.stops.map(x=>realId(x)));
- const places=[...livePendingRoutePlaces.values()].filter(x=>chosen.has(x.id));
- if(!places.length)return;
- await new Promise((resolve,reject)=>{
-  const req=indexedDB.open(livePlacesDB,1);
-  req.onerror=()=>reject(req.error||Error('地图地点存储失败'));
-  req.onsuccess=()=>{
-   const db=req.result,tx=db.transaction('places','readwrite'),store=tx.objectStore('places');
-   places.forEach(x=>store.put(x));
-   tx.oncomplete=()=>{db.close();resolve()};
-   tx.onerror=()=>{db.close();reject(tx.error||Error('地图地点写入失败'))};
-  };
- });
- places.forEach(x=>livePendingRoutePlaces.delete(x.id));
+ return [...livePendingRoutePlaces.values()].filter(x=>chosen.has(x.id));
 }
 async function liveSavedRouteList(){
  if(!liveRepository)return;
@@ -1156,8 +1144,10 @@ async function saveLiveRoute(){
   version:2,source:'footprint-map-approved-C-V5',mapStyle:'black-white-plan'
  };
  try{
-  await liveStoreRouteOnlyStops();
-  await liveRepository.saveRoute(item);
+  const pendingPlaces=livePendingRouteStops();
+  await liveRepository.saveRoute(item,{places:pendingPlaces});
+  // Only after the atomic transaction commits are pending selections retired.
+  pendingPlaces.forEach(place=>livePendingRoutePlaces.delete(place.id));
   liveSavedId=id;liveCreatedAt=item.createdAt;state.routeName=title;state.saved=true;
   closeMini();renderStage();liveMapAction();
   toast('路线已保存');

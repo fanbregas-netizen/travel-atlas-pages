@@ -417,10 +417,27 @@
           .sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||''))));
       });
     }
-    async function saveRoute(input){
+    async function saveRoute(input,{places=[]}={}){
       const route=normalizeRoute(input);
+      // Map-selected routeOnly points and the C V5 route MUST commit as one
+      // IndexedDB transaction. Previously a place write succeeded before the
+      // route save, leaving orphaned non-starred map points on a failed save.
+      if(!Array.isArray(places)||places.length>300)
+        throw error('INVALID_ROUTE','路线临时地点数量无效');
+      const chosen=new Set(route.stops.map(s=>s.placeId));
+      const pending=places.map(validPlace);
+      if(new Set(pending.map(p=>p.id)).size!==pending.length||
+         pending.some(p=>p.routeOnly!==true||p.starred!==false||!chosen.has(p.id)))
+        throw error('INVALID_ROUTE','临时地图点必须属于本路线且不能覆盖收藏星标');
       await migrateRoutes();
-      return transaction('meta','readwrite',s=>s.put({key:routeKey(route.id),value:route}));
+      if(!pending.length)
+        return transaction('meta','readwrite',s=>s.put({key:routeKey(route.id),value:route}));
+      return transaction(['places','meta'],'readwrite',(s,set,tx)=>{
+        // add(), not put(): existing user places are never silently replaced.
+        // Any duplicate ID or quota error aborts BOTH the new points and route.
+        for(const place of pending)s.add(place);
+        tx.objectStore('meta').put({key:routeKey(route.id),value:route});
+      });
     }
     async function restore(backup,{conflict='merge'}={}) {
       if(conflict!=='merge'&&conflict!=='replace')throw error('INVALID_RESTORE','恢复策略无效');
