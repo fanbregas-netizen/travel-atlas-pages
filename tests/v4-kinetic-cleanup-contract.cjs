@@ -18,6 +18,8 @@ assert.match(poi,/const dip=Math\.sin\(Math\.PI\*p\)/);
 assert.match(collection,/window\.__atlasCollectionSheet=\{reveal,requestClose/);
 assert.match(collection,/el\.inert=true/);
 assert.match(collection,/if\(visible===wasVisible\)return/);
+assert.match(collection,/document\.addEventListener\('pointermove'/);
+assert.match(collection,/document\.addEventListener\('pointerup'/);
 assert.match(collection,/let wasVisible=el\.classList\.contains\('visible'\)/);
 assert.match(poi,/el\.inert=!!renew/);
 assert.match(poi,/const poiMotion=new WeakMap/);

@@ -91,9 +91,9 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  // events packed inside one <16ms frame. Sample the live rAF-painted height.
  for(let i=1;i<=12;i++){await page.mouse.move(x,y-115*i/12);await pause(19)}
  await pause(45);
- const during=(await state(page)).drawer.height;
+ const duringState=await state(page),during=duringState.drawer.height;
  await page.mouse.up();await pause(950);
- diagnostics.collectionDrag={before,during,after:(await state(page)).drawer.height};
+ diagnostics.collectionDrag={before,during,live:duringState.drawer,after:(await state(page)).drawer.height};
  assert.ok(during>before+18,'B05 sheet did not follow upward drag: '+JSON.stringify(diagnostics.collectionDrag));
  // Closing must have nonzero visible travel rather than class-disappearing.
  await page.locator('#closeDrawer').click({timeout:15000});
@@ -137,6 +137,10 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  await page.evaluate(id=>window.__atlasDemo.openSaved(id),id);
  await page.waitForFunction(()=>{const p=document.getElementById('fpPlaceCard');return p&&!p.hidden&&p.querySelector('.fp-card-name')?.textContent==='测试收藏地点'},null,{timeout:15000});
  await pause(850);
+ // The first peek is intentionally 270px. Explicitly test the approved
+ // half-sheet state that must expose real Brief/Media/Guide scrolling.
+ await page.evaluate(()=>window.__atlasSheetIntegration.card.snapTo('half'));
+ await pause(900);
  diagnostics.place=await state(page);
  await page.screenshot({path:path.join(OUT,'06-place-detail.png')});
  assert.ok(diagnostics.place.detail.height>175,'real place detail invisible');
@@ -146,7 +150,7 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
   return {card:r.height,header:h.height,scroll:s.height,scrollHeight:scroll.scrollHeight,overflow:getComputedStyle(scroll).overflowY};
  });
  diagnostics.placeLayout=cardLayout;
- assert.ok(cardLayout.scroll.height>30&&cardLayout.overflow==='auto','detail half-sheet content clipped '+JSON.stringify(cardLayout));
+ assert.ok(cardLayout.card>400&&cardLayout.scroll>120&&cardLayout.overflow==='auto','detail half-sheet content clipped '+JSON.stringify(cardLayout));
  await page.locator('#fpPlaceCard .fp-card-close').click({timeout:12000});
  await page.waitForFunction(()=>document.getElementById('fpPlaceCard')?.hidden,null,{timeout:9000});
  // Route entry must still exist; do not install a second routing system.

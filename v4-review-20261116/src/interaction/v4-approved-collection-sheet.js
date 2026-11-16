@@ -105,11 +105,22 @@ if(header){
  let pointer=null;
  header.addEventListener('pointerdown',e=>{
   if(e.button!==undefined&&e.button!==0||e.target.closest(headerSkip))return;
-  start(e.clientX,e.clientY);if(d){pointer=e.pointerId;header.setPointerCapture?.(pointer)}
+  start(e.clientX,e.clientY);
+  if(d){pointer=e.pointerId;try{header.setPointerCapture?.(pointer)}catch(_){/* WebKit fallback uses document events */}}
  });
- header.addEventListener('pointermove',e=>{if(pointer===e.pointerId)move(e.clientX,e.clientY,e)});
- header.addEventListener('pointerup',e=>{if(pointer===e.pointerId){move(e.clientX,e.clientY,e);pointer=null;end()}});
- header.addEventListener('pointercancel',()=>{pointer=null;end(true)});
+ // WebKit can silently lose element pointer capture on a composited sticky
+ // sheet. Following the active pointer on document keeps real finger travel
+ // continuous when the hit-tested target changes under the moving card.
+ document.addEventListener('pointermove',e=>{
+  if(pointer!==null&&pointer===e.pointerId)move(e.clientX,e.clientY,e);
+ },{passive:false});
+ document.addEventListener('pointerup',e=>{
+  if(pointer===null||pointer!==e.pointerId)return;
+  move(e.clientX,e.clientY,e);pointer=null;end();
+ },{passive:false});
+ document.addEventListener('pointercancel',e=>{
+  if(pointer!==null&&pointer===e.pointerId){pointer=null;end(true)}
+ },{passive:true});
  // Safari's native touch events are a fallback for iPhone builds where pointer
  // capture is interrupted by the composited sticky heading.
  let touch=null;
