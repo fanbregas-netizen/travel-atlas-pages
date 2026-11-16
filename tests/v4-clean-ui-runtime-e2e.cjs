@@ -49,7 +49,8 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  page.setDefaultTimeout(16000);
  page.on('pageerror',e=>errors.push(String(e.stack||e)));
  const origin='http://127.0.0.1:8765/travel-atlas-pages/v4-review-20261116/';
- await page.goto(origin,{waitUntil:'domcontentloaded',timeout:75000});
+ const response=await page.goto(origin+'index.html',{waitUntil:'domcontentloaded',timeout:75000});
+ assert.equal(response?.status(),200,'candidate local page failed to serve: '+response?.status());
  await page.waitForSelector('#appDock',{timeout:30000});
  await page.waitForFunction(()=>!!window.__atlasCollectionSheet && !!window.__atlasDemo && !!window.__atlasSheetIntegration,null,{timeout:45000});
  diagnostics.start=await page.evaluate(()=>({
