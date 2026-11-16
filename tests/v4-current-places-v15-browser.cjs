@@ -80,7 +80,7 @@ if(!browserPath)throw Error('Chromium not installed');
    return {navW:nav.width,starW:star.width,sameRow:Math.abs(nav.top-star.top)<4,closeTop:close.top,titleTop:title.top,overflow:document.documentElement.scrollWidth-innerWidth};
   });
   assert.ok(Math.abs(style.navW-style.starW)<=2,'star/nav icon geometry inconsistent: '+JSON.stringify(style));
-  assert.ok(style.sameRow&&style.closeTop<style.navW+titleTop,'card header lacks expected two-row hierarchy');
+  assert.ok(style.sameRow&&style.closeTop<style.navW+style.titleTop,'card header lacks expected two-row hierarchy');
   assert.ok(style.overflow<=6,'horizontal overflow: '+JSON.stringify(style));
   assert.deepEqual(errors,[],'new runtime JavaScript errors');
   fs.mkdirSync('v4-current-pages-evidence',{recursive:true});
