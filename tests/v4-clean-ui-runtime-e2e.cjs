@@ -174,8 +174,16 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  // Real business action: save an ordinary POI, then open its physical detail.
  await page.evaluate(({lat,lng})=>window.__atlasDemo.select('测试收藏地点',lat+0.0002,lng+0.0002),map);
  await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='测试收藏地点',null,{timeout:10000});
+ // Test actual local image ingestion and IndexedDB association, not only
+ // the map star/Brief. The screenshot is created in this disposable browser,
+ // never borrowed from user media or the formal site.
+ const localPhoto=await page.screenshot({type:'png'});
  await page.locator('#destinationStar').click({timeout:14000});
  await page.locator('#placeName').fill('测试收藏地点',{timeout:10000});
+ await page.locator('#photoUpload').setInputFiles({
+  name:'qa-memory.png',mimeType:'image/png',buffer:localPhoto
+ });
+ await page.waitForFunction(()=>document.querySelectorAll('#editPhotos .photo-thumb').length>0,null,{timeout:18000});
  await page.locator('#savePlace').click({timeout:15000});
  await page.waitForFunction(()=>window.__atlasDemo.getSaved().some(x=>x.title==='测试收藏地点'),null,{timeout:16000});
  const id=await page.evaluate(()=>window.__atlasDemo.getSaved().find(x=>x.title==='测试收藏地点').id);
@@ -189,6 +197,14 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  diagnostics.place=await state(page);
  await page.screenshot({path:path.join(OUT,'06-place-detail.png')});
  assert.ok(diagnostics.place.detail.height>175,'real place detail invisible');
+ await page.waitForSelector('#fpPlaceCard .fp-media-mosaic img',{timeout:15000});
+ const actualMedia=await page.locator('#fpPlaceCard .fp-media-mosaic img').count();
+ assert.ok(actualMedia>=1,'saved photo not restored inside the real place card');
+ await page.locator('#fpPlaceCard .fp-media-mosaic button').first().click({timeout:10000});
+ await page.waitForSelector('#fpMediaViewer',{state:'visible',timeout:10000});
+ diagnostics.media={photoTiles:actualMedia,viewerOpened:true};
+ await page.locator('#fpMediaViewer .fp-viewer-close').click({timeout:10000});
+ await page.waitForFunction(()=>!document.getElementById('fpMediaViewer'),null,{timeout:10000});
  const cardLayout=await page.evaluate(()=>{
   const p=document.getElementById('fpPlaceCard'),header=p.querySelector('.fp-card-header'),
     scroll=p.querySelector('.fp-card-scroll'),r=p.getBoundingClientRect(),h=header.getBoundingClientRect(),s=scroll.getBoundingClientRect();
