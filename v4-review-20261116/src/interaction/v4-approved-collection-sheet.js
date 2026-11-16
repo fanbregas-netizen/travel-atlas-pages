@@ -203,5 +203,5 @@ window.addEventListener('resize',()=>{
   snap(level);
  });
 },{passive:true});
-window.__atlasCollectionSheet={reveal,requestClose,getState:()=>({level,phase:layerPhase,dragging:!!d,height:el.getBoundingClientRect().height,opened:el.classList.contains('visible')})};
+window.__atlasCollectionSheet={reveal,requestClose,getState:()=>({level,phase:layerPhase,dragging:!!d,height:el.getBoundingClientRect().height,opened:el.classList.contains('visible'),lastPainted,pendingHeight,dragFrame,pointerY:d?.last??null,dragged:d?.moved??false})};
 })();

@@ -93,7 +93,8 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  await pause(45);
  const duringState=await state(page),during=duringState.drawer.height;
  await page.mouse.up();await pause(950);
- diagnostics.collectionDrag={before,during,live:duringState.drawer,after:(await state(page)).drawer.height};
+ diagnostics.collectionDrag={before,during,live:duringState.drawer,physics:await page.evaluate(()=>window.__atlasCollectionSheet.getState()),after:(await state(page)).drawer.height};
+ console.log('V4_DRAG_DEBUG '+which+' '+JSON.stringify(diagnostics.collectionDrag));
  assert.ok(during>before+18,'B05 sheet did not follow upward drag: '+JSON.stringify(diagnostics.collectionDrag));
  // Closing must have nonzero visible travel rather than class-disappearing.
  await page.locator('#closeDrawer').click({timeout:15000});
