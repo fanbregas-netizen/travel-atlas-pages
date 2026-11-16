@@ -1,7 +1,7 @@
 {
-  "version": "V4.C.PagesParityMotion.20261116.15",
+  "version": "V4.C.PagesParityMotion.20261116.16",
   "base": "V4.Stage1.20261110.34.7",
   "date": "2026-11-16",
   "interaction": "swipe-card",
-  "review": "Verified in real headless iPhone Chrome: 22/22 POI categories, sea's three internal SVG morphs, real scale animation, yellow-star morph, media, route pages and top search. Build .15: reversible map-backed empty/filled bookmark with exact map yellow, zero loss of Brief/media/links, optional plan/visited status, per-section editing only, title/close and adjacent bookmark/navigation header, consistent subsection visuals. Guide import extracts URLs from WeChat, Xiaohongshu, Douyin, Bilibili and other pasted share text and retains source/title/original text; link opening remains subject to original platform restrictions. Root unchanged; real iPhone Safari tactile acceptance still pending."
+  "review": "Verified in real headless iPhone Chrome: 22/22 POI categories, sea's three internal SVG morphs, real scale animation, yellow-star morph, media, route pages and top search. Build .16: repair the old global-mode CSS that made per-section editors transparent and untappable. Enable independent Brief edit/save/cancel, always-visible media add, guide edit/save/cancel. Unify existing place, collection and route sheet header alignment and restrained visuals. Give both legacy collection and modern place fullscreen photo viewer X a strict 44px safe-area-aware visible target. Preserve B/C approved card physics, media, search, route and whole product. Root unchanged; Safari hardware acceptance pending."
 }
