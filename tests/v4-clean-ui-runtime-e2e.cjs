@@ -93,11 +93,14 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  const useNativeTouchPath=which==='webkit';
  const touchEvent=async(type,cx,cy)=>page.evaluate(({type,cx,cy})=>{
   const header=document.querySelector('#drawer .drawer-head');
-  const touch=new Touch({identifier:77,target:header,clientX:cx,clientY:cy,screenX:cx,screenY:cy,pageX:cx,pageY:cy});
-  const ended=type==='touchend';
-  const ev=new TouchEvent(type,{
-   bubbles:true,cancelable:true,composed:true,
-   touches:ended?[]:[touch],targetTouches:ended?[]:[touch],changedTouches:[touch]
+  // Headless WebKit disallows constructing Touch/TouchEvent (Illegal
+  // constructor), despite real iPhone Safari delivering them normally.
+  // Model the same public TouchEvent fields on a cancelable DOM event.
+  const touch={identifier:77,target:header,clientX:cx,clientY:cy,screenX:cx,screenY:cy,pageX:cx,pageY:cy};
+  const ended=type==='touchend',ev=new Event(type,{bubbles:true,cancelable:true});
+  Object.defineProperties(ev,{
+   touches:{value:ended?[]:[touch]},targetTouches:{value:ended?[]:[touch]},
+   changedTouches:{value:[touch]}
   });
   header.dispatchEvent(ev);
   return {defaultPrevented:ev.defaultPrevented,driver:'touch'};
