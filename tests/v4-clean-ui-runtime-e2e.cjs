@@ -242,6 +242,19 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  await pause(650);
  await page.locator('#closeDrawer').click({timeout:14000});
  await page.waitForFunction(()=>!document.getElementById('drawer')?.classList.contains('visible'),null,{timeout:9000});
+ // Refresh is the real IndexedDB/media persistence contract. If the same
+ // collection/detail+photo does not survive reload, passing the initial
+ // editor save is not a valid integration success.
+ await page.reload({waitUntil:'domcontentloaded',timeout:60000});
+ await page.waitForFunction(()=>window.__atlasDemo?.getSaved?.().some(x=>x.title==='测试收藏地点'),null,{timeout:25000});
+ const restored=await page.evaluate(()=>window.__atlasDemo.getSaved().find(x=>x.title==='测试收藏地点'));
+ assert.ok(restored?.photos?.length>=1,'saved photo did not persist across a real browser reload');
+ await page.evaluate(id=>window.__atlasDemo.openSaved(id),restored.id);
+ await page.waitForSelector('#fpPlaceCard .fp-media-mosaic img',{timeout:15000});
+ diagnostics.persistence={savedId:restored.id,photos:restored.photos.length,afterReload:true};
+ await page.screenshot({path:path.join(OUT,'06c-reloaded-photo.png')});
+ await page.locator('#fpPlaceCard .fp-card-close').click({timeout:15000});
+ await page.waitForFunction(()=>document.getElementById('fpPlaceCard')?.hidden,null,{timeout:12000});
  // The only route entry must hand off to the actual C V5 route page; verify
  // existing controls, real route state and spring motor on 375/390/430px.
  assert.ok(await page.locator('#dockRoute').count(),'approved C V5 route Dock missing');
