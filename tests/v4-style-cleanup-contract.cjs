@@ -10,6 +10,13 @@ const external=[...html.matchAll(/<link\b[^>]*rel=["']stylesheet["'][^>]*href=["
 const markers=[...legacy.matchAll(/\/\* ===== original inline style (\d+)\/32 /g)].map(m=>Number(m[1]));
 assert.equal((html.match(/<style\b/gi)||[]).length,0,'reintroduced inline style blocks');
 assert.equal(external.filter(x=>x.startsWith('./legacy-inline-cascade.css')).length,1,'single preserved cascade link');
+for(const file of ['atlas-services.js','atlas-constellation-core.js','atlas-route-buildings.js','stage1-polish.js','stage1-finish.js']){
+ assert.equal((html.match(new RegExp('<script\\s+src="\\./'+file.replaceAll('.', '\\\\.')+'"', 'g'))||[]).length,1,
+   'exactly one cacheable script load required: '+file);
+ assert.ok(!html.includes('data-inline="'+file+'"'),'duplicate embedded script: '+file);
+ assert.ok(fs.existsSync(path.join(base,file)),'moved inline script target missing: '+file);
+}
+
 assert.deepEqual(markers,Array.from({length:32},(_,i)=>i+1),'all historic style blocks must remain ordered');
 // Exact old/new CSS-text parity, not a subjective "looks the same" claim.
 const cp=require('node:child_process');
