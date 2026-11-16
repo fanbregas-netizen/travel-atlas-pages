@@ -95,9 +95,12 @@ function drawSearchStart(){
  searchBody.replaceChildren();
  const recent=getList().slice(0,3);
  if(!recent.length){
-  searchBody.append(h('p','fp-search-empty','输入城市、景点或地点名称'));
+  // The live top field already explains what to type. Never show an empty,
+  // duplicate prompt card (it was obscuring the map on iPhone).
+  if(activeSearch)searchSheet.hidden=true;
   return;
  }
+ if(activeSearch)searchSheet.hidden=false;
  const head=h('div','fp-history-head');
  head.append(h('strong','','最近搜索'));
  const clear=btn('清除',()=>{try{localStorage.removeItem('fp-search-history-v1')}catch(_){}drawSearchStart()},'fp-history-clear');
@@ -156,8 +159,11 @@ function closeSearch(){
  const old=$('searchInput');if(old)old.value='';setViewport();
 }
 window.__fpCloseSearch=()=>closeSearch();
-async function searchNow(q,submitted){q=String(q||'').trim();searchReset();if(!q){drawSearchStart();return}searchUsed=true;const token=++searchToken;const matches=await readPlaces().then(rows=>rows.filter(p=>p.starred!==false&&String(p.title||'').toLocaleLowerCase().includes(q.toLocaleLowerCase())).slice(0,7).map(savedSearchRow)).catch(()=>[]);if(token!==searchToken||!activeSearch)return;searchBody.replaceChildren();if(matches.length)searchBody.append(searchRows(matches,'我的收藏'));
- if(!submitted&&q.length<2)return;
+async function searchNow(q,submitted){q=String(q||'').trim();searchReset();if(!q){drawSearchStart();return}
+ // Only surface history/results if meaningful content is present.
+ if(activeSearch)searchSheet.hidden=false;
+ searchUsed=true;const token=++searchToken;const matches=await readPlaces().then(rows=>rows.filter(p=>p.starred!==false&&String(p.title||'').toLocaleLowerCase().includes(q.toLocaleLowerCase())).slice(0,7).map(savedSearchRow)).catch(()=>[]);if(token!==searchToken||!activeSearch)return;searchBody.replaceChildren();if(matches.length)searchBody.append(searchRows(matches,'我的收藏'));
+ if(!submitted&&q.length<2){if(!matches.length)searchSheet.hidden=true;return}
  if(!window.AtlasServices?.search){if(!matches.length)searchBody.append(h('div','fp-search-empty','地图搜索服务未准备好，请重试。'));return}
  searchController=new AbortController();const controller=searchController;const status=h('div','fp-search-empty','正在搜索真实地点…');searchBody.append(status);
  try{const results=await window.AtlasServices.search(q,{signal:controller.signal,center:window.__fpSearchCenter?.(),allowFallback:submitted});if(token!==searchToken||!activeSearch)return;status.remove();const existing=new Set(matches.map(x=>String(x.name).trim()+':'+Number(x.lat).toFixed(3)));const filtered=(Array.isArray(results)?results:[]).map(x=>({...x,lon:x.lon??x.lng,lat:x.lat})).filter(x=>safe(x.lat,-90,90)&&safe(x.lon,-180,180)).map(x=>({...x,lon:Number(x.lon),lat:Number(x.lat)})).filter(x=>!existing.has(String(x.name).trim()+':'+x.lat.toFixed(3))).slice(0,12);if(filtered.length)searchBody.append(searchRows(filtered,'地图地点'));else if(!matches.length)searchBody.append(h('div','fp-search-empty','没有找到这个地点。试试「城市 + 地点名」，或返回地图手动选点。'));if(submitted)saveHistory({q,name:q,description:'搜索记录'})}

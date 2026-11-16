@@ -1421,3 +1421,13 @@ body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]{
   padding-inline:13px 62px!important;
  }
 }
+
+/* Search state must be visually singular. An empty recent-history panel has
+   nothing to display; CSS [hidden] wins over old sheet display overrides. */
+body #fpSearchSheet[hidden]{
+ display:none!important;visibility:hidden!important;
+ opacity:0!important;pointer-events:none!important;
+}
+body.fp-search-open #atlasFirstStar{
+ display:none!important;pointer-events:none!important;
+}

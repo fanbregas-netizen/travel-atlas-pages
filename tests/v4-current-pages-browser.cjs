@@ -10,7 +10,7 @@ const artifact='v4-current-pages-evidence';
 fs.mkdirSync(artifact,{recursive:true});
 const chrome=['google-chrome','google-chrome-stable','chromium'].map(x=>{try{return cp.execFileSync('which',[x],{encoding:'utf8'}).trim()}catch{return null}}).find(Boolean);
 if(!chrome)throw Error('Chrome not installed');
-const stamp='V4.C.PagesParityMotion.20261116.11';
+const stamp='V4.C.PagesParityMotion.20261116.12';
 async function probe(){
  const browser=await chromium.launch({headless:true,executablePath:chrome,args:['--no-sandbox','--disable-dev-shm-usage']});
  const report=[];
@@ -85,10 +85,13 @@ async function probe(){
      open:document.body.classList.contains('fp-search-open'),
      topField:!!document.querySelector('#fpSearchActiveTop #fpSearchField'),
      results:!!document.querySelector('#fpSearchSheet'),
-     originalDockHidden:!document.querySelector('#appDock #dockSearch')
+     originalDockHidden:!document.querySelector('#appDock #dockSearch'),
+     noEmptyResultCard:document.getElementById('fpSearchSheet')?.hidden===true,
+     onboardingHidden:getComputedStyle(document.getElementById('atlasFirstStar')).display==='none'
     }));
     await page.screenshot({path:`${artifact}/search-390.png`,fullPage:false});
     assert.ok(result.search.open&&result.search.topField&&result.search.results,'search field handoff broken');
+    assert.ok(result.search.noEmptyResultCard&&result.search.onboardingHidden,'empty search must not duplicate a popup or show onboarding');
     await page.locator('#fpSearchActiveTop .fp-search-cancel').click({timeout:5000});
     await page.waitForTimeout(160);
     assert.equal(await page.evaluate(()=>document.body.classList.contains('fp-search-open')),false,'search cancel did not close');

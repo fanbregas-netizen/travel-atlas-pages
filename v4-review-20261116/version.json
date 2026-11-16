@@ -1,7 +1,7 @@
 {
-  "version": "V4.C.PagesParityMotion.20261116.11",
+  "version": "V4.C.PagesParityMotion.20261116.12",
   "base": "V4.Stage1.20261110.34.7",
   "date": "2026-11-16",
   "interaction": "swipe-card",
-  "review": "Restored missing SVG namespace to enable the approved 22 inner-path animations in the live map; all runtime assets mirrored on standalone Pages with isolated browser storage; stable map POI DOM, unified search axis; real browser smoke required"
+  "review": "Verified in real headless iPhone Chrome: 22/22 POI categories, sea's three internal SVG morphs, real scale animation, yellow-star morph, media, route pages and top search. Eliminated duplicate empty search card and hid old onboarding while searching; isolated Pages runtime 152/152 files; Safari hardware FPS still pending user acceptance"
 }
