@@ -1,7 +1,7 @@
 {
-  "version": "V4.C.PagesParityMotion.20261116.14",
+  "version": "V4.C.PagesParityMotion.20261116.15",
   "base": "V4.Stage1.20261110.34.7",
   "date": "2026-11-16",
   "interaction": "swipe-card",
-  "review": "Verified in real headless iPhone Chrome: 22/22 POI categories, sea's three internal SVG morphs, real scale animation, yellow-star morph, media, route pages and top search. Build .14: preserve complete product; compact saved-place title/stage/actions, replace duplicated header photo with the approved hand-drawn directions icon wired to the original 高德/百度/Apple navigation chooser, keep photo/video in media section. POI uses one controlled elastic peak and a gentler original-size return while SVG internal motions run. Safari hardware tactile acceptance still pending."
+  "review": "Verified in real headless iPhone Chrome: 22/22 POI categories, sea's three internal SVG morphs, real scale animation, yellow-star morph, media, route pages and top search. Build .15: reversible map-backed empty/filled bookmark with exact map yellow, zero loss of Brief/media/links, optional plan/visited status, per-section editing only, title/close and adjacent bookmark/navigation header, consistent subsection visuals. Guide import extracts URLs from WeChat, Xiaohongshu, Douyin, Bilibili and other pasted share text and retains source/title/original text; link opening remains subject to original platform restrictions. Root unchanged; real iPhone Safari tactile acceptance still pending."
 }
