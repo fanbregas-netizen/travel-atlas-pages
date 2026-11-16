@@ -20,8 +20,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Prepare public static site
         run: |
-          set -E
-          trap 'echo "Static prep failed at line $LINENO: $BASH_COMMAND" >&2' ERR
           mkdir -p _site
           # Independent approved POI SVG animation review; root site remains byte-identical.
           cp -R v4-review-20261116 _site/v4-review-20261116
@@ -493,7 +491,7 @@ jobs:
         run: node tests/v4-current-places-v15-browser.cjs
       - name: Verify V4 .16 actual independent editors, viewer close and headers at three iPhone widths
         run: node tests/v4-current-edits-headers-v16-browser.cjs
-      - name: Verify V4 .17 B05 touch on row and header: full/half spring, tap, viewer X at iPhone widths
+      - name: Verify V4 .17 B05 touch on row and header, full-half spring, tap and viewer X
         run: node tests/v4-collection-spring-v17-browser.cjs
       - name: Upload current V4 Pages motion and layout evidence
         if: always()
