@@ -5,6 +5,7 @@ on:
     paths:
       - 'v4-review-20261116/**'
       - 'tests/v4-system-wide-persistence-e2e.cjs'
+      - 'tests/v4-place-guide-state-e2e.cjs'
       - '.github/workflows/v4-system-wide-persistence.yml'
   workflow_dispatch:
 permissions:
@@ -28,6 +29,10 @@ jobs:
         env:
           BROWSER: ${{ matrix.browser }}
         run: node tests/v4-system-wide-persistence-e2e.cjs
+      - name: Test original V4 Brief, guides, media and star-state in iPhone UI
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: node tests/v4-place-guide-state-e2e.cjs
       - if: always()
         uses: actions/upload-artifact@v4
         with:
