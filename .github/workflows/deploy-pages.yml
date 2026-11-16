@@ -20,6 +20,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Prepare public static site
         run: |
+          set -E
+          trap 'echo "Static prep failed at line $LINENO: $BASH_COMMAND" >&2' ERR
           mkdir -p _site
           # Independent approved POI SVG animation review; root site remains byte-identical.
           cp -R v4-review-20261116 _site/v4-review-20261116
