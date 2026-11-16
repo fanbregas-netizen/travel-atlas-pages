@@ -37,3 +37,9 @@ body.destination-selected #destinationCard{
 @media(prefers-reduced-motion:reduce){
  body.destination-selected #destinationCard.visible{transition:none!important;translate:none!important;scale:1!important}
 }
+
+/* An ordinary map POI opens #destinationCard, not #fpPlaceCard. The home
+   search field must disappear over THIS accepted sheet as well. */
+body.destination-selected #fpTopSearch{
+ visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+}
