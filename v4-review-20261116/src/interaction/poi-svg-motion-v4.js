@@ -4,6 +4,8 @@
  * Source of every part animation: icon-motion-review-20261116.html.
  */
 (()=>{'use strict';
+const NS='http://www.w3.org/2000/svg';
+const motionFailures=new Set();
 const categoryToFile={mountain:'21_mountain',sea:'22_sea',forest:'23_forest',town:'24_town',creative:'25_creative',lake:'26_lake',food:'43_food',stay:'44_stay',museum:'45_museum',park:'46_park',coffee:'47_coffee',transit:'48_transit',shopping:'49_shopping',school:'50_school',hospital:'51_hospital',library:'52_library',pharmacy:'53_pharmacy',bank:'54_bank',parking:'55_parking',sport:'56_sport',civic:'57_civic',worship:'58_worship'};
 const durations={mountain:850,sea:1300,forest:1100,town:920,creative:930,lake:1250,food:760,stay:870,museum:920,park:950,coffee:1150,transit:780,shopping:870,school:800,hospital:760,library:1100,pharmacy:740,bank:950,parking:840,sport:900,civic:850,worship:930};
 const morphSea=[
@@ -138,7 +140,11 @@ function play(target,category,name){
   shell.classList.add('fp-internal-poi-animate');
   begin(svg);
   shell.addEventListener('animationend',()=>shell.classList.remove('fp-internal-poi-animate'),{once:true});
- }).catch(()=>{/* Keep the existing original <img> as a safe fallback. */});
+ }).catch(error=>{
+  // Retain original icon, but never silently conceal a broken live animation.
+  if(!motionFailures.has(entry.id))console.warn('[Footprint Map] SVG motion unavailable:',entry.id,error);
+  motionFailures.add(entry.id);
+ });
 }
 const starActive=new WeakMap();
 function playStar(marker){
