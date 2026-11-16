@@ -1,0 +1,11 @@
+/* V4 route detail three-stage layout: same paper palette and swipe rhythm as approved B/C. */
+#rvDetail{box-sizing:border-box;max-height:calc(100dvh - 85px);padding-bottom:calc(18px + env(safe-area-inset-bottom));overscroll-behavior:contain;transition:transform .38s cubic-bezier(.22,.83,.28,1),height .38s cubic-bezier(.22,.83,.28,1),max-height .38s cubic-bezier(.22,.83,.28,1)}
+#rvDetail[data-atlas-snap="peek"].open{height:min(33dvh,280px);max-height:min(33dvh,280px)}
+#rvDetail[data-atlas-snap="half"].open{height:min(58dvh,530px);max-height:min(58dvh,530px)}
+#rvDetail[data-atlas-snap="full"].open{height:calc(100dvh - 86px - env(safe-area-inset-top));max-height:calc(100dvh - 86px - env(safe-area-inset-top))}
+#rvDetail .grab{touch-action:none;cursor:grab;min-height:7px;outline-offset:7px}
+#rvDetail .grab:focus-visible{outline:2px solid #b88f37}
+#rvDetail[data-atlas-dragging]{transition:none!important}
+#rvDetail h2{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;letter-spacing:-.025em}
+@media(min-width:740px){#rvDetail{left:50%;right:auto;width:min(560px,calc(100vw - 28px));transform:translate(-50%,125%)}#rvDetail.open{transform:translate(-50%,0)}}
+@media(prefers-reduced-motion:reduce){#rvDetail{transition:none!important}}

@@ -1,0 +1,162 @@
+/* V4: original star icons, original overhead map view, native-looking sheet motion. */
+:root{--atlas-visible-height:100dvh;--atlas-keyboard-bottom:0px}
+#atlasPhase1Pins,#atlasPhase1OrderLabels{display:none!important}
+#fpSearchSheet,#fpPlaceCard{
+ --fp-drag-offset:0px;
+ transition:height var(--atlas-dur-3) cubic-bezier(.22,1,.36,1),max-height var(--atlas-dur-3) cubic-bezier(.22,1,.36,1),transform var(--atlas-dur-3) cubic-bezier(.22,1,.36,1),opacity var(--atlas-dur-1) var(--atlas-ease)!important;
+ will-change:height,transform;
+}
+#fpSearchSheet{bottom:var(--atlas-keyboard-bottom)!important;max-height:calc(var(--atlas-visible-height) - 12px)!important}
+#fpSearchSheet[data-atlas-snap=peek]:not([hidden]){height:min(32dvh,calc(var(--atlas-visible-height)*.32))}
+#fpSearchSheet[data-atlas-snap=half]:not([hidden]){height:min(59dvh,calc(var(--atlas-visible-height)*.59))}
+#fpSearchSheet[data-atlas-snap=full]:not([hidden]){height:calc(var(--atlas-visible-height) - 12px)}
+#fpPlaceCard:not([hidden]){max-height:calc(var(--atlas-visible-height) - 20px)!important}
+#fpPlaceCard[data-atlas-snap=peek]:not([hidden]){height:min(32dvh,calc(var(--atlas-visible-height)*.32))}
+#fpPlaceCard[data-atlas-snap=half]:not([hidden]){height:min(58dvh,calc(var(--atlas-visible-height)*.58))}
+#fpPlaceCard[data-atlas-snap=full]:not([hidden]){height:calc(var(--atlas-visible-height)*.92)}
+@media(min-width:740px){#fpPlaceCard[data-atlas-snap=half]:not([hidden]){height:min(72dvh,640px)}#fpPlaceCard[data-atlas-snap=peek]:not([hidden]){height:min(55dvh,470px)}#fpPlaceCard[data-atlas-snap=full]:not([hidden]){height:calc(var(--atlas-visible-height) - 20px)}}
+#fpPlaceCard .atlas-card-grip{display:block;flex:0 0 auto;margin:10px auto 0;width:46px;height:6px;border:0;border-radius:22px;background:#d3d1ca;cursor:grab;touch-action:none;padding:0}
+#fpPlaceCard .atlas-card-grip:active,.fp-search-grip:active{cursor:grabbing}
+.fp-search-grip{touch-action:none;cursor:grab}
+#fpSearchSheet .fp-search-body,#fpPlaceCard .fp-card-scroll{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#fpPlaceCard .fp-card-header{padding-top:13px}
+.fp-card-name{font-weight:760}
+#fpPlaceCard .fp-card-scroll{padding-bottom:16px}
+#fpPlaceCard .fp-subheading{margin-top:10px}
+#fpPlaceCard .fp-media-empty{min-height:54px;padding:11px 13px}
+#fpPlaceCard .fp-card-footer{padding:9px 14px calc(10px + env(safe-area-inset-bottom)*.24);gap:8px}
+#fpPlaceCard .fp-card-chip{min-height:42px}
+#fpPlaceCard .fp-line{margin:11px 0}
+.fp-media-mosaic{grid-template-rows:repeat(2,minmax(68px,88px))}
+.fp-media-mosaic .fp-video-tile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.fp-media-mosaic .fp-video-tile::after{content:"▶";position:absolute;left:8px;bottom:8px;display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:#10100e66;color:#fff;font-size:11px;pointer-events:none}
+.fp-media-mosaic .fp-video-tile{background:#292a28}
+.fp-media-mosaic .fp-video-tile .fp-video-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fp-media-mosaic .fp-video-tile video[hidden]{display:none}
+.fp-card-kicker{font-size:11px}
+body.fp-place-open .map-controls{top:calc(112px + env(safe-area-inset-top));bottom:auto!important;gap:7px;right:12px}
+body.fp-place-open .map-controls .circlebtn{min-height:44px}
+body.destination-selected .selection-feedback{display:none!important}
+body.destination-selected #destinationCard{left:14px;right:14px;bottom:calc(100px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;border-radius:22px;padding:17px 18px 16px;box-shadow:0 11px 40px #15161722}
+body.destination-selected .destination-title{font-size:20px;font-weight:790;line-height:1.32}
+body.destination-selected .destination-category{font-size:12px;line-height:1.5;margin:5px 0 11px;color:#89877e}
+body.destination-selected .destination-actions{display:flex;gap:8px}
+body.destination-selected #destinationStar,body.destination-selected #destinationNav{min-height:45px;border-radius:14px}
+@media(max-width:600px){
+ #fpPlaceCard{bottom:calc(12px + env(safe-area-inset-bottom));}
+ #fpPlaceCard[data-atlas-snap=full]:not([hidden]){bottom:max(env(safe-area-inset-bottom),5px)}
+ #fpPlaceCard .fp-card-header{padding-left:17px;padding-right:17px}
+ body.destination-selected .map-controls{opacity:.65;pointer-events:auto}
+}
+@media(prefers-reduced-motion:reduce){#fpSearchSheet,#fpPlaceCard{transition:none!important}}
+
+
+/* Final review: native Apple Maps-style one-place sheet; no duplicate top address bar. */
+body.destination-selected #selectionFeedback{display:none!important}
+body.destination-selected #searchDock{opacity:0!important;pointer-events:none!important;transition:opacity var(--atlas-dur-1) var(--atlas-ease)}
+body.destination-selected #destinationCard.visible{
+ left:50%!important;right:auto!important;bottom:calc(16px + env(safe-area-inset-bottom))!important;
+ width:min(560px,calc(100% - 28px))!important;max-width:560px!important;
+ transform:translateX(-50%) translateY(0)!important;
+ background:rgba(255,254,250,.98)!important;
+ border:1px solid rgba(224,222,215,.96)!important;border-radius:22px!important;
+ box-shadow:0 15px 44px rgba(21,25,22,.19)!important;
+ padding:17px 17px 15px!important;
+ transition:opacity var(--atlas-dur-2) var(--atlas-ease),transform var(--atlas-dur-3) cubic-bezier(.22,1,.36,1)!important;
+}
+body.destination-selected .destination-category{white-space:normal!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden!important}
+body.destination-selected .destination-actions button{min-height:43px;padding:10px 12px;min-width:0}
+body.destination-selected #destinationStar{background:#f4cb60;border-radius:14px;flex:1.25}
+body.destination-selected #destinationNav{background:#eeede7;border-radius:14px;flex:.75}
+body.destination-selected .map-controls{opacity:.86!important;pointer-events:auto!important}
+body.destination-selected #btnZoomIn,body.destination-selected #btnZoomOut{opacity:1!important}
+#atlasPoiOverlay .atlas-poi-hit:active{transform:translate(-50%,-50%) scale(.95)!important;transition:transform .12s ease}
+.atlas-vector-selection{width:38px!important;height:50px!important;animation:atlasPinDrop .26s cubic-bezier(.2,.8,.2,1)}
+.atlas-vector-selection:before{left:5px!important;top:3px!important;width:30px!important;height:30px!important;border-radius:50% 50% 50% 0!important;transform:rotate(-45deg)}
+.atlas-vector-selection i{left:16px!important;top:14px!important;width:9px!important;height:9px!important}
+.atlas-vector-selection:after{left:11px!important;width:19px!important}
+.amap-select-pin{transform-origin:50% 100%;animation:atlasPinDrop .24s ease-out}
+.amap-select-pin .pin-head{left:12px;top:3px;width:31px;height:31px}
+.amap-select-pin .pin-hole{left:22px;top:13px;width:11px;height:11px}
+body.fp-place-open #selectionFeedback{display:none!important}
+
+/* Native bookmark marker contains its own trip order: never draw independent stars. */
+body.route-pick-active #atlasBookmarkOverlay .atlas-bookmark-hit.route-pick-chosen,
+body.route-pick-active .star-pin.route-pick-chosen{position:absolute;z-index:20!important;overflow:visible!important;isolation:isolate}
+body.route-pick-active .route-pick-chosen[data-trip-order]::after{
+ content:attr(data-trip-order)!important;position:absolute!important;right:-7px!important;top:-8px!important;
+ z-index:4!important;width:22px!important;height:22px!important;
+ display:grid!important;place-items:center!important;font-size:12px!important;line-height:1!important;
+ background:#27312e!important;color:white!important;border:2px solid white!important;
+ border-radius:50%!important;box-shadow:0 2px 8px #12161444!important;
+ transform:none!important;pointer-events:none!important;
+}
+body.route-pick-active #atlasBookmarkOverlay{overflow:visible!important}
+
+/* Photos are editorial content first; controls remain secondary. */
+#fpPlaceCard{border-radius:22px!important;background:#fffefa!important;box-shadow:0 18px 52px #11181626}
+#fpPlaceCard .fp-card-name{font-size:21px!important;line-height:1.33;font-weight:770;letter-spacing:-.04em}
+#fpPlaceCard .fp-card-header{padding:12px 18px 11px!important}
+#fpPlaceCard .fp-card-scroll{padding:0 18px 20px!important}
+#fpPlaceCard .fp-subheading{margin:13px 0 8px}
+#fpPlaceCard .fp-subheading strong{font-size:11px;letter-spacing:.125em}
+#fpPlaceCard .fp-brief-text{max-height:none!important;overflow:visible!important;font-size:14px;line-height:1.65}
+#fpPlaceCard .fp-media-empty{border:1px dashed #ddd6c7;border-radius:14px;min-height:55px;margin:8px 0 10px;background:#f8f6f0}
+#fpPlaceCard .fp-media-empty .fp-empty-icon{width:36px;height:36px;flex:none;font-size:20px}
+#fpPlaceCard .fp-media-empty .fp-empty-text strong{font-size:12px}
+#fpPlaceCard .fp-media-empty .fp-empty-text small{font-size:11px}
+#fpPlaceCard .fp-media-empty .fp-btn-primary{padding:8px 10px;min-height:36px;font-size:11px}
+#fpPlaceCard .fp-media-mosaic{grid-template-rows:repeat(2,minmax(78px,104px));gap:5px;border-radius:14px;background:#edece7}
+#fpPlaceCard .fp-card-footer{border-top:1px solid #ece9e3;background:#fffefa}
+#fpPlaceCard .fp-social-list a{max-width:95%;border-radius:14px;min-height:43px}
+#fpPlaceCard .fp-card-chip{font-size:12px;font-weight:690}
+#fpPlaceCard .fp-card-chip.accent{background:#f4d887}
+#fpPlaceCard .fp-video-tile .fp-video-indicator{position:absolute;z-index:2;left:9px;bottom:9px;background:#14151677;border-radius:22px;width:23px;height:23px;display:grid;place-items:center;color:#fff;font-size:11px}
+#fpPlaceCard .fp-media-mosaic video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#2d2d2a}
+#fpPlaceCard .fp-media-mosaic .fp-video-tile:after{display:none}
+@media(max-width:390px){
+ #fpPlaceCard .fp-card-name{font-size:20px!important}
+ #fpPlaceCard .fp-media-empty .fp-empty-text small{display:none}
+ body.destination-selected #destinationCard.visible{padding:15px 14px!important}
+}
+
+
+/* iPhone stable map: nearby real OSM POIs with bounded density. */
+html.atlas-stable-map #atlasPoiOverlay{display:block!important;pointer-events:none!important;z-index:420!important}
+html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;touch-action:manipulation;display:flex;gap:5px;align-items:center;justify-content:center;min-width:36px;min-height:36px;border:0;background:transparent;color:#383a36;cursor:pointer;padding:0;max-width:160px}
+html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi i{display:block;flex:0 0 auto;width:10px;height:10px;border-radius:50%;border:2px solid #fff;background:#b89a4b;box-shadow:0 1px 5px #1114}
+html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi.is-named{background:rgba(255,254,251,.95);border:1px solid #e5e1d7;border-radius:14px;box-shadow:0 2px 9px #14171417;padding:5px 8px;min-height:33px}
+html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi span{font-size:11px;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.atlas-stable-map #atlasPoiOverlay .atlas-mobile-poi:active{transform:translate(-50%,-50%) scale(.96)}
+body.route-pick-active #atlasPoiOverlay .atlas-mobile-poi{pointer-events:none!important;opacity:.15}
+body.fp-place-open #atlasPoiOverlay .atlas-mobile-poi{pointer-events:none!important;opacity:.28}
+.atlas-light-selection-pin{position:absolute;width:39px;height:52px;transform:translate(-50%,-100%);pointer-events:none;z-index:7;filter:drop-shadow(0 3px 5px #2224);animation:atlasPinDrop .24s cubic-bezier(.22,.8,.31,1)}
+.atlas-light-selection-pin:before{content:"";position:absolute;left:5px;top:4px;width:30px;height:30px;background:#f5c44b;border:2px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg)}
+.atlas-light-selection-hole{position:absolute;left:16px;top:15px;width:10px;height:10px;background:#fffdf6;border-radius:50%;z-index:1}
+@media(prefers-reduced-motion:reduce){.atlas-light-selection-pin{animation:none}}
+
+/* Map marker wrapper must anchor its pointer to the exact coordinate, not its center. */
+.map-local-marker.atlas-light-selection-pin{transform:translate(-50%,-100%)!important;pointer-events:none!important}
+
+/* iPhone-native follow-finger gesture: suspend the spring only during a direct drag. */
+#fpPlaceCard[data-atlas-dragging="true"],#fpSearchSheet[data-atlas-dragging="true"]{
+ transition:none!important;animation:none!important;will-change:height;
+}
+/* Preserve the exact native yellow-star location and order badge inside that marker. */
+body.route-pick-active .atlas-bookmark-hit.route-pick-chosen::after,
+body.route-pick-active .star-pin.route-pick-chosen::after{
+ z-index:7!important;right:-9px!important;top:-12px!important;
+ width:24px!important;height:24px!important;
+ color:#fff!important;border-radius:50%!important;
+ background:#263631!important;border:2px solid #fff!important;
+ box-shadow:0 2px 10px rgba(0,0,0,.34)!important;
+}
+body.route-pick-active .atlas-bookmark-hit{overflow:visible!important}
+body.route-pick-active #atlasBookmarkOverlay{overflow:visible!important}
+/* The secondary POI callout never duplicates the iPhone location sheet. */
+#selectionFeedback{display:none!important}
+/* Keep the original search bar, zoom and star controls available in map browsing mode. */
+body.fp-place-open .map-controls{z-index:860!important}
+
+/* ── 批次C · 动效降级：prefers-reduced-motion ── */
+@media(prefers-reduced-motion:reduce){#atlasMapLoader .loader-star,#atlasMapLoader .loader-dots i,#atlasFirstStar .fs-star,#atlasFirstStar{animation:none!important}.atlas-bookmark-hit,.atlas-star-cluster,.fp-card-chip,.circlebtn,.search-dot::after{transition:none!important;animation:none!important}}

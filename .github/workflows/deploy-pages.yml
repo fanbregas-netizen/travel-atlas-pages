@@ -21,6 +21,10 @@ jobs:
       - name: Prepare public static site
         run: |
           mkdir -p _site
+          # Independent approved POI SVG animation review; root site remains byte-identical.
+          cp -R v4-review-20261116 _site/v4-review-20261116
+          test -s _site/v4-review-20261116/src/interaction/poi-svg-motion-v4.js
+          grep -q 'V4.C.ApprovedPoiSVG.20261116.9' _site/v4-review-20261116/index.html
           cp index.html route-view.html atlas-map-preview.html amap-import.html journey.html journey.css journey.js trip-picker.js trip-picker.css route-picking.css footprint-flow.js footprint-flow.css star-collage.js star-collage.css footprint-home.js footprint-home.css atlas-visit-media.js atlas-stage4-media.css atlas-stage5-archive.js atlas-stage5-backup-ui.js atlas-stage5-backup.css atlas-stage6-qa.js atlas-stage6-qa.css atlas-map-design.js atlas-route-buildings.js atlas-route-fallback.js atlas-road-routing.js atlas-stage3-itinerary.js atlas-stage3-itinerary.css atlas-phase1.js atlas-phase1.css atlas-mobile-poi.js atlas-orbit.css atlas-orbit.js atlas-stage5.js atlas-services.js sw.js manifest.webmanifest icon.svg _site/
           mkdir -p _site/v18
           cp v18/index.html _site/v18/index.html
