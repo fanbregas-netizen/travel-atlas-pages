@@ -143,13 +143,27 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  assert.ok(titles.includes('测试地点甲')&&titles.includes('测试地点乙'),'POI swaps title without visual handoff '+JSON.stringify(titles));
  assert.ok(Math.max(...offsets)>15,'POI sheet did not sink/rebound '+JSON.stringify(offsets));
  await page.locator('#destinationClose').click({timeout:10000});
- // Search must stay usable as an anchored real result sheet.
+ // Search history must really render and animate (an empty search deliberately
+ // leaves the anchored dropdown hidden, so it is not a valid spring probe).
+ await page.evaluate(()=>localStorage.setItem('fp-search-history-v1',
+  JSON.stringify([{q:'上海',name:'上海'}])));
  await page.locator('#dockSearch').click({timeout:14000});
  await page.waitForFunction(()=>document.body.classList.contains('fp-search-open'),null,{timeout:10000});
  diagnostics.searchOpen=await state(page);
  assert.equal(diagnostics.searchOpen.search.anchored,'anchored');
+ await page.waitForSelector('#fpSearchSheet:not([hidden]) .fp-search-row',{timeout:8500});
  const ghost=await page.evaluate(()=>getComputedStyle(document.getElementById('destinationCard')).visibility);
  assert.equal(ghost,'hidden','old POI still visible through foreground search');
+ await pause(1000);
+ diagnostics.searchHistory=await page.evaluate(()=>{
+  const e=document.getElementById('fpSearchSheet');
+  return {rows:e.querySelectorAll('.fp-search-row').length,
+   settled:e.dataset.fpElasticHistorySettled,peak:Number(e.dataset.fpElasticHistoryPeak||0),
+   scale:e.style.scale,visible:!e.hidden};
+ });
+ assert.ok(diagnostics.searchHistory.visible&&diagnostics.searchHistory.rows>0,'actual search-history dropdown not shown');
+ assert.ok(diagnostics.searchHistory.peak>1.01&&diagnostics.searchHistory.settled==='1',
+  'search history C V5 spring did not rebound and settle '+JSON.stringify(diagnostics.searchHistory));
  await page.screenshot({path:path.join(OUT,'05-search.png')});
  // Anchored search moves the functional "取消" control into the real top portal;
  // the legacy nested header X is intentionally hidden by the accepted layout.
@@ -186,8 +200,40 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  assert.ok(cardLayout.titleTop-cardLayout.gripTop>27,'visible grip overlaps the Chinese place title: '+JSON.stringify(cardLayout));
  await page.locator('#fpPlaceCard .fp-card-close').click({timeout:12000});
  await page.waitForFunction(()=>document.getElementById('fpPlaceCard')?.hidden,null,{timeout:9000});
- // Route entry must still exist; do not install a second routing system.
+ // The only route entry must hand off to the actual C V5 route page; verify
+ // existing controls, real route state and spring motor on 375/390/430px.
  assert.ok(await page.locator('#dockRoute').count(),'approved C V5 route Dock missing');
+ await page.locator('#dockRoute').click({timeout:15000});
+ await page.waitForURL(/\/journey\.html/,{timeout:20000});
+ await page.waitForSelector('#rc-main',{timeout:18000});
+ await page.waitForFunction(()=>!!window.__atlasRouteV5Live?.ready,null,{timeout:18000});
+ diagnostics.route=await page.evaluate(()=>({
+  owner:window.__atlasRouteV5Live?.originalV5Sha,
+  ready:window.__atlasRouteV5Live?.ready,
+  sharedMotor:window.FootprintV5Spring?.version,
+  routeSheets:document.querySelectorAll('#rc-main').length,
+  oldPlanner:document.querySelectorAll('#tpBar').length,
+  stage:window.__atlasRouteV5Live?.state?.stage
+ }));
+ assert.ok(diagnostics.route.ready&&diagnostics.route.sharedMotor&&
+  diagnostics.route.routeSheets===1&&diagnostics.route.oldPlanner===0,
+  'C V5 route not sole active owner '+JSON.stringify(diagnostics.route));
+ const routeWidths=[];
+ for(const width of [375,390,430]){
+  await page.setViewportSize({width,height:844});
+  await pause(330);
+  const layout=await page.evaluate(()=>{
+   const card=document.querySelector('#rc-main'),h=card.getBoundingClientRect();
+   const e=document.querySelector('#rc-title'),t=e?.getBoundingClientRect();
+   return {innerWidth,overflow:document.documentElement.scrollWidth-innerWidth,
+    card:h.height,title:e?.textContent,titleWidth:t?.width,cardWidth:h.width};
+  });
+  routeWidths.push(layout);
+  assert.ok(layout.overflow<6&&layout.card>100&&layout.cardWidth<=width+2,
+   'route responsive overflow or missing sheet '+JSON.stringify(layout));
+  await page.screenshot({path:path.join(OUT,'07-route-'+width+'.png')});
+ }
+ diagnostics.routeWidths=routeWidths;
  const fatal=errors.filter(e=>/TypeError|ReferenceError|SyntaxError|Uncaught/.test(e));
  diagnostics.errors=errors.slice(0,15);
  assert.deepEqual(fatal,[],'uncaught product runtime errors: '+JSON.stringify(fatal));
