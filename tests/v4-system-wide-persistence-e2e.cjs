@@ -48,6 +48,45 @@ const url='http://127.0.0.1:8766/travel-atlas-pages/v4-review-20261116/';
   await page.waitForFunction(()=>window.__atlasRouteV5Live.state.stage==='order');
   const ordering=await page.evaluate(()=>window.__atlasRouteV5Live.state.order);
   assert.deepEqual(new Set(ordering.map(x=>x.id)),new Set(ids));
+  // A real user must be able to reorder a station without opening a second
+  // planner. Keyboard ArrowDown on the approved drag grip is the accessible
+  // equivalent of the pointer gesture; the same state/order is persisted.
+  await page.locator('#rc-order-list [data-drag="0"]').focus();
+  await page.keyboard.press('ArrowDown');
+  await page.waitForFunction(id=>window.__atlasRouteV5Live.state.order[0]?.id===id,ids[1]);
+  await page.locator('#rc-order-list [data-drag="1"]').focus();
+  await page.keyboard.press('ArrowUp');
+  await page.waitForFunction(id=>window.__atlasRouteV5Live.state.order[0]?.id===id,ids[0]);
+  // Move the last stop to D3, shorten the trip to two days, verify the
+  // out-of-range D3 is clamped and the explicit undo restores BOTH date
+  // range and its original D3 assignment.
+  const initialRange=await page.evaluate(()=>window.__atlasRouteV5Live.state);
+  await page.locator('#rc-order-list [data-rc^="mini-day-"]').last().click();
+  await page.locator('#rc-mini-body [data-rc="day-set-3"]').click();
+  await page.waitForFunction(()=>window.__atlasRouteV5Live.state.order[1].day===3);
+  await page.locator('#rc-body [data-rc="mini-date"]').first().click();
+  await page.locator('#rc-mini-body [data-rc="date-weekend"]').click();
+  assert.equal((await page.evaluate(()=>window.__atlasRouteV5Live.state.start)),initialRange.start,
+   'uncommitted date draft changed the actual itinerary');
+  await page.locator('#rc-mini-bottom [data-rc="date-cancel"]').click();
+  assert.equal((await page.evaluate(()=>window.__atlasRouteV5Live.state.end)),initialRange.end,
+   'date cancel changed original end date');
+  await page.locator('#rc-body [data-rc="mini-date"]').first().click();
+  await page.locator('#rc-mini-body [data-rc="date-weekend"]').click();
+  await page.locator('#rc-mini-bottom [data-rc="date-commit"]').click();
+  await page.waitForFunction(()=>window.__atlasRouteV5Live.state.order[1].day===2);
+  const shortened=await page.evaluate(()=>window.__atlasRouteV5Live.state);
+  assert.notEqual(shortened.end,initialRange.end,'weekend shortcut failed to apply');
+  await page.locator('#rc-body [data-rc="date-undo"]').click();
+  const undone=await page.evaluate(()=>window.__atlasRouteV5Live.state);
+  assert.deepEqual({start:undone.start,end:undone.end,d:undone.order[1].day},
+    {start:initialRange.start,end:initialRange.end,d:3},
+    'date undo failed to restore route day and dates');
+  await page.locator('#rc-body [data-rc="mini-date"]').first().click();
+  await page.locator('#rc-mini-body [data-rc="date-weekend"]').click();
+  await page.locator('#rc-mini-bottom [data-rc="date-commit"]').click();
+  await page.waitForFunction(()=>window.__atlasRouteV5Live.state.order[1].day===2);
+  const committedDate=await page.evaluate(()=>window.__atlasRouteV5Live.state);
   await page.screenshot({path:path.join(OUT,'01-order.png')});
   await page.locator('#rc-footer [data-rc="stage-preview"]').click();
   await page.locator('#rc-footer [data-rc="mini-save"]').click();
@@ -61,12 +100,18 @@ const url='http://127.0.0.1:8766/travel-atlas-pages/v4-review-20261116/';
   });
   assert.equal(route?.id,savedId);
   assert.deepEqual(new Set(route.stops.map(x=>x.placeId)),new Set(ids));
+  assert.equal(route.startDate,committedDate.start);
+  assert.equal(route.endDate,committedDate.end);
+  assert.equal(route.stops[1].day,2,'clamped D2 itinerary was not persisted');
   await page.screenshot({path:path.join(OUT,'02-saved-route.png')});
   await page.goto(url+'journey.html?saved='+encodeURIComponent(savedId),{waitUntil:'domcontentloaded',timeout:60000});
   await page.waitForFunction(()=>window.__atlasRouteV5Live?.ready,null,{timeout:25000});
   const reopened=await page.evaluate(()=>window.__atlasRouteV5Live.state);
   assert.equal(reopened.savedId,savedId);
   assert.deepEqual(new Set(reopened.order.map(x=>x.id)),new Set(ids));
+  assert.deepEqual({start:reopened.start,end:reopened.end,days:reopened.order.map(x=>x.day)},
+   {start:committedDate.start,end:committedDate.end,days:committedDate.order.map(x=>x.day)},
+   'reopened route dates, D labels or order differ from saved itinerary');
   const backup=await page.evaluate(async()=>{
    const core=window.FootprintMediaCore,r=core.createRepository(indexedDB);
    const zip=await r.backup(),snapshot=await core.readBackup(zip);
@@ -154,7 +199,7 @@ const url='http://127.0.0.1:8766/travel-atlas-pages/v4-review-20261116/';
   assert.deepEqual(uiImport,{photo:1,video:1,saved:true},
     'import button altered existing media or route');
   assert.deepEqual(errors.filter(x=>/TypeError|SyntaxError|ReferenceError/.test(x)),[],'runtime errors');
-  const evidence={browserName,before,ordering,savedId,reopened,backup,after,fromUi,uiImport,errors};
+  const evidence={browserName,before,ordering,initialRange,shortened,undone,committedDate,savedId,reopened,backup,after,fromUi,uiImport,errors};
   fs.writeFileSync(path.join(OUT,'evidence.json'),JSON.stringify(evidence,null,2));
   console.log('PASS REAL V4 ROUTE SAVE + MEDIA BACKUP '+browserName+' '+JSON.stringify({savedId,backup,after}));
   await ctx.close();

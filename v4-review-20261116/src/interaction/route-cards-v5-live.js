@@ -362,7 +362,7 @@ function chooseDate(v){
   state.calendarStep='end';refreshMini();
  }else{
   const span=diffDays(state.start,v);
-  if(span>30){toast('演示最多支持 30 天行程');return}
+  if(span>30){toast('单次行程最长支持30天');return}
   state.end=v;renderStage();
   closeMini();toast('旅行日期已更新');
  }
@@ -751,7 +751,7 @@ window.__batchC={version:'V5-confirmed-date-and-auto-days',show:showReview,open:
     if(cmd==='date-commit'){
       if(!dateDraft?.start||!dateDraft?.end||dateDraft.end<dateDraft.start){toast('请选择有效的出发与结束日期');return}
       if(dateDraft.start<datePlus(0)){toast('过去日期不能选择');return}
-      if(diffDays(dateDraft.start,dateDraft.end)>30){toast('演示最多选择30天');return}
+      if(diffDays(dateDraft.start,dateDraft.end)>30){toast('单次行程最长支持30天');return}
       const before={start:state.start,end:state.end,days:state.stops.map(p=>({id:p.id,day:p.day}))};
       const prevCount=Math.max(1,diffDays(before.start,before.end));
       const nextCount=Math.max(1,diffDays(dateDraft.start,dateDraft.end));
@@ -791,7 +791,7 @@ window.__batchC={version:'V5-confirmed-date-and-auto-days',show:showReview,open:
         dateDraft.start=v;if(dateDraft.end<v)dateDraft.end=v;
         dateDraft.phase='end';
       }else{
-        if(diffDays(dateDraft.start,v)>30){toast('演示最多选择30天');return}
+        if(diffDays(dateDraft.start,v)>30){toast('单次行程最长支持30天');return}
         dateDraft.end=v;dateDraft.phase='done';
       }
       refreshMini();
