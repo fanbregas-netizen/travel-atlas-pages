@@ -10,7 +10,7 @@ const artifact='v4-current-pages-evidence';
 fs.mkdirSync(artifact,{recursive:true});
 const chrome=['google-chrome','google-chrome-stable','chromium'].map(x=>{try{return cp.execFileSync('which',[x],{encoding:'utf8'}).trim()}catch{return null}}).find(Boolean);
 if(!chrome)throw Error('Chrome not installed');
-const stamp='V4.C.ApprovedPoiSVG.20261116.9';
+const stamp='V4.C.PagesParity.20261116.10';
 async function probe(){
  const browser=await chromium.launch({headless:true,executablePath:chrome,args:['--no-sandbox','--disable-dev-shm-usage']});
  const report=[];
@@ -49,6 +49,11 @@ async function probe(){
    assert.deepEqual(errors,[],width+' page JavaScript errors');
 
    if(width===390){
+    result.categories=await page.evaluate(()=>{
+      const kinds=['mountain','sea','forest','town','creative','lake','food','stay','museum','park','coffee','transit','shopping','school','hospital','library','pharmacy','bank','parking','sport','civic','worship'];
+      return kinds.map(k=>({category:k,resolved:window.AtlasPOIMotion?.categoryId(k,k)?.id||null}));
+    });
+    assert.ok(result.categories.every(x=>x.resolved),'One or more of the approved 22 internal SVG categories cannot be resolved: '+JSON.stringify(result.categories.filter(x=>!x.resolved)));
     await page.evaluate(()=>{
      const probe=document.createElement('div');probe.id='poiSvgAcceptanceProbe';
      probe.className='fp-vector-token';probe.style.cssText='position:fixed;top:-100px;left:-100px;width:48px;height:48px';
