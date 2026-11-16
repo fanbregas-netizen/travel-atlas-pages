@@ -1149,6 +1149,7 @@
     $('navLinks').replaceChildren();for(const [name,url] of links){const a=document.createElement('a');a.textContent='↗ '+name;a.href=url;a.target='_blank';a.rel='noopener noreferrer';$('navLinks').append(a)}
     $('navigationChooser').classList.add('visible');
   }
+  window.__atlasOpenNavigation=openNavigation;
   function layoutMemoryAtlas(place){
     if(!place||!map)return;
     const note=$('memoryNote'), col=$('memoryColumn'), strip=$('memoryStrip'), closeBtn=$('closeMemory');
