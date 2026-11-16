@@ -111,6 +111,19 @@ function sourceFor(id){
   }).catch(err=>{templateCache.delete(id);throw err});
  templateCache.set(id,promise);return promise;
 }
+// Compose one SVG motion per category while idle, not during a live tap.
+const preparedCache=new Map();
+function preparedFor(entry){
+ if(preparedCache.has(entry.id))return preparedCache.get(entry.id);
+ const promise=sourceFor(entry.id).then(source=>{
+  const svg=document.importNode(source,true);
+  svg.removeAttribute('width');svg.removeAttribute('height');
+  svg.setAttribute('aria-hidden','true');svg.classList.add('fp-internal-poi-svg');
+  addDetails(svg,entry.id,durations[entry.kind]);
+  return svg;
+ }).catch(error=>{preparedCache.delete(entry.id);throw error});
+ preparedCache.set(entry.id,promise);return promise;
+}
 function categoryId(category,name){
  const raw=String(category||'').trim().toLowerCase();
  // Upstream may supply the canonical POI category (sea, town, food, etc.)
@@ -127,12 +140,9 @@ function play(target,category,name){
  const entry=categoryId(category,name);if(!entry)return;
  // One animation owner per target; no animation during every mapmove/zoom frame.
  const token=String(++sequence);target.dataset.poiMotionRequest=token;
- sourceFor(entry.id).then(source=>{
+ preparedFor(entry).then(template=>{
   if(!target.isConnected||target.dataset.poiMotionRequest!==token||reduced())return;
-  const svg=document.importNode(source,true);
-  svg.removeAttribute('width');svg.removeAttribute('height');
-  svg.setAttribute('aria-hidden','true');svg.classList.add('fp-internal-poi-svg');
-  addDetails(svg,entry.id,durations[entry.kind]);
+  const svg=template.cloneNode(true);
   const shell=document.createElement('span');shell.className='fp-internal-poi-envelope';shell.append(svg);
   target.replaceChildren(shell);
   // Force ONLY the artwork's scale; the map library owns georeferenced location.
@@ -172,5 +182,24 @@ function playStar(marker){
   a.remove();svg.classList.remove('fp-internal-star-animate');starActive.delete(svg);
  },960);
 }
-window.AtlasPOIMotion=Object.freeze({play,playStar,categoryId,version:'v4-internal-svg-10'});
+// Load two trusted icon families per idle slice after the main map settles.
+function prewarm(){
+ const categories=Object.keys(categoryToFile);let i=0;
+ const schedule=()=>{
+  if(i>=categories.length)return;
+  if('requestIdleCallback' in window)window.requestIdleCallback(step,{timeout:1800});
+  else setTimeout(()=>step(null),75);
+ };
+ const step=deadline=>{
+  let count=0;
+  while(i<categories.length&&count<2&&(count===0||!deadline||deadline.timeRemaining()>3)){
+   const kind=categories[i++];preparedFor({kind,id:categoryToFile[kind]}).catch(()=>{});count++;
+  }
+  schedule();
+ };
+ schedule();
+}
+if(document.readyState==='complete')setTimeout(prewarm,550);
+else window.addEventListener('load',()=>setTimeout(prewarm,550),{once:true});
+window.AtlasPOIMotion=Object.freeze({play,playStar,categoryId,version:'v4-internal-svg-13'});
 })();
