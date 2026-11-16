@@ -136,6 +136,9 @@ function openSearch(){
  if(activeSearch){searchInput.focus({preventScroll:true});return}
  if($('drawer')?.classList.contains('visible'))$('closeDrawer')?.click();
  if(activePlaceId)closePlace(true);
+ // Search owns the foreground. Dismiss the ordinary map POI, not only the
+ // saved-place card; otherwise its old preview ghosts under the search veil.
+ if($('destinationCard')?.classList.contains('visible'))window.__atlasDemo?.close?.();
  searchReset();activeSearch=true;searchUsed=false;
  const form=searchSheet.querySelector('.fp-search-bar');
  if(form&&searchTopPortal){searchTopPortal.prepend(form);searchTopPortal.hidden=false}

@@ -121,6 +121,8 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  await page.waitForFunction(()=>document.body.classList.contains('fp-search-open'),null,{timeout:10000});
  diagnostics.searchOpen=await state(page);
  assert.equal(diagnostics.searchOpen.search.anchored,'anchored');
+ const ghost=await page.evaluate(()=>getComputedStyle(document.getElementById('destinationCard')).visibility);
+ assert.equal(ghost,'hidden','old POI still visible through foreground search');
  await page.screenshot({path:path.join(OUT,'05-search.png')});
  // Anchored search moves the functional "取消" control into the real top portal;
  // the legacy nested header X is intentionally hidden by the accepted layout.

@@ -25,6 +25,10 @@ assert.match(collection,/document\.addEventListener\('pointermove'/);
 assert.match(collection,/document\.addEventListener\('pointerup'/);
 assert.match(collection,/let wasVisible=el\.classList\.contains\('visible'\)/);
 assert.match(poi,/el\.inert=!!renew/);
+assert.match(home,/window\.__atlasDemo\?\.close\?\.\(\)/);
+const cleanPoiCss=read('src/visual/real-poi-card-spring-v19.css');
+assert.match(cleanPoiCss,/body\.fp-search-open #destinationCard/);
+
 assert.match(poi,/const poiMotion=new WeakMap/);
 const journey=read('journey.html'),route=read('src/interaction/route-cards-v5-live.js');
 assert.ok(journey.indexOf('v5-unified-spring.js')<journey.indexOf('route-cards-v5-live.js'));
