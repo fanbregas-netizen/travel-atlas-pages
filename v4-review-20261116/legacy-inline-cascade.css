@@ -1,9 +1,9 @@
 /*
- Footprint Map V4 | preserved legacy CSS cascade snapshot.
- Original 32 inline <style> blocks extracted in exact source order.
- NO selector/property changes in this first safety cleanup. Keep next to
- index.html so relative url(...) paths remain identical to inline CSS.
- Future consolidation must compare full iPhone render states before replacing.
+ Footprint Map V4 | conservatively reduced legacy CSS cascade.
+ The original 32 inline style blocks stay in source order. Exactly 84
+ top-level rules used only by the retired Stage1 route-picker were removed.
+ tests/v4-retired-route-css-filter.cjs proves every other original CSS rule
+ remains byte-identical. Future changes still require cross-browser checks.
 */
 /* ===== original inline style 01/32  ===== */
 
