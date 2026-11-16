@@ -22,8 +22,18 @@ async function probe(){
    page.on('response',r=>{
     if(r.url().startsWith(root)&&r.status()>=400)broken.push({code:r.status(),url:r.url()});
    });
-   const response=await page.goto(root+'index.html?verify='+Date.now(),{waitUntil:'domcontentloaded',timeout:60000});
-   await page.waitForTimeout(1800);
+   let response=null,recovered=false;
+   // A 200 HTML with 503 core JS is NOT a healthy product. Retry a bounded
+   // number of loads, then fail if the real detail card is still missing.
+   for(let attempt=0;attempt<4;attempt++){
+    broken.length=0;errors.length=0;
+    response=await page.goto(root+'index.html?verify='+Date.now()+'-'+attempt,{waitUntil:'domcontentloaded',timeout:60000});
+    await page.waitForFunction(()=>!!document.querySelector('#fpPlaceCard')&&!!window.__atlasDemo?.select,null,{timeout:4800}).catch(()=>null);
+    const healthy=await page.evaluate(()=>!!document.querySelector('#fpPlaceCard')&&!!window.FootprintMediaCore?.createRepository);
+    if(healthy&&!broken.some(x=>x.code>=500)){recovered=true;break}
+    if(attempt<3)await page.waitForTimeout(400*(attempt+1));
+   }
+   assert.ok(recovered,'persistent Pages HTTP 503 or missing core script '+JSON.stringify(broken));
    const home=await page.evaluate(()=>({
     version:document.querySelector('meta[name="atlas-pages-preview"]')?.getAttribute('content')||document.querySelector('meta[name="atlas-release"]')?.getAttribute('content')||null,
     status:document.readyState,
