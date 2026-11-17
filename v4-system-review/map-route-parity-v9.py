@@ -99,6 +99,7 @@ if p.name=='route-cards-v5-live.js':
   if(!livePickedPoint(lng,lat,point?.name||''))return;
   // Same camera motor as approved homepage: move the geographic POI to
   // the true center without zooming the MAP or offsetting the anchor.
+  followSelectedUntilSettled();
   const focusSerial=++liveTapFocusSerial;
   // The icon responds immediately. Begin camera travel after the
   // card's 100ms map-height transition, otherwise the anchor drifts.
@@ -130,13 +131,25 @@ if p.name=='route-cards-v5-live.js':
  function keepSelectedRouteGeoAligned(){
   if(!liveMap||!liveTopPlaceId)return;
   const place=allPlaces.find(p=>String(p.id)===String(liveTopPlaceId));
-  const pin=routeMap.querySelector('#rc-map-pins .fp-route-tapped');
+  const pin=Array.from(routeMap.querySelectorAll('#rc-map-pins [data-place-id]'))
+   .find(n=>n.dataset.placeId===String(liveTopPlaceId));
   if(!place||!pin||pin.dataset.placeId!==String(liveTopPlaceId))return;
   const frame=liveMap.getContainer(),point=liveMap.project([+place.lng,+place.lat]);
   if(!frame.clientWidth||!frame.clientHeight)return;
   const x=point.x/frame.clientWidth*100,y=point.y/frame.clientHeight*100;
   if(Math.abs((parseFloat(pin.style.left)||0)-x)>.03)pin.style.left=x+'%';
   if(Math.abs((parseFloat(pin.style.top)||0)-y)>.03)pin.style.top=y+'%';
+ }
+ let routeGeoFollowRun=0;
+ function followSelectedUntilSettled(){
+  const run=++routeGeoFollowRun,started=performance.now();
+  const frame=()=>{
+   if(run!==routeGeoFollowRun||!liveMap)return;
+   keepSelectedRouteGeoAligned();
+   // One existing pin, one geographic projection each frame; no DOM rebuild.
+   if(performance.now()-started<1150)requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
  }
  liveMap.on('render',keepSelectedRouteGeoAligned);
  liveMap.on('idle',keepSelectedRouteGeoAligned);
@@ -146,7 +159,7 @@ if p.name=='route-cards-v5-live.js':
   const pin=e.target.closest('button[data-place-id]');if(!pin)return;
   const place=allPlaces.find(p=>String(p.id)===pin.dataset.placeId);
   if(!place)return;
-  liveTopPlaceId=place.id;++liveTapFocusSerial;
+  liveTopPlaceId=place.id;++liveTapFocusSerial;followSelectedUntilSettled();
   requestAnimationFrame(()=>{
    const pane=routeMap.querySelector('#rc-map-pins');
    const current=Array.from(pane?.querySelectorAll('[data-place-id]')||[]).find(n=>n.dataset.placeId===String(place.id));
