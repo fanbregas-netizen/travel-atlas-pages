@@ -522,8 +522,8 @@ function paintAnchors(){
  if(![a,b,p,q].every(valid))return;
  el('fpRouteStartLine').setAttribute('d','M '+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L '+p.x.toFixed(1)+' '+p.y.toFixed(1));
  el('fpRouteEndLine').setAttribute('d','M '+q.x.toFixed(1)+' '+q.y.toFixed(1)+' L '+b.x.toFixed(1)+' '+b.y.toFixed(1));
- positionPin('fpRouteStartPin',a,a.x>-30&&a.x<w+30&&a.y>-30&&a.y<h+30);
- positionPin('fpRouteEndPin',b,b.x>-30&&b.x<w+30&&b.y>-30&&b.y<h+30);
+ positionPin('fpRouteStartPin',a,a.x>35&&a.x<w-35&&a.y>145&&a.y<h-175);
+ positionPin('fpRouteEndPin',b,b.x>35&&b.x<w-35&&b.y>145&&b.y<h-175);
 }
 function bindMapProjection(){
  var tries=0;
@@ -531,6 +531,18 @@ function bindMapProjection(){
   var map=window.__atlasRV?.currentMap;
   if(map&&typeof map.project==='function'){
    anchorMap=map;
+   // Fit the real map ONCE to both fixed endpoints and all selected route stops.
+   // This avoids a start pin crowding the navigation header while preserving
+   // camera freedom during manual route edits.
+   if(!map.__fpRoutePreviewFitted && typeof map.fitBounds==='function'){
+    try{
+     const pts=[pickOrigin(),pickDestination()].concat(state.order.map(find).filter(Boolean));
+     const lat=pts.map(p=>Number(p.lat)),lng=pts.map(p=>Number(p.lng));
+     map.fitBounds([[Math.min(...lng),Math.min(...lat)],[Math.max(...lng),Math.max(...lat)]],
+       {padding:{top:155,bottom:245,left:46,right:46},duration:330,maxZoom:10});
+     map.__fpRoutePreviewFitted=true;
+    }catch(_){}
+   }
    try{map.on?.('move',scheduleAnchors)}catch(_){}
    try{map.on?.('zoom',scheduleAnchors)}catch(_){}
    scheduleAnchors();return;
