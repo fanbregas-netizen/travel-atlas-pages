@@ -136,7 +136,7 @@ jobs:
                           old='<script defer src="./src/interaction/route-cards-v5-live.js?v=fluid-3"></script>'
                           assert old in html
                           shared='<script defer src="./atlas-map-design.js"></script>\n<script defer src="./atlas-route-buildings.js"></script>'
-                          html=html.replace(old,shared+'\n'+old.replace('v=fluid-3','v=map-route-focus-13'),1)
+                          html=html.replace(old,shared+'\n'+old.replace('v=fluid-3','v=map-route-focus-14'),1)
                       if page=='index.html':
                           html=html.replace('poi-svg-motion-v4.js?v=cv5-18','poi-svg-motion-v4.js?v=poi-pop-5')
                           assert 'poi-pop-5' in html
@@ -148,7 +148,7 @@ jobs:
                   style='<link rel="stylesheet" href="./scope-review.css?v=scope-1">'
                   script='<script src="./scope-review.js?v=scope-1" data-scope="'+scope+'"></script>'
                   if scope=='map':
-                      style='<link rel="stylesheet" href="./map-visual-parity.css?v=map-only-8">\n'+style
+                      style='<link rel="stylesheet" href="./map-visual-parity.css?v=map-only-9">\n'+style
                   if scope=='visual':
                       style='<link rel="stylesheet" href="./visual-parity.css?v=visual-only-1">\n'+style
                       script='<script src="./visual-compare.js?v=visual-only-1"></script>\n'+script
