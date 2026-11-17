@@ -64,7 +64,8 @@ async function drag(page,ctx,x,y,distance,sample){
    await page.screenshot({path:out+'/collection-'+width+'.png'});
    await page.goto(base+'journey.html?interaction-qa='+width,{waitUntil:'domcontentloaded',timeout:60000});
    await page.waitForFunction(()=>!!window.__atlasRouteV5Live?.ready&&!!window.__batchC?.state&&!!document.querySelector('#rc-main'),null,{timeout:25000});
-   await sleep(300);
+   // Wait for the approved 530ms entrance before testing its settled touch surface.
+   await sleep(860);
    const measure=()=>{
     const card=document.querySelector('#rc-main'),map=document.querySelector('#rc-map');
     return {h:card.getBoundingClientRect().height,bottom:parseFloat(getComputedStyle(map).bottom),
@@ -74,8 +75,10 @@ async function drag(page,ctx,x,y,distance,sample){
    assert.equal(parseFloat(routeStart.transition),0,'route map boundary still has delayed CSS transition');
    const handle=await page.locator('#rc-grab .rc-handle').boundingBox();
    assert.ok(handle,'missing C V5 route card grip');
+   await page.screenshot({path:out+'/route-before-'+width+'.png'});
    const routeUp=await drag(page,ctx,handle.x+handle.width/2,handle.y+handle.height/2,-133,measure);
-   assert.ok(Math.max(...routeUp.points.map(p=>p.h))>routeStart.h+40,'route card not following upward finger');
+   fs.writeFileSync(out+'/route-drag-'+width+'.json',JSON.stringify({start:routeStart,handle,drag:routeUp},null,2));
+   assert.ok(Math.max(...routeUp.points.map(p=>p.h))>routeStart.h+40,'route card not following upward finger: '+JSON.stringify({routeStart,handle,points:routeUp.points,rest:routeUp.rest}));
    // Map edge and sheet edge must remain synchronized WHILE dragging.
    assert.ok(routeUp.points.every(p=>Math.abs(p.h-p.bottom)<4),'route map boundary visually lags the sheet');
    assert.ok(routeUp.rest.h>routeStart.h+35,'route card did not advance detent');
