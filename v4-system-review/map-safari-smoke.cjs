@@ -288,6 +288,37 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.equal(picker.hasOldBlackBuildingOverlay,false);
     assert.ok(picker.sourceCount>0,'Real vector basemap layers should load');
     assert.ok(await page.evaluate(()=>!!window.AtlasFigureGround?.palette),'Route needs the exact home map paint palette');
+    // Screenshot regression: C V5 card can move through three heights
+    // without ever changing or scaling the geographic map/WebGL canvas.
+    const invariant=await page.evaluate(async()=>{
+      const map=document.getElementById('rc-map'),
+        canvas=document.querySelector('#rc-live-map-canvas canvas'),
+        sheet=document.getElementById('rc-main');
+      const previous=sheet.style.height;
+      const sample=()=>({mapWidth:map.getBoundingClientRect().width,
+        mapHeight:map.getBoundingClientRect().height,
+        canvasWidth:canvas.getBoundingClientRect().width,
+        canvasHeight:canvas.getBoundingClientRect().height,
+        sheetTop:sheet.getBoundingClientRect().top});
+      const tick=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      const initial=sample();
+      sheet.style.height='77%';await tick();const expanded=sample();
+      sheet.style.height='32%';await tick();const collapsed=sample();
+      sheet.style.height=previous;await tick();const restored=sample();
+      return {initial,expanded,collapsed,restored,
+        viewportHeight:document.getElementById('rc-shell').getBoundingClientRect().height};
+    });
+    assert.ok(Math.abs(invariant.expanded.sheetTop-invariant.collapsed.sheetTop)>100,
+      'Route sheet did not change height as simulated: '+JSON.stringify(invariant));
+    for(const phase of ['expanded','collapsed','restored']){
+      const b=invariant[phase],a=invariant.initial;
+      assert.ok(Math.abs(b.mapHeight-a.mapHeight)<1&&Math.abs(b.mapWidth-a.mapWidth)<1,
+        'The map viewport resized when sheet moved: '+JSON.stringify(invariant));
+      assert.ok(Math.abs(b.canvasHeight-a.canvasHeight)<1&&Math.abs(b.canvasWidth-a.canvasWidth)<1,
+        'MapLibre canvas was stretched when sheet moved: '+JSON.stringify(invariant));
+    }
+    assert.ok(Math.abs(invariant.initial.mapHeight-invariant.viewportHeight)<2,
+      'Route map must fill the unscaled full screen behind card: '+JSON.stringify(invariant));
     await page.locator('[data-rc="source-map"]').first().click({timeout:12000});
     await page.waitForFunction(()=>document.querySelector('#rc-map')?.classList.contains('rc-map-picking'),{timeout:15000});
     await page.evaluate(()=>{
@@ -305,13 +336,18 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     const routePoi=await page.evaluate(()=>{
       const map=window.__atlasLivePlannerMap,pin=document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),
         frame=document.getElementById('rc-map').getBoundingClientRect(),img=pin?.querySelector('.fp-route-poi-art');
+      const visible=window.__atlasRouteViewportQA?.();
       const x=(parseFloat(pin?.style.left)||0)*frame.width/100,
         y=(parseFloat(pin?.style.top)||0)*frame.height/100;
       return {
         pinCount:document.querySelectorAll('#rc-map-pins [data-place-id^="live-map-"]').length,
         foreground:pin?.classList.contains('fp-route-tapped'),zIndex:Number(getComputedStyle(pin).zIndex),
         hasHanddrawnIcon:!!img&&/\/icons\/(?:16_add_place|21_mountain|22_sea|23_forest|24_town|26_lake|43_food|44_stay|45_museum|46_park|47_coffee|48_transit)\.svg$/.test(img.getAttribute('src')||''),
-        centerErrorPx:Math.hypot(x-frame.width/2,y-frame.height/2),zoom:map.getZoom(),
+        centerErrorPx:Math.hypot(x-frame.width/2,y-(visible?.targetY??frame.height/2)),
+        visibleAboveSheet:y<(visible?.sheetTop??frame.height)-16,
+        mapUncoveredBottom:visible?.visibleBottom,
+        targetY:visible?.targetY,sheetTop:visible?.sheetTop,
+        zoom:map.getZoom(),
         frameSize:[frame.width,frame.height],
         canvasSize:[map.getContainer().clientWidth,map.getContainer().clientHeight],
         mapProjectedCenter:[map.project(map.getCenter()).x,map.project(map.getCenter()).y],
@@ -323,7 +359,9 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.equal(routePoi.foreground,true,'Route POI lost selected foreground after motion');
     assert.ok(routePoi.zIndex>=16,'Selected route POI not in top map layer');
     assert.equal(routePoi.hasHanddrawnIcon,true,'Route POI did not reuse V3 handdrawn art');
-    assert.ok(routePoi.centerErrorPx<3,'Selected route pin did not settle at geographic viewport center: '+JSON.stringify(routePoi));
+    assert.ok(routePoi.centerErrorPx<5,'Selected route POI not centered in exposed map above card: '+JSON.stringify(routePoi));
+    assert.equal(routePoi.visibleAboveSheet,true,
+      'C V5 card covers the selected map point: '+JSON.stringify(routePoi));
     await page.screenshot({path:`map-evidence/route-map-poi-home-parity-${width}.png`,animations:'disabled'});
 
     await page.waitForTimeout(570);
