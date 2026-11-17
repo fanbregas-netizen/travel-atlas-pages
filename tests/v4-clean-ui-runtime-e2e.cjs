@@ -277,6 +277,9 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  await page.waitForURL(/\/journey\.html/,{timeout:20000});
  await page.waitForSelector('#rc-main',{timeout:18000});
  await page.waitForFunction(()=>!!window.__atlasRouteV5Live?.ready,null,{timeout:18000});
+ const readyCardHeight=await page.evaluate(()=>document.querySelector('#rc-main')?.getBoundingClientRect().height||0);
+ assert.ok(readyCardHeight>=280,
+  'C V5 startup announced ready before its real card was fully mounted '+readyCardHeight);
  diagnostics.route=await page.evaluate(()=>({
   owner:window.__atlasRouteV5Live?.originalV5Sha,
   ready:window.__atlasRouteV5Live?.ready,

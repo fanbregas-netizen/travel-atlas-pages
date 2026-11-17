@@ -1234,7 +1234,14 @@ async function liveBoot(){
  }
  state.active=true;document.body.classList.add('rc-v3-on');shell.classList.add('rc-active');
  state.stage=state.stops.length>=2?'order':'select';
- renderStage();snap(state.stage==='order'?'half':'half');liveMapAction();
+ // Match reviewed C V5: mount the half-height route card synchronously.
+ // The previous live adapter sprang from zero, and WebKit could hold its
+ // initial 44px-only grip for a prolonged frame while tile scripts loaded.
+ // User swipes and later snaps still use the approved C V5 spring.
+ renderStage();
+ cancelAnimationFrame(sheetMotion);sheetMotion=0;sheetVelocity=0;
+ paintHeight(snapPx('half'));targetHeight=height;sheetLevel='half';
+ liveMapAction();
  // The map is a real geographic layer under the EXACT C V5 card.
  // It is nonblocking and does not own the sheet, stars, or route persistence.
  liveMountMap().catch(e=>{console.warn('路线地图加载',e);toast('地图暂时不可用，路线编辑仍可使用')});
