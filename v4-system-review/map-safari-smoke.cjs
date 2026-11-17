@@ -42,11 +42,11 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       window.__atlasPOIBridge.select({...p,id:'ci-native-poi-one'});
       const tok=document.querySelector('.atlas-vector-selection .fp-vector-token');
       window.__mapTestFirstToken=tok;
-      return {scale:tok?.style.scale,animations:tok?.getAnimations().length,
+      return {transform:tok?.style.transform,animations:tok?.getAnimations().length,
         markerCount:document.querySelectorAll('.atlas-vector-selection').length,
         moving:window.__atlasPOIBridge.vector().isMoving()};
     },first);
-    assert.equal(selected.scale,'1.34','Selected geographic POI must enlarge itself');
+    assert.equal(selected.transform,'scale(1.34)','Selected geographic POI must enlarge itself');
     assert.ok(selected.animations>=1,'POI token must have a native spring pop animation');
     assert.equal(selected.markerCount,1,'Exactly one selected POI marker');
     assert.equal(selected.moving,false,'Map camera must not animate on POI selection');
@@ -54,33 +54,34 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     // Require a measured scale ABOVE the 1.34 settled marker size.
     await page.waitForFunction(()=>{
       const tok=document.querySelector('.atlas-vector-selection .fp-vector-token');
-      return !!tok&&parseFloat(getComputedStyle(tok).scale)>1.42;
+      const m=tok&&getComputedStyle(tok).transform;
+      return !!m&&m.startsWith('matrix(')&&parseFloat(m.slice(7))>1.42;
     },null,{timeout:1300});
     await page.waitForTimeout(65);
     const mid=await page.evaluate(()=>{
       const tok=document.querySelector('.atlas-vector-selection .fp-vector-token');
-      return {scale:tok?getComputedStyle(tok).scale:null,
+      return {scale:tok?getComputedStyle(tok).transform:null,
         moving:window.__atlasPOIBridge.vector().isMoving()};
     });
-    assert.ok(mid.scale&&parseFloat(mid.scale)>1.04,'The POI itself must visibly grow: '+JSON.stringify(mid));
+    assert.ok(mid.scale&&mid.scale.startsWith('matrix(')&&parseFloat(mid.scale.slice(7))>1.04,'The POI itself must visibly grow: '+JSON.stringify(mid));
     assert.equal(mid.moving,false,'Only icon animation, not map zoom');
     await page.waitForTimeout(410);
     const afterPoiCamera=await page.evaluate(()=>window.__atlasCameraQA());
     assert.ok(Math.abs(afterPoiCamera.zoom-beforePoiCamera.zoom)<0.005,'POI tap must not zoom the MAP');
     assert.ok(Math.abs(afterPoiCamera.lat-beforePoiCamera.lat)<0.00001&&Math.abs(afterPoiCamera.lng-beforePoiCamera.lng)<0.00001,
       'POI tap must not pan the MAP');
-    assert.equal(await page.locator('.atlas-vector-selection .fp-vector-token').evaluate(el=>el.style.scale),'1.34',
+    assert.equal(await page.locator('.atlas-vector-selection .fp-vector-token' ).evaluate(el=>el.style.transform),'scale(1.34)',
       'POI stays enlarged after gentle overshoot and settle');
     await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='海浪动效测试',{timeout:17000});
     await page.waitForFunction(()=>!!document.querySelector('.fp-internal-poi-svg'),{timeout:17000});
     const switched=await page.evaluate(p=>{
       window.__atlasPOIBridge.select({...p,name:'公园切点测试',category:'park',id:'ci-native-poi-two'});
-      return {prevScale:window.__mapTestFirstToken?.style.scale,
-        currentScale:document.querySelector('.atlas-vector-selection .fp-vector-token')?.style.scale,
+      return {prevScale:window.__mapTestFirstToken?.style.transform,
+        currentScale:document.querySelector('.atlas-vector-selection .fp-vector-token')?.style.transform,
         selectedMarkers:document.querySelectorAll('.atlas-vector-selection').length};
     },first);
     assert.equal(switched.prevScale,'','Old selected POI must shrink back on switching');
-    assert.equal(switched.currentScale,'1.34','New selected POI grows in its place');
+    assert.equal(switched.currentScale,'scale(1.34)','New selected POI grows in its place');
     assert.equal(switched.selectedMarkers,1,'No duplicate map marker after rapid POI switch');
     await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='公园切点测试',{timeout:17000});
     const existing=await page.evaluate(p=>{
@@ -90,15 +91,15 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       b.dataset.poiId='ci-existing-poi';b.dataset.poiLat=String(p.lat);b.dataset.poiLng=String(p.lng);
       b.append(token);pane.append(b);
       window.__atlasPOIBridge.select({...p,id:'ci-existing-poi'});
-      const result={isSelected:b.classList.contains('is-selected'),scale:token.style.scale,
+      const result={isSelected:b.classList.contains('is-selected'),scale:token.style.transform,
         duplicateMarkers:document.querySelectorAll('.atlas-vector-selection').length};
       b.remove();return result;
     },first);
     assert.equal(existing.isSelected,true,'Reuse the original on-map POI marker');
-    assert.equal(existing.scale,'1.34','Existing marker also enlarges');
+    assert.equal(existing.scale,'scale(1.34)','Existing marker also enlarges');
     assert.equal(existing.duplicateMarkers,0,'Never create a second icon over an existing geographic POI');
     console.log('PASS selected POI pictogram enlarges and settles, fixed map, no overlapping markers '+JSON.stringify({
-      width,selectedScale:selected.scale,midScale:mid.scale,
+      width,selectedScale:selected.transform,midScale:mid.scale,
       cameraZoomBefore:beforePoiCamera.zoom,cameraZoomAfter:afterPoiCamera.zoom
     }));
     const layers=await page.evaluate(()=>{
