@@ -89,6 +89,10 @@ jobs:
               target=root/('v4-'+scope+'-system-review-20261117')
               assert not target.exists()
               shutil.copytree(dest,target)
+              if scope=='map':
+                  # A single, auditable runtime file is modified only in the map copy.
+                  subprocess.run(['python3',str(scope_files/'map-runtime-repairs.py'),str(target/'v4-map-runtime.js')],check=True)
+                  subprocess.run(['node','--check',str(target/'v4-map-runtime.js')],check=True)
               for asset in ('scope-review.js','scope-review.css'):
                   shutil.copyfile(scope_files/asset,target/asset)
               if scope=='visual':
@@ -114,6 +118,7 @@ jobs:
                   if not old_file.is_file(): continue
                   rel=old_file.relative_to(dest)
                   if rel in (pathlib.Path('index.html'),pathlib.Path('journey.html'),pathlib.Path('route-view.html')): continue
+                  if scope=='map' and rel==pathlib.Path('v4-map-runtime.js'): continue
                   assert hashlib.sha256(old_file.read_bytes()).digest()==hashlib.sha256((target/rel).read_bytes()).digest(),str(rel)
           hub=root/'v4-system-review-20261117'
           hub.mkdir()
@@ -153,3 +158,8 @@ jobs:
             cmp "/tmp/v4-${scope}-scope.js" __prototype/v4-system-review/scope-review.js
           done
           grep -q 'visual-parity.css?v=visual-only-1' /tmp/v4-visual-index.html
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/v4-map-runtime.js' -o /tmp/v4-map-repaired.js
+          node --check /tmp/v4-map-repaired.js
+          grep -Fq 'fallbackScriptRequest=fallbackScriptRequest.catch(error=>' /tmp/v4-map-repaired.js
+          grep -Fq 'const candidates=(direct.length?direct:pool).map(f=>' /tmp/v4-map-repaired.js
+          grep -Fq 'syncNativeFeatures();requestOfficialBookmarkRender();' /tmp/v4-map-repaired.js
