@@ -104,6 +104,18 @@ const url='http://127.0.0.1:8766/travel-atlas-pages/v4-review-20261116/';
   assert.equal(route.endDate,committedDate.end);
   assert.equal(route.stops[1].day,2,'clamped D2 itinerary was not persisted');
   await page.screenshot({path:path.join(OUT,'02-saved-route.png')});
+  // Unstarring a real place MUST retain its saved C V5 route reference, its
+  // Brief and media. This was previously lost by two starred-only read filters.
+  await page.goto(url+'index.html',{waitUntil:'domcontentloaded',timeout:60000});
+  await page.waitForFunction(()=>!!window.__atlasSetBookmarkStarred&&!!window.FootprintMediaCore?.createRepository,
+    null,{timeout:26000});
+  await page.evaluate(()=>window.__atlasSetBookmarkStarred('qa-real-route-A',false));
+  const unstarred=await page.evaluate(async()=>{
+    const p=await window.FootprintMediaCore.createRepository(indexedDB).read('qa-real-route-A');
+    return {starred:p.starred,photoCount:p.photos?.length,videoCount:p.videos?.length};
+  });
+  assert.deepEqual(unstarred,{starred:false,photoCount:1,videoCount:1},
+    'unstarring lost a real saved place or its local photo/video');
   // Route map is a READ-ONLY view of the sole C V5 itinerary. It must still
   // load real-place cards when both third-party map engine CDNs are blocked.
   // This exercises the actual failed-map route, not a JS stub that bypasses it.
@@ -156,6 +168,7 @@ const url='http://127.0.0.1:8766/travel-atlas-pages/v4-review-20261116/';
   const reopened=await page.evaluate(()=>window.__atlasRouteV5Live.state);
   assert.equal(reopened.savedId,savedId);
   assert.deepEqual(new Set(reopened.order.map(x=>x.id)),new Set(ids));
+  assert.equal(reopened.order.length,2,'unstarring a route stop silently deleted it from C V5');
   assert.deepEqual({start:reopened.start,end:reopened.end,days:reopened.order.map(x=>x.day)},
    {start:committedDate.start,end:committedDate.end,days:committedDate.order.map(x=>x.day)},
    'reopened route dates, D labels or order differ from saved itinerary');

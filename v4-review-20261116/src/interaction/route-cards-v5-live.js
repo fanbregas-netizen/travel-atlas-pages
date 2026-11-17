@@ -945,9 +945,10 @@ let liveMapPickMode=null,liveMapPickHint=null;const livePendingRoutePlaces=new M
 const liveRepository=window.FootprintMediaCore?.createRepository?.(indexedDB);
 const livePlacesDB='private-travel-footprints-v1';
 const realId=p=>p?.storeId||'';
-const liveValid=p=>p&&(p.starred!==false||p.routeOnly===true)&&!p.demo&&p.lat!==null&&p.lng!==null&&p.lat!==''&&p.lng!==''&&
+const liveCoordsValid=p=>p&&!p.demo&&p.lat!==null&&p.lng!==null&&p.lat!==''&&p.lng!==''&&
   Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))&&
   Math.abs(Number(p.lat))<=85.05&&Math.abs(Number(p.lng))<=180;
+const liveValid=p=>liveCoordsValid(p)&&(p.starred!==false||p.routeOnly===true);
 async function liveReadBookmarks(){
  return new Promise((resolve,reject)=>{
   const request=indexedDB.open(livePlacesDB,1);
@@ -1158,21 +1159,37 @@ async function liveBoot(){
  if(!liveRepository){toast('媒体与路线存储模块不可用');return}
  let records=[];
  try{records=await liveReadBookmarks()}catch(e){console.warn('无法读取收藏',e.message)}
- const real=records.filter(liveValid).slice(0,100);
+ // A starred filter applies to NEW selections, never to a place referenced
+ // by an existing, saved itinerary. Unstarring must preserve Brief/media AND
+ // the stable PlaceId of every route that still references this record.
+ const query=new URLSearchParams(location.search),saved=query.get('saved');
+ let savedDoc=null;
+ if(saved&&saved.length<=140){
+  try{savedDoc=(await liveRepository.listRoutes()).find(x=>x.id===saved)||null}
+  catch(e){console.warn('读取已保存路线失败',e)}
+ }
+ const savedRows=savedDoc?.stops?.length?savedDoc.stops.map(x=>x.placeId):
+  savedDoc?.selected?.length?savedDoc.selected.map(x=>x.id):
+  savedDoc?.placeIds||[];
+ const referenced=new Set(savedRows.map(String));
+ const required=records.filter(p=>referenced.has(String(p?.id))&&liveCoordsValid(p));
+ const fresh=records.filter(liveValid).slice(0,100);
+ const seen=new Set();
+ const real=[...required,...fresh].filter(p=>{
+  const id=String(p.id);if(seen.has(id))return false;seen.add(id);return true;
+ });
  allPlaces=real.map((p,i)=>({
   id:'live'+i,storeId:String(p.id),starred:p.starred!==false,routeOnly:!!p.routeOnly,
   name:String(p.title||p.name||'未命名地点').slice(0,90),
-  sub:String(p.address||'个人收藏').slice(0,70),
+  sub:String(p.starred===false&&!p.routeOnly?'已取消收藏 · 原路线保留':p.address||'个人收藏').slice(0,70),
   brief:String(p.note||p.brief||p.description||'').slice(0,1200),
   day:1,lat:Number(p.lat),lng:Number(p.lng),time:''
  }));
  liveProjection();
  const idLookup=new Map(allPlaces.map(p=>[p.storeId,p]));
- const query=new URLSearchParams(location.search);
- const saved=query.get('saved');
  if(saved&&saved.length<=140){
   try{
-   const doc=(await liveRepository.listRoutes()).find(x=>x.id===saved);
+   const doc=savedDoc;
    if(doc){
     liveSavedId=doc.id;liveCreatedAt=doc.createdAt||null;state.routeName=doc.title||'我的旅行';
     state.start=doc.startDate||state.start;state.end=doc.endDate||state.end;
