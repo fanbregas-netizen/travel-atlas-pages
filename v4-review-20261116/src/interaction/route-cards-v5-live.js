@@ -140,9 +140,22 @@ function springTo(target){
  cancelAnimationFrame(sheetMotion);
  targetHeight=target;
  if(reduce()){sheetVelocity=0;paintHeight(target);scheduleMapLayout();return}
- function tick(){
-  sheetVelocity=(sheetVelocity+(targetHeight-height)*.105)*.75;
-  paintHeight(height+sheetVelocity);
+ let lastFrame=0;
+ function tick(now){
+  // Approved C V5 (.105 / .75) is preserved at 60 Hz; use elapsed-time
+  // compensation so 120 Hz iPhone Safari and dropped frames have the same feel
+  // as the real place/collection sheets instead of twice the speed.
+  const elapsed=lastFrame?Math.max(7.5,Math.min(34,now-lastFrame)):16.67;
+  lastFrame=now;
+  const motor=window.FootprintV5Spring;
+  if(motor?.step){
+   const next=motor.step(height,targetHeight,sheetVelocity,elapsed);
+   sheetVelocity=next.velocity;paintHeight(next.value);
+  }else{
+   const frames=Math.max(.45,Math.min(2,elapsed/16.67));
+   sheetVelocity=(sheetVelocity+(targetHeight-height)*.105*frames)*Math.pow(.75,frames);
+   paintHeight(height+sheetVelocity*frames);
+  }
   if(Math.abs(targetHeight-height)<.65&&Math.abs(sheetVelocity)<.4){paintHeight(targetHeight);sheetVelocity=0;sheetMotion=0;scheduleMapLayout();return}
   sheetMotion=requestAnimationFrame(tick);
  }
@@ -161,7 +174,8 @@ function rubber(value,min,max){
  return value;
 }
 function selectMarkup(){
- const pool=(state.source==='map'?allPlaces:allPlaces.filter(p=>p.starred!==false)).slice(0,100);
+ const chosen=new Set(state.selected);
+ const pool=(state.source==='map'?allPlaces:allPlaces.filter(p=>p.starred!==false||chosen.has(p.id))).slice(0,100);
  return `<p class="rc-note">从收藏或地图添加地点；至少选择两个。你可以直接点击地点，不需要先进入复杂的设置页。</p>
  <div class="rc-tabs"><button data-rc="source-saved" class="${state.source==='saved'?'is-active':''}">☆ 从收藏选择</button><button data-rc="source-map" class="${state.source==='map'?'is-active':''}">⌖ 地图选点</button></div>
  <div class="rc-rowhead"><span class="rc-section">想去的地方</span><small class="rc-note">已选 ${state.selected.length} 处</small></div>
@@ -349,7 +363,7 @@ function chooseDate(v){
   state.calendarStep='end';refreshMini();
  }else{
   const span=diffDays(state.start,v);
-  if(span>30){toast('演示最多支持 30 天行程');return}
+  if(span>30){toast('单次行程最长支持30天');return}
   state.end=v;renderStage();
   closeMini();toast('旅行日期已更新');
  }
@@ -630,7 +644,8 @@ window.__batchC={version:'V5-confirmed-date-and-auto-days',show:showReview,open:
     }else oldMap();
   };
   selectMarkup=function(){
-    const pool=(state.source==='map'?allPlaces:allPlaces.filter(p=>p.starred!==false)).slice(0,100);
+    const chosen=new Set(state.selected);
+ const pool=(state.source==='map'?allPlaces:allPlaces.filter(p=>p.starred!==false||chosen.has(p.id))).slice(0,100);
     return `${pool.length?'':''}
       <div class="rc-tabs"><button data-rc="source-saved" class="${state.source==='saved'?'is-active':''}">☆ 我的收藏</button><button data-rc="source-map" class="${state.source==='map'?'is-active':''}">⌖ 地图选点</button></div>
       <div class="rc-rowhead"><span class="rc-section">地点</span><small class="rc-note" id="rc-select-count">已选 ${state.selected.length} 处</small></div>
@@ -738,7 +753,7 @@ window.__batchC={version:'V5-confirmed-date-and-auto-days',show:showReview,open:
     if(cmd==='date-commit'){
       if(!dateDraft?.start||!dateDraft?.end||dateDraft.end<dateDraft.start){toast('请选择有效的出发与结束日期');return}
       if(dateDraft.start<datePlus(0)){toast('过去日期不能选择');return}
-      if(diffDays(dateDraft.start,dateDraft.end)>30){toast('演示最多选择30天');return}
+      if(diffDays(dateDraft.start,dateDraft.end)>30){toast('单次行程最长支持30天');return}
       const before={start:state.start,end:state.end,days:state.stops.map(p=>({id:p.id,day:p.day}))};
       const prevCount=Math.max(1,diffDays(before.start,before.end));
       const nextCount=Math.max(1,diffDays(dateDraft.start,dateDraft.end));
@@ -778,7 +793,7 @@ window.__batchC={version:'V5-confirmed-date-and-auto-days',show:showReview,open:
         dateDraft.start=v;if(dateDraft.end<v)dateDraft.end=v;
         dateDraft.phase='end';
       }else{
-        if(diffDays(dateDraft.start,v)>30){toast('演示最多选择30天');return}
+        if(diffDays(dateDraft.start,v)>30){toast('单次行程最长支持30天');return}
         dateDraft.end=v;dateDraft.phase='done';
       }
       refreshMini();
@@ -928,13 +943,15 @@ window.__batchC={version:'V5-confirmed-date-and-auto-days',show:showReview,open:
  * at 084f9b48355b37c9fa871b04aef09f86fe65bb39.
  * Only the demo's mock data/store are swapped for real media+places repos. */
 let liveSavedId=null,liveCreatedAt=null,liveMap=null,liveMapPaint=0,liveSaveBusy=false;
+let liveMissingRouteIds=[]; // Never overwrite a saved itinerary with omitted/deleted IDs.
 let liveMapPickMode=null,liveMapPickHint=null;const livePendingRoutePlaces=new Map();
 const liveRepository=window.FootprintMediaCore?.createRepository?.(indexedDB);
 const livePlacesDB='private-travel-footprints-v1';
 const realId=p=>p?.storeId||'';
-const liveValid=p=>p&&(p.starred!==false||p.routeOnly===true)&&!p.demo&&p.lat!==null&&p.lng!==null&&p.lat!==''&&p.lng!==''&&
+const liveCoordsValid=p=>p&&!p.demo&&p.lat!==null&&p.lng!==null&&p.lat!==''&&p.lng!==''&&
   Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))&&
   Math.abs(Number(p.lat))<=85.05&&Math.abs(Number(p.lng))<=180;
+const liveValid=p=>liveCoordsValid(p)&&(p.starred!==false||p.routeOnly===true);
 async function liveReadBookmarks(){
  return new Promise((resolve,reject)=>{
   const request=indexedDB.open(livePlacesDB,1);
@@ -1000,21 +1017,9 @@ function livePickedPoint(lng,lat){
  toast(mode==='add'?'已在路线中间添加地图途经点':'已选中真实地图位置');
  return true;
 }
-async function liveStoreRouteOnlyStops(){
+function livePendingRouteStops(){
  const chosen=new Set(state.stops.map(x=>realId(x)));
- const places=[...livePendingRoutePlaces.values()].filter(x=>chosen.has(x.id));
- if(!places.length)return;
- await new Promise((resolve,reject)=>{
-  const req=indexedDB.open(livePlacesDB,1);
-  req.onerror=()=>reject(req.error||Error('地图地点存储失败'));
-  req.onsuccess=()=>{
-   const db=req.result,tx=db.transaction('places','readwrite'),store=tx.objectStore('places');
-   places.forEach(x=>store.put(x));
-   tx.oncomplete=()=>{db.close();resolve()};
-   tx.onerror=()=>{db.close();reject(tx.error||Error('地图地点写入失败'))};
-  };
- });
- places.forEach(x=>livePendingRoutePlaces.delete(x.id));
+ return [...livePendingRoutePlaces.values()].filter(x=>chosen.has(x.id));
 }
 async function liveSavedRouteList(){
  if(!liveRepository)return;
@@ -1127,6 +1132,15 @@ async function saveLiveRoute(){
  const title=miniBody.querySelector('#rc-save-name')?.value.trim().slice(0,55)||'';
  if(!title){toast('请填写路线名称');return}
  if(!liveRepository||!state.stops.length){toast('没有可保存的真实地点');return}
+ if(liveSavedId&&liveMissingRouteIds.length){
+  // Missing coordinates are a DATA integrity problem, not an invitation
+  // to silently save a shorter itinerary over the complete route record.
+  let warning=miniBody.querySelector('#rc-route-missing-warning');
+  if(!warning){warning=document.createElement('p');warning.id='rc-route-missing-warning';warning.className='rc-note';miniBody.prepend(warning)}
+  warning.textContent='原路线中有 '+liveMissingRouteIds.length+' 个地点已删除或缺少坐标。为保护原路线，已阻止覆盖保存；请先恢复收藏备份，或从主页另建路线。';
+  toast('原路线仍完整保留，未覆盖保存');
+  return;
+ }
  liveSaveBusy=true;
  const now=new Date().toISOString(),id=liveSavedId||(crypto?.randomUUID?.()||'route-'+Date.now());
  const selected=state.stops.map((p,i)=>({
@@ -1143,8 +1157,10 @@ async function saveLiveRoute(){
   version:2,source:'footprint-map-approved-C-V5',mapStyle:'black-white-plan'
  };
  try{
-  await liveStoreRouteOnlyStops();
-  await liveRepository.saveRoute(item);
+  const pendingPlaces=livePendingRouteStops();
+  await liveRepository.saveRoute(item,{places:pendingPlaces});
+  // Only after the atomic transaction commits are pending selections retired.
+  pendingPlaces.forEach(place=>livePendingRoutePlaces.delete(place.id));
   liveSavedId=id;liveCreatedAt=item.createdAt;state.routeName=title;state.saved=true;
   closeMini();renderStage();liveMapAction();
   toast('路线已保存');
@@ -1155,21 +1171,37 @@ async function liveBoot(){
  if(!liveRepository){toast('媒体与路线存储模块不可用');return}
  let records=[];
  try{records=await liveReadBookmarks()}catch(e){console.warn('无法读取收藏',e.message)}
- const real=records.filter(liveValid).slice(0,100);
+ // A starred filter applies to NEW selections, never to a place referenced
+ // by an existing, saved itinerary. Unstarring must preserve Brief/media AND
+ // the stable PlaceId of every route that still references this record.
+ const query=new URLSearchParams(location.search),saved=query.get('saved');
+ let savedDoc=null;
+ if(saved&&saved.length<=140){
+  try{savedDoc=(await liveRepository.listRoutes()).find(x=>x.id===saved)||null}
+  catch(e){console.warn('读取已保存路线失败',e)}
+ }
+ const savedRows=savedDoc?.stops?.length?savedDoc.stops.map(x=>x.placeId):
+  savedDoc?.selected?.length?savedDoc.selected.map(x=>x.id):
+  savedDoc?.placeIds||[];
+ const referenced=new Set(savedRows.map(String));
+ const required=records.filter(p=>referenced.has(String(p?.id))&&liveCoordsValid(p));
+ const fresh=records.filter(liveValid).slice(0,100);
+ const seen=new Set();
+ const real=[...required,...fresh].filter(p=>{
+  const id=String(p.id);if(seen.has(id))return false;seen.add(id);return true;
+ });
  allPlaces=real.map((p,i)=>({
   id:'live'+i,storeId:String(p.id),starred:p.starred!==false,routeOnly:!!p.routeOnly,
   name:String(p.title||p.name||'未命名地点').slice(0,90),
-  sub:String(p.address||'个人收藏').slice(0,70),
+  sub:String(p.starred===false&&!p.routeOnly?'已取消收藏 · 原路线保留':p.address||'个人收藏').slice(0,70),
   brief:String(p.note||p.brief||p.description||'').slice(0,1200),
   day:1,lat:Number(p.lat),lng:Number(p.lng),time:''
  }));
  liveProjection();
  const idLookup=new Map(allPlaces.map(p=>[p.storeId,p]));
- const query=new URLSearchParams(location.search);
- const saved=query.get('saved');
  if(saved&&saved.length<=140){
   try{
-   const doc=(await liveRepository.listRoutes()).find(x=>x.id===saved);
+   const doc=savedDoc;
    if(doc){
     liveSavedId=doc.id;liveCreatedAt=doc.createdAt||null;state.routeName=doc.title||'我的旅行';
     state.start=doc.startDate||state.start;state.end=doc.endDate||state.end;
@@ -1179,8 +1211,11 @@ async function liveBoot(){
     const ss=doc.stops?.length?doc.stops.map((x,i)=>({id:x.placeId,day:x.day,time:x.time,order:i+1})):
      doc.selected?.length?doc.selected.map((x,i)=>({...x,order:x.order||i+1})).sort((a,b)=>a.order-b.order):
      (doc.placeIds||[]).map((id,i)=>({id,day:1,order:i+1}));
+    liveMissingRouteIds=ss.filter(x=>!idLookup.has(String(x.id))).map(x=>String(x.id));
     state.stops=ss.map(x=>{const p=idLookup.get(String(x.id));return p?{...p,day:Math.max(1,Number(x.day)||1),time:x.time||''}:null}).filter(Boolean);
-    state.selected=state.stops.map(p=>p.id);state.saved=true;
+    state.selected=state.stops.map(p=>p.id);
+    state.saved=!liveMissingRouteIds.length;
+    if(liveMissingRouteIds.length)toast('原路线有 '+liveMissingRouteIds.length+' 个地点缺失；保存前请恢复备份');
    }
   }catch(e){console.warn('读取原路线失败',e)}
  }else{
@@ -1201,7 +1236,14 @@ async function liveBoot(){
  }
  state.active=true;document.body.classList.add('rc-v3-on');shell.classList.add('rc-active');
  state.stage=state.stops.length>=2?'order':'select';
- renderStage();snap(state.stage==='order'?'half':'half');liveMapAction();
+ // Match reviewed C V5: mount the half-height route card synchronously.
+ // The previous live adapter sprang from zero, and WebKit could hold its
+ // initial 44px-only grip for a prolonged frame while tile scripts loaded.
+ // User swipes and later snaps still use the approved C V5 spring.
+ renderStage();
+ cancelAnimationFrame(sheetMotion);sheetMotion=0;sheetVelocity=0;
+ paintHeight(snapPx('half'));targetHeight=height;sheetLevel='half';
+ liveMapAction();
  // The map is a real geographic layer under the EXACT C V5 card.
  // It is nonblocking and does not own the sheet, stars, or route persistence.
  liveMountMap().catch(e=>{console.warn('路线地图加载',e);toast('地图暂时不可用，路线编辑仍可使用')});
@@ -1214,6 +1256,7 @@ window.__atlasRouteV5Live={
   ready:this.ready,stage:state.stage,selected:state.selected.map(x=>realId(allPlaces.find(p=>p.id===x))),
   order:state.stops.map(p=>({id:realId(p),day:p.day})),
   start:state.start,end:state.end,savedId:liveSavedId,
+  missingRouteIds:liveMissingRouteIds.slice(),
   mapReady:!!liveMap
  }},
  open:()=>openFor('C01'),

@@ -183,10 +183,15 @@
        (Math.abs(p.lat-d.lat)<.00016&&Math.abs(p.lng-d.lng)<.00016)
     ));
     $('destinationClose').onclick=hideDestination; /* build .21 · 用户批注：卡片必须有显式关闭钮，不能靠运气点空白 */
-    $('destinationTitle').textContent=selectedDestination.name;
-    $('destinationCategory').textContent=(d.address?String(d.address).slice(0,76)+' · ':'')+poiCategory(d.category);
-    $('destinationStar').textContent=existing?.starred!==false&&existing?'查看这段回忆':existing?'恢复收藏':'收藏并记录';
-    $('destinationUnstar').hidden=!(existing&&existing.starred!==false);
+    // Keep the old card content visible until the actual outgoing sheet
+    // reaches its low point. Immediate text replacement is the POI "flash".
+    const commitDestinationContent=()=>{
+      if(revealToken!==destinationRevealToken||selectedDestination!==chosen)return;
+      $('destinationTitle').textContent=chosen.name;
+      $('destinationCategory').textContent=(d.address?String(d.address).slice(0,76)+' · ':'')+poiCategory(d.category);
+      $('destinationStar').textContent=existing?.starred!==false&&existing?'查看这段回忆':existing?'恢复收藏':'收藏并记录';
+      $('destinationUnstar').hidden=!(existing&&existing.starred!==false);
+    };
     // Retain the existing card during fast POI-to-POI switches: a
     // remove/re-add resets Safari's CSS entry transform and flickers.
     document.body.classList.add('destination-selected');
@@ -199,7 +204,9 @@
       const card=$('destinationCard');
       const wasVisible=card.classList.contains('visible');
       card.classList.add('visible');
-      window.FootprintElasticHandoff?.revealCard(card,{renew:wasVisible});
+      const handoff=window.FootprintElasticHandoff;
+      if(handoff?.revealCard)handoff.revealCard(card,{renew:wasVisible,commit:commitDestinationContent});
+      else commitDestinationContent();
     };
     requestAnimationFrame(reveal);
     $('selectionFeedback').hidden=true;
@@ -1281,12 +1288,19 @@
     $('memorySheet').classList.add('visible');document.dispatchEvent(new CustomEvent('atlas:memory-open',{detail:{id:p.id}}));document.body.classList.add('memory-open');$('helptext').style.display='none';startInlineVideos(p);
     requestAnimationFrame(()=>layoutMemoryAtlas(p));
   }
-  function closeDrawer(){ $('drawer').classList.remove('visible');$('cover').classList.remove('visible') }
+  function closeDrawer(){
+    const finish=()=>{
+      $('drawer').classList.remove('visible');
+      $('cover').classList.remove('visible');
+    };
+    if(window.__atlasCollectionSheet?.requestClose?.(finish))return;
+    finish();
+  }
   /* build .20 · 对标高德/苹果 sheet 手势：捏住眉头或列表拉到顶后继续下拉，整片随手势下滑，松手超过阈值即关闭 */
   // The accepted B05 v4-approved-collection-sheet controller exclusively owns
   // drawer swipe/snap. The retired Stage1.25 touchmove handler competed with
   // it on the same gesture and repeatedly wrote transform on mobile Safari.
-  function openDrawer(){if(document.body.classList.contains('fp-search-open')){window.__fpCloseSearch?.();window.__fpRealSearchMotion?.cancelForHandoff?.()}/* refresh() already owns list mutations: avoid rebuilding every thumbnail at each Dock tap. */if(!$('spotList').children.length)renderList();$('drawer').classList.add('visible');$('cover').classList.add('visible')}
+  function openDrawer(){if(document.body.classList.contains('fp-search-open')){window.__fpCloseSearch?.();window.__fpRealSearchMotion?.cancelForHandoff?.()}/* refresh() already owns list mutations: avoid rebuilding every thumbnail at each Dock tap. */if(!$('spotList').children.length)renderList();$('drawer').classList.add('visible');$('cover').classList.add('visible');window.__atlasCollectionSheet?.reveal?.()}
   function renderList(){const list=$('spotList');list.innerHTML='';const favorites=places.filter(p=>p.starred!==false);if(!favorites.length){list.innerHTML='<div class="atlas-empty-places atlas-empty-c"><div class="empty-star" aria-hidden="true">☆</div><strong>还没有收藏地点</strong><p>从一处想去的地方开始，慢慢记录你的旅行。</p><div class="atlas-empty-actions"><button type="button" id="atlasEmptySearch">搜索地点</button><button type="button" class="quiet" id="atlasEmptyMark">地图选点</button></div></div>';$('atlasEmptySearch').onclick=()=>{closeDrawer();window.__footprintHome?.openSearch?window.__footprintHome.openSearch():$('searchInput').focus()};$('atlasEmptyMark').onclick=()=>{closeDrawer();$('navAdd').click()};return}favorites.forEach(p=>{const b=document.createElement('button');b.type='button';b.className='spotrow';b.dataset.placeId=p.id;const thumb=p.photos?.length&&photoSrc(p.photos[0].src)?`<img src="${photoSrc(p.photos[0].src)}" alt="封面" loading="lazy" decoding="async">`:(p.videos?.length?'<div class="spotempty spotempty-vid"></div>':'<div class="spotempty spotempty-ic"></div>');b.innerHTML=`${thumb}<span style="min-width:0;flex:1"><strong>${escape(p.title)}</strong><small>${p.stage==='visited'?'已到访':'想去'}${p.date?' · '+escape(p.date):''}${p.demo?' · 演示':''}</small><small style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escape(((p.note||'').replace(/^原高德地址[：:][^\n]*\n?/,'').trim().slice(0,32))||'还没有备注')}</small></span><span class="arrow" aria-hidden="true"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJEaXJlY3Rpb25zIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNjE2MTYiIHN0cm9rZS13aWR0aD0iMy40IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik04IDM0IEwzMSAxMCBMNTUgMzMgTDMxIDU1IFoiLz48cGF0aCBkPSJNMjEgMzQgSDM5IFYyNSBNMzIgMjUgTDM5IDI1Ii8+PC9nPjwvc3ZnPg==" alt=""></span>`;b.addEventListener('click',()=>{closeDrawer();showPlace(p.id,true)});list.append(b)})}
   function setPicking(on){
     if(on&&!map&&!isVector()&&!isOfficial()){toast('地图尚未加载。可先查看已有足迹。');return}

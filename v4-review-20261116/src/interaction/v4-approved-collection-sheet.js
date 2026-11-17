@@ -14,11 +14,113 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const detents=()=>{const h=window.visualViewport?.height||innerHeight||844;
 return {peek:Math.min(h*.43,360),half:Math.min(h*.72,630),full:Math.max(h*.72+40,h-40)}};
 let level='half',d=null,frame=0,dragFrame=0,pendingHeight=null,lastPainted=-1,lastResizeGoal=null;
-function scheduleDragPaint(h){pendingHeight=h;if(dragFrame)return;
- dragFrame=requestAnimationFrame(()=>{dragFrame=0;const next=pendingHeight;pendingHeight=null;if(next!==null)paint(next)});
+// One composited translation for the EXISTING drawer. B05 still owns the
+// actual height, content scroll and 3 detents; there is no extra card DOM.
+let layerMotion=null,layerOffset=0,layerPhase='hidden',closeAfterMotion=null;
+function setLayerOffset(y){
+ layerOffset=y;
+ // Legacy V4 styles still use !important transforms: this dedicated
+ // individual translation is the sole owner of existing drawer travel.
+ el.style.setProperty('translate','0 '+Math.max(-16,y).toFixed(2)+'px','important');
 }
-function flushDragPaint(){if(dragFrame){cancelAnimationFrame(dragFrame);dragFrame=0}
- if(pendingHeight!==null){const h=pendingHeight;pendingHeight=null;paint(h)}}
+function readLayerOffset(){
+ const css=getComputedStyle(el),str=css.translate;
+ const parts=str?.match(/-?[0-9.]+px/g);
+ const y=parts?.length?parseFloat(parts[parts.length-1]):NaN;
+ if(Number.isFinite(y)&&Math.abs(y)>.05)return y;
+ // While the compositor drives transform, the final matrix component is Y.
+ const m=css.transform?.match(/^matrix\(([^)]+)\)$/);
+ if(m){const vals=m[1].split(',').map(Number);if(Number.isFinite(vals[5]))return vals[5]}
+ return Number.isFinite(y)?y:layerOffset;
+}
+function cancelLayer(){
+ if(layerMotion){
+  const y=readLayerOffset();
+  layerMotion.cancel();layerMotion=null;setLayerOffset(y);
+ }
+}
+function moveLayer(from,to,done){
+ cancelLayer();setLayerOffset(from);
+ const motor=window.FootprintRubberSpring;
+ if(reduced.matches||typeof motor?.step!=='function'){
+  setLayerOffset(to);done?.();return;
+ }
+ // A single C V5 spring owns every opening/closing frame. Safari can defer
+ // requestAnimationFrame while repainting the map, so one 32ms timer wakes
+ // the SAME motor if the frame callback has not fired. Whichever callback
+ // executes first cancels the other; this is not a competing CSS animation.
+ let pos=from,velocity=0,raf=0,timer=0,active=true;
+ let last=performance.now(),started=last;
+ const handle={cancel(){
+  active=false;
+  if(raf)cancelAnimationFrame(raf);raf=0;
+  if(timer)clearTimeout(timer);timer=0;
+ }};
+ const tick=()=>{
+  if(!active)return;
+  if(raf)cancelAnimationFrame(raf);raf=0;
+  if(timer)clearTimeout(timer);timer=0;
+  const now=performance.now(),elapsed=Math.max(7.5,Math.min(38,now-last));
+  last=now;
+  const next=motor.step(pos,to,velocity,elapsed);
+  pos=next.value;velocity=next.velocity;
+  setLayerOffset(pos);
+  if((Math.abs(pos-to)<.65&&Math.abs(velocity)<.4)||now-started>920){
+   handle.cancel();
+   if(layerMotion===handle){layerMotion=null;setLayerOffset(to);done?.()}
+   return;
+  }
+  raf=requestAnimationFrame(tick);
+  timer=setTimeout(tick,32);
+ };
+ layerMotion=handle;
+ raf=requestAnimationFrame(tick);
+ timer=setTimeout(tick,32);
+}
+function reveal(){
+ if(!el.classList.contains('visible')||layerPhase==='entering'||layerPhase==='shown')return;
+ const from=layerPhase==='closing'?readLayerOffset():Math.max(320,detents()[level]+35);
+ closeAfterMotion=null;layerPhase='entering';el.inert=false;el.style.removeProperty('pointer-events');
+ moveLayer(from,0,()=>{layerPhase='shown';el.style.removeProperty('translate');layerOffset=0});
+}
+function requestClose(done){
+ if(!el.classList.contains('visible'))return false;
+ closeAfterMotion=done;
+ if(layerPhase==='closing')return true;
+ layerPhase='closing';d=null;
+ el.inert=true;el.style.setProperty('pointer-events','none','important');
+ const dest=Math.max(320,el.getBoundingClientRect().height+44);
+ moveLayer(readLayerOffset(),dest,()=>{layerPhase='hidden';const fn=closeAfterMotion;closeAfterMotion=null;fn?.()});
+ return true;
+}
+// WebKit may pause rAF while the map is compositing or resuming a tab.
+// Preserve normal one-write-per-frame behavior, but never let touch deltas
+// queue up invisibly for the entire drag (observed: 608px rendered / 723px
+// pending, then snap only on release). If a queued frame is >32ms late,
+// flush the latest height from the gesture that actually arrived.
+let pendingSince=0;
+function scheduleDragPaint(h){
+ pendingHeight=h;
+ const now=performance.now();
+ if(dragFrame){
+  if(now-pendingSince>=32){
+   cancelAnimationFrame(dragFrame);dragFrame=0;pendingSince=0;
+   const next=pendingHeight;pendingHeight=null;
+   if(next!==null)paint(next);
+  }
+  return;
+ }
+ pendingSince=now;
+ dragFrame=requestAnimationFrame(()=>{
+  dragFrame=0;pendingSince=0;
+  const next=pendingHeight;pendingHeight=null;if(next!==null)paint(next);
+ });
+}
+function flushDragPaint(){
+ if(dragFrame){cancelAnimationFrame(dragFrame);dragFrame=0}
+ pendingSince=0;
+ if(pendingHeight!==null){const h=pendingHeight;pendingHeight=null;paint(h)}
+}
 function setMaxHeight(){el.style.setProperty('max-height','calc(100dvh - 32px)','important')}
 function paint(h){const px=Math.max(110,Math.round(h));if(px!==lastPainted){lastPainted=px;el.style.setProperty('height',px+'px','important')}}
 function snap(next){
@@ -37,7 +139,8 @@ function snap(next){
  frame=requestAnimationFrame(tick);
 }
 function start(x,y){
- if(!el.classList.contains('visible')||d)return;
+ if(!el.classList.contains('visible')||d||layerPhase==='closing')return;
+ if(layerPhase==='entering'){cancelLayer();setLayerOffset(0);el.style.removeProperty('translate');layerPhase='shown'}
  if(frame)cancelAnimationFrame(frame);frame=0;
  setMaxHeight();
  d={x,y,last:y,h:el.getBoundingClientRect().height,moved:false};
@@ -66,11 +169,22 @@ if(header){
  let pointer=null;
  header.addEventListener('pointerdown',e=>{
   if(e.button!==undefined&&e.button!==0||e.target.closest(headerSkip))return;
-  start(e.clientX,e.clientY);if(d){pointer=e.pointerId;header.setPointerCapture?.(pointer)}
+  start(e.clientX,e.clientY);
+  if(d){pointer=e.pointerId;try{header.setPointerCapture?.(pointer)}catch(_){/* WebKit fallback uses document events */}}
  });
- header.addEventListener('pointermove',e=>{if(pointer===e.pointerId)move(e.clientX,e.clientY,e)});
- header.addEventListener('pointerup',e=>{if(pointer===e.pointerId){move(e.clientX,e.clientY,e);pointer=null;end()}});
- header.addEventListener('pointercancel',()=>{pointer=null;end(true)});
+ // WebKit can silently lose element pointer capture on a composited sticky
+ // sheet. Following the active pointer on document keeps real finger travel
+ // continuous when the hit-tested target changes under the moving card.
+ document.addEventListener('pointermove',e=>{
+  if(pointer!==null&&pointer===e.pointerId)move(e.clientX,e.clientY,e);
+ },{passive:false});
+ document.addEventListener('pointerup',e=>{
+  if(pointer===null||pointer!==e.pointerId)return;
+  move(e.clientX,e.clientY,e);pointer=null;end();
+ },{passive:false});
+ document.addEventListener('pointercancel',e=>{
+  if(pointer!==null&&pointer===e.pointerId){pointer=null;end(true)}
+ },{passive:true});
  // Safari's native touch events are a fallback for iPhone builds where pointer
  // capture is interrupted by the composited sticky heading.
  let touch=null;
@@ -119,17 +233,26 @@ for(const content of [el.querySelector('#spotList'),el.querySelector('#drawerRou
  },{passive:true});
  content.addEventListener('touchcancel',()=>{if(bodyTouch?.active)end(true);bodyTouch=null},{passive:true});
 }
+// The collection has legitimate subview class changes (fp30-hub/detail/routes).
+// Only a genuine visible<->hidden transition may start/stop the sheet spring.
+// The previous observer restarted snap() for EVERY class change, including
+// switching a content tab, which made the card jump under the user's finger.
+let wasVisible=el.classList.contains('visible');
 new MutationObserver(()=>{
- if(!el.classList.contains('visible')){
+ const visible=el.classList.contains('visible');
+ if(visible===wasVisible)return;
+ wasVisible=visible;
+ if(!visible){
   if(frame)cancelAnimationFrame(frame);frame=0;
   if(dragFrame)cancelAnimationFrame(dragFrame);dragFrame=0;pendingHeight=null;lastPainted=-1;lastResizeGoal=null;d=null;level='half';
   el.style.removeProperty('height');el.style.removeProperty('max-height');
- }else{
-  // Opening goes directly to the approved B05 half detent. Otherwise the
-  // CSS default height and the JS spring's "half" state disagree until the
-  // user first touches the card, making the first drag jump.
-  requestAnimationFrame(()=>{if(el.classList.contains('visible')&&!d)snap(level)});
+  cancelLayer();el.style.removeProperty('translate');layerOffset=0;layerPhase='hidden';closeAfterMotion=null;
+  el.inert=false;el.style.removeProperty('pointer-events');
+  return;
  }
+ // Only opening from hidden sets the initial B05 half detent. Subsequent
+ // internal content/class changes retain the live finger-driven height.
+ requestAnimationFrame(()=>{if(el.classList.contains('visible')&&!d){snap(level);if(layerPhase==='hidden')reveal()}});
 }).observe(el,{attributes:true,attributeFilter:['class']});
 let resizeFrame=0;
 window.addEventListener('resize',()=>{
@@ -144,5 +267,5 @@ window.addEventListener('resize',()=>{
   snap(level);
  });
 },{passive:true});
-window.__atlasCollectionSheet={getState:()=>({level,dragging:!!d,height:el.getBoundingClientRect().height,opened:el.classList.contains('visible')})};
+window.__atlasCollectionSheet={reveal,requestClose,getState:()=>({level,phase:layerPhase,dragging:!!d,height:el.getBoundingClientRect().height,opened:el.classList.contains('visible'),lastPainted,pendingHeight,dragFrame,pendingSince,pointerY:d?.last??null,dragged:d?.moved??false})};
 })();

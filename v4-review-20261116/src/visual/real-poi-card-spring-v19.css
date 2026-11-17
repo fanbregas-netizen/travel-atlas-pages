@@ -49,3 +49,11 @@ body.destination-selected #fpTopSearch{
 body.destination-selected #atlasFirstStar{
  display:none!important;pointer-events:none!important;
 }
+
+/* A foreground search/collection surface must fully retire the outgoing
+   map-only POI card; a 180ms legacy opacity fade used to show through it. */
+body.fp-search-open #destinationCard,
+body:has(#drawer.visible) #destinationCard{
+ opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+ transition:none!important;
+}
