@@ -54,6 +54,70 @@ if path.name=='index.html':
   "map.__fpPoi29Bound=true;map.on?.('move',queueAnchorSync);map.on?.('moveend',schedule);",
   'sync-during-map-pan')
 elif path.name=='v4-map-runtime.js':
+ # The original V4 disabled zoom on all POI taps, and it still used the
+ # legacy four-bubble corridor unless the global swipe-card flag was set.
+ # The POI's own click path must opt into ONE native camera ease/zoom.
+ once(
+  """    const moving=window.__atlasInteractionMode==='swipe-card'
+      ?focusSelectedLocation(d):focusMapPlaceIfNeeded(d);""",
+  """    // A real map POI starts a native, cancellable zoom+focus, not just a
+    // 1.1x SVG bounce. Other flows keep their already-approved camera logic.
+    const moving=d.__poiTap
+      ?focusSelectedLocation(d,true)
+      :(window.__atlasInteractionMode==='swipe-card'
+        ?focusSelectedLocation(d):focusMapPlaceIfNeeded(d));""",
+  'real-poi-camera-opt-in')
+ once(
+  """    const z=Math.max(2,Number(currentZoom())||12);
+    // V4 .19: the old forced +1.55 zoom/780ms flyTo reloaded whole map
+    // tiles during every POI tap. Safari displayed a grey/blank basemap
+    // BEFORE the delayed card reveal. Keep the current zoom. Pan only when
+    // the point would otherwise be obscured or beyond the visual corridor.
+    let pt=null;""",
+  """    const z=Math.max(2,Number(currentZoom())||12);
+    // Natural native camera zoom (NOT a CSS scale of the whole map).
+    // 0.55-0.70 zoom levels is a gentle ~1.45-1.63x enlargement; old +1.55
+    // flyTo caused tile thrash and grey gaps on iPhone Safari.
+    if(zoomOnPoi){
+      const targetZoom=Math.min(16.7,z+(z<14?0.70:z<15.7?0.56:0.38));
+      const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+      userHasMovedMap=true;
+      if(isVector()&&vectorMap){
+        vectorMap.stop();
+        // Point ends above the card; MapLibre keeps markers geo-anchored.
+        const offsetY=-Math.round(Math.min(innerHeight*0.145,120));
+        vectorMap.easeTo({center:[lng,lat],zoom:targetZoom,offset:[0,offsetY],
+          duration:reduce?0:640,essential:true,
+          easing:t=>1-Math.pow(1-t,3)});
+        return true;
+      }
+      if(isOfficial()&&officialMap){
+        const xy=wgsToGcj(lng,lat);
+        try{officialMap.setZoomAndCenter(targetZoom,xy,reduce,reduce?0:600)}catch(_){return false}
+        return true;
+      }
+      if(map){
+        map.stop?.();
+        map.easeTo?.({center:[lng,lat],zoom:targetZoom,
+          duration:reduce?0:640,essential:true,easing:t=>1-Math.pow(1-t,3)});
+        return true;
+      }
+    }
+    // Saved stars keep the already-accepted swipe-card camera framing.
+    let pt=null;""",
+  'native-tap-zoom')
+ once(
+  "  function focusSelectedLocation(place){",
+  "  function focusSelectedLocation(place,zoomOnPoi=false){",
+  'poi-camera-mode-arg')
+ once(
+  "      showDestination(point);return;",
+  "      showDestination({...point,__poiTap:true});return;",
+  'native-vector-feature-poi')
+ once(
+  "    select:(place)=>showDestination(place),",
+  "    select:(place)=>showDestination({...place,__poiTap:true}),",
+  'drawn-svg-poi-bridge')
  once(
   "document.body.classList.remove('destination-selected')}",
   "document.body.classList.remove('destination-selected');document.dispatchEvent(new Event('atlas:poi-cleared'))}",
