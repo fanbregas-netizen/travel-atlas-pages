@@ -58,7 +58,22 @@ const chrome=['google-chrome','chromium'].map(n=>{try{return cp.execFileSync('wh
   console.log('SMOKE 7 save');
   await page.locator('#savePlan').click({timeout:8000});
   await page.waitForFunction(()=>!!window.__atlasJourneyRoute?.getState().id,null,{timeout:12000});
-  console.log('SMOKE SAVED',await page.evaluate(()=>window.__atlasJourneyRoute.getState().id));
+  const savedId=await page.evaluate(()=>window.__atlasJourneyRoute.getState().id);
+  console.log('SMOKE SAVED',savedId);
+  console.log('SMOKE 8 open route map');
+  await page.evaluate(()=>window.__atlasJourneyVisual.setStep('order'));
+  await page.locator('#generate').click({timeout:10000});
+  await page.waitForURL(/route-view-real-confirmed-20261118\.html\?saved=/,{timeout:18000});
+  console.log('SMOKE 9 map loaded');
+  await page.waitForFunction(()=>!!document.querySelector('#editRouteLink:not([hidden])'),null,{timeout:12000});
+  console.log('SMOKE 10 editor return');
+  await page.locator('#editRouteLink').click({timeout:10000});
+  await page.waitForURL(/journey-real-confirmed-20261118\.html\?edit=/,{timeout:18000});
+  await page.waitForFunction(()=>window.__atlasJourneyRoute?.getState().id===savedId,savedId,{timeout:15000});
+  const restored=await page.evaluate(()=>window.__atlasJourneyRoute.getState());
+  console.log('SMOKE RESTORED',JSON.stringify({id:restored.id,mode:restored.transportMode,order:restored.selected.map(s=>s.id)}));
+  assert.equal(restored.transportMode,'bike');
+  assert.equal(restored.selected.length,4);
   fs.mkdirSync('route-smoke-evidence',{recursive:true});await page.screenshot({path:'route-smoke-evidence/real-journey-390.png'});
   await ctx.close();
  }finally{await browser.close()}
