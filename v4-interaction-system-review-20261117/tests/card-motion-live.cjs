@@ -62,10 +62,38 @@ async function drag(page,ctx,x,y,distance,sample){
    assert.equal(down.rest.level,'half','collection did not spring back to half');
    const collection={start,up:{during:up.points.map(p=>p.height),rest:up.rest},down:{during:down.points.map(p=>p.height),rest:down.rest}};
    await page.screenshot({path:out+'/collection-'+width+'.png'});
+   // Closing geometry must not jump when the visible class is removed.
+   await page.evaluate(()=>document.querySelector('#closeDrawer')?.click());
+   await sleep(80);
+   const closing=await page.evaluate(()=>({visible:document.querySelector('#drawer').classList.contains('visible'),
+     inlineHeight:document.querySelector('#drawer').style.height}));
+   assert.equal(closing.visible,false,'collection close control did not dismiss sheet');
+   assert.ok(closing.inlineHeight,'collection height was cleared before dismissal animation completed');
+   await sleep(480);
+   const afterClose=await page.evaluate(()=>document.querySelector('#drawer').style.height);
+   assert.equal(afterClose,'','collection retained stale height after close animation');
+   collection.close={closing,cleaned:true};
    await page.goto(base+'journey.html?interaction-qa='+width,{waitUntil:'domcontentloaded',timeout:60000});
    await page.waitForFunction(()=>!!window.__atlasRouteV5Live?.ready&&!!window.__batchC?.state&&!!document.querySelector('#rc-main'),null,{timeout:25000});
-   // Wait for the approved 530ms entrance before testing its settled touch surface.
-   await sleep(860);
+   // Record the REAL entrance every frame. CSS/JS double motion previously produced
+   // a large plunge and reverse before the C V5 sheet settled.
+   const entrance=await page.evaluate(async()=>{
+    const frames=[],card=document.querySelector('#rc-main'),map=document.querySelector('#rc-map');
+    for(let i=0;i<53;i++){
+     await new Promise(resolve=>requestAnimationFrame(resolve));
+     frames.push({t:performance.now(),h:card.getBoundingClientRect().height,
+       y:card.getBoundingClientRect().top,transform:getComputedStyle(card).transform,
+       mapBottom:parseFloat(getComputedStyle(map).bottom)});
+    }
+    return frames;
+   });
+   fs.writeFileSync(out+'/route-entry-'+width+'.json',JSON.stringify(entrance,null,2));
+   const restHeight=entrance[entrance.length-1].h;
+   assert.ok(entrance.every(f=>f.transform==='none'),'route sheet still has a conflicting CSS transform');
+   assert.ok(Math.max(...entrance.map(f=>f.h))-restHeight<38,
+     'route sheet entry overshoot is too large: '+JSON.stringify(entrance));
+   assert.ok(entrance.every(f=>Math.abs(f.h-f.mapBottom)<4),'map boundary lags entry sheet height');
+   await sleep(250);
    const measure=()=>{
     const card=document.querySelector('#rc-main'),map=document.querySelector('#rc-map');
     return {h:card.getBoundingClientRect().height,bottom:parseFloat(getComputedStyle(map).bottom),
@@ -84,10 +112,10 @@ async function drag(page,ctx,x,y,distance,sample){
    assert.ok(routeUp.rest.h>routeStart.h+35,'route card did not advance detent');
    await page.screenshot({path:out+'/route-'+width+'.png'});
    assert.deepEqual(errors,[],'runtime script failures');
-   report.push({width,collection,route:{start:routeStart,up:routeUp}});
+   report.push({width,collection,route:{entrance, start:routeStart,up:routeUp}});
    await ctx.close();
   }
   fs.writeFileSync(out+'/card-motion-report.json',JSON.stringify(report,null,2));
-  console.log('PASS interaction review real-card 375/390/430: collection finger-follow full/half + route finger-follow and map edge synchrony');
+  console.log('PASS interaction review real-card 375/390/430: collection drag+animated close, bounded route entry, drag and map edge synchrony');
  }finally{await browser.close()}
 })().catch(e=>{console.error('FAIL isolated interaction motion: '+e.stack);process.exitCode=1});
