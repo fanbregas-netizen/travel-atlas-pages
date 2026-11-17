@@ -29,16 +29,16 @@ jobs:
             test -s "$out"
             echo "::endgroup::"
           }
-          fetch_page 'index.html?test=visual-v8' /tmp/visual-index.html
-          grep -q 'visual-review.css?v=8' /tmp/visual-index.html
+          fetch_page 'index.html?test=visual-v9' /tmp/visual-index.html
+          grep -q 'visual-review.css?v=9' /tmp/visual-index.html
           grep -q 'visual-review-bootstrap-inline' /tmp/visual-index.html
-          fetch_page 'journey.html?test=visual-v8' /tmp/visual-journey.html
-          grep -q 'visual-review.css?v=8' /tmp/visual-journey.html
-          fetch_page 'compare.html?test=visual-v8' /tmp/visual-compare.html
+          fetch_page 'journey.html?test=visual-v9' /tmp/visual-journey.html
+          grep -q 'visual-review.css?v=9' /tmp/visual-journey.html
+          fetch_page 'compare.html?test=visual-v9' /tmp/visual-compare.html
           grep -q '改前' /tmp/visual-compare.html
-          fetch_page 'visual-review.css?v=8' /tmp/visual-review.css
+          fetch_page 'visual-review.css?v=9' /tmp/visual-review.css
           grep -q 'atlas-card-grip' /tmp/visual-review.css
-          echo 'SUCCESS: public HTML and CSS live, actual V8 loaded'
+          echo 'SUCCESS: public HTML and CSS live, actual V9 loaded'
 
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
