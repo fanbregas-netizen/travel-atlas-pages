@@ -337,6 +337,33 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.ok(homeOverlay.hasRenderer&&homeOverlay.hasDOMPlane&&homeOverlay.sameMap&&
       homeOverlay.handdrawnMap&&homeOverlay.hasNativeIconSuppression,
       'Route map did not use the exact homepage source POI renderer: '+JSON.stringify(homeOverlay));
+    // Test the actual rendered CSS and MapLibre layer paint. Earlier releases
+    // silently failed because CSS targeted the nonexistent route-v5-live class.
+    await page.waitForFunction(()=>{
+      const m=window.__atlasLivePlannerMap;
+      if(!m?.getStyle?.()?.layers)return false;
+      return m.getStyle().layers.filter(l=>l.type==='symbol'&&
+        /poi|amenity|tourism|attraction|shop|leisure|restaurant|cafe|museum|hotel|hospital/i.test(
+          l.id+' '+(l['source-layer']||''))).every(l=>
+            m.getPaintProperty(l.id,'icon-opacity')===0);
+    },null,{timeout:15000});
+    const visualProof=await page.evaluate(()=>{
+      const map=document.getElementById('rc-map'),
+        badge=document.querySelector('.fp-system-switch'),
+        overlay=document.querySelector('#rc-map > #atlasPoiOverlay'),
+        m=window.__atlasLivePlannerMap;
+      return {active:document.body.classList.contains('rc-v3-on'),
+        correctMapSkin:getComputedStyle(map).inset==='0px',
+        badgeGone:!badge||getComputedStyle(badge).display==='none',
+        poicard:!!overlay,layerHeight:map.getBoundingClientRect().height,
+        canvasHeight:m.getContainer().getBoundingClientRect().height,
+        coloredNativePOI:m.getStyle().layers.filter(l=>l.type==='symbol'&&
+          /poi|amenity|tourism|attraction|shop|leisure|restaurant|cafe|museum|hotel|hospital/i.test(
+            l.id+' '+(l['source-layer']||''))&&m.getPaintProperty(l.id,'icon-opacity')!==0).map(l=>l.id)};
+    });
+    assert.ok(visualProof.active&&visualProof.correctMapSkin&&visualProof.badgeGone&&
+      visualProof.poicard&&visualProof.coloredNativePOI.length===0,
+      'Route map Safari screenshot still uses outdated styling: '+JSON.stringify(visualProof));
     // A real user cannot tap the map before the accepted C V5 sheet spring
     // finishes its 530ms transition to peek. Reproduce the settled UI.
     await page.waitForTimeout(620);
