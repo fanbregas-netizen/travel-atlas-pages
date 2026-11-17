@@ -547,6 +547,15 @@ jobs:
         run: node tests/v4-accepted-layout-motion-v18-browser.cjs
       - name: Verify V4 .19 real POI tap-to-card elastic handoff and search history
         run: node tests/v4-poi-card-handoff-v19-browser.cjs
+      - name: Verify isolated interaction card hand-follow at iPhone widths
+        run: node v4-interaction-system-review-20261117/tests/card-motion-live.cjs
+      - name: Upload isolated interaction motion evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: interaction-motion-evidence
+          path: interaction-motion-evidence/
+          if-no-files-found: ignore
       - name: Upload media iPhone motion acceptance evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
