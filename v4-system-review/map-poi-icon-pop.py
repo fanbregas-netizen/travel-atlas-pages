@@ -15,7 +15,8 @@ function clearSelected(){
  try{selectedPoiAnimation?.cancel()}catch(_){}
  selectedPoiAnimation=null;
  if(selectedPoiToken){
-  selectedPoiToken.style.removeProperty('scale');
+  selectedPoiToken.style.removeProperty('transform');
+  selectedPoiToken.style.removeProperty('transition');
   selectedPoiToken.style.removeProperty('transform-origin');
   selectedPoiToken.style.removeProperty('will-change');
  }
@@ -26,23 +27,24 @@ function popSelected(token){
  clearSelected();
  selectedPoiToken=token;
  token.style.setProperty('transform-origin','center center','important');
- token.style.setProperty('scale','1.34');
+ token.style.setProperty('transition','none','important');
+ token.style.setProperty('transform','scale(1.34)');
  if(reduced()||document.hidden||typeof token.animate!=='function')return;
- token.style.setProperty('will-change','scale');
+ token.style.setProperty('will-change','transform');
  // 1.00 -> 1.52 -> 1.29 -> 1.34: perceptible but gentle growth
  // applied only to the existing geographic marker artwork.
  const frames=[
-  {scale:'1',offset:0},
-  {scale:'1.52',offset:.49},
-  {scale:'1.29',offset:.77},
-  {scale:'1.34',offset:1}
+  {transform:'scale(1)',offset:0},
+  {transform:'scale(1.52)',offset:.49},
+  {transform:'scale(1.29)',offset:.77},
+  {transform:'scale(1.34)',offset:1}
  ];
  try{
   const a=token.animate(frames,{duration:485,easing:'cubic-bezier(.22,.82,.22,1)',fill:'none'});
   selectedPoiAnimation=a;
   a.onfinish=()=>{
    if(selectedPoiAnimation!==a||selectedPoiToken!==token)return;
-   token.style.setProperty('scale','1.34');
+   token.style.setProperty('transform','scale(1.34)');
    token.style.removeProperty('will-change');
    selectedPoiAnimation=null;
   };
