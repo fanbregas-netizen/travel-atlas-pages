@@ -1,0 +1,80 @@
+/* Footprint Map V4 · real route map color, pin, sheet parity.
+ * Scope: route-view.html only. Retain geography and single SVG yellow star;
+ * route card's three-stage state machine remains in route-detail-sheet.js.
+ */
+body.route-page{
+ --route-paper:#fffefa;--route-ink:#27342f;--route-body:#4b5750;
+ --route-muted:#69746e;--route-sage:#edf1e9;--route-line:#e5e7df;
+ --route-gold:#b59a62;--route-gold-wash:#f3eddf;--route-gold-ink:#665338;
+ font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+ -webkit-font-smoothing:antialiased;
+}
+body.route-page #routeOutline{stroke:#fffefa!important;stroke-width:4.5!important}
+body.route-page #routeStroke{stroke:#536659!important;stroke-width:2.25!important;opacity:.88!important}
+body.route-page #atlasMap{background:#eaf0e9!important}
+body.route-page .atlas-back,
+body.route-page #viewAll{
+ background:rgba(255,254,250,.97)!important;border:1px solid var(--route-line)!important;
+ color:var(--route-ink)!important;box-shadow:0 4px 16px rgba(26,43,35,.10)!important
+}
+body.route-page #pinLayer{z-index:15!important}
+body.route-page .route-pin{filter:none!important}
+body.route-page .rv-star{filter:drop-shadow(0 2px 5px rgba(26,43,35,.16))!important}
+body.route-page .route-pin.active .rv-star{transform:scale(1.2)!important;filter:drop-shadow(0 3px 9px rgba(181,154,98,.24))!important}
+body.route-page .rv-callout{z-index:14!important;background:rgba(255,254,250,.97)!important;border-color:var(--route-line)!important;color:var(--route-ink)!important}
+body.route-page #stopsDock{
+ background:rgba(255,254,250,.97)!important;border:1px solid var(--route-line)!important;
+ box-shadow:0 -7px 30px rgba(26,43,35,.11)!important
+}
+body.route-page #stopsDock .stop-chip{
+ background:var(--route-paper)!important;color:var(--route-body)!important;border-color:var(--route-line)!important
+}
+body.route-page #stopsDock .stop-chip.active{
+ background:var(--route-gold-wash)!important;color:var(--route-gold-ink)!important;
+ border-color:#dfd1b4!important
+}
+body.route-page #routeLegend{
+ border:1px solid var(--route-line)!important;background:rgba(255,254,250,.96)!important;
+ color:var(--route-muted)!important
+}
+body.route-page #rvDetail{
+ z-index:42!important;border:1px solid var(--route-line)!important;border-bottom:0!important;
+ border-radius:25px 25px 0 0!important;background:var(--route-paper)!important;
+ box-shadow:0 -13px 47px rgba(26,43,35,.17)!important;color:var(--route-ink)!important
+}
+body.route-page #rvDetail .grab{background:#c6cbc4!important}
+body.route-page #rvDetail h2{color:var(--route-ink)!important;font-size:21px!important;letter-spacing:-.035em}
+body.route-page #rvDetail .addr{color:var(--route-muted)!important}
+body.route-page #rvDetail .brief{
+ background:var(--route-paper)!important;border-color:var(--route-line)!important;
+ color:var(--route-body)!important;line-height:1.75!important
+}
+body.route-page #rvDetail .rv-sec{border-color:var(--route-line)!important}
+body.route-page #rvDetail .rv-sec>small{color:var(--route-gold-ink)!important;font-size:11px!important}
+body.route-page #rvDetail .rv-links a{
+ background:var(--route-sage)!important;color:var(--route-body)!important;
+ border:1px solid var(--route-line)!important
+}
+body.route-page #rvDetail .rv-links-empty{color:var(--route-muted)!important}
+body.route-page #rvDetail .ops button{
+ background:var(--route-sage)!important;border-color:var(--route-line)!important;color:var(--route-body)!important
+}
+body.route-page #rvDetail .ops button[data-op="nav"]{
+ background:var(--route-gold-wash)!important;border-color:#dfd1b4!important;color:var(--route-gold-ink)!important
+}
+body.route-page #rvDetail .rv-media[hidden]{display:none!important}
+body.route-page #rvDetail .photos div{background:transparent!important}
+body.route-page #rvDetail .photos img{width:100%!important;height:100%!important;object-fit:cover;opacity:1!important}
+body.route-page #rvDetail .rv-x{color:var(--route-muted)!important}
+body.route-page #stopBubble{background:var(--route-paper)!important;border-color:var(--route-line)!important}
+body.route-page .edit-route-link{
+ position:fixed;right:68px;top:calc(var(--safe-top,0px) + 11px);z-index:12;
+ display:flex;align-items:center;justify-content:center;height:44px;min-width:47px;
+ padding:0 10px;border-radius:13px;background:rgba(255,254,250,.97);
+ border:1px solid var(--route-line);color:var(--route-ink);font-size:12px;font-weight:700;
+ box-shadow:0 4px 16px rgba(26,43,35,.10);text-decoration:none
+}
+body.route-page .edit-route-link[hidden]{display:none!important}
+body.route-page :is(.edit-route-link,.stop-chip,button):focus-visible{
+ outline:2px solid #b88f37!important;outline-offset:2px
+}
