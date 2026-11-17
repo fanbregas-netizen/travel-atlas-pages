@@ -338,7 +338,7 @@ const sc=h('div','fp-card-scroll');
 };
 tileVideos.add(video);
 video.addEventListener('canplay',()=>{if(activePlaceId===id)syncTilePlayback(video)},{once:true});
-watchTileVideo(video)tile.append(video,h('span','fp-video-indicator','▶'))}if(i===tiles.length-1&&media.length>tiles.length)tile.append(h('span','fp-tile-more','+'+(media.length-tiles.length)));mosaic.append(tile)});cardMedia.append(mosaic);cardMedia.append(h('div','fp-photo-count',`${(p.photos||[]).length} 张照片 · ${(p.videos||[]).length} 条视频`))}
+watchTileVideo(video);tile.append(video,h('span','fp-video-indicator','▶'))}if(i===tiles.length-1&&media.length>tiles.length)tile.append(h('span','fp-tile-more','+'+(media.length-tiles.length)));mosaic.append(tile)});cardMedia.append(mosaic);cardMedia.append(h('div','fp-photo-count',`${(p.photos||[]).length} 张照片 · ${(p.videos||[]).length} 条视频`))}
  const cardLinks=h('section','fp-block');
  cardLinks.append(sectionHeading('03','相关攻略',btn(editMode==='link'?'收起':editorDrafts.get(draftKey(id,'link'))?.dirty?'继续编辑':'＋ 链接',()=>{editMode=editMode==='link'?'':'link';renderPlace(id)},'fp-subaction fp-section-edit')));
  const links=linksOf(p);
