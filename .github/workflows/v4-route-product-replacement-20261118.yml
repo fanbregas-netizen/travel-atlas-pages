@@ -1,0 +1,44 @@
+name: Footprint V4 approved-route product replacement browser QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v4-approved-route-20261118/**'
+      - 'tests/v4-route-product-replacement-20261118.test.cjs'
+      - '.github/workflows/v4-route-product-replacement-20261118.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  accepted-route-parity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse real product scripts
+        run: |
+          node --check v4-approved-route-20261118/src/interaction/route-cards-v5-live.js
+          node --check v4-approved-route-20261118/src/route/route-order-engine.js
+          node --check v4-approved-route-20261118/src/media/media-core.js
+          node --check tests/v4-route-product-replacement-20261118.test.cjs
+      - name: Install browsers for mobile touch tests
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps chromium webkit
+      - name: Serve independent full-product Pages directory
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/route-accepted-v4.log 2>&1 &
+          sleep 2
+          curl -fsSL http://127.0.0.1:8765/v4-approved-route-20261118/index.html >/dev/null
+      - name: Compare real C V5 behavior in Chromium and WebKit at iPhone dimensions
+        run: node tests/v4-route-product-replacement-20261118.test.cjs
+      - name: Upload test failure screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accepted-route-v4-product-qa
+          path: route-v4-evidence/
+          if-no-files-found: ignore
