@@ -18,6 +18,19 @@ def once(old,new,label):
 
 if p.name=='v4-map-runtime.js':
  once(
+  """    const pane=$('atlasPoiOverlay');if(pane)pane.replaceChildren();
+  }
+  let reverseReq=0,lastVectorPickAt=0,lastVectorPickKey='';""",
+  """    // The actual hand-drawn overlay controller owns these live POI nodes.
+    // The legacy vector POI placeholder used to REMOVE EVERY SVG on each
+    // moveend, then the new controller recreated them 140ms later. That is
+    // the visible vanish/reappear flicker in the iPhone recording.
+    const pane=$('atlasPoiOverlay');
+    if(pane&&!window.__atlasPOICommitCurrent)pane.replaceChildren();
+  }
+  let reverseReq=0,lastVectorPickAt=0,lastVectorPickKey='';""",
+  'retire-legacy-poi-overlay-destructor')
+ once(
   """        pixelRatio:mobileStableMap?Math.min(window.devicePixelRatio||1,2):undefined});""",
   """        pixelRatio:mobileStableMap?Math.min(window.devicePixelRatio||1,2):undefined,
         // A modest wider live-vector tile cache reduces newly blank edges
