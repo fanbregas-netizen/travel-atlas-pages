@@ -8,6 +8,7 @@ on:
       - 'v4-system-review/map-shared-style-repairs.py'
       - 'v4-system-review/map-poi-smooth.py'
       - 'v4-system-review/map-pan-performance.py'
+      - 'v4-system-review/map-camera-coherence.py'
       - 'v4-system-review/map-poi-icon-pop.py'
       - 'v4-system-review/map-route-smooth.py'
       - 'v4-system-review/map-visual-parity.css'
@@ -52,6 +53,8 @@ jobs:
           subprocess.run(['python3','__prototype/v4-system-review/map-route-smooth.py',str(review/'src/interaction/route-cards-v5-live.js')],check=True)
           for asset in ('v4-map-runtime.js','index.html','src/interaction/poi-svg-motion-v4.js'):
               subprocess.run(['python3','__prototype/v4-system-review/map-pan-performance.py',str(review/asset)],check=True)
+          for asset in ('v4-map-runtime.js','index.html'):
+              subprocess.run(['python3','__prototype/v4-system-review/map-camera-coherence.py',str(review/asset)],check=True)
           subprocess.run(['node','--check',str(review/'v4-map-runtime.js')],check=True)
           subprocess.run(['node','--check',str(review/'src/interaction/route-cards-v5-live.js')],check=True)
           shutil.copyfile('__prototype/v4-system-review/map-visual-parity.css',review/'map-visual-parity.css')
