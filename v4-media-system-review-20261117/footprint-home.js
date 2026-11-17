@@ -558,10 +558,10 @@ const iphoneGallery=(()=>{
   if(!s||s.closed)return;
   s.closed=true;s.locked=true;
   if(s.gestureRAF){cancelAnimationFrame(s.gestureRAF);s.gestureRAF=0}
-  s.stage.removeEventListener('touchstart',s.onTouchStart);
-  s.stage.removeEventListener('touchmove',s.onTouchMove);
-  s.stage.removeEventListener('touchend',s.onTouchEnd);
-  s.stage.removeEventListener('touchcancel',s.onTouchCancel);
+  s.stage.removeEventListener('touchstart',s.onTouchStart,true);
+  s.stage.removeEventListener('touchmove',s.onTouchMove,true);
+  s.stage.removeEventListener('touchend',s.onTouchEnd,true);
+  s.stage.removeEventListener('touchcancel',s.onTouchCancel,true);
   window.removeEventListener('resize',s.onResize);
   if(s.videoActivationTimer){clearTimeout(s.videoActivationTimer);s.videoActivationTimer=null}
   s.cells?.forEach(cell=>{
@@ -787,10 +787,10 @@ const iphoneGallery=(()=>{
    if(s.gestureRAF){cancelAnimationFrame(s.gestureRAF);s.gestureRAF=0}
    if(s.drag?.mode&&!s.locked)settle(s);else s.drag=null;
   };
-  s.stage.addEventListener('touchstart',s.onTouchStart,{passive:true});
-  s.stage.addEventListener('touchmove',s.onTouchMove,{passive:false});
-  s.stage.addEventListener('touchend',s.onTouchEnd,{passive:true});
-  s.stage.addEventListener('touchcancel',s.onTouchCancel,{passive:true});
+  s.stage.addEventListener('touchstart',s.onTouchStart,{passive:true,capture:true});
+  s.stage.addEventListener('touchmove',s.onTouchMove,{passive:false,capture:true});
+  s.stage.addEventListener('touchend',s.onTouchEnd,{passive:true,capture:true});
+  s.stage.addEventListener('touchcancel',s.onTouchCancel,{passive:true,capture:true});
  }
  function open(items,index,originTile){
   close(true);
