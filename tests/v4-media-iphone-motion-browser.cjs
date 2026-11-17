@@ -88,8 +88,19 @@ async function gesture(cdp,coords){
       await page.screenshot({path:output+'/bootstrap-error-'+width+'.png'});
       throw error;
     }
+    // B01 approved: visible small-screen videos animate, silently and in a loop.
+    const tiles=page.locator('#fpPlaceCard .fp-media-mosaic video');
+    assert.equal(await tiles.count(),3,'Three live small-screen videos expected');
+    await tiles.first().scrollIntoViewIfNeeded();
+    await page.waitForFunction(()=>{
+      const vs=[...document.querySelectorAll('#fpPlaceCard .fp-media-mosaic video')];
+      return vs.some(v=>v.dataset.inViewport==='yes'&&!v.paused&&v.loop&&v.muted&&v.readyState>=2);
+    },null,{timeout:14000});
+    assert.equal(await tiles.evaluateAll(vs=>vs.every(v=>v.loop&&v.muted&&v.playsInline)),true,'Small-screen video looping/inline playback lost');
     await page.locator('#fpPlaceCard .fp-media-mosaic button').first().click();
     await page.waitForSelector('#fpMediaViewer[data-media-motion="iphone-v5"] .fp-gallery-track',{timeout:12000});
+    await page.waitForFunction(()=>[...document.querySelectorAll('#fpPlaceCard .fp-media-mosaic video')].every(v=>v.paused),null,{timeout:8000});
+
     const initial=await page.evaluate(()=>{
       const e=document.querySelector('#fpMediaViewer');
       window.__mediaRef=e;
@@ -214,7 +225,12 @@ async function gesture(cdp,coords){
       await page.locator('#fpMediaViewer .fp-viewer-close').click();
       await page.waitForFunction(()=>!document.querySelector('#fpMediaViewer'),null,{timeout:7000});
     }
-    assert.equal(await page.locator('#fpPlaceCard .fp-media-mosaic video').evaluateAll(vs=>vs.filter(v=>!v.paused).length),0,'Background video decoder resumed on close');
+    await tiles.first().scrollIntoViewIfNeeded();
+    await page.waitForFunction(()=>{
+      return [...document.querySelectorAll('#fpPlaceCard .fp-media-mosaic video')]
+        .some(v=>v.dataset.inViewport==='yes'&&!v.paused&&v.loop&&v.muted);
+    },null,{timeout:12000});
+    assert.ok(await tiles.evaluateAll(vs=>vs.some(v=>!v.paused)),'Small-card videos did not resume after fullscreen close');
     assert.deepEqual(errors,[],'Unexpected page errors '+JSON.stringify(errors));
     reports.push({width,firstDrag:during,secondIndex:2,down,modalStable:true,closeWorks:true,errors});
    }finally{await context.close()}
