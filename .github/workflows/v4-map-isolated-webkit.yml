@@ -7,6 +7,7 @@ on:
       - 'v4-system-review/map-runtime-repairs.py'
       - 'v4-system-review/map-shared-style-repairs.py'
       - 'v4-system-review/map-poi-smooth.py'
+      - 'v4-system-review/map-poi-icon-pop.py'
       - 'v4-system-review/map-route-smooth.py'
       - 'v4-system-review/map-visual-parity.css'
       - 'v4-system-review/map-safari-smoke.cjs'
@@ -45,6 +46,8 @@ jobs:
           subprocess.run(['node','--check',str(review/'src/map/shared-v4-map.js')],check=True)
           subprocess.run(['python3','__prototype/v4-system-review/map-poi-smooth.py',str(review/'v4-map-runtime.js')],check=True)
           subprocess.run(['python3','__prototype/v4-system-review/map-poi-smooth.py',str(review/'index.html')],check=True)
+          subprocess.run(['python3','__prototype/v4-system-review/map-poi-icon-pop.py',str(review/'src/interaction/poi-svg-motion-v4.js')],check=True)
+          subprocess.run(['node','--check',str(review/'src/interaction/poi-svg-motion-v4.js')],check=True)
           subprocess.run(['python3','__prototype/v4-system-review/map-route-smooth.py',str(review/'src/interaction/route-cards-v5-live.js')],check=True)
           subprocess.run(['node','--check',str(review/'v4-map-runtime.js')],check=True)
           subprocess.run(['node','--check',str(review/'src/interaction/route-cards-v5-live.js')],check=True)
@@ -57,6 +60,9 @@ jobs:
               assert 'atlas-v4-review-20261116-' in html
               html=html.replace('atlas-v4-review-20261116-','atlas-v4-map-system-review-20261117-')
               html=html.replace('shared-v4-map.js?v=c4','shared-v4-map.js?v=map-parity-2').replace('shared-v4-map.js?v=route-precision-1','shared-v4-map.js?v=map-parity-2').replace('shared-v4-map.js?v=4-unified','shared-v4-map.js?v=map-parity-2')
+              if page=='index.html':
+                  html=html.replace('poi-svg-motion-v4.js?v=cv5-18','poi-svg-motion-v4.js?v=poi-pop-4')
+                  assert 'poi-pop-4' in html
               if page=='journey.html':
                   old='<script defer src="./src/interaction/route-cards-v5-live.js?v=fluid-3"></script>'
                   assert old in html
@@ -69,7 +75,7 @@ jobs:
           for old in base.rglob('*'):
               if not old.is_file():continue
               rel=old.relative_to(base)
-              if rel in (Path('index.html'),Path('journey.html'),Path('route-view.html'),Path('v4-map-runtime.js'),Path('src/map/shared-v4-map.js'),Path('src/interaction/route-cards-v5-live.js')):continue
+              if rel in (Path('index.html'),Path('journey.html'),Path('route-view.html'),Path('v4-map-runtime.js'),Path('src/map/shared-v4-map.js'),Path('src/interaction/route-cards-v5-live.js'),Path('src/interaction/poi-svg-motion-v4.js')):continue
               assert hashlib.sha256(old.read_bytes()).digest()==hashlib.sha256((review/rel).read_bytes()).digest(),str(rel)
           assert len(list(x for x in review.rglob('*') if x.is_file()))==167
           print('Isolated map artifact validated, other system resources identical.')
