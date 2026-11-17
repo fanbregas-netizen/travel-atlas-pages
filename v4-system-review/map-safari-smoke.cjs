@@ -140,6 +140,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.ok(Math.abs(beforePoiCamera.lat-afterPoiCamera.lat)>.002||
               Math.abs(beforePoiCamera.lng-afterPoiCamera.lng)>.003,
       'Map must visibly PAN to clicked POI, not remain stationary');
+    await page.waitForFunction(()=>document.querySelector('.atlas-vector-selection .fp-vector-token')?.dataset.poiPopMotion==='settled',{timeout:1400});
     assert.equal(await page.locator('.atlas-vector-selection .fp-vector-token' ).evaluate(el=>el.style.transform),'scale(1.34)',
       'POI stays enlarged after gentle overshoot and settle');
     await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='海浪动效测试',{timeout:17000});
