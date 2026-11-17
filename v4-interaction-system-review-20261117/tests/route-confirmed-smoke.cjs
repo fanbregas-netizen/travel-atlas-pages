@@ -13,7 +13,7 @@ const chrome=['google-chrome','chromium'].map(n=>{try{return cp.execFileSync('wh
   console.log('SMOKE 1 seed');
   await page.goto(base+'index.html',{waitUntil:'domcontentloaded',timeout:15000});
   await page.evaluate(async()=>{
-    const p={id:'qa-smoke',title:'真实示例地点',lat:30,lng:120,starred:true,note:'可核对 Brief',photos:[]};
+    const fixtures=[{id:'qa-smoke-a',title:'沿海 A',lat:30,lng:120,starred:true,note:'A Brief',photos:[]},{id:'qa-smoke-c',title:'沿海 C',lat:30,lng:121,starred:true,note:'C Brief',photos:[]},{id:'qa-smoke-b',title:'沿海 B',lat:30,lng:120.2,starred:true,note:'B Brief',photos:[]},{id:'qa-smoke-d',title:'沿海 D',lat:30,lng:121.2,starred:true,note:'D Brief',photos:[]}];
     await new Promise((resolve,reject)=>{
       const req=indexedDB.open('private-travel-footprints-v1',1);
       req.onupgradeneeded=()=>{
@@ -24,7 +24,7 @@ const chrome=['google-chrome','chromium'].map(n=>{try{return cp.execFileSync('wh
       req.onerror=()=>reject(req.error);
       req.onsuccess=()=>{
         const db=req.result,tx=db.transaction('places','readwrite');
-        tx.objectStore('places').put(p);
+        fixtures.forEach(p=>tx.objectStore('places').put(p));
         tx.oncomplete=()=>{db.close();resolve()};
         tx.onerror=()=>reject(tx.error);
       };
@@ -33,17 +33,32 @@ const chrome=['google-chrome','chromium'].map(n=>{try{return cp.execFileSync('wh
   console.log('SMOKE 2 journey navigation');
   await page.goto(base+'journey-real-confirmed-20261118.html',{waitUntil:'domcontentloaded',timeout:15000});
   console.log('SMOKE 3 waiting app state');
-  await page.waitForFunction(()=>!!window.__atlasJourneyRoute?.getState&&document.querySelectorAll('#places .place').length===1,null,{timeout:10000});
+  await page.waitForFunction(()=>!!window.__atlasJourneyRoute?.getState&&document.querySelectorAll('#places .place').length===4,null,{timeout:10000});
   const st=await page.evaluate(()=>({selected:window.__atlasJourneyRoute.getState().selected.length,sections:document.querySelectorAll('.builder>section.block').length,visual:!!window.__atlasJourneyVisual,rows:document.querySelectorAll('#places .place').length,tool:!!window.FootprintRouteEngine,media:!!window.FootprintMediaCore}));
-  console.log('SMOKE READY',JSON.stringify(st));assert.equal(st.rows,1);assert.equal(st.visual,true);
+  console.log('SMOKE READY',JSON.stringify(st));assert.equal(st.rows,4);assert.equal(st.visual,true);
   console.log('SMOKE 4 activate place list');
   await page.evaluate(()=>window.__atlasJourneyVisual?.setStep('places'));
   await page.waitForTimeout(450);
-  console.log('SMOKE 5 click real place');
-  await page.locator('#places .place').first().click({timeout:8000});
+  console.log('SMOKE 5 add four real points');
+  for(const title of ['沿海 A','沿海 C','沿海 B','沿海 D']){
+    console.log('SMOKE click',title);
+    await page.locator('#places .place').filter({hasText:title}).click({timeout:8000});
+  }
   const selected=await page.evaluate(()=>window.__atlasJourneyRoute.getState().selected.map(s=>s.id));
   console.log('SMOKE SELECTED',JSON.stringify(selected));
-  assert.deepEqual(selected,['qa-smoke']);
+  assert.deepEqual(selected,['qa-smoke-a','qa-smoke-c','qa-smoke-b','qa-smoke-d']);
+  console.log('SMOKE 6 open real settings');
+  await page.evaluate(()=>window.__atlasJourneyVisual.setStep('settings'));
+  await page.locator('#originPlaceId').selectOption('qa-smoke-a',{timeout:8000});
+  await page.locator('#destinationPlaceId').selectOption('qa-smoke-d',{timeout:8000});
+  await page.locator('[data-route-mode="bike"]').click({timeout:8000});
+  const state=await page.evaluate(()=>window.__atlasJourneyRoute.getState());
+  console.log('SMOKE SETTINGS',JSON.stringify({origin:state.originPlaceId,destination:state.destinationPlaceId,mode:state.transportMode}));
+  assert.equal(state.transportMode,'bike');
+  console.log('SMOKE 7 save');
+  await page.locator('#savePlan').click({timeout:8000});
+  await page.waitForFunction(()=>!!window.__atlasJourneyRoute?.getState().id,null,{timeout:12000});
+  console.log('SMOKE SAVED',await page.evaluate(()=>window.__atlasJourneyRoute.getState().id));
   fs.mkdirSync('route-smoke-evidence',{recursive:true});await page.screenshot({path:'route-smoke-evidence/real-journey-390.png'});
   await ctx.close();
  }finally{await browser.close()}
