@@ -596,7 +596,7 @@ function init(){
 <link rel="stylesheet" href="./src/visual/route-precision-20261115.css?v=detail-3">
 <script src="./src/route/route-detail-sheet.js"></script>
 
-<link rel="stylesheet" href="/travel-atlas-pages/v4-visual-system-review-20261117/visual-review.css?v=12"><script id="visual-review-bootstrap-inline">
+<link rel="stylesheet" href="/travel-atlas-pages/v4-visual-system-review-20261117/visual-review.css?v=13"><script id="visual-review-bootstrap-inline">
 /* V4 independent true-product visual comparison. No product DOM duplication. */
 (()=>{
 'use strict';
@@ -685,7 +685,7 @@ function heading(number,title,buttonText,action){
 }
 function mount(node){
  if(detail)return;
- detail=node;
+ detail=node;detail.setAttribute('role','dialog');detail.setAttribute('aria-label','路线地点详情');detail.setAttribute('aria-modal','false');
  parity=document.createElement('div');parity.id='rvParity';parity.setAttribute('aria-label','与主页收藏地点一致的详情卡片');
  const header=elem('header','rvp-header');
  const titleRow=elem('div','rvp-title-row');
