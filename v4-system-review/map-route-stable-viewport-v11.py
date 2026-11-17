@@ -36,6 +36,15 @@ once(
   const a=routeVisibleArea();
   return [0,a.offsetY];
  }
+ function routeVisibleCameraCenter(lng,lat){
+  // A MapLibre easeTo({center: same point,offset}) is a no-op when the
+  // POI already equals the current camera center. Derive the REAL center
+  // required to place it at the exposed-map target pixel instead.
+  // Conversion is computed at the unchanged zoom, so map never enlarges.
+  const view=routeVisibleArea();
+  const pixel=liveMap.project([lng,lat]);
+  return liveMap.unproject([pixel.x,pixel.y+view.height/2-view.targetY]).toArray();
+ }
  window.__atlasRouteViewportQA=routeVisibleArea;
  // Attribution must remain above the sheet; it has no impact on map
  // canvas dimensions. Track only card size, not every map frame.
@@ -50,7 +59,7 @@ once(
 
 once(
  "liveMap.easeTo({center:[lng,lat],zoom:liveMap.getZoom(),duration:470,",
- "liveMap.easeTo({center:[lng,lat],offset:routeVisibleOffset(),zoom:liveMap.getZoom(),duration:470,",
+ "liveMap.easeTo({center:routeVisibleCameraCenter(lng,lat),zoom:liveMap.getZoom(),duration:470,",
  'picker-center-exposed-map')
 
 once(
@@ -61,7 +70,7 @@ once(
 
 once(
  "liveMap.easeTo({center:[+place.lng,+place.lat],zoom:liveMap.getZoom(),",
- "liveMap.easeTo({center:[+place.lng,+place.lat],offset:routeVisibleOffset(),zoom:liveMap.getZoom(),",
+ "liveMap.easeTo({center:routeVisibleCameraCenter(+place.lng,+place.lat),zoom:liveMap.getZoom(),",
  'stored-marker-visible-center-pan')
 
 p.write_text(s,encoding='utf-8')
