@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/visual-review-http-smoke.yml'
+      - 'v4-visual-system-review-20261117/tests/visual-three-headers.cjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,3 +39,19 @@ jobs:
           fetch_page 'visual-review.css?v=8' /tmp/visual-review.css
           grep -q 'atlas-card-grip' /tmp/visual-review.css
           echo 'SUCCESS: public HTML and CSS live, actual V8 loaded'
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser driver
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Open iPhone-size browser and capture real three-card screenshots
+        run: node v4-visual-system-review-20261117/tests/visual-three-headers.cjs
+      - name: Upload real public Chrome screenshots and metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-three-card-real-pages-screenshots
+          path: visual-review-live-evidence/
+          if-no-files-found: ignore
