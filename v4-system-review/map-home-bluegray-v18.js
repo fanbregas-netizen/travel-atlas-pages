@@ -75,6 +75,15 @@
   attempt();
   setTimeout(attempt,450);
   setTimeout(attempt,1200);
+  // Safari may finish map style loading several seconds AFTER the
+  // original map-bridge event. Do not abandon the blue-gray paint after
+  // one early attempt; stop immediately once the real MapLibre style is ready.
+  let polls=0;
+  const retry=setInterval(()=>{
+   if(current!==map||applied>0||polls++>120){clearInterval(retry);return}
+   attempt();
+  },300);
+  map.on('idle',()=>{if(current===map&&!applied)attempt()});
  }
  function attach(){
   const map=window.__atlasPOIBridge?.vector?.();
