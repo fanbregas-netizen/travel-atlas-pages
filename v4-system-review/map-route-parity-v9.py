@@ -15,7 +15,7 @@ def once(a,b,label):
 if p.name=='route-cards-v5-live.js':
  once(
  "let liveMapPickMode=null,liveMapPickHint=null;const livePendingRoutePlaces=new Map();",
- "let liveMapPickMode=null,liveMapPickHint=null;let liveTopPlaceId=null;const livePendingRoutePlaces=new Map();",
+ "let liveMapPickMode=null,liveMapPickHint=null;let liveTopPlaceId=null,liveTapFocusSerial=0;const livePendingRoutePlaces=new Map();",
  'single-foreground-route-poi')
 
  once(
@@ -99,11 +99,19 @@ if p.name=='route-cards-v5-live.js':
   if(!livePickedPoint(lng,lat,point?.name||''))return;
   // Same camera motor as approved homepage: move the geographic POI to
   // the true center without zooming the MAP or offsetting the anchor.
-  if(!window.matchMedia?.('(prefers-reduced-motion:reduce)')?.matches){
+  const focusSerial=++liveTapFocusSerial;
+  // The icon responds immediately. Begin camera travel after the
+  // card's 100ms map-height transition, otherwise the anchor drifts.
+  setTimeout(()=>{
+   if(focusSerial!==liveTapFocusSerial||!liveMap)return;
+   liveMap.resize();
+   if(window.matchMedia?.('(prefers-reduced-motion:reduce)')?.matches){
+    liveMap.jumpTo({center:[lng,lat]});liveRenderCamera(true);return;
+   }
    liveMap.stop();
    liveMap.easeTo({center:[lng,lat],zoom:liveMap.getZoom(),duration:470,
     easing:t=>t*t*(3-2*t),essential:true});
-  }
+  },135);
  });""",
  'home-map-center-no-offset-no-zoom')
 
@@ -123,7 +131,7 @@ if p.name=='route-cards-v5-live.js':
   const pin=e.target.closest('button[data-place-id]');if(!pin)return;
   const place=allPlaces.find(p=>String(p.id)===pin.dataset.placeId);
   if(!place)return;
-  liveTopPlaceId=place.id;
+  liveTopPlaceId=place.id;++liveTapFocusSerial;
   requestAnimationFrame(()=>{
    const pane=routeMap.querySelector('#rc-map-pins');
    const current=Array.from(pane?.querySelectorAll('[data-place-id]')||[]).find(n=>n.dataset.placeId===String(place.id));
