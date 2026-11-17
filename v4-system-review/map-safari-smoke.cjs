@@ -1,7 +1,7 @@
 /* WebKit iPhone-sized independent V4 map review, no changes to product state outside this browser context. */
 const {webkit,devices}=require('playwright');
 const assert=require('node:assert/strict');
-const URL='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/';
+const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/';
 (async()=>{
  const browser=await webkit.launch({headless:true});
  try{
