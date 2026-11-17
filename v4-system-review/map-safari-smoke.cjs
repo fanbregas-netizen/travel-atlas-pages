@@ -35,43 +35,64 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     await page.waitForFunction(()=>document.querySelectorAll('#atlasBookmarkOverlay [data-place-id="webkit-map-one-star"]').length===1,{timeout:15000});
     const first={name:'海浪动效测试',category:'sea',lat:base.lat,lng:base.lng};
     await page.waitForFunction(()=>!window.__atlasPOIBridge.vector()?.isMoving(),{timeout:15000});
-    const beforePoiZoom=await page.evaluate(()=>window.__atlasCameraQA().zoom);
-    await page.evaluate(p=>window.__atlasPOIBridge.select(p),first);
-    // Regression for the missing USER-REQUESTED map zoom: the POI tap must
-    // genuinely enlarge the vector map, not merely pulse the POI SVG.
-    await page.waitForFunction(z=>window.__atlasCameraQA().zoom>z+0.12,beforePoiZoom,{timeout:12000});
-    assert.equal(await page.evaluate(()=>window.__atlasPOIBridge.vector()?.isMoving()),true,
-      'POI zoom should animate gradually rather than jumping between camera states');
-    await page.waitForFunction(()=>!window.__atlasPOIBridge.vector()?.isMoving(),{timeout:15000});
-    const afterPoiZoom=await page.evaluate(()=>window.__atlasCameraQA().zoom);
-    assert.ok(afterPoiZoom-beforePoiZoom>=0.50,
-      'Tap must produce visible native camera enlargement; start='+beforePoiZoom+' end='+afterPoiZoom);
-    assert.ok(afterPoiZoom-beforePoiZoom<=0.74,
-      'Zoom increment must be moderate, avoiding heavy tile reload/flash');
-    await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='海浪动效测试',{timeout:17000});
-    console.log('PASS POI native animated camera zoom '+JSON.stringify({width,beforePoiZoom,afterPoiZoom}));
-    await page.waitForFunction(()=>!!document.querySelector('.fp-internal-poi-svg'),{timeout:17000});
-    await page.evaluate(p=>window.__atlasPOIBridge.select(p),{...first,name:'公园切点测试',category:'park'});
-    await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='公园切点测试',{timeout:17000});
-    // A POI already visible as a hand-drawn overlay must not create a
-    // SECOND selected symbol at the same map coordinate.
-    const duplicated=await page.evaluate(c=>{
+    const beforePoiCamera=await page.evaluate(()=>window.__atlasCameraQA());
+    // A genuine selected geographic SVG token, not an artificial map zoom.
+    const marker=await page.evaluate(p=>{
       const pane=document.getElementById('atlasPoiOverlay');
-      const v=document.createElement('button');
-      v.className='fp-poi';
-      v.dataset.poiId='ci-same-poi';
-      v.dataset.poiLat=String(c.lat);
-      v.dataset.poiLng=String(c.lng);
-      pane.append(v);
-      window.__atlasPOIBridge.select({name:'单颗图标测试',id:'ci-same-poi',category:'park',lat:c.lat,lng:c.lng});
-      const result={overlay:!!v.classList.contains('is-selected'),
-        extraSelectionMarkers:document.querySelectorAll('.atlas-vector-selection').length};
-      v.remove();
-      return result;
-    },base);
-    assert.equal(duplicated.overlay,true,'Selected existing POI should be animated in place');
-    assert.equal(duplicated.extraSelectionMarkers,0,'No duplicate selection icon on existing POI');
-    await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='单颗图标测试',{timeout:15000});
+      const b=document.createElement('button'),token=document.createElement('span');
+      b.className='fp-poi';token.className='fp-poi-token';
+      b.dataset.poiId='ci-apple-pin';b.dataset.poiLat=String(p.lat);b.dataset.poiLng=String(p.lng);
+      b.append(token);pane.append(b);
+      window.AtlasPOIMotion.play(token,p.category,p.name);
+      window.__atlasPOIBridge.select({...p,id:'ci-apple-pin'});
+      return {active:b.classList.contains('is-selected'),scale:token.style.scale,
+        zoom:window.__atlasCameraQA().zoom,animations:token.getAnimations().length};
+    },first);
+    assert.equal(marker.active,true,'The EXISTING tapped POI marker should be selected');
+    assert.equal(marker.scale,'1.34','Selected POI itself must stay visibly enlarged');
+    assert.ok(marker.animations>=1,'The POI pictogram should animate with a scale spring');
+    await page.waitForTimeout(160);
+    const mid=await page.evaluate(()=>{
+      const token=document.querySelector('#atlasPoiOverlay .fp-poi[data-poi-id="ci-apple-pin"] .fp-poi-token');
+      return {scale:getComputedStyle(token).scale,zoom:window.__atlasCameraQA().zoom,
+        moving:window.__atlasPOIBridge.vector().isMoving()};
+    });
+    assert.ok(parseFloat(mid.scale)>1.04,
+      'The POI icon must visibly enlarge during tap, not only bounce inner SVG paths: '+JSON.stringify(mid));
+    assert.equal(mid.moving,false,'A POI tap must not animate the map camera');
+    await page.waitForTimeout(420);
+    const afterPoiCamera=await page.evaluate(()=>window.__atlasCameraQA());
+    assert.ok(Math.abs(afterPoiCamera.zoom-beforePoiCamera.zoom)<0.005,
+      'The MAP must NOT zoom when the POI icon enlarges');
+    assert.ok(Math.abs(afterPoiCamera.lat-beforePoiCamera.lat)<0.00001&&
+      Math.abs(afterPoiCamera.lng-beforePoiCamera.lng)<0.00001,
+      'The map center must stay fixed when a POI marker is selected');
+    assert.equal(await page.locator('#atlasPoiOverlay .fp-poi[data-poi-id="ci-apple-pin"] .fp-poi-token').evaluate(el=>el.style.scale),
+      '1.34','The selected marker stays larger after its gentle overshoot');
+    await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='海浪动效测试',{timeout:17000});
+    await page.waitForFunction(()=>!!document.querySelector('.fp-internal-poi-svg'),{timeout:17000});
+    // New selection cancels previous icon's enlargement, preventing ghosts.
+    const switched=await page.evaluate(p=>{
+      const pane=document.getElementById('atlasPoiOverlay');
+      const second=document.createElement('button'),newToken=document.createElement('span');
+      second.className='fp-poi';newToken.className='fp-poi-token';
+      second.dataset.poiId='ci-second-pin';second.dataset.poiLat=String(p.lat);
+      second.dataset.poiLng=String(p.lng);
+      second.append(newToken);pane.append(second);
+      window.__atlasPOIBridge.select({...p,name:'公园切点测试',category:'park',id:'ci-second-pin'});
+      const prev=pane.querySelector('[data-poi-id="ci-apple-pin"] .fp-poi-token');
+      return {prevScale:prev.style.scale,selectedScale:newToken.style.scale,
+        oldSelected:prev.parentElement.classList.contains('is-selected'),
+        nativeDuplicates:document.querySelectorAll('.atlas-vector-selection').length};
+    },first);
+    assert.equal(switched.prevScale,'','Old selected icon must smoothly release its enlargement');
+    assert.equal(switched.selectedScale,'1.34','New selected POI enlarges independently');
+    assert.equal(switched.nativeDuplicates,0,'No second selection icon should overlap an existing POI');
+    await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='公园切点测试',{timeout:17000});
+    console.log('PASS POI pictogram selected scale, fixed map camera and fast-switch single owner '+JSON.stringify({
+      width,markerScale:marker.scale,midScale:mid.scale,selectedScale:switched.selectedScale,
+      beforeZoom:beforePoiCamera.zoom,afterZoom:afterPoiCamera.zoom
+    }));
     const layers=await page.evaluate(()=>{
      const visible=id=>{const el=document.getElementById(id);if(!el||el.hidden)return false;const s=getComputedStyle(el),r=el.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&r.width>0&&r.height>0;};
      const marks=[...document.querySelectorAll('#atlasBookmarkOverlay [data-place-id]')];
