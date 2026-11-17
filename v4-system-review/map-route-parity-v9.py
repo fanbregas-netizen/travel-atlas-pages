@@ -44,16 +44,16 @@ if p.name=='route-cards-v5-live.js':
  'same-approved-handdrawn-poi-family')
 
  once(
- "class=\"rc-pin rc-choice-pin ${{selected?'selected':''}\"",
- "class=\"rc-pin rc-choice-pin ${{selected?'selected':''} ${{String(spot.id)===liveTopPlaceId?'fp-route-tapped':''}\"",
+ "class=\"rc-pin rc-choice-pin ${selected?'selected':''}\"",
+ "class=\"rc-pin rc-choice-pin ${selected?'selected':''} ${String(spot.id)===liveTopPlaceId?'fp-route-tapped':''}\"",
  'persistent-selected-route-poi-class')
  once(
- "data-place-id=\"${{spot.id}\" data-rc=\"pick-${{spot.id}\"",
- "data-place-id=\"${{spot.id}\" data-route-only=\"${{spot.routeOnly?'1':'0'}\" data-rc=\"pick-${{spot.id}\"",
+ "data-place-id=\"${spot.id}\" data-rc=\"pick-${spot.id}\"",
+ "data-place-id=\"${spot.id}\" data-route-only=\"${spot.routeOnly?'1':'0'}\" data-rc=\"pick-${spot.id}\"",
  'route-poi-identity')
  once(
- ">${{spot.starred!==false?'★':'＋'}</button>",
- "><img class=\"fp-route-poi-art\" src=\"${{routeIcon(spot)}\" alt=\"\" aria-hidden=\"true\"></button>",
+ ">${spot.starred!==false?'★':'＋'}</button>",
+ "><img class=\"fp-route-poi-art\" src=\"${routeIcon(spot)}\" alt=\"\" aria-hidden=\"true\"></button>",
  'handdrawn-symbol-instead-of-plus')
 
  once(
