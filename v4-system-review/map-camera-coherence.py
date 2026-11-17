@@ -100,9 +100,14 @@ if p.name=='v4-map-runtime.js':
  once(
   """    requestAnimationFrame(reveal);
     $('selectionFeedback').hidden=true;""",
-  """    // Selection, camera movement and card use the same tap frame. No stale
-    // title during rapid alternating POI taps; icon pop runs independently.
-    requestAnimationFrame(reveal);
+  """    // Preserve the original icon-pop head start ONLY on first open.
+    // An already-visible card must reflect the newest POI on the next
+    // frame, without any postponed title or a fade-to-white renewal.
+    const alreadyOpen=$('destinationCard')?.classList.contains('visible');
+    if(d.__poiTap&&moving&&!alreadyOpen&&
+       !window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)
+      destinationRevealTimer=setTimeout(()=>requestAnimationFrame(reveal),105);
+    else requestAnimationFrame(reveal);
     $('selectionFeedback').hidden=true;""",
   'handoff-card-after-icon-begins')
  once(
