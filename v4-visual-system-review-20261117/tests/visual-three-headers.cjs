@@ -18,7 +18,7 @@ fs.mkdirSync(output,{recursive:true});
  const page=await context.newPage();
  page.on('pageerror',e=>{evidence.pageErrors.push(String(e.message).slice(0,250))});
  try{
-  let resp=await page.goto(base+'index.html?visual=after&qa=render11',{waitUntil:'domcontentloaded',timeout:60000});
+  let resp=await page.goto(base+'index.html?visual=after&qa=render12',{waitUntil:'domcontentloaded',timeout:60000});
   assert.equal(resp?.status(),200,'main preview HTTP');
   await page.waitForFunction(()=>!!window.__atlasPlaceStore?.save&&!!window.__atlasDemo?.openSaved,null,{timeout:25000});
   await page.evaluate(async()=>{
@@ -65,12 +65,41 @@ fs.mkdirSync(output,{recursive:true});
   }
   // The first action still edits Brief via the existing controller.
   await page.evaluate(()=>document.querySelector('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child(1) .fp-subheading > button.fp-subaction')?.click());
+  const inspectEditor=async (num,file)=>{
+   const section=page.locator('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child('+num+')');
+   const editor=section.locator('.fp-inline-editor');
+   await editor.scrollIntoViewIfNeeded();
+   await page.waitForTimeout(250);
+   const result=await editor.evaluate(el=>{
+     const sample=s=>{
+       const n=el.querySelector(s);if(!n)return null;
+       const b=n.getBoundingClientRect(),c=getComputedStyle(n);
+       return {width:Math.round(b.width),height:Math.round(b.height),fontSize:c.fontSize,
+         color:c.color,background:c.backgroundColor,border:c.borderColor,radius:c.borderRadius}
+     };
+     return {editor:sample(':scope'),textarea:sample('textarea'),input:sample('input'),
+       helper:sample('.fp-editor-draft-hint, .fp-guide-detection'),
+       primary:sample('.fp-inline-actions .fp-btn-primary'),
+       secondary:sample('.fp-inline-actions .fp-btn-muted')};
+   });
+   assert.ok(result.textarea.height>=108&&result.textarea.height<=120,'textarea should be a compact 112px');
+   assert.equal(result.textarea.fontSize,'16px','iPhone text input must not cause zoom');
+   if(num===3)assert.equal(result.input.height,44,'guide title field must match approved 44px control');
+   for(const b of ['primary','secondary'])assert.equal(result[b].height,44,'editor '+b+' button height must be 44px');
+   assert.equal(result.primary.background,'rgb(49, 75, 59)','save action must use route-system dark green');
+   assert.equal(result.secondary.background,'rgb(240, 244, 239)','cancel uses V4 soft green');
+   evidence.editors=evidence.editors||{};
+   evidence.editors[num===1?'brief':'guide']=result;
+   await page.screenshot({path:output+'/'+file+'.png',fullPage:false});
+  };
   await page.waitForSelector('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child(1) .fp-inline-editor textarea',{timeout:7000});
+  await inspectEditor(1,'editor-brief');
   await page.evaluate(()=>document.querySelector('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child(1) .fp-subheading > button.fp-subaction')?.click());
   await page.waitForFunction(()=>!document.querySelector('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child(1) .fp-inline-editor'),null,{timeout:7000});
   // Third action still opens link-editor, without replacing its listener.
   await page.evaluate(()=>document.querySelector('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child(3) .fp-subheading > button.fp-subaction')?.click());
   await page.waitForSelector('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child(3) .fp-guide-editor textarea',{timeout:7000});
+  await inspectEditor(3,'editor-guide');
   await page.evaluate(()=>document.querySelector('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child(3) .fp-subheading > button.fp-subaction')?.click());
   await page.waitForFunction(()=>!document.querySelector('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child(3) .fp-guide-editor'),null,{timeout:7000});
   // Media action still forwards to the original file chooser.
@@ -103,7 +132,7 @@ fs.mkdirSync(output,{recursive:true});
   evidence.results.push({card:'favorites',...favorite});
   await page.screenshot({path:output+'/favorites.png',fullPage:false});
   assert.ok(favorite.visible,'collection visible');
-  resp=await page.goto(base+'journey.html?visual=after&qa=render11',{waitUntil:'domcontentloaded',timeout:60000});
+  resp=await page.goto(base+'journey.html?visual=after&qa=render12',{waitUntil:'domcontentloaded',timeout:60000});
   assert.equal(resp?.status(),200,'route preview HTTP');
   await page.waitForFunction(()=>window.__atlasRouteV5Live?.ready===true&&!!document.getElementById('rc-main'),null,{timeout:30000});
   await page.waitForTimeout(750);
