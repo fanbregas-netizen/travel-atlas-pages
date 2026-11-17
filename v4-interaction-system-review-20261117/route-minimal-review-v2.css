@@ -278,3 +278,12 @@ body.fp-route-minimal #stopsDock{
 body.fp-route-minimal #routeSegs .seg-mark{display:none!important}
 body.fp-route-minimal #routeSegs .seg-outline{stroke-width:5!important;opacity:.87!important}
 body.fp-route-minimal #routeSegs .seg-stroke{stroke:#566258!important;stroke-width:2.3!important;opacity:.88!important}
+
+/* Explicit 9pt inset is robust to the old compact route footer's mobile
+   positioning rules and visually matches the accepted home-card spacing. */
+body.fp-route-minimal #stopsDock{
+ left:9px!important;right:9px!important;
+ width:calc(100vw - 18px)!important;max-width:calc(100vw - 18px)!important;
+ transform:none!important;translate:0 0;border-radius:18px!important;
+ bottom:calc(9px + env(safe-area-inset-bottom))!important;
+}
