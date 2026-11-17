@@ -1,0 +1,41 @@
+name: Footprint V4 minimal route iPhone review
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v4-interaction-system-review-20261117/route-minimal-review*'
+      - 'v4-interaction-system-review-20261117/tests/route-minimal-live.cjs'
+      - '.github/workflows/v4-route-minimal-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  route-minimal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium test dependency and Chinese fonts
+        run: |
+          npm install --no-save --ignore-scripts playwright-core@1.58.2
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+      - name: Serve preview
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/minimal-route.log 2>&1 &
+          sleep 2
+          curl -fsS 'http://127.0.0.1:8765/v4-interaction-system-review-20261117/route-minimal-review-20261117.html' >/dev/null
+      - name: Test iPhone sizes, recommendation, settings, add-point and point card
+        env:
+          INTERACTION_REVIEW_BASE_URL: http://127.0.0.1:8765/v4-interaction-system-review-20261117/
+        run: node v4-interaction-system-review-20261117/tests/route-minimal-live.cjs
+      - name: Save real browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: route-minimal-iphone-evidence
+          path: route-minimal-qa/
+          if-no-files-found: ignore
