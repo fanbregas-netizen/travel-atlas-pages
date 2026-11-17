@@ -44,11 +44,11 @@ for page in ("index.html","journey.html","route-view.html"):
     for version in ("c4","route-precision-1","4-unified"):
         html=html.replace("shared-v4-map.js?v="+version,"shared-v4-map.js?v=map-parity-2")
     if page=="index.html":
-        html=html.replace("v4-map-runtime.js?v=real-handoff-19","v4-map-runtime.js?v=map-safari-acceptance-7")
-        html=html.replace("v4-map-runtime.js?v=parity-11","v4-map-runtime.js?v=map-safari-preload-7")
+        html=html.replace("v4-map-runtime.js?v=real-handoff-19","v4-map-runtime.js?v=map-safari-acceptance-8")
+        html=html.replace("v4-map-runtime.js?v=parity-11","v4-map-runtime.js?v=map-safari-preload-8")
         html=html.replace("poi-svg-motion-v4.js?v=cv5-18","poi-svg-motion-v4.js?v=poi-pop-5")
         assert "poi-pop-5" in html
-        assert "map-safari-acceptance-7" in html
+        assert "map-safari-acceptance-8" in html
         assert "The selected icon already animates in place" in html
     if page=="journey.html":
         old_script='<script defer src="./src/interaction/route-cards-v5-live.js?v=fluid-3"></script>'
@@ -58,7 +58,7 @@ for page in ("index.html","journey.html","route-view.html"):
     if page in ("journey.html","route-view.html"):
         warm='<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>\n<link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>\n<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js">'
         html=html.replace("</head>",warm+"\n</head>",1)
-    style='<link rel="stylesheet" href="./map-visual-parity.css?v=map-only-2">\n<link rel="stylesheet" href="./scope-review.css?v=scope-1">'
+    style='<link rel="stylesheet" href="./map-visual-parity.css?v=map-only-3">\n<link rel="stylesheet" href="./scope-review.css?v=scope-1">'
     script='<script src="./scope-review.js?v=scope-1" data-scope="map"></script>'
     html=html.replace("</head>",style+"\n</head>",1)
     html=html.replace("</body>",script+"\n</body>",1)
