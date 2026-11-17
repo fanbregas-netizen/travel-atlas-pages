@@ -47,6 +47,7 @@ jobs:
           test -s _site/v4-media-system-review-20261117/index.html
           test -s _site/v4-media-system-review-20261117/media-qa.html
           node --check _site/v4-media-system-review-20261117/src/media/media-core.js
+          node --check _site/v4-media-system-review-20261117/footprint-home.js
           node v4-media-system-review-20261117/media-regression.cjs
           # Interaction-only independent V4 Safari acceptance; unchanged official root and approved motion.
           cp -R v4-interaction-system-review-20261117 _site/v4-interaction-system-review-20261117
@@ -526,6 +527,8 @@ jobs:
           node tests/approved35-pages-browser-smoke.cjs
       - name: Verify new systematic V4 public preview at 375/390/430 iPhone widths
         run: node tests/systematic-v4-pages-browser.cjs
+      - name: Verify iPhone Photo-style gallery drag, continuous swipe and dismiss in real V4
+        run: node tests/v4-media-iphone-motion-browser.cjs
       - name: Verify V4 .15 share import and reversible place state without network
         run: node tests/v4-guide-state-v15.cjs
       - name: Verify CURRENT V4 Pages product, 22 SVG motions and user actions (375/390/430 iPhone)
@@ -540,6 +543,13 @@ jobs:
         run: node tests/v4-accepted-layout-motion-v18-browser.cjs
       - name: Verify V4 .19 real POI tap-to-card elastic handoff and search history
         run: node tests/v4-poi-card-handoff-v19-browser.cjs
+      - name: Upload media iPhone motion acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: v4-media-iphone-motion-evidence
+          path: v4-media-motion-evidence/
+          if-no-files-found: ignore
       - name: Upload current V4 Pages motion and layout evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
