@@ -3,7 +3,7 @@ name: Publish isolated V4 acceptance entry
 on:
   push:
     branches: [preview/v4-acceptance-20261117]
-    paths: ['.github/workflows/v4-acceptance-entry.yml','v4-system-review/map-runtime-repairs.py']
+    paths: ['.github/workflows/v4-acceptance-entry.yml','v4-system-review/map-runtime-repairs.py','v4-system-review/map-shared-style-repairs.py']
 permissions:
   contents: read
   pages: write
@@ -99,6 +99,8 @@ jobs:
                   # A single, auditable runtime file is modified only in the map copy.
                   subprocess.run(['python3',str(scope_files/'map-runtime-repairs.py'),str(target/'v4-map-runtime.js')],check=True)
                   subprocess.run(['node','--check',str(target/'v4-map-runtime.js')],check=True)
+                  subprocess.run(['python3',str(scope_files/'map-shared-style-repairs.py'),str(target/'src/map/shared-v4-map.js')],check=True)
+                  subprocess.run(['node','--check',str(target/'src/map/shared-v4-map.js')],check=True)
               for asset in ('scope-review.js','scope-review.css'):
                   shutil.copyfile(scope_files/asset,target/asset)
               if scope=='visual':
@@ -113,6 +115,10 @@ jobs:
                   if scope=='map':
                       html=html.replace('v4-map-runtime.js?v=real-handoff-19','v4-map-runtime.js?v=map-safari-acceptance-1')
                       html=html.replace('v4-map-runtime.js?v=parity-11','v4-map-runtime.js?v=map-safari-preload-1')
+                      html=html.replace('shared-v4-map.js?v=c4','shared-v4-map.js?v=map-parity-2').replace('shared-v4-map.js?v=route-precision-1','shared-v4-map.js?v=map-parity-2').replace('shared-v4-map.js?v=4-unified','shared-v4-map.js?v=map-parity-2')
+                      if page in ('journey.html','route-view.html'):
+                          warm='<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>\n<link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>\n<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js">'
+                          html=html.replace('</head>',warm+'\n</head>',1)
                   style='<link rel="stylesheet" href="./scope-review.css?v=scope-1">'
                   script='<script src="./scope-review.js?v=scope-1" data-scope="'+scope+'"></script>'
                   if scope=='visual':
@@ -127,7 +133,7 @@ jobs:
                   if not old_file.is_file(): continue
                   rel=old_file.relative_to(dest)
                   if rel in (pathlib.Path('index.html'),pathlib.Path('journey.html'),pathlib.Path('route-view.html')): continue
-                  if scope=='map' and rel==pathlib.Path('v4-map-runtime.js'): continue
+                  if scope=='map' and rel in (pathlib.Path('v4-map-runtime.js'),pathlib.Path('src/map/shared-v4-map.js')): continue
                   assert hashlib.sha256(old_file.read_bytes()).digest()==hashlib.sha256((target/rel).read_bytes()).digest(),str(rel)
           hub=root/'v4-system-review-20261117'
           hub.mkdir()
@@ -173,3 +179,9 @@ jobs:
           grep -Fq 'fallbackScriptRequest=fallbackScriptRequest.catch(error=>' /tmp/v4-map-repaired.js
           grep -Fq 'const candidates=(direct.length?direct:pool).map(f=>' /tmp/v4-map-repaired.js
           grep -Fq 'syncNativeFeatures();requestOfficialBookmarkRender();' /tmp/v4-map-repaired.js
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/src/map/shared-v4-map.js' -o /tmp/v4-map-shared.js
+          node --check /tmp/v4-map-shared.js
+          grep -Fq "return 'https://tiles.openfreemap.org/styles/bright';" /tmp/v4-map-shared.js
+          ! grep -q 'footprint-buildings-black' /tmp/v4-map-shared.js
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/journey.html' -o /tmp/v4-map-journey.html
+          grep -Fq 'shared-v4-map.js?v=map-parity-2' /tmp/v4-map-journey.html
