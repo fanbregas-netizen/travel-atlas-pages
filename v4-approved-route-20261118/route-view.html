@@ -189,7 +189,7 @@ async function init(){initUI();routePayload=await resolveRoute();if(!routePayloa
  notice('无法载入地图，请重试或返回路线规划',true);
  return
  }}
-window.__atlasRV={get places(){return places},get stopDays(){return stopDays},fit,
+window.__atlasRV={get places(){return places},get stopDays(){return stopDays},get transportMode(){return routePayload?.transportMode||'car'},get legModes(){return routePayload?.legModes||{}},fit,
 applyOrder(ids){try{const oldIds=places.map(p=>String(p.id));if(!Array.isArray(ids)||ids.length!==oldIds.length||new Set(ids.map(String)).size!==oldIds.length||ids.some(id=>!oldIds.includes(String(id))))return;const pos=new Map(ids.map((id,i)=>[String(id),i]));const order=places.map((p,i)=>i).sort((a,b)=>(pos.get(String(places[a].id))??a)-(pos.get(String(places[b].id))??b));places=order.map(i=>places[i]);stopDays=order.map(i=>stopDays[i]);routePayload.placeIds=places.map(p=>String(p.id));routeCoords=places.map(p=>({lng:+p.lng,lat:+p.lat}));dismissBubble();addPins();showStopRail();buildRouteLayers();document.dispatchEvent(new CustomEvent('atlas:route-stops-changed'));/* Keep current camera when merely reordering stops. */}catch(e){console.warn('applyOrder',e)}}};
 const run=()=>init().catch(e=>empty('路线加载异常：'+e.message));if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
 })();
@@ -397,8 +397,8 @@ function init(){
     }catch(e){}
     document.querySelectorAll('.rv-daytag').forEach(t=>t.remove());
     // Never display driving geometry for walking, cycling, public transport or mixed legs.
-    const mode=routePayload?.transportMode||'car';
-    const mixed=Object.values(routePayload?.legModes||{}).some(v=>v!==mode);
+    const mode=RV.transportMode;
+    const mixed=Object.values(RV.legModes).some(v=>v!==mode);
     if(mode!=='car'||mixed){
       if(legend){
         const label={walk:'步行',bike:'骑行',transit:'公共交通',car:'驾车'}[mode]||'交通';
