@@ -81,7 +81,7 @@
     {translate:'0 0',filter:'opacity(1)',offset:1}
    ]:[
     {transform:'translate3d(-50%,30px,0) scale(.977)',filter:'opacity(0)',offset:0},
-    {transform:'translate3d(-50%,-6px,0) scale(1.007)',filter:'opacity(1)',offset:.76},
+    {transform:'translate3d(-50%,-5px,0) scale(1.007)',filter:'opacity(1)',offset:.76},
     {transform:'translate3d(-50%,0,0) scale(1)',filter:'opacity(1)',offset:1}
    ];
   }else{
