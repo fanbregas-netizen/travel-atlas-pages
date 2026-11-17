@@ -315,7 +315,8 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
         frameSize:[frame.width,frame.height],
         canvasSize:[map.getContainer().clientWidth,map.getContainer().clientHeight],
         mapProjectedCenter:[map.project(map.getCenter()).x,map.project(map.getCenter()).y],
-        pinPercent:[parseFloat(pin?.style.left),parseFloat(pin?.style.top)],routePoiQA:window.__atlasRoutePoiQA?.()
+        pinPercent:[parseFloat(pin?.style.left),parseFloat(pin?.style.top)],routePoiQA:window.__atlasRoutePoiQA?.(),routeGeoSyncQA:window.__atlasRouteGeoSyncQA||null,
+        selectedNodeId:pin?.dataset.placeId,topMapEl:document.querySelector('#rc-map-pins')?.getBoundingClientRect()?.top
       };
     });
     assert.equal(routePoi.pinCount,1,'Route map point created duplicate pins');
