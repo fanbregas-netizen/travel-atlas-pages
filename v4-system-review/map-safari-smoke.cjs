@@ -353,7 +353,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
         overlay=document.querySelector('#rc-map > #atlasPoiOverlay'),
         m=window.__atlasLivePlannerMap;
       return {active:document.body.classList.contains('rc-v3-on'),
-        correctMapSkin:getComputedStyle(map).inset==='0px',
+        correctMapSkin:getComputedStyle(map).top==='0px'&&getComputedStyle(map).bottom==='0px',
         badgeGone:!badge||getComputedStyle(badge).display==='none',
         poicard:!!overlay,layerHeight:map.getBoundingClientRect().height,
         canvasHeight:m.getContainer().getBoundingClientRect().height,
