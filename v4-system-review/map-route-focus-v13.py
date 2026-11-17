@@ -118,6 +118,16 @@ once(
  'sheet-drag-fits-entire-route')
 
 once(
+ " state.stage=stage;state.activeStop=Math.max(0,Math.min(state.activeStop,state.stops.length-1));",
+ """ // Exiting map selection must also exit native POI-picking mode.
+ // Otherwise tapping the map in preview adds an accidental third stop.
+ if(stage!=='select'&&liveMapPickMode==='select'){
+  liveMapPickMode=null;liveShowMapHint();
+ }
+ state.stage=stage;state.activeStop=Math.max(0,Math.min(state.activeStop,state.stops.length-1));""",
+ 'leave-map-picking-when-entering-route-preview')
+
+once(
  " lastRenderedStage=stage;",
  """ lastRenderedStage=stage;
   syncRoutePoiVisibility();
