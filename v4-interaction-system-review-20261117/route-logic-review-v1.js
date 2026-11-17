@@ -85,6 +85,7 @@ var state={
 source.forEach(function(p,i){state.days[p.id]=i<2?1:i<4?2:3});
 window.__fpRoutePreviewMode=state.mode;
 var timer=0,drag=null,card={height:0,velocity:0,frame:0,gesture:null,snap:'peek',current:null};
+var anchorMap=null,anchorQueued=false;
 function toast(s){
  var t=el('fpRouteToast');if(!t)return;
  clearTimeout(timer);t.textContent=s;t.classList.add('show');
@@ -99,6 +100,10 @@ function create(){
   ['pick','选地点'],['order','推荐顺序'],['mode','交通方式'],['setup','起终点']
  ].map(function(x){return '<button type="button" data-open="'+x[0]+'">'+toolIcons[x[0]]+'<span>'+x[1]+'</span></button>'}).join('');
  document.body.appendChild(tools);
+ var anchors=document.createElement('div');anchors.id='fpRouteAnchors';
+ anchors.innerHTML='<svg id="fpRouteAnchorLines" aria-hidden="true"><path id="fpRouteStartLine"></path><path id="fpRouteEndLine"></path></svg>'+
+ '<button type="button" id="fpRouteStartPin" aria-label="设置路线起点">起</button><button type="button" id="fpRouteEndPin" aria-label="设置路线终点">终</button>';
+ document.body.appendChild(anchors);
  var backdrop=document.createElement('div');backdrop.className='fp-r-backdrop';backdrop.id='fpRoutePanelBackdrop';
  document.body.appendChild(backdrop);
  var panel=document.createElement('section');panel.id='fpRoutePanel';panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','false');panel.setAttribute('aria-label','规划路线交互');
@@ -228,12 +233,14 @@ function syncRoute(){
  var api=window.__atlasRV;
  if(api?.setSelection)api.setSelection(state.order,state.days);
  else if(api?.applyOrder)api.applyOrder(state.order);
- updateSummary();
+ updateSummary();scheduleAnchors();
 }
 function updateSummary(){
  var status=el('fpRouteBadge');
  if(status)status.textContent='交互演示 · '+state.order.length+'站 · '+daysTotal()+'天 · '+modeLabels[state.mode]+' · 不改动收藏';
  var edit=el('routeEditV5');if(edit){edit.textContent='调整路线';edit.setAttribute('aria-label','打开路线规划')}
+ window.__atlasRV?.setTripDetails?.({startDate:state.start,endDate:state.end,origin:endpointName(state.from,false),destination:endpointName(state.to,true)});
+ scheduleAnchors();
 }
 function choosePoint(id){
  var idx=state.order.indexOf(id);
@@ -295,7 +302,7 @@ function reset(){
  state.days={};source.forEach(function(p,i){state.days[p.id]=i<2?1:i<4?2:3});
  state.from='ningbo';state.to='wenzhou';state.start=begin;state.end=plusDays(begin,2);
  state.mode='car';state.legs={};state.locked.clear();state.proposal=null;state.undo=null;
- window.__fpRoutePreviewMode='car';
+ window.__fpRoutePreviewMode='car';window.__fpRouteHasNonDrivingLegs=false;
  syncRoute();renderPanel();toast('已恢复演示方案');
 }
 function changeSetting(type,value){
@@ -336,12 +343,17 @@ function onPanelChange(e){
  if(n.dataset.day){state.days[n.dataset.day]=Math.max(1,Math.min(daysTotal(),Number(n.value)||1));
   window.__atlasRV?.setStopDays?.(state.days);
   renderPanel();toast('所属旅行日已更新');return}
- if(n.dataset.leg){state.legs[n.dataset.leg]=n.value;renderPanel();toast('已单独调整该路段方式（演示）');return}
+ if(n.dataset.leg){state.legs[n.dataset.leg]=n.value;
+  window.__fpRouteHasNonDrivingLegs=Object.keys(state.legs).some(function(key){return state.legs[key]!=='car'});
+  document.dispatchEvent(new CustomEvent('atlas:route-stops-changed'));
+  renderPanel();toast('已单独调整该路段方式（演示）');return}
  if(n.dataset.setting)changeSetting(n.dataset.setting,n.value);
 }
 function bind(){
  el('fpRouteTools').addEventListener('click',function(e){var b=e.target.closest('[data-open]');if(!b)return;openPanel(b.dataset.open)});
  el('fpRoutePanelBackdrop').addEventListener('click',closePanel);
+ el('fpRouteStartPin').addEventListener('click',function(){openPanel('setup')});
+ el('fpRouteEndPin').addEventListener('click',function(){openPanel('setup')});
  el('fpRoutePanel').addEventListener('click',onPanelClick);
  el('fpRoutePanel').addEventListener('change',onPanelChange);
  el('fpRoutePanel').addEventListener('pointerdown',onPointerDown);
@@ -486,6 +498,48 @@ function cardPointerUp(e){
  snapCard(best);
 }
 function cardPointerCancel(){if(card.gesture){card.gesture=null;snapCard(card.snap)}}
+function scheduleAnchors(){
+ if(anchorQueued)return;
+ anchorQueued=true;
+ requestAnimationFrame(function(){anchorQueued=false;paintAnchors()});
+}
+function positionPin(id,xy,visible){
+ var pin=el(id);if(!pin)return;
+ if(!visible){pin.hidden=true;return}
+ pin.hidden=false;pin.style.left=xy.x+'px';pin.style.top=xy.y+'px';
+}
+function paintAnchors(){
+ var map=window.__atlasRV?.currentMap||anchorMap;
+ var svg=el('fpRouteAnchorLines');if(!svg||!map||typeof map.project!=='function')return;
+ var w=innerWidth,h=innerHeight;
+ svg.setAttribute('viewBox','0 0 '+w+' '+h);
+ var from=pickOrigin(),to=pickDestination();
+ var a=map.project([+from.lng,+from.lat]),b=map.project([+to.lng,+to.lat]);
+ var first=find(state.order[0]),last=find(state.order[state.order.length-1]);
+ var p=first?map.project([+first.lng,+first.lat]):a,q=last?map.project([+last.lng,+last.lat]):b;
+ var valid=function(pt){return pt&&Number.isFinite(pt.x)&&Number.isFinite(pt.y)};
+ if(![a,b,p,q].every(valid))return;
+ el('fpRouteStartLine').setAttribute('d','M '+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L '+p.x.toFixed(1)+' '+p.y.toFixed(1));
+ el('fpRouteEndLine').setAttribute('d','M '+q.x.toFixed(1)+' '+q.y.toFixed(1)+' L '+b.x.toFixed(1)+' '+b.y.toFixed(1));
+ positionPin('fpRouteStartPin',a,a.x>-30&&a.x<w+30&&a.y>-30&&a.y<h+30);
+ positionPin('fpRouteEndPin',b,b.x>-30&&b.x<w+30&&b.y>-30&&b.y<h+30);
+}
+function bindMapProjection(){
+ var tries=0;
+ function attempt(){
+  var map=window.__atlasRV?.currentMap;
+  if(map&&typeof map.project==='function'){
+   anchorMap=map;
+   try{map.on?.('move',scheduleAnchors)}catch(_){}
+   try{map.on?.('zoom',scheduleAnchors)}catch(_){}
+   scheduleAnchors();return;
+  }
+  if(++tries<75)setTimeout(attempt,240);
+ }
+ attempt();
+ window.addEventListener('resize',scheduleAnchors,{passive:true});
+ document.addEventListener('atlas:route-stops-changed',scheduleAnchors);
+}
 window.__fpRouteLogicUI={
  openPlace:showCard,
  closePlace:closeCard,
@@ -513,7 +567,7 @@ window.__fpRouteMakeFallbackMap=function(){
  };
 };
 function initialize(){
- create();updateSummary();
+ create();updateSummary();bindMapProjection();
  toast('已载入真实产品路线界面 · 可点选黄色星标');
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize,{once:true});else initialize();
