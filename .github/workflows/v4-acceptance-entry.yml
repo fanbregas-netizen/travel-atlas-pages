@@ -3,7 +3,7 @@ name: Publish isolated V4 acceptance entry
 on:
   push:
     branches: [preview/v4-acceptance-20261117]
-    paths: ['.github/workflows/v4-acceptance-entry.yml','v4-system-review/map-runtime-repairs.py','v4-system-review/map-shared-style-repairs.py','v4-system-review/map-poi-smooth.py','v4-system-review/map-poi-icon-pop.py','v4-system-review/map-route-smooth.py','v4-system-review/map-visual-parity.css']
+    paths: ['.github/workflows/v4-acceptance-entry.yml','v4-system-review/map-runtime-repairs.py','v4-system-review/map-shared-style-repairs.py','v4-system-review/map-poi-smooth.py','v4-system-review/map-poi-icon-pop.py','v4-system-review/map-pan-performance.py','v4-system-review/map-route-smooth.py','v4-system-review/map-visual-parity.css']
 permissions:
   contents: read
   pages: write
@@ -107,6 +107,8 @@ jobs:
                   subprocess.run(['node','--check',str(target/'src/interaction/poi-svg-motion-v4.js')],check=True)
                   subprocess.run(['node','--check',str(target/'v4-map-runtime.js')],check=True)
                   subprocess.run(['python3',str(scope_files/'map-route-smooth.py'),str(target/'src/interaction/route-cards-v5-live.js')],check=True)
+                  for asset in ('v4-map-runtime.js','index.html','src/interaction/poi-svg-motion-v4.js'):
+                      subprocess.run(['python3',str(scope_files/'map-pan-performance.py'),str(target/asset)],check=True)
                   subprocess.run(['node','--check',str(target/'src/interaction/route-cards-v5-live.js')],check=True)
                   shutil.copyfile(scope_files/'map-visual-parity.css',target/'map-visual-parity.css')
               for asset in ('scope-review.js','scope-review.css'):
@@ -130,10 +132,10 @@ jobs:
                           shared='<script defer src="./atlas-map-design.js"></script>\n<script defer src="./atlas-route-buildings.js"></script>'
                           html=html.replace(old,shared+'\n'+old.replace('v=fluid-3','v=map-route-smooth-2'),1)
                       if page=='index.html':
-                          html=html.replace('poi-svg-motion-v4.js?v=cv5-18','poi-svg-motion-v4.js?v=poi-pop-4')
-                          assert 'poi-pop-4' in html
-                          html=html.replace('v4-map-runtime.js?v=map-safari-acceptance-1','v4-map-runtime.js?v=map-safari-acceptance-4')
-                          html=html.replace('v4-map-runtime.js?v=map-safari-preload-1','v4-map-runtime.js?v=map-safari-preload-4')
+                          html=html.replace('poi-svg-motion-v4.js?v=cv5-18','poi-svg-motion-v4.js?v=poi-pop-5')
+                          assert 'poi-pop-5' in html
+                          html=html.replace('v4-map-runtime.js?v=map-safari-acceptance-1','v4-map-runtime.js?v=map-safari-acceptance-5')
+                          html=html.replace('v4-map-runtime.js?v=map-safari-preload-1','v4-map-runtime.js?v=map-safari-preload-5')
                       if page in ('journey.html','route-view.html'):
                           warm='<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>\n<link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>\n<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js">'
                           html=html.replace('</head>',warm+'\n</head>',1)
@@ -191,7 +193,7 @@ jobs:
           done
           grep -q 'data-scope="map"' /tmp/v4-map-index.html
           grep -q 'atlas-v4-map-system-review-20261117-' /tmp/v4-map-index.html
-          grep -q 'v4-map-runtime.js?v=map-safari-acceptance-4' /tmp/v4-map-index.html
+          grep -q 'v4-map-runtime.js?v=map-safari-acceptance-5' /tmp/v4-map-index.html
           grep -Fq 'The selected icon already animates in place' /tmp/v4-map-index.html
           curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/scope-review.js' -o /tmp/v4-map-scope.js
           cmp /tmp/v4-map-scope.js __prototype/v4-system-review/scope-review.js
@@ -214,7 +216,7 @@ jobs:
           grep -Fq 'vectorMap.easeTo' /tmp/v4-map-repaired.js || grep -Fq 'vectorMap.easeTo({' /tmp/v4-map-repaired.js
           curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/map-visual-parity.css' -o /tmp/v4-map-parity.css
           cmp /tmp/v4-map-parity.css __prototype/v4-system-review/map-visual-parity.css
-          grep -Fq 'poi-svg-motion-v4.js?v=poi-pop-4' /tmp/v4-map-index.html
+          grep -Fq 'poi-svg-motion-v4.js?v=poi-pop-5' /tmp/v4-map-index.html
           curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/src/interaction/poi-svg-motion-v4.js' -o /tmp/v4-map-poi-pop.js
           node --check /tmp/v4-map-poi-pop.js
           grep -Fq 'function popSelected(token)' /tmp/v4-map-poi-pop.js
