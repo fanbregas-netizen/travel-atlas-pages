@@ -26,7 +26,7 @@ function popSelected(token){
  clearSelected();
  selectedPoiToken=token;
  token.style.setProperty('transform-origin','center center','important');
- token.style.setProperty('scale','1.34','important');
+ token.style.setProperty('scale','1.34');
  if(reduced()||document.hidden||typeof token.animate!=='function')return;
  token.style.setProperty('will-change','scale');
  // 1.00 -> 1.52 -> 1.29 -> 1.34: perceptible but gentle growth
@@ -42,7 +42,7 @@ function popSelected(token){
   selectedPoiAnimation=a;
   a.onfinish=()=>{
    if(selectedPoiAnimation!==a||selectedPoiToken!==token)return;
-   token.style.setProperty('scale','1.34','important');
+   token.style.setProperty('scale','1.34');
    token.style.removeProperty('will-change');
    selectedPoiAnimation=null;
   };
