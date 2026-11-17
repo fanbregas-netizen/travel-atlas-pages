@@ -148,6 +148,18 @@ async function gesture(cdp,coords){
     assert.equal(await vid.evaluate(v=>v.controls),true,'Native video controls removed');
     await page.waitForFunction(()=>document.querySelector('#fpMediaViewer .fp-gallery-cell[data-item-index="3"] video')?.videoWidth>=300,null,{timeout:10000});
     const vr=await vid.boundingBox();
+    if(!vr||vr.width<=80||vr.height<=80){
+      const videoDetail=await vid.evaluate(v=>({
+        videoWidth:v.videoWidth,videoHeight:v.videoHeight,
+        naturalRect:v.getBoundingClientRect().toJSON(),
+        parentRect:v.parentElement?.getBoundingClientRect().toJSON(),
+        style:{display:getComputedStyle(v).display,width:getComputedStyle(v).width,
+          height:getComputedStyle(v).height,visibility:getComputedStyle(v).visibility,
+          opacity:getComputedStyle(v).opacity,position:getComputedStyle(v).position}
+      }));
+      console.error('Fullscreen video viewport diagnostic',JSON.stringify(videoDetail));
+      await page.screenshot({path:output+'/video-viewport-'+width+'.png'});
+    }
     assert.ok(vr&&vr.width>80&&vr.height>80,'Fullscreen video has no display area');
     const sx=Math.round(vr.x+vr.width*.46),sy=Math.round(vr.y+Math.min(25,vr.height*.15));
     await gesture(cdp,[[sx,sy],[sx+35,sy],[Math.min(width-16,sx+110),sy]]);
