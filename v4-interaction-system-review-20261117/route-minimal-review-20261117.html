@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="light">
 <meta name="description" content="查看已保存路线、站点及旅行记录。">
 <title>Footprint Map｜极简路线规划交互验收</title>
-<script>window.__fpRoutePreview=true;</script>
+<script>window.__fpRoutePreview=true;window.__fpRouteMinimalUI=true;</script>
 <script src="./src/media/media-core.js"></script>
 <script src="./src/map/shared-v4-map.js?v=route-precision-1"></script>
 <style>
@@ -471,7 +471,7 @@ function init(){
     if(pts.length<2 || pts.some(([lng,lat])=>!Number.isFinite(lng)||!Number.isFinite(lat)||Math.abs(lat)>90||Math.abs(lng)>180)){
       if(legend){legend.textContent='至少添加两处地点';legend.dataset.roadState='insufficient'}if(drawn)drawn.style.display='none';roadNotice('至少选择两处地点');return;
     }
-    if(window.__fpRoutePreview && (window.__fpRoutePreviewMode!=='car'||window.__fpRouteHasNonDrivingLegs)){
+    if(window.__fpRoutePreview && (window.__fpRouteMinimalUI||window.__fpRoutePreviewMode!=='car'||window.__fpRouteHasNonDrivingLegs)){
  if(legend)legend.textContent='已切换交通方式 · 线路为顺序示意（非导航道路线）';
  if(drawn)drawn.style.display='';
  return;
@@ -639,5 +639,5 @@ const timeout=setTimeout(()=>controller.abort(),10000);
 <link rel="stylesheet" href="./src/visual/route-precision-20261115.css?v=detail-3">
 <script src="./src/route/route-detail-sheet.js"></script>
 
-<link rel="stylesheet" href="./route-logic-review-v1.css?v=5"><link rel="stylesheet" href="./route-minimal-review-v2.css?v=1"><script src="./route-minimal-review-v2.js?v=2"></script>
+<link rel="stylesheet" href="./route-logic-review-v1.css?v=5"><link rel="stylesheet" href="./route-minimal-review-v2.css?v=2"><script src="./route-minimal-review-v2.js?v=2"></script>
 </body></html>
