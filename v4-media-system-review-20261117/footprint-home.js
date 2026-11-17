@@ -495,6 +495,21 @@ const iphoneGallery=(()=>{
   ].join('\n');
   document.head.append(style);
  }
+ function freezeScrim(s){
+  const displayed=Number.parseFloat(getComputedStyle(s.scrim).opacity);
+  for(const a of s.scrim.getAnimations?.()||[])try{a.cancel()}catch(_){}
+  const alpha=Number.isFinite(displayed)?displayed:.93;
+  s.scrim.style.opacity=String(alpha);
+  return alpha;
+ }
+ function freezePhotoEntrance(s){
+  const img=mediaAt(s);
+  if(!s.enterAnimation||img?.tagName!=='IMG')return;
+  const computed=getComputedStyle(img),pose=computed.transform,opacity=computed.opacity;
+  img.style.transform=pose;img.style.opacity=opacity;
+  try{s.enterAnimation.cancel()}catch(_){}
+  s.enterAnimation=null;
+ }
  function original(s,i){
   const tile=s.card?.querySelector('[data-fp-media-index="'+i+'"]');
   if(tile?.isConnected)return tile;
@@ -631,46 +646,52 @@ const iphoneGallery=(()=>{
   if(s.closing)return;
   s.closing=true;s.locked=true;s.viewer.dataset.gestureState='closing';
   if(s.gestureRAF){cancelAnimationFrame(s.gestureRAF);s.gestureRAF=0}
-  const activeMedia=mediaAt(s);
-  if(activeMedia?.tagName==='VIDEO'){
-   try{activeMedia.pause()}catch(_){}
-   chrome(s,0);
-   if(s.scrim.animate)try{s.scrim.animate([{opacity:Number(s.scrim.style.opacity||.93)},{opacity:0}],{duration:185,easing:'ease-out',fill:'forwards'})}catch(_){}
-   if(s.track.animate)try{s.track.animate([{opacity:1},{opacity:0}],{duration:185,easing:'ease-out',fill:'forwards'})}catch(_){}
-   setTimeout(()=>cleanup(s),195);
+  const media=mediaAt(s),duration=290;
+  const from=media?.getBoundingClientRect();
+  const tile=original(s,s.index),to=tile?.getBoundingClientRect();
+  chrome(s,0);
+  const alpha=freezeScrim(s);
+  if(s.scrim.animate)try{
+   s.scrim.animate([{opacity:alpha},{opacity:0}],{
+    duration:duration-12,easing:'cubic-bezier(.22,.7,.18,1)',fill:'forwards'});
+  }catch(_){}
+  if(media?.tagName==='VIDEO'){
+   // Safari video renders in a separate hardware layer; never warp it.
+   try{media.pause()}catch(_){}
+   if(s.track.animate)try{s.track.animate([{opacity:1},{opacity:0}],{duration:180,fill:'forwards'})}catch(_){}
+   setTimeout(()=>cleanup(s),duration);
    return;
   }
-  const media=mediaAt(s),from=media?.getBoundingClientRect();
-  const target=original(s,s.index),to=target?.getBoundingClientRect();
-  const duration=335;
-  chrome(s,0);
-  if(media&&from&&from.width>2&&from.height>2){
-   // Reuse the already decoded, visible image or video. Never make a second
-   // <img>, canvas snapshot or duplicate full-resolution GPU texture.
-   if(media.tagName==='VIDEO'){try{media.pause()}catch(_){};media.controls=false}
-   media.style.transform='none';
-   media.classList.add('fp-gallery-ghost');
-   Object.assign(media.style,{
-    position:'fixed',left:from.left+'px',top:from.top+'px',
-    width:from.width+'px',height:from.height+'px',maxWidth:'none',maxHeight:'none',
-    minWidth:'0',minHeight:'0',margin:'0',opacity:'1',visibility:'visible'
-   });
-   s.viewer.append(media);s.track.style.visibility='hidden';
+  if(media&&from&&from.width>2&&from.height>2&&media.animate){
+   // Single decoded photo stays attached to the existing slide throughout exit.
+   // No DOM reparent, no second image, no raster re-upload, no aspect distortion.
+   const pose=getComputedStyle(media).transform;
+   let m;try{m=new DOMMatrixReadOnly(pose==='none'?undefined:pose)}catch(_){}
+   const sx=m?Math.hypot(m.a,m.b):1,sy=m?Math.hypot(m.c,m.d):sx;
+   const currentScale=Math.max(.01,(sx+sy)/2);
+   const baseX=from.left+from.width/2-(m?.m41||0);
+   const baseY=from.top+from.height/2-(m?.m42||0);
+   const baseW=from.width/currentScale,baseH=from.height/currentScale;
    const found=to&&to.width>2&&to.height>2;
-   const tx=found?to.left+to.width/2-from.left-from.width/2:0;
-   const ty=found?to.top+to.height/2-from.top-from.height/2:Math.min(180,s.width*.38);
-   const sx=found?to.width/from.width:.75;
-   const sy=found?to.height/from.height:.75;
-   if(media.animate)try{media.animate([
-    {transform:'translate3d(0,0,0) scale(1)',borderRadius:'0px',opacity:1},
-    {transform:'translate3d('+tx+'px,'+ty+'px,0) scale('+sx+','+sy+')',borderRadius:'14px',opacity:found?1:0}
-   ],{duration,easing:ease,fill:'forwards'})}catch(_){}
-  }else if(s.track.animate)try{s.track.animate([{opacity:1},{opacity:0}],{duration:220,fill:'forwards'})}catch(_){}
-  if(s.scrim.animate)try{s.scrim.animate([{opacity:Number(s.scrim.style.opacity||.93)},{opacity:0}],
-   {duration:duration-30,easing:'ease-out',fill:'forwards'})}catch(_){}
-  setTimeout(()=>cleanup(s),duration+25);
+   const targetScale=found?Math.min(to.width/baseW,to.height/baseH):.68;
+   const deltaX=found?to.left+to.width/2-baseX:0;
+   const deltaY=found?to.top+to.height/2-baseY:Math.min(210,s.width*.45);
+   const destination='translate3d('+deltaX+'px,'+deltaY+'px,0) scale('+targetScale+')';
+   const firstOpacity=Number.parseFloat(getComputedStyle(media).opacity)||1;
+   media.style.transform=pose==='none'?'none':pose;
+   if(s.enterAnimation){try{s.enterAnimation.cancel()}catch(_){};s.enterAnimation=null}
+   try{
+    media.animate([
+     {transform:pose==='none'?'none':pose,opacity:firstOpacity,borderRadius:'0px',offset:0},
+     {transform:destination,opacity:1,borderRadius:'10px',offset:.78},
+     {transform:destination,opacity:0,borderRadius:'10px',offset:1}
+    ],{duration,easing:ease,fill:'forwards'});
+   }catch(_){}
+  }else if(s.track.animate){
+   try{s.track.animate([{opacity:1},{opacity:0}],{duration:210,fill:'forwards'})}catch(_){}
+  }
+  setTimeout(()=>cleanup(s),duration+22);
  }
-
  function reveal(s,origin){
   if(s.closed)return;
   const media=mediaAt(s),tile=origin?.isConnected?origin:null;
@@ -691,11 +712,10 @@ const iphoneGallery=(()=>{
    const valid=start&&to&&to.width>2&&to.height>2;
    const dx=valid?start.left+start.width/2-to.left-to.width/2:0;
    const dy=valid?start.top+start.height/2-to.top-to.height/2:0;
-   const sx=valid?start.width/to.width:1;
-   const sy=valid?start.height/to.height:1;
+   const fit=valid?Math.min(start.width/to.width,start.height/to.height):1;
    const opening=media.animate([
-    {transform:valid?'translate3d('+dx+'px,'+dy+'px,0) scale('+sx+','+sy+')':'none',
-     opacity:valid?0.88:0,borderRadius:valid?'14px':'0px'},
+    {transform:valid?'translate3d('+dx+'px,'+dy+'px,0) scale('+fit+')':'none',
+     opacity:valid?1:0,borderRadius:valid?'14px':'0px'},
     {transform:'none',opacity:1,borderRadius:'0px'}
    ],{duration,easing:ease,fill:'both'});
    s.enterAnimation=opening;
@@ -721,7 +741,8 @@ const iphoneGallery=(()=>{
    s.viewer.dataset.gestureState='rest';
   });
   if(down&&!reduced()&&s.scrim.animate)try{
-   s.scrim.animate([{opacity:alpha},{opacity:.93}],{duration:280,fill:'forwards'});
+   const anim=s.scrim.animate([{opacity:alpha},{opacity:.93}],{duration:280,fill:'both'});
+   anim.finished.then(()=>{if(!s.closed){s.scrim.style.opacity='.93';anim.cancel()}},()=>{});
   }catch(_){}
  }
  function navigate(s,dir){
@@ -787,6 +808,8 @@ const iphoneGallery=(()=>{
   }
   s.onTouchStart=e=>{
    if(s.closing||e.touches.length!==1||e.target.closest('button')){s.drag=null;return}
+   freezePhotoEntrance(s);
+   freezeScrim(s);
    const touchedVideo=e.target.closest('video');
    if(touchedVideo){
     const rect=touchedVideo.getBoundingClientRect();
