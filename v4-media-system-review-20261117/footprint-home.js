@@ -691,6 +691,9 @@ const iphoneGallery=(()=>{
     exiting.remove();previous.unshift(makeSlide(s,s.index-1));
    }
    s.cells=previous;s.track.replaceChildren(...previous);
+   // Release the outgoing video BEFORE publishing the new index.
+   // The new decoder begins only after the next paint, never overlaps.
+   s.cells.forEach((cell,i)=>{if(i!==1)releaseVideo(s,cell)});
    s.track.style.transform=transform(-s.width);
    s.viewer.dataset.itemIndex=String(s.index);
    s.drag=null;s.locked=false;s.viewer.dataset.gestureState='rest';
