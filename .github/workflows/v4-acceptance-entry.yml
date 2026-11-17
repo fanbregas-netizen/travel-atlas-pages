@@ -1,4 +1,5 @@
 name: Publish isolated V4 acceptance entry
+# Map-only WebKit validation completed in an isolated 164-file V4 copy.
 on:
   push:
     branches: [preview/v4-acceptance-20261117]
