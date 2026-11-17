@@ -139,3 +139,30 @@ body.fp-route-review #stopsDock #fpRouteTools button{min-height:44px!important}
 body.fp-route-panel-open #fpRouteTools,body.fp-route-place-open #fpRouteTools{
  translate:none!important;
 }
+
+/* iPhone screenshot QA: eliminate the old redundant top bar/status surfaces.
+   The route review still has one back button, one screen title, one fit-all button. */
+body.fp-route-review .atlas-topbar{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ padding:0!important;gap:0!important;
+}
+body.fp-route-review .atlas-topbar .atlas-brand,
+body.fp-route-review .atlas-topbar #routeEditV5,
+body.fp-route-review #atlasStatus,
+body.fp-route-review #routeLegend{display:none!important}
+body.fp-route-review .atlas-topbar::after{
+ content:"路线地图";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+ color:#354039;font-size:16px;font-weight:730;letter-spacing:-.025em;
+ padding:8px 12px;background:rgba(255,254,249,.80);border-radius:12px;
+ pointer-events:none;white-space:nowrap;
+}
+body.fp-route-review #fpRouteBadge{
+ top:calc(78px + env(safe-area-inset-top))!important;
+ left:13px!important;right:auto!important;transform:none!important;
+ max-width:calc(100vw - 26px)!important;overflow:hidden;text-overflow:ellipsis;
+ background:rgba(255,254,250,.90)!important;border-color:#eae6dc!important;
+ font-size:10px!important;box-shadow:0 4px 12px #141a1514!important;
+}
+body.fp-route-review #fpRouteAnchors>button{
+ z-index:1!important;
+}
