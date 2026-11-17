@@ -69,7 +69,7 @@ async function gesture(cdp,coords){
     await page.evaluate(({id,sources,videoFixture})=>window.__atlasPlaceStore.save({
       id,lat:29.492,lng:121.905,title:'媒体动效验收地点',starred:true,stage:'visited',
       photos:[{id:'p1',name:'第一张',src:sources[0]},{id:'p2',name:'第二张',src:sources[1]},{id:'p3',name:'第三张',src:sources[2]}],
-      videos:[{id:'vid-1',name:'旅行视频',type:videoFixture.type,bytes:new Uint8Array(videoFixture.data).buffer}],guides:[],note:'原始 Brief'
+      videos:[1,2,3].map(n=>({id:'vid-'+n,name:'旅行视频'+n,type:videoFixture.type,bytes:new Uint8Array(videoFixture.data).buffer})),guides:[],note:'原始 Brief'
     }),{id,sources,videoFixture});
     await page.evaluate(async id=>{
       await window.__atlasSetBookmarkStarred(id,false);
@@ -171,6 +171,20 @@ async function gesture(cdp,coords){
     }
     assert.ok(vr&&vr.width>80&&vr.height>80,'Fullscreen video has no display area');
     const sx=Math.round(vr.x+vr.width*.46),sy=Math.round(vr.y+Math.min(25,vr.height*.15));
+    // Match the user's 3-photo + 3-video card; only one video can decode at a time.
+    for(const next of [4,5]){
+      await gesture(cdp,[[width-65,420],[width-125,420],[width-230,420]]);
+      await page.waitForFunction(index=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex===String(index),next,{timeout:10000});
+      await page.waitForFunction(()=>document.querySelector('#fpMediaViewer video[src]')?.videoWidth>=300,null,{timeout:12000});
+      const count=await page.locator('#fpMediaViewer video[src]').count();
+      assert.equal(count,1,'Video decoding overlap after video-to-video swipe');
+      const old=await page.evaluate(()=>Array.from(document.querySelectorAll('#fpMediaViewer .fp-gallery-cell video[src]')).map(v=>v.closest('.fp-gallery-cell')?.dataset.itemIndex));
+      assert.deepEqual(old,[String(next)],'Stale video still decoding '+JSON.stringify(old));
+    }
+    for(const previous of [4,3,2]){
+      await gesture(cdp,[[width-270,420],[width-205,420],[width-90,420]]);
+      await page.waitForFunction(index=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex===String(index),previous,{timeout:10000});
+    }
     await gesture(cdp,[[sx,sy],[sx+35,sy],[Math.min(width-16,sx+110),sy]]);
     await page.waitForFunction(()=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex==='2',null,{timeout:9000});
     await page.locator('#fpMediaViewer .fp-viewer-close').click();
