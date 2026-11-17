@@ -174,10 +174,20 @@ const url='http://127.0.0.1:8766/travel-atlas-pages/v4-review-20261116/';
   await page.locator('#rc-body [data-rc="stage-select"]').click();
   await page.waitForFunction(()=>window.__atlasRouteV5Live.state.stage==='select');
   const shown=await page.locator('#rc-body [data-rc^="pick-"]').evaluateAll(nodes=>
-    nodes.map(n=>({label:n.getAttribute('aria-label'),selected:n.classList.contains('is-on')})));
+    nodes.map(n=>({title:n.querySelector('.rc-name strong')?.textContent,
+      selected:n.getAttribute('aria-pressed')==='true',placeId:n.dataset.placeId})));
   assert.equal(shown.length,2,'unstarred active stop disappeared from C V5 selection editor');
-  assert.ok(shown.some(s=>s.selected&&s.label.includes('回归地点甲')),
-    'unstarred route stop can no longer be explicitly removed');
+  const retained=shown.find(s=>s.title==='回归地点甲');
+  assert.ok(retained?.selected,'unstarred route stop no longer editable '+JSON.stringify(shown));
+  // The live, approved C V5 selection uses an entire .rc-stop-pick button,
+  // aria-pressed + "selected", not the retired .rc-select.is-on/aria-label.
+  const toggler=page.locator('#rc-body [data-place-id]').filter({hasText:'回归地点甲'});
+  await toggler.click();
+  assert.equal((await page.evaluate(()=>window.__atlasRouteV5Live.state.selected)).length,1,
+    'user cannot intentionally remove the unstarred route stop');
+  await toggler.click();
+  assert.equal((await page.evaluate(()=>window.__atlasRouteV5Live.state.selected)).length,2,
+    'user cannot restore the same saved route stop');
   await page.locator('#rc-footer [data-rc="stage-order"]').click();
   await page.waitForFunction(()=>window.__atlasRouteV5Live.state.stage==='order');
   assert.deepEqual({start:reopened.start,end:reopened.end,days:reopened.order.map(x=>x.day)},
