@@ -1,0 +1,32 @@
+name: Footprint V4 isolated Interaction Safari-size QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v4-interaction-system-review-20261117/**'
+      - '.github/workflows/v4-interaction-review-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  interaction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test dependency
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Verify published independent preview is reachable
+        run: curl -fLsS --retry 3 --retry-delay 2 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-interaction-system-review-20261117/index.html' -o /tmp/review.html
+      - name: Run real iPhone-sized card gestures on isolated review
+        run: node v4-interaction-system-review-20261117/tests/card-motion-live.cjs
+      - name: Save screenshots and motion measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isolated-interaction-card-motion
+          path: interaction-motion-evidence/
+          if-no-files-found: ignore
