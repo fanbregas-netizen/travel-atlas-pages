@@ -7,6 +7,7 @@ on:
       - 'v4-system-review/map-runtime-repairs.py'
       - 'v4-system-review/map-shared-style-repairs.py'
       - 'v4-system-review/map-poi-smooth.py'
+      - 'v4-system-review/map-pan-performance.py'
       - 'v4-system-review/map-poi-icon-pop.py'
       - 'v4-system-review/map-route-smooth.py'
       - 'v4-system-review/map-visual-parity.css'
@@ -49,6 +50,8 @@ jobs:
           subprocess.run(['python3','__prototype/v4-system-review/map-poi-icon-pop.py',str(review/'src/interaction/poi-svg-motion-v4.js')],check=True)
           subprocess.run(['node','--check',str(review/'src/interaction/poi-svg-motion-v4.js')],check=True)
           subprocess.run(['python3','__prototype/v4-system-review/map-route-smooth.py',str(review/'src/interaction/route-cards-v5-live.js')],check=True)
+          for asset in ('v4-map-runtime.js','index.html','src/interaction/poi-svg-motion-v4.js'):
+              subprocess.run(['python3','__prototype/v4-system-review/map-pan-performance.py',str(review/asset)],check=True)
           subprocess.run(['node','--check',str(review/'v4-map-runtime.js')],check=True)
           subprocess.run(['node','--check',str(review/'src/interaction/route-cards-v5-live.js')],check=True)
           shutil.copyfile('__prototype/v4-system-review/map-visual-parity.css',review/'map-visual-parity.css')
@@ -61,8 +64,8 @@ jobs:
               html=html.replace('atlas-v4-review-20261116-','atlas-v4-map-system-review-20261117-')
               html=html.replace('shared-v4-map.js?v=c4','shared-v4-map.js?v=map-parity-2').replace('shared-v4-map.js?v=route-precision-1','shared-v4-map.js?v=map-parity-2').replace('shared-v4-map.js?v=4-unified','shared-v4-map.js?v=map-parity-2')
               if page=='index.html':
-                  html=html.replace('poi-svg-motion-v4.js?v=cv5-18','poi-svg-motion-v4.js?v=poi-pop-4')
-                  assert 'poi-pop-4' in html
+                  html=html.replace('poi-svg-motion-v4.js?v=cv5-18','poi-svg-motion-v4.js?v=poi-pop-5')
+                  assert 'poi-pop-5' in html
               if page=='journey.html':
                   old='<script defer src="./src/interaction/route-cards-v5-live.js?v=fluid-3"></script>'
                   assert old in html
