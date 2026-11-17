@@ -19,9 +19,14 @@ jobs:
           node-version: '22'
       - name: Install browser test dependency
         run: npm install --no-save --ignore-scripts playwright-core@1.58.2
-      - name: Verify published independent preview is reachable
-        run: curl -fLsS --retry 3 --retry-delay 2 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-interaction-system-review-20261117/index.html' -o /tmp/review.html
+      - name: Serve checked-out isolated review for deterministic browser QA
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/interaction-http.log 2>&1 &
+          sleep 2
+          curl -fsS 'http://127.0.0.1:8765/v4-interaction-system-review-20261117/journey.html' >/dev/null
       - name: Run real iPhone-sized card gestures on isolated review
+        env:
+          INTERACTION_REVIEW_BASE_URL: http://127.0.0.1:8765/v4-interaction-system-review-20261117/
         run: node v4-interaction-system-review-20261117/tests/card-motion-live.cjs
       - name: Save screenshots and motion measurements
         if: always()
