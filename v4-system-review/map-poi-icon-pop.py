@@ -8,8 +8,9 @@ path=Path(sys.argv[1]);assert path.name=='poi-svg-motion-v4.js'
 s=path.read_text(encoding='utf-8')
 anchor="let sequence=0;\nfunction play(target,category,name){"
 assert s.count(anchor)==1,('prelude',s.count(anchor))
-prelude="""// The selected POI icon itself grows and settles. Map camera stays fixed.
-// One selected icon and one active animation: rapid A -> B taps cancel A.
+prelude="""// Apple-like selected POI ONLY. The basemap NEVER zooms for a POI tap.
+// iPhone WebKit can ignore an animated style when old inline rules win the
+// cascade, so use a single cancelable requestAnimationFrame for ONE symbol.
 let selectedPoiToken=null,selectedPoiAnimation=null;
 function clearSelected(){
  try{selectedPoiAnimation?.cancel()}catch(_){}
@@ -19,6 +20,7 @@ function clearSelected(){
   selectedPoiToken.style.removeProperty('transition');
   selectedPoiToken.style.removeProperty('transform-origin');
   selectedPoiToken.style.removeProperty('will-change');
+  delete selectedPoiToken.dataset.poiPopMotion;
  }
  selectedPoiToken=null;
 }
@@ -28,27 +30,38 @@ function popSelected(token){
  selectedPoiToken=token;
  token.style.setProperty('transform-origin','center center','important');
  token.style.setProperty('transition','none','important');
- token.style.setProperty('transform','scale(1.34)');
- if(reduced()||document.hidden||typeof token.animate!=='function')return;
+ if(reduced()||document.hidden){
+  token.style.setProperty('transform','scale(1.34)','important');
+  return;
+ }
  token.style.setProperty('will-change','transform');
- // 1.00 -> 1.52 -> 1.29 -> 1.34: perceptible but gentle growth
- // applied only to the existing geographic marker artwork.
- const frames=[
-  {transform:'scale(1)',offset:0},
-  {transform:'scale(1.52)',offset:.49},
-  {transform:'scale(1.29)',offset:.77},
-  {transform:'scale(1.34)',offset:1}
+ token.style.setProperty('transform','scale(1)','important');
+ token.dataset.poiPopMotion='running';
+ const segments=[
+  {at:0,value:1},{at:.49,value:1.52},
+  {at:.77,value:1.29},{at:1,value:1.34}
  ];
- try{
-  const a=token.animate(frames,{duration:485,easing:'cubic-bezier(.22,.82,.22,1)',fill:'none'});
-  selectedPoiAnimation=a;
-  a.onfinish=()=>{
-   if(selectedPoiAnimation!==a||selectedPoiToken!==token)return;
-   token.style.setProperty('transform','scale(1.34)');
-   token.style.removeProperty('will-change');
-   selectedPoiAnimation=null;
-  };
- }catch(_){token.style.removeProperty('will-change')}
+ const span=485,start=performance.now();
+ let frame=0,active=true;
+ const state={cancel(){active=false;cancelAnimationFrame(frame)}};
+ selectedPoiAnimation=state;
+ const tick=now=>{
+  if(!active||selectedPoiToken!==token)return;
+  const t=Math.min(1,(now-start)/span);
+  let index=0;
+  while(index<segments.length-2&&t>segments[index+1].at)index++;
+  const from=segments[index],to=segments[index+1];
+  const u=Math.max(0,Math.min(1,(t-from.at)/(to.at-from.at)));
+  const e=1-Math.pow(1-u,3);
+  const value=from.value+(to.value-from.value)*e;
+  token.style.setProperty('transform','scale('+value.toFixed(4)+')','important');
+  if(t<1){frame=requestAnimationFrame(tick);return}
+  token.style.setProperty('transform','scale(1.34)','important');
+  token.style.removeProperty('will-change');
+  token.dataset.poiPopMotion='settled';
+  selectedPoiAnimation=null;
+ };
+ frame=requestAnimationFrame(tick);
 }
 document.addEventListener('atlas:poi-cleared',clearSelected,{passive:true});
 """
