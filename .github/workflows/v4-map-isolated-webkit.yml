@@ -75,10 +75,10 @@ jobs:
               if page=='journey.html':
                   old='<script defer src="./src/interaction/route-cards-v5-live.js?v=fluid-3"></script>'
                   assert old in html
-                  html=html.replace(old,'<script defer src="./atlas-map-design.js"></script>\n<script defer src="./atlas-route-buildings.js"></script>\n'+old.replace('v=fluid-3','v=map-route-parity-9'),1)
+                  html=html.replace(old,'<script defer src="./atlas-map-design.js"></script>\n<script defer src="./atlas-route-buildings.js"></script>\n'+old.replace('v=fluid-3','v=map-route-parity-10'),1)
               if page in ('journey.html','route-view.html'):
                   html=html.replace('</head>','<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>\n<link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>\n<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js">\n</head>',1)
-              html=html.replace('</head>','<link rel="stylesheet" href="./map-visual-parity.css?v=map-only-4">\n<link rel="stylesheet" href="./scope-review.css?v=scope-1">\n</head>',1)
+              html=html.replace('</head>','<link rel="stylesheet" href="./map-visual-parity.css?v=map-only-5">\n<link rel="stylesheet" href="./scope-review.css?v=scope-1">\n</head>',1)
               html=html.replace('</body>','<script src="./scope-review.js?v=scope-1" data-scope="map"></script>\n</body>',1)
               file.write_text(html)
           for old in base.rglob('*'):
