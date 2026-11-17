@@ -68,12 +68,12 @@ once(
 
 once(
  """ routeMap.classList.toggle('rc-map-picking',!!liveMapPickMode);
- syncRoutePoiVisibility();""",
+  syncRoutePoiVisibility();""",
  """ routeMap.classList.toggle('rc-map-picking',!!liveMapPickMode);
- // Trigger the homepage renderer to add/remove semantic POIs when the
+  // Trigger the homepage renderer to add/remove semantic POIs when the
  // user switches map selection. Route preview remains POI-free.
  window.dispatchEvent(new Event('atlas:map-bridge'));
- syncRoutePoiVisibility();""",
+  syncRoutePoiVisibility();""",
  'route map mode updates homepage POI renderer')
 
 once(
