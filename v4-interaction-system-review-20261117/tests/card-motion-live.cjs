@@ -89,6 +89,18 @@ async function drag(page,ctx,x,y,distance,sample,settleMs=1030,stepDelay=27){
      fastUp:{during:fastUp.points.map(p=>p.height),rest:fastUp.rest},
      down:{during:down.points.map(p=>p.height),rest:down.rest}};
    await page.screenshot({path:out+'/collection-'+width+'.png'});
+   // Observe the real Dock WAAPI: it must bounce only AFTER the sheet exits.
+   await page.evaluate(()=>{
+     const dock=document.getElementById('appDock');
+     window.__dockExitRevealCount=0;
+     window.__dockExitRevealFrames=[];
+     const animate=dock.animate.bind(dock);
+     dock.animate=(frames,options)=>{
+       window.__dockExitRevealCount++;
+       window.__dockExitRevealFrames=frames;
+       return animate(frames,options);
+     };
+   });
    // Test the actual confirmed downward close gesture, not merely tapping X.
    const grip3=await page.locator('#drawer .drawer-head .sheet-grab').boundingBox();
    const peekSwipe=await drag(page,ctx,grip3.x+grip3.width/2,grip3.y+grip3.height/2,163,sample);
@@ -103,7 +115,9 @@ async function drag(page,ctx,x,y,distance,sample,settleMs=1030,stepDelay=27){
    assert.equal(closing.opened,true,'collection disappeared before the C V5 dismissal spring played');
    assert.equal(closing.closing,true,'collection is not running its physical closing spring');
    fs.writeFileSync(out+'/collection-closing-debug-'+width+'.json',JSON.stringify({peek:peekSwipe.rest,closing,closingSwipe},null,2));
-   assert.ok(closing.height<peekSwipe.rest.height-35,'closing did not move the card downward: '+JSON.stringify({peek:peekSwipe.rest,closing,closingSwipe:closingSwipe.rest}));
+   assert.ok(closing.exitY>closingSwipe.rest.exitY+8,
+     'closing is not moving through the compositor: '+JSON.stringify({peek:peekSwipe.rest,closing,closingSwipe:closingSwipe.rest}));
+   assert.ok(closing.height>160,'closing is still resizing the list every frame instead of translating');
    await sleep(1450);
    const afterClose=await page.evaluate(()=>({
      ...window.__atlasCollectionSheet.getState(),
@@ -111,8 +125,19 @@ async function drag(page,ctx,x,y,distance,sample,settleMs=1030,stepDelay=27){
    }));
    assert.equal(afterClose.opened,false,'swipe dismissal did not call original close logic');
    assert.equal(afterClose.inlineHeight,'','collection retained stale height after close animation');
-   fs.writeFileSync(out+'/collection-close-'+width+'.json',JSON.stringify({closingSwipe,closing,afterClose},null,2));
-   collection.close={gesture:'half -> peek -> swipe dismiss',closing,afterClose,cleaned:true};
+   const dockQA=await page.evaluate(()=>({
+     count:window.__dockExitRevealCount,
+     frames:window.__dockExitRevealFrames,
+     opacity:getComputedStyle(document.getElementById('appDock')).opacity,
+     hiddenByExit:document.body.classList.contains('atlas-collection-exiting')
+   }));
+   assert.equal(dockQA.count,1,'Dock did not play exactly one reveal spring after closing');
+   assert.ok(dockQA.frames.some(f=>f.transform.includes('-5px')),'Dock upward overshoot is missing');
+   assert.equal(dockQA.hiddenByExit,false,'Dock remains trapped in exit guard');
+   assert.ok(Number(dockQA.opacity)>.9,'Dock was not visibly restored');
+   fs.writeFileSync(out+'/collection-close-'+width+'.json',JSON.stringify({closingSwipe,closing,afterClose,dockQA},null,2));
+   collection.close={gesture:'half -> peek -> swipe dismiss',closing,afterClose,cleaned:true,
+     compositorExit:true,dockSpring:true};
    await page.goto(base+'journey.html?interaction-qa='+width,{waitUntil:'domcontentloaded',timeout:60000});
    await page.waitForFunction(()=>!!window.__atlasRouteV5Live?.ready&&!!window.__batchC?.state&&!!document.querySelector('#rc-main'),null,{timeout:25000});
    // Record the REAL entrance every frame. CSS/JS double motion previously produced
@@ -156,6 +181,6 @@ async function drag(page,ctx,x,y,distance,sample,settleMs=1030,stepDelay=27){
    await ctx.close();
   }
   fs.writeFileSync(out+'/card-motion-report.json',JSON.stringify(report,null,2));
-  console.log('PASS interaction review real-card 375/390/430: B05 uses C V5 motor, physical entry, 3 detents, spring dismissal; route map synchronized');
+  console.log('PASS independent C V5 collection: 375/390/430, full/half/peek, compositor close, one Dock upward spring, route sheet still synchronized');
  }finally{await browser.close()}
 })().catch(e=>{console.error('FAIL isolated interaction motion: '+e.stack);process.exitCode=1});
