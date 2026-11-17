@@ -35,7 +35,7 @@ async function gesture(cdp,coords){
     await page.evaluate(({id,pixel})=>window.__atlasPlaceStore.save({
       id,lat:29.492,lng:121.905,title:'媒体动效验收地点',starred:true,stage:'visited',
       photos:[{id:'p1',name:'第一张',src:pixel},{id:'p2',name:'第二张',src:pixel},{id:'p3',name:'第三张',src:pixel}],
-      videos:[],guides:[],note:'原始 Brief'
+      videos:[{id:'vid-1',name:'旅行视频',type:'video/mp4',bytes:new Uint8Array([0,0,0,24,102,116,121,112]).buffer}],guides:[],note:'原始 Brief'
     }),{id,pixel});
     await page.evaluate(async id=>{
       await window.__atlasSetBookmarkStarred(id,false);
@@ -99,6 +99,18 @@ async function gesture(cdp,coords){
     await page.screenshot({path:output+'/iphone-media-return-'+width+'.png'});
     await page.locator('#fpPlaceCard .fp-media-mosaic button').first().click();
     await page.waitForSelector('#fpMediaViewer .fp-viewer-close',{timeout:10000});
+    await page.locator('#fpMediaViewer .fp-viewer-close').click();
+    await page.waitForFunction(()=>!document.querySelector('#fpMediaViewer'),null,{timeout:9000});
+    // Current video retains native playback controls; swiping the image area still works.
+    await page.locator('#fpPlaceCard .fp-media-mosaic button').nth(3).click();
+    await page.waitForFunction(()=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex==='3',null,{timeout:9000});
+    const vid=page.locator('#fpMediaViewer .fp-gallery-cell[data-item-index="3"] video');
+    assert.equal(await vid.evaluate(v=>v.controls),true,'Native video controls removed');
+    const vr=await vid.boundingBox();
+    assert.ok(vr&&vr.width>80&&vr.height>80,'Fullscreen video has no display area');
+    const sx=Math.round(vr.x+vr.width*.46),sy=Math.round(vr.y+Math.min(25,vr.height*.15));
+    await gesture(cdp,[[sx,sy],[sx+35,sy],[Math.min(width-16,sx+110),sy]]);
+    await page.waitForFunction(()=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex==='2',null,{timeout:9000});
     await page.locator('#fpMediaViewer .fp-viewer-close').click();
     await page.waitForFunction(()=>!document.querySelector('#fpMediaViewer'),null,{timeout:9000});
     assert.deepEqual(errors,[],'Unexpected page errors '+JSON.stringify(errors));
