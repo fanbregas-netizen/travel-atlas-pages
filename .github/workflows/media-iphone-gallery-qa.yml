@@ -6,6 +6,7 @@ on:
       - '.github/workflows/media-iphone-gallery-qa.yml'
       - 'v4-media-system-review-20261117/**'
       - 'tests/v4-media-iphone-motion-browser.cjs'
+      - 'tests/v4-media-webkit-motion-browser.cjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -53,4 +54,47 @@ jobs:
         with:
           name: v4-media-iphone-motion-evidence
           path: v4-media-motion-evidence/
+          if-no-files-found: ignore
+
+  media-webkit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install WebKit Safari-engine browser
+        run: |
+          npm install --no-save --ignore-scripts playwright-core@1.58.2
+          npx --yes playwright@1.58.2 install --with-deps webkit
+      - name: Assemble complete V4 media-only acceptance
+        run: |
+          mkdir -p _site
+          cp -R v4-review-20261116 _site/v4-media-system-review-20261117
+          cp -R v4-media-system-review-20261117/. _site/v4-media-system-review-20261117/
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('_site/v4-media-system-review-20261117')
+          for html in root.rglob('*.html'):
+              data=html.read_text(encoding='utf-8')
+              data=data.replace('atlas-v4-review-20261116-','atlas-v4-media-system-review-20261117-')
+              data=data.replace('./footprint-home.js?v=search-physical-19','./footprint-home.js?v=media-iphone-v5-20261117')
+              html.write_text(data,encoding='utf-8')
+          PY
+          node --check _site/v4-media-system-review-20261117/footprint-home.js
+          node --check tests/v4-media-webkit-motion-browser.cjs
+      - name: Test WebKit photo fullscreen and 5 repeated gesture cycles at three phone widths
+        env:
+          MEDIA_QA_ROOT: http://127.0.0.1:8765/v4-media-system-review-20261117/
+        run: |
+          python3 -m http.server 8765 --directory _site > /tmp/media-webkit-http.log 2>&1 &
+          sleep 2
+          node tests/v4-media-webkit-motion-browser.cjs
+      - name: Upload independent WebKit screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v4-media-webkit-motion-evidence
+          path: v4-media-webkit-evidence/
           if-no-files-found: ignore
