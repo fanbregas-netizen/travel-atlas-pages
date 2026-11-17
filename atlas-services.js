@@ -46,3 +46,11 @@ async function nearby(lat,lng,{signal,radius=1800}={}){
 }
 window.AtlasServices={staticHost,search,nearby};
 })();
+
+/* Optional original drawing content badges, isolated from map services. */
+(function(){
+ const s=document.createElement('script');
+ s.src='/travel-atlas-pages/footprint-original-ink.js';
+ s.async=true;
+ document.head.appendChild(s);
+})();
