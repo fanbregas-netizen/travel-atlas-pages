@@ -803,6 +803,9 @@ const iphoneGallery=(()=>{
     else settle(s);
    }else{s.drag=null}
    s.suppressClickUntil=performance.now()+350;
+   // Touchend and pointerup can both fire for one physical finger release.
+   // Consume the gesture once so it cannot navigate two items.
+   s.drag=null;
   };
   s.onTouchCancel=()=>{
    if(s.gestureRAF){cancelAnimationFrame(s.gestureRAF);s.gestureRAF=0}
