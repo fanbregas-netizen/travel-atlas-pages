@@ -446,7 +446,7 @@ const iphoneGallery=(()=>{
    '#fpMediaViewer .fp-gallery-track{position:absolute;left:0;top:0;height:100%;display:flex;align-items:stretch;will-change:transform;transform-origin:center center;backface-visibility:hidden}',
    '#fpMediaViewer .fp-gallery-cell{height:100%;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;padding:calc(env(safe-area-inset-top,0px) + 48px) 10px calc(env(safe-area-inset-bottom,0px) + 56px)}',
    '#fpMediaViewer .fp-gallery-cell>img,#fpMediaViewer .fp-gallery-cell>video{display:block;position:relative;width:auto!important;height:auto!important;max-width:min(96vw,900px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 116px)!important;object-fit:contain!important;border-radius:0;transform:translateZ(0);-webkit-user-drag:none;user-select:none}',
-   '#fpMediaViewer .fp-gallery-cell>video{touch-action:auto!important;max-width:96vw!important}',
+   '#fpMediaViewer .fp-gallery-cell>video{touch-action:auto!important;max-width:96vw!important;width:min(96vw,900px)!important;min-height:180px!important;aspect-ratio:auto 16/9}',
    '#fpMediaViewer .fp-viewer-close{position:absolute!important;z-index:11!important;top:calc(env(safe-area-inset-top,0px) + 12px)!important;right:16px!important;transition:opacity .18s ease!important}',
    '#fpMediaViewer .fp-viewer-caption{position:absolute!important;z-index:9!important;left:24px!important;right:24px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 14px)!important;text-align:center!important;pointer-events:none!important;font-size:12px!important;line-height:1.55!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:rgba(255,255,255,.88)!important;transition:opacity .18s ease!important}',
    '#fpMediaViewer.fp-viewer-immersive .fp-viewer-close,#fpMediaViewer.fp-viewer-immersive .fp-viewer-caption{opacity:0!important;pointer-events:none!important}',
@@ -594,7 +594,7 @@ const iphoneGallery=(()=>{
    const sy=valid?start.height/to.height:1;
    const opening=media.animate([
     {transform:valid?'translate3d('+dx+'px,'+dy+'px,0) scale('+sx+','+sy+')':'none',
-     opacity:valid?.88:0,borderRadius:valid?'14px':'0px'},
+     opacity:valid?0.88:0,borderRadius:valid?'14px':'0px'},
     {transform:'none',opacity:1,borderRadius:'0px'}
    ],{duration,easing:ease,fill:'both'});
    s.enterAnimation=opening;
