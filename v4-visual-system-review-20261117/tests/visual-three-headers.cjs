@@ -17,12 +17,12 @@ fs.mkdirSync(output,{recursive:true});
  const page=await context.newPage();
  page.on('pageerror',e=>{evidence.pageErrors.push(String(e.message).slice(0,250))});
  try{
-  let resp=await page.goto(base+'index.html?visual=after&qa=render8',{waitUntil:'domcontentloaded',timeout:60000});
+  let resp=await page.goto(base+'index.html?visual=after&qa=render9',{waitUntil:'domcontentloaded',timeout:60000});
   assert.equal(resp?.status(),200,'main preview HTTP');
   await page.waitForFunction(()=>!!window.__atlasPlaceStore?.save&&!!window.__atlasDemo?.openSaved,null,{timeout:25000});
   await page.evaluate(async()=>{
    const id='visual-review-synthetic-place';
-   await window.__atlasPlaceStore.save({id,title:'潭子湾',lat:31.224361,lng:121.456569,starred:true,stage:'plan',rank:2,note:'验收卡片眉头及真实内容',photos:[],videos:[],guides:[],references:[]});
+   await window.__atlasPlaceStore.save({id,title:'江宁路街道',address:'上海市静安区江宁路街道',lat:31.224361,lng:121.456569,starred:true,stage:'plan',rank:2,note:'验收卡片眉头及真实内容',photos:[],videos:[],guides:[],references:[]});
    // Saved places are mirrored in the LIVE map runtime, not automatically
    // appended by the repository API. Match the approved V18 E2E sequence.
    await window.__atlasSetBookmarkStarred(id,false);
@@ -35,12 +35,16 @@ fs.mkdirSync(output,{recursive:true});
   const place=await page.evaluate(()=>{
    const e=document.querySelector('#fpPlaceCard'),grab=e.querySelector('.atlas-card-grip'),old=e.querySelector(':scope > .sheet-grab'),header=e.querySelector('.fp-card-header'),title=e.querySelector('.fp-card-name'),close=e.querySelector('.fp-card-close');
    const box=x=>{if(!x)return null;const r=x.getBoundingClientRect();return {top:Math.round(r.top),left:Math.round(r.left),width:Math.round(r.width),height:Math.round(r.height)}};
-   return {visible:!e.hidden,oldGripDisplay:old?getComputedStyle(old).display:'absent',actualGrab:box(grab),decorativeGrip:box(old),title:box(title),close:box(close),header:box(header)};
+   const eb=box(e),gb=box(grab),hb=box(header),titleBox=box(title),stage=box(e.querySelector('.fp-place-stage'));
+   return {visible:!e.hidden,oldGripDisplay:old?getComputedStyle(old).display:'absent',actualGrab:gb,decorativeGrip:box(old),card:eb,title:titleBox,stage,close:box(close),header:hb,gripCenterOffset:Math.round((gb.left+gb.width/2)-(eb.left+eb.width/2)),headerHeight:hb.height,stageToTitleGap:stage?stage.top-(titleBox.top+titleBox.height):null};
   });
   evidence.results.push({card:'place',...place});
   await page.screenshot({path:output+'/place.png',fullPage:false});
   assert.equal(place.oldGripDisplay,'none','duplicate old decorative grip must be hidden');
   assert.ok(place.actualGrab&&place.actualGrab.width>=40,'actual bound grip must remain');
+  assert.ok(Math.abs(place.gripCenterOffset)<=1,'interactive grip not centered within entire card: '+place.gripCenterOffset);
+  assert.ok(place.headerHeight<=146,'place card header has huge whitespace height '+place.headerHeight);
+  assert.ok(place.stageToTitleGap<58,'place status row incorrectly pushed far below title: '+place.stageToTitleGap);
   await page.evaluate(()=>document.querySelector('#fpPlaceCard .fp-card-close')?.click());
   await page.waitForTimeout(1100);
   await page.evaluate(()=>document.getElementById('dockStars')?.click());
@@ -54,7 +58,7 @@ fs.mkdirSync(output,{recursive:true});
   evidence.results.push({card:'favorites',...favorite});
   await page.screenshot({path:output+'/favorites.png',fullPage:false});
   assert.ok(favorite.visible,'collection visible');
-  resp=await page.goto(base+'journey.html?visual=after&qa=render8',{waitUntil:'domcontentloaded',timeout:60000});
+  resp=await page.goto(base+'journey.html?visual=after&qa=render9',{waitUntil:'domcontentloaded',timeout:60000});
   assert.equal(resp?.status(),200,'route preview HTTP');
   await page.waitForFunction(()=>window.__atlasRouteV5Live?.ready===true&&!!document.getElementById('rc-main'),null,{timeout:30000});
   await page.waitForTimeout(750);
