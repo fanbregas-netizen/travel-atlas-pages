@@ -45,6 +45,16 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     },first);
     await page.waitForFunction(()=>!window.__atlasPOIBridge.vector()?.isMoving(),{timeout:12000});
     const beforePoiCamera=await page.evaluate(()=>window.__atlasCameraQA());
+    // Count destructive calls during the actual map gesture. A legacy
+    // vector renderer previously called replaceChildren() on EVERY moveend.
+    await page.evaluate(()=>{
+      const pane=document.getElementById('atlasPoiOverlay');
+      pane.__destructiveClearCount=0;
+      const original=pane.replaceChildren.bind(pane);
+      pane.replaceChildren=(...args)=>{
+        pane.__destructiveClearCount++;return original(...args);
+      };
+    });
     const initiallyOffCenter=await page.evaluate(p=>{
       const m=window.__atlasPOIBridge.vector(),at=m.project([p.lng,p.lat]);
       const size=m.getContainer();
@@ -136,6 +146,10 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     }));
     assert.equal(afterMotionSurfaces.poi,'','POI overlay translation must atomically clear on moveend');
     assert.equal(afterMotionSurfaces.star,'','Star overlay translation must atomically clear on moveend');
+    const destructiveClearCount=await page.evaluate(()=>
+      document.getElementById('atlasPoiOverlay').__destructiveClearCount);
+    assert.equal(destructiveClearCount,0,
+      'Legacy POI renderer must never destroy all hand-drawn SVGs on moveend');
     await page.screenshot({path:`map-evidence/poi-pan-${width}-settled.png`,animations:'disabled'});
     assert.ok(Math.abs(beforePoiCamera.lat-afterPoiCamera.lat)>.002||
               Math.abs(beforePoiCamera.lng-afterPoiCamera.lng)>.003,
