@@ -31,8 +31,8 @@ function revealCard(el,{renew=false,commit}={}){
  // A rapid second POI tap can interrupt the first spring half-way through.
  // Sample the *current rendered pose* before cancelling: otherwise a new
  // 0->1 motor snaps the card and its labels back to their initial frame.
- const carryY=previous&&renew?(parseFloat(el.style.translate.split(/\\s+/).pop())||0):0;
- const carryScale=previous&&renew?(parseFloat(el.style.scale.split(/\\s+/).pop())||1):1;
+ const carryY=previous&&renew?(parseFloat(el.style.translate.split(/\s+/).pop())||0):0;
+ const carryScale=previous&&renew?(parseFloat(el.style.scale.split(/\s+/).pop())||1):1;
  const carryOpacity=previous&&renew?(parseFloat(el.querySelector('.destination-title')?.style.opacity)||1):1;
  if(previous){previous.cancel();motion.delete(el)}
  if(reduced()||typeof motor?.animate!=='function'){
