@@ -89,7 +89,7 @@ async function gesture(cdp,coords){
       throw error;
     }
     await page.locator('#fpPlaceCard .fp-media-mosaic button').first().click();
-    await page.waitForSelector('#fpMediaViewer[data-media-motion="iphone-v2"] .fp-gallery-track',{timeout:12000});
+    await page.waitForSelector('#fpMediaViewer[data-media-motion="iphone-v5"] .fp-gallery-track',{timeout:12000});
     const initial=await page.evaluate(()=>{
       const e=document.querySelector('#fpMediaViewer');
       window.__mediaRef=e;
@@ -97,6 +97,7 @@ async function gesture(cdp,coords){
        close:e.querySelector('.fp-viewer-close').getBoundingClientRect().toJSON()};
     });
     assert.equal(initial.index,'0');assert.equal(initial.slideCount,3);
+    assert.equal(await page.locator('#fpPlaceCard .fp-media-mosaic video[autoplay]').count(),0,'Tile videos must never autoplay');
     await page.waitForFunction(()=>document.querySelector('#fpMediaViewer .fp-gallery-cell[data-item-index="0"] img')?.naturalWidth>=1000,null,{timeout:10000});
     assert.ok((await page.locator('#fpMediaViewer .fp-gallery-cell img').count())<=2,'Unexpected full-resolution image duplicates');
     assert.ok(initial.close.width>=43&&initial.close.height>=43,'44 px close missing');
@@ -146,6 +147,9 @@ async function gesture(cdp,coords){
     await page.waitForFunction(()=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex==='3',null,{timeout:9000});
     const vid=page.locator('#fpMediaViewer .fp-gallery-cell[data-item-index="3"] video');
     assert.equal(await vid.evaluate(v=>v.controls),true,'Native video controls removed');
+    const liveVideoCount=await page.locator('#fpMediaViewer video[src]').count();
+    assert.equal(liveVideoCount,1,'Full-screen viewer should have only one decoding video element');
+    assert.ok(await page.locator('#fpMediaViewer .fp-gallery-cell').count()===3,'Gallery context cells missing');
     await page.waitForFunction(()=>{
       const v=document.querySelector('#fpMediaViewer .fp-gallery-cell[data-item-index="3"] video');
       if(!v||v.videoWidth<300)return false;
@@ -171,6 +175,21 @@ async function gesture(cdp,coords){
     await page.waitForFunction(()=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex==='2',null,{timeout:9000});
     await page.locator('#fpMediaViewer .fp-viewer-close').click();
     await page.waitForFunction(()=>!document.querySelector('#fpMediaViewer'),null,{timeout:9000});
+    // Rapid close/reopen under 3-4MP photo pressure must not strand a modal.
+    for(let repeat=0;repeat<9;repeat++){
+      await page.locator('#fpPlaceCard .fp-media-mosaic button').first().click();
+      await page.waitForSelector('#fpMediaViewer .fp-gallery-stage',{timeout:9000});
+      const stats=await page.evaluate(()=>{
+        const v=document.querySelector('#fpMediaViewer');
+        return {photos:v.querySelectorAll('.fp-gallery-cell>img').length,
+         videos:v.querySelectorAll('video[src]').length,
+         scrims:v.querySelectorAll('.fp-gallery-scrim').length};
+      });
+      assert.ok(stats.photos<=2&&stats.videos<=1&&stats.scrims===1,'Media resource cap exceeded '+JSON.stringify(stats));
+      await page.locator('#fpMediaViewer .fp-viewer-close').click();
+      await page.waitForFunction(()=>!document.querySelector('#fpMediaViewer'),null,{timeout:7000});
+    }
+    assert.equal(await page.locator('#fpPlaceCard .fp-media-mosaic video').evaluateAll(vs=>vs.filter(v=>!v.paused).length),0,'Background video decoder resumed on close');
     assert.deepEqual(errors,[],'Unexpected page errors '+JSON.stringify(errors));
     reports.push({width,firstDrag:during,secondIndex:2,down,modalStable:true,closeWorks:true,errors});
    }finally{await context.close()}
