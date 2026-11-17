@@ -47,6 +47,26 @@ const chrome=['google-chrome','chromium'].map(n=>{try{return cp.execFileSync('wh
   const selected=await page.evaluate(()=>window.__atlasJourneyRoute.getState().selected.map(s=>s.id));
   console.log('SMOKE SELECTED',JSON.stringify(selected));
   assert.deepEqual(selected,['qa-smoke-a','qa-smoke-c','qa-smoke-b','qa-smoke-d']);
+  console.log('SMOKE 5b set same-day itinerary');
+  await page.evaluate(()=>{
+    for(const id of ['qa-smoke-a','qa-smoke-c','qa-smoke-b','qa-smoke-d']){
+      const row=document.querySelector('#chosen [data-stop-id="'+id+'"]'),select=row?.querySelector('.day-picker');
+      if(!select)throw new Error('Missing day selector '+id);
+      select.value='1';select.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+  });
+  await page.evaluate(()=>window.__atlasJourneyVisual.setStep('order'));
+  const before=await page.evaluate(()=>window.__atlasJourneyRoute.getState().selected.map(s=>s.id));
+  console.log('SMOKE 5c preview-only recommendation');
+  await page.locator('#autoArrange').click({timeout:8000});
+  assert.equal(await page.locator('#routeSuggestion:not([hidden])').count(),1);
+  assert.deepEqual(await page.evaluate(()=>window.__atlasJourneyRoute.getState().selected.map(s=>s.id)),before);
+  await page.locator('#routeSuggestion button').filter({hasText:'采用建议'}).click({timeout:8000});
+  const optimized=await page.evaluate(()=>window.__atlasJourneyRoute.getState().selected.map(s=>s.id));
+  console.log('SMOKE RECOMMENDED',JSON.stringify(optimized));
+  assert.deepEqual(optimized,['qa-smoke-a','qa-smoke-b','qa-smoke-c','qa-smoke-d']);
+  await page.locator('#undoProposal').click({timeout:8000});
+  assert.deepEqual(await page.evaluate(()=>window.__atlasJourneyRoute.getState().selected.map(s=>s.id)),before);
   console.log('SMOKE 6 open real settings');
   await page.evaluate(()=>window.__atlasJourneyVisual.setStep('settings'));
   await page.locator('#originPlaceId').selectOption('qa-smoke-a',{timeout:8000});
