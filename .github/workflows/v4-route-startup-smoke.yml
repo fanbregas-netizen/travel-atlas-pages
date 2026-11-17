@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'v4-interaction-system-review-20261117/tests/route-confirmed-smoke.cjs'
+      - 'v4-interaction-system-review-20261117/src/route/route-order-engine.js'
       - '.github/workflows/v4-route-startup-smoke.yml'
   workflow_dispatch:
 permissions:
