@@ -22,6 +22,23 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     const health=await page.evaluate(()=>window.__atlasMapHealth());
     assert.equal(health.ready,true);
     assert.equal(health.warning,false);
+    await page.waitForFunction(()=>{
+      const t=window.__atlasBlueGrayMap?.status?.();
+      return !!t?.ready&&t.applied>0&&t.theme==='bluegray-v18';
+    },null,{timeout:15000});
+    const palette=await page.evaluate(()=>{
+      const m=window.__atlasPOIBridge.vector(),p=window.__atlasBlueGrayMap.palette;
+      const layers=m.getStyle().layers;
+      const bg=layers.find(l=>l.type==='background');
+      const roofs=layers.filter(l=>l.type==='fill'&&/building/.test(l.id+' '+(l['source-layer']||'')));
+      const roads=layers.filter(l=>l.type==='line'&&/primary|trunk|motorway/.test(l.id+' '+(l['source-layer']||'')));
+      return {status:window.__atlasBlueGrayMap.status(),paint:bg?m.getPaintProperty(bg.id,'background-color'):null,
+        backgrounds:!!bg,buildingCount:roofs.length,roadCount:roads.length,
+        dark:document.documentElement.dataset.fpMapTheme};
+    });
+    assert.equal(palette.dark,'bluegray-v18','Homepage map is not in approved blue-gray mode');
+    assert.ok(!palette.backgrounds||palette.paint==='#485D6B','Unexpected homepage basemap palette: '+JSON.stringify(palette));
+    await page.screenshot({path:`map-evidence/home-bluegray-${width}.png`,animations:'disabled'});
     await page.locator('#btnZoomIn').click({timeout:12000});
     await page.waitForFunction(z=>window.__atlasCameraQA().zoom>z+0.3,base.zoom,{timeout:15000});
     await page.locator('#btnZoomOut').click({timeout:12000});
