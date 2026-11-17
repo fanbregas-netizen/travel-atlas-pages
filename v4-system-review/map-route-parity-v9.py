@@ -125,6 +125,21 @@ if p.name=='route-cards-v5-live.js':
     projected:xy?{x:xy.x,y:xy.y}:null,
     center:liveMap?.getCenter()?.toArray(),moving:liveMap?.isMoving()};
  };
+ // Keep the ONLY selected route marker georeferenced to the MapLibre
+ // camera, including during C V5 sheet resize and camera finalization.
+ function keepSelectedRouteGeoAligned(){
+  if(!liveMap||!liveTopPlaceId)return;
+  const place=allPlaces.find(p=>String(p.id)===String(liveTopPlaceId));
+  const pin=routeMap.querySelector('#rc-map-pins .fp-route-tapped');
+  if(!place||!pin||pin.dataset.placeId!==String(liveTopPlaceId))return;
+  const frame=liveMap.getContainer(),point=liveMap.project([+place.lng,+place.lat]);
+  if(!frame.clientWidth||!frame.clientHeight)return;
+  const x=point.x/frame.clientWidth*100,y=point.y/frame.clientHeight*100;
+  if(Math.abs((parseFloat(pin.style.left)||0)-x)>.03)pin.style.left=x+'%';
+  if(Math.abs((parseFloat(pin.style.top)||0)-y)>.03)pin.style.top=y+'%';
+ }
+ liveMap.on('render',keepSelectedRouteGeoAligned);
+ liveMap.on('idle',keepSelectedRouteGeoAligned);
  // Tap a previously saved marker with the same Apple-like POI raise/center.
  // The existing C V5 button listener still owns selection and route state.
  routeMap.querySelector('#rc-map-pins')?.addEventListener('click',e=>{
@@ -158,6 +173,7 @@ if p.name=='route-cards-v5-live.js':
   // The C V5 sheet changes map height; catch the final viewport size
   // before committing geo-to-screen positions after the camera move.
   liveMap.resize();liveRenderCamera(true);
+  requestAnimationFrame(keepSelectedRouteGeoAligned);
  });""",
  'reproject-after-map-sheet-resize')
  once(
@@ -171,6 +187,7 @@ if p.name=='route-cards-v5-live.js':
   // A ResizeObserver callback happens after layout. Immediately update
   // existing georeferenced pins in the same frame, without rebuilding DOM.
   liveRenderCamera(false);
+  keepSelectedRouteGeoAligned();
  }):null;
  routeSizeObserver?.observe(target);
  window.addEventListener('pagehide',()=>routeSizeObserver?.disconnect(),{once:true});""",
