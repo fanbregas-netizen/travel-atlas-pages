@@ -56,6 +56,31 @@ jobs:
           demo.mkdir()
           shutil.copyfile('__prototype/v4-card-master-review/index.html',demo/'index.html')
           assert (demo/'index.html').stat().st_size>1000000
+          # The user requested a genuine, separate V4 UI comparison, not a mock.
+          # Build a NEW 164-file copy and add only an opt-in CSS layer + review switch.
+          unified=root/'v4-unified-real-review-20261117'
+          assert not unified.exists()
+          shutil.copytree(dest,unified)
+          for asset in ('visual-parity.css','visual-compare.js'):
+              shutil.copyfile('__prototype/v4-unified-real-review/'+asset,unified/asset)
+          for page in ('index.html','journey.html','route-view.html'):
+              pagepath=unified/page
+              markup=pagepath.read_text(encoding='utf-8')
+              assert 'atlas-v4-review-20261116-' in markup
+              markup=markup.replace('atlas-v4-review-20261116-','atlas-v4-unified-real-review-20261117-')
+              assert '</head>' in markup and '</body>' in markup
+              markup=markup.replace('</head>','<link rel="stylesheet" href="./visual-parity.css?v=unified-real-1">\n</head>',1)
+              markup=markup.replace('</body>','<script src="./visual-compare.js?v=unified-real-1"></script>\n</body>',1)
+              pagepath.write_text(markup,encoding='utf-8')
+          assert len([p for p in unified.rglob('*') if p.is_file()])==166
+          assert all((unified/asset).stat().st_size>500 for asset in ('visual-parity.css','visual-compare.js'))
+          # Compare the underlying product copy against the exact accepted baseline.
+          for old in dest.rglob('*'):
+              if not old.is_file(): continue
+              rel=old.relative_to(dest)
+              if rel in (pathlib.Path('index.html'),pathlib.Path('journey.html'),pathlib.Path('route-view.html')): continue
+              assert hashlib.sha256(old.read_bytes()).digest()==hashlib.sha256((unified/rel).read_bytes()).digest()
+
           after=hashes()
           assert all(after[p]==h for p,h in original.items())
           print('All',len(original),'existing deployed files unchanged; appended 164 candidate files.')
@@ -71,3 +96,9 @@ jobs:
           cmp /tmp/entry.html __candidate/v4-review-20261116/index.html
           curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-card-master-review/' -o /tmp/card-demo.html
           cmp /tmp/card-demo.html __prototype/v4-card-master-review/index.html
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-unified-real-review-20261117/' -o /tmp/unified-product.html
+          grep -q 'visual-parity.css?v=unified-real-1' /tmp/unified-product.html
+          grep -q 'atlas-v4-unified-real-review-20261117-' /tmp/unified-product.html
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-unified-real-review-20261117/visual-parity.css' -o /tmp/unified.css
+          cmp /tmp/unified.css __prototype/v4-unified-real-review/visual-parity.css
+          node --check __prototype/v4-unified-real-review/visual-compare.js
