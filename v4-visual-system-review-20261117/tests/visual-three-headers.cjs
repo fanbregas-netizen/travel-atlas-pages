@@ -18,7 +18,7 @@ fs.mkdirSync(output,{recursive:true});
  const page=await context.newPage();
  page.on('pageerror',e=>{evidence.pageErrors.push(String(e.message).slice(0,250))});
  try{
-  let resp=await page.goto(base+'index.html?visual=after&qa=render10',{waitUntil:'domcontentloaded',timeout:60000});
+  let resp=await page.goto(base+'index.html?visual=after&qa=render11',{waitUntil:'domcontentloaded',timeout:60000});
   assert.equal(resp?.status(),200,'main preview HTTP');
   await page.waitForFunction(()=>!!window.__atlasPlaceStore?.save&&!!window.__atlasDemo?.openSaved,null,{timeout:25000});
   await page.evaluate(async()=>{
@@ -48,14 +48,14 @@ fs.mkdirSync(output,{recursive:true});
   assert.ok(place.stageToTitleGap<58,'place status row incorrectly pushed far below title: '+place.stageToTitleGap);
   // Source-level POI icon family reused, with the ORIGINAL click handlers kept.
   const sectionActionIcons=await page.evaluate(()=>{
-   const buttons=[...document.querySelectorAll('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+3) .fp-subheading > button.fp-subaction')];
+   const buttons=[...document.querySelectorAll('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+4) .fp-subheading > button.fp-subaction')];
    return buttons.map(b=>{const r=b.getBoundingClientRect(),c=getComputedStyle(b),p=getComputedStyle(b,'::before');return {label:b.textContent.trim(),box:{width:Math.round(r.width),height:Math.round(r.height)},fontSize:c.fontSize,backgroundImage:p.backgroundImage,iconWidth:p.width,iconHeight:p.height,visible:c.visibility,opacity:c.opacity}});
   });
   evidence.sectionActionIcons=sectionActionIcons;
-  assert.equal(sectionActionIcons.length,3,'expected exactly three primary action icon buttons');
-  for(let k=0;k<3;k++){
+  assert.equal(sectionActionIcons.length,4,'expected exactly four primary action icon buttons');
+  for(let k=0;k<4;k++){
    const ico=sectionActionIcons[k];
-   assert.ok(ico.backgroundImage.includes(['14_edit.svg','13_add_media.svg','29_open_link.svg'][k]),'wrong original hand-drawn icon '+k+': '+ico.backgroundImage);
+   assert.ok(ico.backgroundImage.includes(['14_edit.svg','13_add_media.svg','29_open_link.svg','10_nearby.svg'][k]),'wrong original hand-drawn icon '+k+': '+ico.backgroundImage);
    assert.deepEqual(ico.box,{width:44,height:44},'section action tap target not consistent '+k);
    assert.equal(ico.fontSize,'0px','text label must be visually replaced by POI SVG '+k);
    assert.equal(ico.iconWidth,'23px');
@@ -79,12 +79,17 @@ fs.mkdirSync(output,{recursive:true});
   const chooser=await fileChosen;
   assert.ok(chooser.isMultiple(),'media picker must preserve multi-select');
   evidence.actionHandlers={brief:'opened and closed',link:'opened and closed',media:'native file chooser opened'};
-  for(let k=0;k<3;k++){
+  for(let k=0;k<4;k++){
    const loc=page.locator('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child('+(k+1)+') .fp-subheading > button.fp-subaction');
    await loc.scrollIntoViewIfNeeded();
    await page.waitForTimeout(100);
    await page.screenshot({path:output+'/section-icon-'+(k+1)+'.png',fullPage:false});
   }
+  // Fourth icon keeps existing nearby query action. Stub only the external search for deterministic QA.
+  await page.evaluate(()=>{window.AtlasServices.nearby=async()=>({places:[{name:'测试附近地点',distance:120,lat:31.22,lng:121.46}]})});
+  await page.evaluate(()=>document.querySelector('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child(4) .fp-subheading > button.fp-subaction')?.click());
+  await page.waitForFunction(()=>[...document.querySelectorAll('#fpPlaceCard .fp-block:nth-child(4) .fp-social-list button')].some(b=>b.textContent.includes('测试附近地点')),null,{timeout:7000});
+  evidence.actionHandlers.nearby='existing nearby query called and list rendered';
   await page.evaluate(()=>document.querySelector('#fpPlaceCard .fp-card-close')?.click());
   await page.waitForTimeout(1100);
   await page.evaluate(()=>document.getElementById('dockStars')?.click());
@@ -98,7 +103,7 @@ fs.mkdirSync(output,{recursive:true});
   evidence.results.push({card:'favorites',...favorite});
   await page.screenshot({path:output+'/favorites.png',fullPage:false});
   assert.ok(favorite.visible,'collection visible');
-  resp=await page.goto(base+'journey.html?visual=after&qa=render10',{waitUntil:'domcontentloaded',timeout:60000});
+  resp=await page.goto(base+'journey.html?visual=after&qa=render11',{waitUntil:'domcontentloaded',timeout:60000});
   assert.equal(resp?.status(),200,'route preview HTTP');
   await page.waitForFunction(()=>window.__atlasRouteV5Live?.ready===true&&!!document.getElementById('rc-main'),null,{timeout:30000});
   await page.waitForTimeout(750);
