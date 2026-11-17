@@ -17,6 +17,8 @@ on:
       - 'v4-system-review/map-route-home-poi-v15.py'
       - 'v4-system-review/map-route-native-poi-v16.py'
       - 'v4-system-review/map-visual-parity.css'
+      - 'v4-system-review/map-home-bluegray-v18.css'
+      - 'v4-system-review/map-home-bluegray-v18.js'
       - 'v4-system-review/map-safari-smoke.cjs'
 permissions:
   contents: read
@@ -69,6 +71,9 @@ jobs:
           subprocess.run(['node','--check',str(review/'v4-map-runtime.js')],check=True)
           subprocess.run(['node','--check',str(review/'src/interaction/route-cards-v5-live.js')],check=True)
           shutil.copyfile('__prototype/v4-system-review/map-visual-parity.css',review/'map-visual-parity.css')
+           for asset in ('map-home-bluegray-v18.css','map-home-bluegray-v18.js'):
+               shutil.copyfile('__prototype/v4-system-review/'+asset,review/asset)
+           subprocess.run(['node','--check',str(review/'map-home-bluegray-v18.js')],check=True)
           for asset in ('scope-review.js','scope-review.css'):
               shutil.copyfile('__prototype/v4-system-review/'+asset,review/asset)
           for page in ('index.html','journey.html','route-view.html'):
@@ -80,6 +85,7 @@ jobs:
               if page=='index.html':
                   html=html.replace('poi-svg-motion-v4.js?v=cv5-18','poi-svg-motion-v4.js?v=poi-pop-5')
                   assert 'poi-pop-5' in html
+                   html=html.replace('</head>','<link rel="stylesheet" href="./map-home-bluegray-v18.css?v=bluegray-18">\n<script defer src="./map-home-bluegray-v18.js?v=bluegray-18"></script>\n</head>',1)
               if page=='journey.html':
                   old='<script defer src="./src/interaction/route-cards-v5-live.js?v=fluid-3"></script>'
                   assert old in html
@@ -94,7 +100,7 @@ jobs:
               rel=old.relative_to(base)
               if rel in (Path('index.html'),Path('journey.html'),Path('route-view.html'),Path('v4-map-runtime.js'),Path('src/map/shared-v4-map.js'),Path('src/interaction/route-cards-v5-live.js'),Path('src/interaction/poi-svg-motion-v4.js')):continue
               assert hashlib.sha256(old.read_bytes()).digest()==hashlib.sha256((review/rel).read_bytes()).digest(),str(rel)
-          assert len(list(x for x in review.rglob('*') if x.is_file()))==167
+          assert len(list(x for x in review.rglob('*') if x.is_file()))==169
           print('Isolated map artifact validated, other system resources identical.')
           PY
       - run: |
