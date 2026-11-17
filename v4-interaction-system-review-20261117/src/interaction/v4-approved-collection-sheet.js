@@ -112,6 +112,10 @@ function move(x,y,e){
 }
 function revealDock(){
  document.body.classList.remove('atlas-collection-exiting');
+ // Paired Dock owner animates BOTH the returning search Dock (down) and
+ // home Dock (up) after the last sheet is actually closed. Legacy fallback
+ // remains here for older isolated builds without that owner.
+ if(window.__atlasCardDockMotion?.sync){window.__atlasCardDockMotion.sync();return}
  if(!dock||el.classList.contains('visible'))return;
  const body=document.body;
  if(['fp-search-open','fp-place-open','destination-selected','memory-open','route-pick-active'].some(x=>body.classList.contains(x)))return;
