@@ -489,12 +489,12 @@ jobs:
           path: __map_v4_source
       - uses: actions/checkout@v4
         with:
-          ref: e9308998e1616e373ee3cc207b4884aba7566529
+          ref: c995f2774f7f306cab2941e722fc10ec957d47ed
           path: __map_review_patch
       - name: Append durable independent V4 map Safari acceptance (no product merge)
         run: |
           test "$(git -C __map_v4_source rev-parse HEAD)" = 54c2b68347e3bfe2a7e7ed47ef63e12550e007b7
-          test "$(git -C __map_review_patch rev-parse HEAD)" = e9308998e1616e373ee3cc207b4884aba7566529
+          test "$(git -C __map_review_patch rev-parse HEAD)" = c995f2774f7f306cab2941e722fc10ec957d47ed
           python3 - <<'PY'
           from pathlib import Path
           import hashlib,subprocess
@@ -528,7 +528,7 @@ jobs:
           done
           curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}index.html" -o /tmp/map-durable-index
           grep -q 'atlas-v4-map-system-review-20261117-' /tmp/map-durable-index
-          grep -q 'map-safari-acceptance-5' /tmp/map-durable-index
+          grep -q 'map-safari-acceptance-6' /tmp/map-durable-index
           grep -Fq 'poi-svg-motion-v4.js?v=poi-pop-5' /tmp/map-durable-index
           grep -Fq 'poi-svg-motion-v4.js?v=poi-pop-5' /tmp/map-durable-index
           curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}src/interaction/poi-svg-motion-v4.js" -o /tmp/map-durable-poi-pop.js
