@@ -7,7 +7,7 @@
  const sections=[...root.children].filter(e=>e.matches('section.block'));
  if(sections.length!==3)return;
  const ids={settings:'journeySectionSettings',places:'journeySectionPlaces',order:'journeySectionOrder'};
- ['settings','places','order'].forEach((name,i)=>{sections[i].dataset.routeStep=name;sections[i].id=ids[name]});
+ ['settings','places','order'].forEach((name,i)=>{sections[i].dataset.routeStep=name;sections[i].id=ids[name];const heading=sections[i].querySelector('.section-head h2');if(heading)heading.textContent=({settings:'行程设置',places:'收藏地点',order:'路线顺序'})[name]});
  const query=new URLSearchParams(location.search);
  let step=query.has('edit')||query.get('from')==='footprint'?'order':'places';
  let previousCount=0;
