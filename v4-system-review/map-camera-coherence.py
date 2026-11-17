@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""POI map-only V4 Safari motion synchronization patch.
+
+One native MapLibre ease, and one shared compositor translation on both
+geographic DOM overlays, derived synchronously from the same camera transform.
+Do not update per-item geometry, rebuild symbols or repaint stars during pan.
+At moveend commit both overlays to their new coordinates before removing
+the shared translation so no one-frame jump can occur.
+"""
+from pathlib import Path
+import sys
+p=Path(sys.argv[1]);src=p.read_text(encoding='utf-8')
+def once(old,new,label):
+ global src
+ n=src.count(old)
+ if n!=1:raise SystemExit(f'{label}: expected 1 anchor, got {n}')
+ src=src.replace(old,new,1)
+
+if p.name=='v4-map-runtime.js':
+ once(
+  """  function centerTappedPOI(d){""",
+  """  // The basemap and BOTH overlay planes share one camera transform.
+  // Only two compositor writes per frame, independent of how many POIs exist.
+  let poiCenterOrigin=null;
+  function beginCenterPanVisuals(){
+    if(poiCenterOrigin||!vectorMap)return;
+    const center=vectorMap.getCenter(),size=vectorMap.getContainer();
+    poiCenterOrigin={lng:center.lng,lat:center.lat,
+      x:size.clientWidth/2,y:size.clientHeight/2};
+  }
+  function syncCenterPanVisuals(){
+    if(!poiCenterOrigin||!vectorMap)return;
+    const at=vectorMap.project([poiCenterOrigin.lng,poiCenterOrigin.lat]);
+    const dx=(at.x-poiCenterOrigin.x).toFixed(2)+'px';
+    const dy=(at.y-poiCenterOrigin.y).toFixed(2)+'px';
+    for(const id of ['atlasPoiOverlay','atlasBookmarkOverlay']){
+      const pane=$(id);
+      if(pane)pane.style.translate=dx+' '+dy;
+    }
+  }
+  function finishCenterPanVisuals(){
+    if(!poiCenterOrigin)return;
+    // Finish position recomputation without removing the old translation
+    // until both DOM surfaces have committed their final geo-anchored pixels.
+    try{window.__atlasPOICommitCurrent?.()}catch(error){console.warn('POI end-of-pan sync',error)}
+    for(const id of ['atlasPoiOverlay','atlasBookmarkOverlay']){
+      const pane=$(id);
+      if(pane)pane.style.removeProperty('translate');
+    }
+    poiCenterOrigin=null;
+  }
+  function centerTappedPOI(d){""",
+  'one-shared-overlay-translation')
+ once(
+  """      window.__atlasPOICentering=true;
+      vectorMap.easeTo({center:[lng,lat],zoom:vectorMap.getZoom(),""",
+  """      window.__atlasPOICentering=true;
+      beginCenterPanVisuals();
+      vectorMap.easeTo({center:[lng,lat],zoom:vectorMap.getZoom(),""",
+  'begin-pan-in-one-frame')
+ once(
+  """        if(window.__atlasPOICentering)scheduleVectorBookmarkMotion();
+        else scheduleVectorBookmarkRender();""",
+  """        if(window.__atlasPOICentering)syncCenterPanVisuals();
+        else scheduleVectorBookmarkRender();""",
+  'sync-move-with-native-camera')
+ once(
+  """      vectorMap.on('moveend',()=>{window.__atlasPOICentering=false;rememberMapView();renderVectorBookmarks();scheduleVectorPOIs();const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='1';/* Legacy raster camera synchronizes once on provider fallback, not on every vector gesture. */});""",
+  """      vectorMap.on('moveend',()=>{
+        const wasCentering=window.__atlasPOICentering;
+        rememberMapView();renderVectorBookmarks();
+        if(wasCentering)finishCenterPanVisuals();
+        window.__atlasPOICentering=false;
+        scheduleVectorPOIs();
+        const pane=$('atlasPoiOverlay');if(pane&&pane.style.opacity!=='1')pane.style.opacity='1';
+        /* Legacy raster fallback camera remains unchanged. */
+      });""",
+  'commit-overlay-before-removing-translation')
+ once(
+  """    requestAnimationFrame(reveal);
+    $('selectionFeedback').hidden=true;""",
+  """    // Give the tapped POI a brief visual head start before the existing
+    // approved card spring. Do not alter any card styles or gesture logic.
+    if(d.__poiTap&&moving&&!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)
+      destinationRevealTimer=setTimeout(()=>requestAnimationFrame(reveal),105);
+    else requestAnimationFrame(reveal);
+    $('selectionFeedback').hidden=true;""",
+  'handoff-card-after-icon-begins')
+elif p.name=='index.html':
+ once(
+  """ function queueAnchorSync(){
+  if(anchorFrame||document.hidden)return;""",
+  """ function queueAnchorSync(){
+  // Automatic centering is now handled by one shared parent compositor
+  // translation in the map renderer itself. No per-POI rAF in this path.
+  if(window.__atlasPOICentering)return;
+  if(anchorFrame||document.hidden)return;""",
+  'prevent-competing-per-marker-rAF')
+ once(
+  """ function schedule(){if(queued)return;queued=window.setTimeout(doRender,140)}""",
+  """ // Synchronous end-of-pan commit before the map renderer removes the
+ // shared overlay translation; avoids the one-frame marker disappearance.
+ window.__atlasPOICommitCurrent=()=>{
+  if(queued){clearTimeout(queued);queued=0}
+  doRender();
+ };
+ function schedule(){if(queued)return;queued=window.setTimeout(doRender,140)}""",
+  'commit-POI-overlay-together-with-stars')
+elif p.name=='poi-svg-motion-v4.js':
+ # No more changes to the already-approved one-icon scale animation.
+ assert 'if(selectedPoiToken===token&&selectedPoiAnimation)return;' in src
+else:raise SystemExit('unexpected target '+str(p))
+p.write_text(src,encoding='utf-8')
+print('PASS synchronized composited map movement:',p)
