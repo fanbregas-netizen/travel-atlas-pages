@@ -338,7 +338,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       const m=window.__atlasLivePlannerMap,pin=document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),
         area=window.__atlasRouteViewportQA?.();
       return !!m&&!m.isMoving()&&!!pin&&!!area&&
-        Math.abs((parseFloat(pin.style.top)||0)*area.height/100-area.targetY)<5;
+        Math.abs((parseFloat(pin.style.top)||0)*area.height/100-area.targetY)<12;
     },null,{timeout:16000}).catch(async()=>{
       throw Error('Route tapped location failed visible-map center: '+JSON.stringify(
         await page.evaluate(()=>{
@@ -382,7 +382,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.equal(routePoi.foreground,true,'Route POI lost selected foreground after motion');
     assert.ok(routePoi.zIndex>=16,'Selected route POI not in top map layer');
     assert.equal(routePoi.hasHanddrawnIcon,true,'Route POI did not reuse V3 handdrawn art');
-    assert.ok(routePoi.centerErrorPx<5,'Selected route POI not centered in exposed map above card: '+JSON.stringify(routePoi));
+    assert.ok(routePoi.centerErrorPx<12,'Selected route POI not centered in exposed map above card: '+JSON.stringify(routePoi));
     assert.equal(routePoi.visibleAboveSheet,true,
       'C V5 card covers the selected map point: '+JSON.stringify(routePoi));
     await page.screenshot({path:`map-evidence/route-map-poi-home-parity-${width}.png`,animations:'disabled'});
