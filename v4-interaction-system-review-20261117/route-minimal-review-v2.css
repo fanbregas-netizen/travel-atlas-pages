@@ -287,3 +287,6 @@ body.fp-route-minimal #stopsDock{
  transform:none!important;translate:0 0;border-radius:18px!important;
  bottom:calc(9px + env(safe-area-inset-bottom))!important;
 }
+
+/* Maps stay the visual focus while a modal sheet is open. */
+body.fp-route-minimal.fp-route-panel-open #fpRouteToast,body.fp-route-minimal.fp-route-place-open #fpRouteToast{display:none!important}
