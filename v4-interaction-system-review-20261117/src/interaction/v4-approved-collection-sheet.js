@@ -36,6 +36,11 @@ function paintHeight(h){
 }
 function setPhysicalSurface(){
  el.style.setProperty('max-height','calc(100dvh - 32px)','important');
+ // The legacy V4 drawer enforces a roughly 58vh minimum in some layouts;
+ // it held the visible card at ~490px even when the C V5 spring painted 86px.
+ // Make the real bounding box equal the physical height, as with #rc-main.
+ el.style.setProperty('min-height','0','important');
+ el.style.setProperty('box-sizing','border-box','important');
  // The legacy drawer has a second, independent 240ms translate animation.
  // "选择地点" now uses ONLY the C V5 height motor: remove this collision.
  el.style.setProperty('transform','translate(-50%,0)','important');
@@ -215,6 +220,7 @@ function onClosed(){
  delete el.dataset.collectionDragging;
  // Keep the final height during any legacy externally-triggered exit.
  el.style.removeProperty('transform');el.style.removeProperty('transition');
+ el.style.removeProperty('min-height');el.style.removeProperty('box-sizing');
  if(closeCleanup!==null)clearTimeout(closeCleanup);
  closeCleanup=setTimeout(()=>{
   closeCleanup=null;
