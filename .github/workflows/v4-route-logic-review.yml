@@ -1,0 +1,38 @@
+name: Footprint V4 route planning interaction review
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v4-interaction-system-review-20261117/route-logic-review*'
+      - 'v4-interaction-system-review-20261117/tests/route-logic-live.cjs'
+      - '.github/workflows/v4-route-logic-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  route-logic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test dependency
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Serve isolated review
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/route-logic-qa-server.log 2>&1 &
+          sleep 2
+          curl -fsS 'http://127.0.0.1:8765/v4-interaction-system-review-20261117/route-logic-review-20261117.html' >/dev/null
+      - name: Exercise real product route UI at iPhone size
+        env:
+          INTERACTION_REVIEW_BASE_URL: http://127.0.0.1:8765/v4-interaction-system-review-20261117/
+        run: node v4-interaction-system-review-20261117/tests/route-logic-live.cjs
+      - name: Keep actual route UI browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: route-planning-iphone-review
+          path: interaction-motion-evidence/route-logic-*
+          if-no-files-found: ignore
