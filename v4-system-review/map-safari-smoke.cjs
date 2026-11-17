@@ -157,6 +157,26 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     await page.waitForFunction(()=>document.querySelector('.atlas-vector-selection .fp-vector-token')?.dataset.poiPopMotion==='settled',{timeout:1400});
     assert.equal(await page.locator('.atlas-vector-selection .fp-vector-token' ).evaluate(el=>el.style.transform),'scale(1.34)',
       'POI stays enlarged after gentle overshoot and settle');
+    // Native POI must finish on a persistent foreground plane ABOVE both
+    // ordinary POIs and yellow saved stars, without a duplicate marker.
+    const front=await page.evaluate(p=>{
+      const map=window.__atlasPOIBridge.vector();
+      const poi=document.getElementById('atlasPoiOverlay'),star=document.getElementById('atlasBookmarkOverlay'),
+            top=document.getElementById('atlasSelectedPoiTop'),
+            pin=top?.querySelector('.atlas-vector-selection');
+      const point=map.project([p.lng,p.lat]),mapBox=map.getContainer().getBoundingClientRect(),
+            rect=pin?.getBoundingClientRect();
+      return {hasTop:!!top,markerCount:top?.querySelectorAll('.atlas-vector-selection').length||0,
+        nativeParent:pin?.parentElement?.id,
+        topZ:Number(getComputedStyle(top).zIndex),poiZ:Number(getComputedStyle(poi).zIndex),
+        starZ:Number(getComputedStyle(star).zIndex),
+        errorPx:rect?Math.hypot(rect.left+rect.width/2-mapBox.left-point.x,
+          rect.top+rect.height/2-mapBox.top-point.y):null};
+    },first);
+    assert.equal(front.markerCount,1,'Tapped native POI must retain one original DOM marker on top');
+    assert.equal(front.nativeParent,'atlasSelectedPoiTop','Native selected POI was hidden below overlay');
+    assert.ok(front.topZ>front.poiZ&&front.topZ>front.starZ,'Selected POI not above other POIs and stars: '+JSON.stringify(front));
+    assert.ok(front.errorPx!==null&&front.errorPx<3,'Promoted marker lost geographic anchor: '+JSON.stringify(front));
     await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='海浪动效测试',{timeout:17000});
     await page.waitForFunction(()=>!!document.querySelector('.fp-internal-poi-svg'),{timeout:17000});
     const switched=await page.evaluate(p=>{
@@ -168,6 +188,13 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.equal(switched.prevScale,'','Old selected POI must shrink back on switching');
     assert.equal(switched.currentScale,'scale(1)','New selected POI grows in its place');
     assert.equal(switched.selectedMarkers,1,'No duplicate map marker after rapid POI switch');
+    const switchFront=await page.evaluate(()=>({
+      count:document.querySelectorAll('#atlasSelectedPoiTop > .atlas-vector-selection').length,
+      connected:!!document.querySelector('#atlasSelectedPoiTop > .atlas-vector-selection'),
+      oldDetached:!window.__mapTestFirstToken?.isConnected
+    }));
+    assert.equal(switchFront.count,1,'POI switching left duplicate foreground markers');
+    assert.equal(switchFront.oldDetached,true,'Previous selected POI must leave top plane');
     // The actual iPhone recording at 17:26 revealed a near-white card
     // mid-switch. Measure the real rendered label while the native camera
     // is still centering; this must never fade the existing sheet to zero.
@@ -213,11 +240,13 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       b.append(token);pane.append(b);
       window.__atlasPOIBridge.select({...p,id:'ci-existing-poi'});
       const result={isSelected:b.classList.contains('is-selected'),scale:token.style.transform,
+        zIndex:Number(getComputedStyle(b).zIndex),
         duplicateMarkers:document.querySelectorAll('.atlas-vector-selection').length};
       b.remove();return result;
     },first);
     assert.equal(existing.isSelected,true,'Reuse the original on-map POI marker');
     assert.equal(existing.scale,'scale(1)','Existing marker also enlarges');
+    assert.ok(existing.zIndex>=90,'Existing reused POI must remain foreground after motion');
     assert.equal(existing.duplicateMarkers,0,'Never create a second icon over an existing geographic POI');
     console.log('PASS POI pictogram enlarges as map pans to true center at constant zoom, no overlapping markers '+JSON.stringify({
       width,selectedScale:selected.transform,midScale:mid.scale,
