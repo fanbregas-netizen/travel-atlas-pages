@@ -143,7 +143,7 @@ function videoUrl(item){const src=typeof item==='string'?item:item?.src||item?.d
 function fillMedia(p){const box=$('bubbleMedia');for(const v of box.querySelectorAll('video'))v.pause();box.replaceChildren();const media=[];for(const item of p.photos||[]){const src=mediaUrl(item);if(src)media.push({type:'image',src})}for(const item of p.videos||[]){const src=videoUrl(item);if(src)media.push({type:'video',src,label:text(item?.name||'旅行视频',35)})}box.hidden=!media.length;if(!media.length)return;for(const [index,item] of media.slice(0,5).entries()){if(item.type==='image'){const el=make('button',index===0?'hero-media':'');el.type='button';el.setAttribute('aria-label','查看第 '+(index+1)+' 张图片');const image=make('img');image.alt='收藏的旅行照片';image.loading='lazy';image.src=item.src;el.append(image);el.onclick=()=>{window.open(item.src,'_blank','noopener,noreferrer')};box.append(el)}else{const el=make('div','dynamic-video'+(index===0?' hero-media':''));const video=make('video');video.src=item.src;video.muted=true;video.defaultMuted=true;video.autoplay=true;video.loop=true;video.playsInline=true;video.preload='metadata';video.controls=true;video.setAttribute('playsinline','');video.setAttribute('aria-label',item.label);el.append(video);box.append(el);video.play().catch(()=>{})}}}
 function wgsToGcj(lon,lat){if(lon<72.004||lon>137.8347||lat<0.8293||lat>55.8271)return[lon,lat];const x=lon-105,y=lat-35,rad=lat*Math.PI/180,ee=.006693421622965943,a=6378245,magic=1-ee*Math.sin(rad)**2;const dlat=-100+2*x+3*y+.2*y*y+.1*x*y+.2*Math.sqrt(Math.abs(x))+(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3+(20*Math.sin(y*Math.PI)+40*Math.sin(y/3*Math.PI))*2/3+(160*Math.sin(y/12*Math.PI)+320*Math.sin(y*Math.PI/30))*2/3;const dlng=300+x+2*y+.1*x*x+.1*x*y+.1*Math.sqrt(Math.abs(x))+(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3+(20*Math.sin(x*Math.PI)+40*Math.sin(x/3*Math.PI))*2/3+(150*Math.sin(x/12*Math.PI)+300*Math.sin(x/30*Math.PI))*2/3;return[lon+dlng*180/(a/Math.sqrt(magic)*Math.cos(rad)*Math.PI),lat+dlat*180/((a*(1-ee))/(magic*Math.sqrt(magic))*Math.PI)]}
 function navigateUrl(p){const [lon,lat]=wgsToGcj(+p.lng,+p.lat);return 'https://uri.amap.com/navigation?'+new URLSearchParams({to:lon.toFixed(6)+','+lat.toFixed(6)+','+text(p.title||p.name,60),mode:'car',src:'travel_atlas',callnative:'1'}).toString()}
-function fillBubble(i){const p=places[i];$('stopBubble').dataset.placeId=String(p.id);$('bubbleStep').textContent='第 '+(i+1)+' / '+places.length+' 站 · 第 '+(stopDays[i]||1)+' 天';$('bubbleTitle').textContent=text(p.title||p.name,120);const note=text(p.note||p.brief||p.description||'',800).replace(/^原高德地址[：:][^\n]*\n?/,'').trim();$('bubbleBrief').textContent=note||'还没写想去原因。可返回旅行地图，为这个地点补充为什么想去的记录。';$('bubbleAddr').textContent=text(p.address||'',120).replace(/^原高德地址[：:]\s*/,'');urls.splice(0).forEach(x=>URL.revokeObjectURL(x));$('amapNavigate').href=navigateUrl(p);$('backToSource').href='./?openPlace='+encodeURIComponent(p.id)}
+function fillBubble(i){const p=places[i];$('stopBubble').dataset.placeId=String(p.id);$('bubbleStep').textContent='第 '+(i+1)+' / '+places.length+' 站 · 第 '+(stopDays[i]||1)+' 天';$('bubbleTitle').textContent=text(p.title||p.name,120);const note=text(p.note||p.brief||p.description||'',800).replace(/^原高德地址[：:][^\n]*\n?/,'').trim();$('bubbleBrief').textContent=note||'还没写想去原因。可返回旅行地图，为这个地点补充为什么想去的记录。';$('bubbleAddr').textContent=text(p.address||'',120).replace(/^原高德地址[：:]\s*/,'');urls.splice(0).forEach(x=>URL.revokeObjectURL(x));$('amapNavigate').href=navigateUrl(p);$('backToSource').href='./index.html?openPlace='+encodeURIComponent(p.id)}
 function positionBubble(i){if(active!==i||!map||$('stopBubble').hidden)return;if(matchMedia('(max-width:640px)').matches){const b=$('stopBubble');b.style.left='';b.style.top='';return;}const p=map.project([+places[i].lng,+places[i].lat]),bubble=$('stopBubble'),dock=$('stopsDock').getBoundingClientRect();const w=bubble.offsetWidth,h=bubble.offsetHeight;const left=clamp(p.x-w/2,13,innerWidth-w-13);const headerBottom=Math.max(90,innerHeight>780?105:83);const dockTop=dock.top;const fitsAbove=p.y-h-29>headerBottom,fitsBelow=p.y+30+h<dockTop-6;let top,orient='above';if(fitsAbove)top=p.y-h-22;else if(fitsBelow){top=p.y+29;orient='below'}else top=clamp(p.y-h-19,headerBottom,Math.max(headerBottom,dockTop-h-7));bubble.style.left=left+'px';bubble.style.top=top+'px';bubble.dataset.orient=orient;const arrow=bubble.querySelector('.bubble-pointer');if(arrow){arrow.style.left=clamp(p.x-left-7,22,w-25)+'px';arrow.style.top=orient==='above'?(h-8)+'px':'-6px'}}
 function activate(i,move){if(i<0||i>=places.length)return;active=i;selectVisual();fillBubble(i);$('stopBubble').hidden=false;setSnap('peek');if(move&&map){const p=places[i];map.easeTo({center:[+p.lng,+p.lat],zoom:Math.max(11,Math.min(14,map.getZoom())),duration:480,essential:true})}positionBubble(i);const rail=$('stopRail'),node=rail?.children[i];if(rail&&node){const left=node.offsetLeft-rail.offsetLeft-(rail.clientWidth-node.clientWidth)/2;rail.scrollTo?.({left:Math.max(0,left),behavior:'smooth'})}}
 function dismissBubble(){for(const v of $('bubbleMedia').querySelectorAll('video'))v.pause();active=-1;$('stopBubble').hidden=true;selectVisual()}
@@ -196,6 +196,7 @@ async function init(){initUI();routePayload=await resolveRoute();if(!routePayloa
  const boot=document.getElementById('routeBootNotice');
  boot.querySelector('strong').textContent='地图暂时无法连接';
  boot.querySelector('small').textContent='已读取路线站点；可检查网络后重试，收藏数据不受影响';
+ boot.hidden=false; // Do not hide the recovery button while the map library is unavailable.
  boot.querySelector('button').hidden=false;boot.querySelector('button').onclick=()=>location.reload();
  notice('无法载入地图，请重试或返回路线规划',true);
  return
@@ -342,7 +343,11 @@ body:has(#stopBubble:not([hidden])) #stopsDock{display:block!important}
 (function(){
 'use strict';
 function ready(fn){const t0=Date.now();(function poll(){
-  if(window.__atlasMap&&window.__atlasRV&&document.querySelector('.route-pin'))return fn();
+  // Route contents remain usable if both external MapLibre mirrors fail.
+  // Initialize when either the map exists or the visible retry UI confirms
+  // a renderer failure. Never initialize prematurely while still loading.
+  if(window.__atlasRV&&document.querySelector('.route-pin')&&
+     (window.__atlasMap||document.getElementById('routeBootRetry')?.hidden===false))return fn();
   if(Date.now()-t0>45000)return;setTimeout(poll,300)})()}
 ready(init);
 function init(){
@@ -414,7 +419,12 @@ function init(){
     const drawn=document.getElementById('routeLines');
     if(legend){legend.textContent='正在核验实际道路…';legend.dataset.roadState='pending'}
     if(drawn){drawn.style.display='none';drawn.dataset.roadState='pending'}
-    if(!map||!RV.places.length)return;
+    if(!map){
+      if(legend){legend.textContent='地图不可用 · 已保存地点仍可查看';legend.dataset.roadState='unavailable'}
+      if(drawn)drawn.style.display='none';
+      return;
+    }
+    if(!RV.places.length)return;
     if(!map.isStyleLoaded()){
       map.once('idle',()=>{if(generation===roadGeneration)reRoad()});
       return;
@@ -454,7 +464,7 @@ function init(){
     }finally{clearTimeout(timeout);if(roadRequest===controller)roadRequest=null}
   }
   document.addEventListener('atlas:route-stops-changed',()=>{roadRetry=0;void reRoad()});
-  map.on('style.load',()=>{if(!map.getSource('rv-road')){roadRetry=0;void reRoad()}});
+  map?.on?.('style.load',()=>{if(!map.getSource('rv-road')){roadRetry=0;void reRoad()}});
   /* build .20 · 用户批注：D1 黑牌含义不明且与底部 chip(01·D1)/详情卡重复——移除地图上的天数黑牌 */
   reRoad();
   // 气泡：提示行 + 点气泡弹详情大卡
@@ -548,6 +558,7 @@ function init(){
   function posCallout(){
     if(callout.hidden)return;
     const p=curPlace();if(!p)return;
+    if(!map){callout.hidden=true;return}
     const pt=map.project([+p.lng,+p.lat]);
     const half=callout.offsetWidth/2||90;
     const x=Math.max(half+8,Math.min(innerWidth-half-8,pt.x));
@@ -570,7 +581,7 @@ function init(){
     bubble.querySelector('.rv-hints')?.remove();fillHints();
     if(detail.classList.contains('open'))openDetail();else fillCallout();
   }).observe(document.getElementById('bubbleTitle'),{childList:true,characterData:true,subtree:true});
-  map.on('move',posCallout);
+  map?.on?.('move',posCallout);
   // Approved C04: a selected route stop on the persistent bottom rail opens
   // its own real placeId detail sheet directly. The floating map callout remains
   // available, but is no longer a required second tap (or map-load dependency).

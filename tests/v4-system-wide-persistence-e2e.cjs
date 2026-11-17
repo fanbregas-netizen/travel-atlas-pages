@@ -104,6 +104,51 @@ const url='http://127.0.0.1:8766/travel-atlas-pages/v4-review-20261116/';
   assert.equal(route.endDate,committedDate.end);
   assert.equal(route.stops[1].day,2,'clamped D2 itinerary was not persisted');
   await page.screenshot({path:path.join(OUT,'02-saved-route.png')});
+  // Route map is a READ-ONLY view of the sole C V5 itinerary. It must still
+  // load real-place cards when both third-party map engine CDNs are blocked.
+  // This exercises the actual failed-map route, not a JS stub that bypasses it.
+  const mapCdnBlock=/https:\/\/(?:cdn\.jsdelivr\.net|unpkg\.com)\/.*maplibre-gl.*\.js(?:\\?|$)/;
+  await page.route(mapCdnBlock,request=>request.abort('failed'));
+  await page.goto(url+'route-view.html?saved='+encodeURIComponent(savedId),{waitUntil:'domcontentloaded',timeout:60000});
+  await page.waitForFunction(()=>document.querySelectorAll('#stopRail .stop-chip').length===2,
+    null,{timeout:16000});
+  await page.waitForFunction(()=>document.querySelector('#routeBootRetry')?.hidden===false,
+    null,{timeout:20000});
+  await page.waitForSelector('#rvDetail',{state:'attached',timeout:15000});
+  assert.equal(await page.locator('#routeEditV5').getAttribute('href'),
+    './journey.html?saved='+encodeURIComponent(savedId),
+    'route preview edit button must return to the ONE approved route planner');
+  const unavailable=await page.evaluate(()=>({
+    retryVisible:!!document.querySelector('#routeBootNotice:not([hidden]) #routeBootRetry:not([hidden])'),
+    railCount:document.querySelectorAll('#stopRail .stop-chip').length,
+    noMap:!window.__atlasMap
+  }));
+  assert.deepEqual(unavailable,{retryVisible:true,railCount:2,noMap:true},
+    'map download failure covered valid place records');
+  await page.locator('#stopRail .stop-chip').first().click();
+  await page.waitForSelector('#rvDetail.open',{timeout:12000});
+  const detail=await page.evaluate(()=>({
+    title:document.querySelector('#rvDetail h2')?.textContent,
+    brief:document.querySelector('#rvDetail .brief')?.textContent,
+    photos:document.querySelectorAll('#rvDetail .photos img').length,
+    destination:document.querySelector('#backToSource')?.getAttribute('href')
+  }));
+  assert.ok(detail.title==='回归地点甲'||detail.title==='回归地点乙',
+    'route card did not open its actual saved place by ID');
+  assert.match(detail.destination,/^\.\/index\.html\?openPlace=qa-real-route-[AB]$/,
+    'route card has broken Saved Place deep link');
+  await page.screenshot({path:path.join(OUT,'02a-map-offline-still-has-real-place.png')});
+  // Its saved-place entry must actually open the home place card and retain
+  // the Brief+photo; never point at an unserved directory-relative route.
+  await page.locator('#rvDetail [data-op="src"]').click();
+  await page.waitForURL(/\/index\.html\?openPlace=qa-real-route-[AB]/,{timeout:15000});
+  await page.waitForSelector('#fpPlaceCard:not([hidden]) .fp-card-name',{timeout:20000});
+  const homeLink=await page.evaluate(()=>({
+    title:document.querySelector('#fpPlaceCard .fp-card-name')?.textContent,
+    media:document.querySelectorAll('#fpPlaceCard .fp-media-mosaic img').length
+  }));
+  assert.equal(homeLink.title,detail.title,'route-to-place deep link opened a different record');
+  await page.unroute(mapCdnBlock);
   await page.goto(url+'journey.html?saved='+encodeURIComponent(savedId),{waitUntil:'domcontentloaded',timeout:60000});
   await page.waitForFunction(()=>window.__atlasRouteV5Live?.ready,null,{timeout:25000});
   const reopened=await page.evaluate(()=>window.__atlasRouteV5Live.state);
