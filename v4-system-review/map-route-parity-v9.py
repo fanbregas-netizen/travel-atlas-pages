@@ -146,11 +146,17 @@ if p.name=='route-cards-v5-live.js':
  let routeGeoFollowRun=0;
  function followSelectedUntilSettled(){
   const run=++routeGeoFollowRun,started=performance.now();
+  let idleFrames=0;
   const frame=()=>{
    if(run!==routeGeoFollowRun||!liveMap)return;
    keepSelectedRouteGeoAligned();
-   // One existing pin, one geographic projection each frame; no DOM rebuild.
-   if(performance.now()-started<1150)requestAnimationFrame(frame);
+   // Safari can finalize its actual projected camera AFTER the native
+   // moveend/idle callbacks. Keep updating ONE pin until multiple stable
+   // frames after the approved 470ms pan and 100ms C V5 sheet transition.
+   const time=performance.now()-started;
+   const moving=liveMap.isMoving?.()===true;
+   if(!moving&&time>1600)idleFrames++;else idleFrames=0;
+   if(time<5000&&idleFrames<12)requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
  }
