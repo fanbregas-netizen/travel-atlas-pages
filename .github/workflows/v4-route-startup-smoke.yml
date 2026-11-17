@@ -1,0 +1,30 @@
+name: V4 real route short startup diagnostic
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v4-interaction-system-review-20261117/tests/route-confirmed-smoke.cjs'
+      - '.github/workflows/v4-route-startup-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/route-smoke-http.log 2>&1 &
+          sleep 1
+      - run: node v4-interaction-system-review-20261117/tests/route-confirmed-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: route-real-smoke-evidence
+          path: route-smoke-evidence/
+          if-no-files-found: ignore
