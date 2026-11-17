@@ -146,6 +146,20 @@ async function gesture(cdp,coords){
     assert.ok(down.imageTransform?.includes('scale('),'Current image was not individually scaled');
     assert.equal(down.copies,0,'Drag created extra image copies');
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    // A native Photos-like exit cannot tear the image out of its slide or
+    // create a second expensive raster. Check while the close animation runs.
+    const duringClose=await page.evaluate(()=>{
+      const v=document.querySelector('#fpMediaViewer');
+      const img=v?.querySelector('.fp-gallery-cell[data-item-index="2"] img');
+      return {gesture:v?.dataset.gestureState,
+       inSlide:!!img,clones:v?.querySelectorAll('.fp-gallery-ghost')?.length,
+       animations:img?.getAnimations().length,
+       computedImageTransform:img&&getComputedStyle(img).transform};
+    });
+    assert.equal(duringClose.gesture,'closing','Viewer did not enter closing state');
+    assert.equal(duringClose.inSlide,true,'Photo was detached from its source slide');
+    assert.equal(duringClose.clones,0,'Photo clone or reparent GPU upload detected');
+    assert.ok(duringClose.animations>=1,'Current photo not animated in-place');
     await page.waitForFunction(()=>!document.querySelector('#fpMediaViewer'),null,{timeout:9000});
     assert.equal(await page.locator('#fpPlaceCard').isVisible(),true,'Place card disappears after gallery close');
     await page.screenshot({path:output+'/iphone-media-return-'+width+'.png'});
