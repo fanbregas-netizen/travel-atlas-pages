@@ -69,7 +69,7 @@ const chrome=['google-chrome','chromium'].map(n=>{try{return cp.execFileSync('wh
   console.log('SMOKE 10 editor return');
   await page.locator('#editRouteLink').click({timeout:10000});
   await page.waitForURL(/journey-real-confirmed-20261118\.html\?edit=/,{timeout:18000});
-  await page.waitForFunction(()=>window.__atlasJourneyRoute?.getState().id===savedId,savedId,{timeout:15000});
+  await page.waitForFunction(id=>window.__atlasJourneyRoute?.getState().id===id,savedId,{timeout:15000});
   const restored=await page.evaluate(()=>window.__atlasJourneyRoute.getState());
   console.log('SMOKE RESTORED',JSON.stringify({id:restored.id,mode:restored.transportMode,order:restored.selected.map(s=>s.id)}));
   assert.equal(restored.transportMode,'bike');
