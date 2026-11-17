@@ -941,6 +941,7 @@ window.__batchC={version:'V5-confirmed-date-and-auto-days',show:showReview,open:
  * at 084f9b48355b37c9fa871b04aef09f86fe65bb39.
  * Only the demo's mock data/store are swapped for real media+places repos. */
 let liveSavedId=null,liveCreatedAt=null,liveMap=null,liveMapPaint=0,liveSaveBusy=false;
+let liveMissingRouteIds=[]; // Never overwrite a saved itinerary with omitted/deleted IDs.
 let liveMapPickMode=null,liveMapPickHint=null;const livePendingRoutePlaces=new Map();
 const liveRepository=window.FootprintMediaCore?.createRepository?.(indexedDB);
 const livePlacesDB='private-travel-footprints-v1';
@@ -1129,6 +1130,15 @@ async function saveLiveRoute(){
  const title=miniBody.querySelector('#rc-save-name')?.value.trim().slice(0,55)||'';
  if(!title){toast('请填写路线名称');return}
  if(!liveRepository||!state.stops.length){toast('没有可保存的真实地点');return}
+ if(liveSavedId&&liveMissingRouteIds.length){
+  // Missing coordinates are a DATA integrity problem, not an invitation
+  // to silently save a shorter itinerary over the complete route record.
+  let warning=miniBody.querySelector('#rc-route-missing-warning');
+  if(!warning){warning=document.createElement('p');warning.id='rc-route-missing-warning';warning.className='rc-note';miniBody.prepend(warning)}
+  warning.textContent='原路线中有 '+liveMissingRouteIds.length+' 个地点已删除或缺少坐标。为保护原路线，已阻止覆盖保存；请先恢复收藏备份，或从主页另建路线。';
+  toast('原路线仍完整保留，未覆盖保存');
+  return;
+ }
  liveSaveBusy=true;
  const now=new Date().toISOString(),id=liveSavedId||(crypto?.randomUUID?.()||'route-'+Date.now());
  const selected=state.stops.map((p,i)=>({
@@ -1199,8 +1209,11 @@ async function liveBoot(){
     const ss=doc.stops?.length?doc.stops.map((x,i)=>({id:x.placeId,day:x.day,time:x.time,order:i+1})):
      doc.selected?.length?doc.selected.map((x,i)=>({...x,order:x.order||i+1})).sort((a,b)=>a.order-b.order):
      (doc.placeIds||[]).map((id,i)=>({id,day:1,order:i+1}));
+    liveMissingRouteIds=ss.filter(x=>!idLookup.has(String(x.id))).map(x=>String(x.id));
     state.stops=ss.map(x=>{const p=idLookup.get(String(x.id));return p?{...p,day:Math.max(1,Number(x.day)||1),time:x.time||''}:null}).filter(Boolean);
-    state.selected=state.stops.map(p=>p.id);state.saved=true;
+    state.selected=state.stops.map(p=>p.id);
+    state.saved=!liveMissingRouteIds.length;
+    if(liveMissingRouteIds.length)toast('原路线有 '+liveMissingRouteIds.length+' 个地点缺失；保存前请恢复备份');
    }
   }catch(e){console.warn('读取原路线失败',e)}
  }else{
@@ -1234,6 +1247,7 @@ window.__atlasRouteV5Live={
   ready:this.ready,stage:state.stage,selected:state.selected.map(x=>realId(allPlaces.find(p=>p.id===x))),
   order:state.stops.map(p=>({id:realId(p),day:p.day})),
   start:state.start,end:state.end,savedId:liveSavedId,
+  missingRouteIds:liveMissingRouteIds.slice(),
   mapReady:!!liveMap
  }},
  open:()=>openFor('C01'),

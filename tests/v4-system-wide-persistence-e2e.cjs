@@ -258,6 +258,35 @@ const url='http://127.0.0.1:8766/travel-atlas-pages/v4-review-20261116/';
   });
   assert.deepEqual(uiImport,{photo:1,video:1,saved:true},
     'import button altered existing media or route');
+  // Deleting a referenced place is distinct from unstarring it. A still-saved
+  // itinerary with a missing PlaceId MUST never be overwritten with fewer
+  // stops by an ordinary "Save route" click. Show a persistent user warning.
+  await page.evaluate(async()=>{
+    const repo=window.FootprintMediaCore.createRepository(indexedDB);
+    await repo.saveRoute({id:'qa-route-missing-reference',title:'缺失地点的路线',
+      startDate:'2026-11-19',endDate:'2026-11-20',
+      stops:[{placeId:'qa-real-route-A',day:1},
+             {placeId:'qa-real-route-B',day:2},
+             {placeId:'qa-no-longer-exists',day:2}]});
+  });
+  await page.goto(url+'journey.html?saved=qa-route-missing-reference',
+    {waitUntil:'domcontentloaded',timeout:60000});
+  await page.waitForFunction(()=>window.__atlasRouteV5Live?.ready,null,{timeout:26000});
+  assert.deepEqual(await page.evaluate(()=>window.__atlasRouteV5Live.state.missingRouteIds),
+    ['qa-no-longer-exists'],'missing saved PlaceId silently disappeared');
+  await page.locator('#rc-footer [data-rc="stage-preview"]').click();
+  await page.locator('#rc-footer [data-rc="mini-save"]').click();
+  await page.locator('#rc-save-name').fill('不允许覆盖的路线');
+  await page.locator('#rc-mini-bottom [data-rc="save-confirm"]').click();
+  await page.waitForSelector('#rc-route-missing-warning',{state:'visible',timeout:12000});
+  const preserved=await page.evaluate(async()=>{
+    const list=await window.FootprintMediaCore.createRepository(indexedDB).listRoutes();
+    const row=list.find(x=>x.id==='qa-route-missing-reference');
+    return {title:row?.title,stops:row?.stops?.length,
+      missingId:row?.stops?.some(x=>x.placeId==='qa-no-longer-exists')};
+  });
+  assert.deepEqual(preserved,{title:'缺失地点的路线',stops:3,missingId:true},
+    'ordinary route save destroyed a missing but recoverable PlaceId reference');
   assert.deepEqual(errors.filter(x=>/TypeError|SyntaxError|ReferenceError/.test(x)),[],'runtime errors');
   const evidence={browserName,before,ordering,initialRange,shortened,undone,committedDate,savedId,reopened,backup,after,fromUi,uiImport,errors};
   fs.writeFileSync(path.join(OUT,'evidence.json'),JSON.stringify(evidence,null,2));
