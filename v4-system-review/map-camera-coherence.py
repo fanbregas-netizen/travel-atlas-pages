@@ -100,13 +100,29 @@ if p.name=='v4-map-runtime.js':
  once(
   """    requestAnimationFrame(reveal);
     $('selectionFeedback').hidden=true;""",
-  """    // Give the tapped POI a brief visual head start before the existing
-    // approved card spring. Do not alter any card styles or gesture logic.
-    if(d.__poiTap&&moving&&!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)
-      destinationRevealTimer=setTimeout(()=>requestAnimationFrame(reveal),105);
-    else requestAnimationFrame(reveal);
+  """    // Selection, camera movement and card use the same tap frame. No stale
+    // title during rapid alternating POI taps; icon pop runs independently.
+    requestAnimationFrame(reveal);
     $('selectionFeedback').hidden=true;""",
   'handoff-card-after-icon-begins')
+ once(
+  """      const wasVisible=card.classList.contains('visible');
+      card.classList.add('visible');
+      const handoff=window.FootprintElasticHandoff;
+      if(handoff?.revealCard)handoff.revealCard(card,{renew:wasVisible,commit:commitDestinationContent});
+      else commitDestinationContent();""",
+  """      const wasVisible=card.classList.contains('visible');
+      card.classList.add('visible');
+      const handoff=window.FootprintElasticHandoff;
+      if(wasVisible){
+        // Keep one opaque card while its map and POI move: the old renewed
+        // spring faded title, category AND buttons to zero at midpoint.
+        handoff?.stop?.(card);
+        commitDestinationContent();
+      }else if(handoff?.revealCard){
+        handoff.revealCard(card,{renew:false,commit:commitDestinationContent});
+      }else commitDestinationContent();""",
+  'keep-live-poi-card-opaque-on-rapid-selection')
 elif p.name=='index.html':
  once(
   """ function queueAnchorSync(){
