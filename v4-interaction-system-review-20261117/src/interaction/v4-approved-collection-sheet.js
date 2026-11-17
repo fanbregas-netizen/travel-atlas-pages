@@ -1,84 +1,156 @@
-/* B05: existing #drawer, original B05 tabs and original content. Adds only
- * iPhone vertical follow/snap; no second sheet, DB, or close handler. */
+/* B05 collection: same physical motion as the approved C V5 "选择地点".
+ * Only interaction physics change. Keep the original #drawer, content, tabs,
+ * click actions, data store, headers, and close button.
+ * C V5: v=(v+(goal-h)*.105)*.75; h+=v; bounds .21/.19;
+ * nearest detent plus .42 px/ms flick; 105px initial entry stroke. */
 (()=>{'use strict';
-const el=document.getElementById('drawer');if(!el||el.dataset.physicalB05)return;
-el.dataset.physicalB05='v4';
+const el=document.getElementById('drawer');
+if(!el||el.dataset.physicalB05)return;
+el.dataset.physicalB05='cv5';
+el.dataset.collectionMotion='cv5';
 const header=el.querySelector('.drawer-head');
+const closeButton=el.querySelector('#closeDrawer');
 const headerSkip='button,a,input,select,textarea,[contenteditable]';
-// Rows are clickable, but a deliberate vertical swipe on one must drag the
-// entire sheet (not be discarded as an interactive target). Keep text fields,
-// embedded links and separate actions native/tappable.
 const bodySkip='input,select,textarea,[contenteditable],button:not(.spotrow):not(.rs-row),a:not(.rs-row)';
 const reduced=matchMedia('(prefers-reduced-motion:reduce)');
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const detents=()=>{const h=window.visualViewport?.height||innerHeight||844;
-return {peek:Math.min(h*.43,360),half:Math.min(h*.72,630),full:Math.max(h*.72+40,h-40)}};
-let level='half',d=null,frame=0,dragFrame=0,pendingHeight=null,lastPainted=-1,lastResizeGoal=null,closeCleanup=null;
-function scheduleDragPaint(h){pendingHeight=h;if(dragFrame)return;
- dragFrame=requestAnimationFrame(()=>{dragFrame=0;const next=pendingHeight;pendingHeight=null;if(next!==null)paint(next)});
+const order=['peek','half','full'];
+const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+const detents=()=>{
+ const h=window.visualViewport?.height||innerHeight||844;
+ // Keep the accepted B05 THREE landing heights; only the motor/gestures
+ // are replaced with the C V5 "选择地点" implementation.
+ return {peek:Math.min(h*.43,360),half:Math.min(h*.72,630),full:Math.max(h*.72+40,h-40)};
+};
+const rubber=(value,min,max)=>value<min?min-(min-value)*.21:value>max?max+(value-max)*.19:value;
+let level='half',height=0,targetHeight=0,sheetVelocity=0,sheetMotion=0;
+let gesture=null,pointer=null,touch=null,bodyTouch=null,dragFrame=0,pendingHeight=null;
+let lastPainted=-1,wasVisible=el.classList.contains('visible'),closing=false,closeCleanup=null;
+let releaseClose=false,lastResizeGoal=null;
+function stopSpring(){if(sheetMotion)cancelAnimationFrame(sheetMotion);sheetMotion=0}
+function paintHeight(h){
+ height=h;
+ const px=Math.max(0,Math.round(h));
+ if(px===lastPainted)return;
+ lastPainted=px;
+ el.style.setProperty('height',px+'px','important');
 }
-function flushDragPaint(){if(dragFrame){cancelAnimationFrame(dragFrame);dragFrame=0}
- if(pendingHeight!==null){const h=pendingHeight;pendingHeight=null;paint(h)}}
-function setMaxHeight(){el.style.setProperty('max-height','calc(100dvh - 32px)','important')}
-function paint(h){const px=Math.max(110,Math.round(h));if(px!==lastPainted){lastPainted=px;el.style.setProperty('height',px+'px','important')}}
-function snap(next,releaseVelocity=0){
- level=next;const goal=detents()[next],start=el.getBoundingClientRect().height;
- lastResizeGoal=goal;setMaxHeight();
- if(frame)cancelAnimationFrame(frame);
- if(reduced.matches){paint(goal);return}
- let h=start,v=clamp(releaseVelocity,-28,28),last=0,frames=0;
- const tick=t=>{const dt=clamp(last?(t-last)/1000:.016,.001,.03);last=t;
- const approved=window.FootprintV5Spring?.step(h,goal,v,dt*1000);
- if(approved){h=approved.value;v=approved.velocity}
- else{v+=(340*(goal-h)-35*v)*dt;h+=v*dt}
- paint(h);
- if(Math.abs(h-goal)<.7&&Math.abs(v)<(approved?.velocity!==undefined?.4:4)||frames++>85){paint(goal);frame=0;return}
- frame=requestAnimationFrame(tick)};
- frame=requestAnimationFrame(tick);
+function setPhysicalSurface(){
+ el.style.setProperty('max-height','calc(100dvh - 32px)','important');
+ // The legacy drawer has a second, independent 240ms translate animation.
+ // "选择地点" now uses ONLY the C V5 height motor: remove this collision.
+ el.style.setProperty('transform','translate(-50%,0)','important');
+ el.style.setProperty('transition','none','important');
+}
+function springTo(goal,releaseVelocity=null,onComplete=null){
+ stopSpring();
+ targetHeight=goal;
+ if(Number.isFinite(releaseVelocity))sheetVelocity=clamp(releaseVelocity,-28,28);
+ if(reduced.matches){sheetVelocity=0;paintHeight(goal);onComplete?.();return}
+ let frames=0;
+ function tick(){
+  // Exactly the C V5 "选择地点" motor; no alternate CSS easing.
+  sheetVelocity=(sheetVelocity+(targetHeight-height)*.105)*.75;
+  paintHeight(height+sheetVelocity);
+  if((Math.abs(targetHeight-height)<.65&&Math.abs(sheetVelocity)<.4)||++frames>110){
+   paintHeight(targetHeight);sheetVelocity=0;sheetMotion=0;onComplete?.();return;
+  }
+  sheetMotion=requestAnimationFrame(tick);
+ }
+ sheetMotion=requestAnimationFrame(tick);
+}
+function snap(next,releaseVelocity=null){
+ if(!detents()[next])next='half';
+ level=next;
+ setPhysicalSurface();
+ lastResizeGoal=detents()[next];
+ springTo(lastResizeGoal,releaseVelocity);
+}
+function flushGesturePaint(){
+ if(dragFrame){cancelAnimationFrame(dragFrame);dragFrame=0}
+ if(pendingHeight!==null){const h=pendingHeight;pendingHeight=null;paintHeight(h)}
+}
+function scheduleGesturePaint(h){
+ pendingHeight=h;
+ if(dragFrame)return;
+ dragFrame=requestAnimationFrame(()=>{dragFrame=0;flushGesturePaint()});
 }
 function start(x,y){
- if(!el.classList.contains('visible')||d)return;
- if(frame)cancelAnimationFrame(frame);frame=0;
- setMaxHeight();
- d={x,y,last:y,h:el.getBoundingClientRect().height,moved:false,samples:[{y,t:performance.now()}]};
+ if(!el.classList.contains('visible')||closing||gesture)return;
+ stopSpring();setPhysicalSurface();
+ gesture={x,startY:y,startHeight:height,lastY:y,lastAt:performance.now(),velocity:0,moved:false};
 }
 function move(x,y,e){
- if(!d)return;const dx=x-d.x,dy=y-d.y;
- if(!d.moved){
-  if(Math.abs(dx)>Math.abs(dy)*1.2&&Math.abs(dx)>7){d=null;return}
+ const g=gesture;if(!g)return;
+ const dx=x-g.x,dy=y-g.startY;
+ if(!g.moved){
+  if(Math.abs(dx)>Math.abs(dy)*1.2&&Math.abs(dx)>7){gesture=null;return}
   if(Math.abs(dy)<7)return;
-  d.moved=true;el.dataset.collectionDragging='true';
+  g.moved=true;
+  el.dataset.collectionDragging='true';
  }
- const now=performance.now();d.samples.push({y,t:now});
- while(d.samples.length>2&&now-d.samples[0].t>95)d.samples.shift();
- d.last=y;const a=detents(),raw=d.h-dy;
- scheduleDragPaint(raw>a.full?a.full+(raw-a.full)*.2:raw<a.peek?a.peek-(a.peek-raw)*.27:raw);
+ const [min,max]=[detents().peek,detents().full];
+ const h=rubber(g.startHeight+g.startY-y,min,max);
+ const now=performance.now(),dt=Math.max(8,now-g.lastAt);
+ // Same C V5 instantaneous velocity estimation and 95ms release freshness.
+ if(Math.abs(y-g.lastY)>.25)g.velocity=(y-g.lastY)/dt;
+ g.lastY=y;g.lastAt=now;
+ scheduleGesturePaint(h);
  if(e?.cancelable)e.preventDefault();
 }
+function completeOriginalClose(){
+ releaseClose=true;
+ if(closeButton)closeButton.click();
+ else el.classList.remove('visible');
+ releaseClose=false;
+}
+function closeWithSpring(velocity=0){
+ if(closing||!el.classList.contains('visible'))return;
+ flushGesturePaint();stopSpring();closing=true;
+ delete el.dataset.collectionDragging;
+ gesture=null;
+ setPhysicalSurface();
+ springTo(0,velocity,completeOriginalClose);
+}
 function end(cancelled=false){
- if(!d)return;flushDragPaint();const g=d;d=null;delete el.dataset.collectionDragging;
+ if(!gesture)return;
+ flushGesturePaint();
+ const g=gesture;gesture=null;
+ delete el.dataset.collectionDragging;
  if(cancelled||!g.moved){snap(level);return}
- const dy=g.last-g.y,order=['peek','half','full'];
- if(level==='peek'&&dy>80){el.querySelector('#closeDrawer')?.click();return}
- const next=clamp(order.indexOf(level)+(dy<0?1:-1),0,2);
- const samples=g.samples,first=samples[0],last=samples[samples.length-1];
- const releaseSpeed=(last.y-first.y)/Math.max(16,last.t-first.t);
- // Continue the approved C V5 spring from the finger's last velocity.
- snap(Math.abs(dy)>32?order[next]:level,clamp(-releaseSpeed*16.67,-28,28));
+ const deltaY=g.lastY-g.startY;
+ const release=performance.now()-g.lastAt<95?-g.velocity*16.67:0;
+ if(level==='peek'&&deltaY>80){closeWithSpring(release);return}
+ const stops=detents();
+ const distances=order.map(l=>Math.abs(stops[l]-height));
+ let ix=distances.indexOf(Math.min(...distances));
+ if(Math.abs(g.velocity)>.42)ix=clamp(ix+(g.velocity<0?1:-1),0,2);
+ snap(order[ix],release);
+}
+if(closeButton){
+ // Reuse the original close event only AFTER the same C V5 spring has settled.
+ // This covers both the X and a swipe down from peek without changing other
+ // existing listeners or their application state transitions.
+ closeButton.addEventListener('click',e=>{
+  if(releaseClose||!el.classList.contains('visible'))return;
+  e.preventDefault();e.stopImmediatePropagation();
+  closeWithSpring();
+ },true);
 }
 if(header){
  header.style.touchAction='none';
- let pointer=null;
  header.addEventListener('pointerdown',e=>{
-  if(e.button!==undefined&&e.button!==0||e.target.closest(headerSkip))return;
-  start(e.clientX,e.clientY);if(d){pointer=e.pointerId;header.setPointerCapture?.(pointer)}
+  if((e.button!==undefined&&e.button!==0)||e.target.closest(headerSkip))return;
+  start(e.clientX,e.clientY);
+  if(gesture){pointer=e.pointerId;try{header.setPointerCapture(e.pointerId)}catch(_){}}
  });
  header.addEventListener('pointermove',e=>{if(pointer===e.pointerId)move(e.clientX,e.clientY,e)});
- header.addEventListener('pointerup',e=>{if(pointer===e.pointerId){move(e.clientX,e.clientY,e);pointer=null;end()}});
+ header.addEventListener('pointerup',e=>{
+  if(pointer!==e.pointerId)return;
+  if(gesture&&Math.abs(e.clientY-gesture.lastY)>1)move(e.clientX,e.clientY,e);
+  pointer=null;end();
+ });
  header.addEventListener('pointercancel',()=>{pointer=null;end(true)});
- // Safari's native touch events are a fallback for iPhone builds where pointer
- // capture is interrupted by the composited sticky heading.
- let touch=null;
+ // Touch fallback for iPhone Safari WebKit pointer-capture interruptions.
  header.addEventListener('touchstart',e=>{
   if(e.touches.length!==1||e.target.closest(headerSkip)){touch=null;return}
   const t=e.touches[0];touch=t.identifier;
@@ -86,77 +158,95 @@ if(header){
  },{passive:true});
  header.addEventListener('touchmove',e=>{
   if(pointer!==null||touch===null||e.touches.length!==1)return;
-  const t=e.touches[0];if(t.identifier!==touch)return;
-  move(t.clientX,t.clientY,e);
+  const t=e.touches[0];if(t.identifier===touch)move(t.clientX,t.clientY,e);
  },{passive:false});
  header.addEventListener('touchend',e=>{
   if(touch===null)return;
-  const t=[...e.changedTouches].find(x=>x.identifier===touch);
-  if(pointer===null&&t){move(t.clientX,t.clientY);end()}
+  const t=[...e.changedTouches].find(item=>item.identifier===touch);
+  if(pointer===null&&t){if(gesture&&Math.abs(t.clientY-gesture.lastY)>1)move(t.clientX,t.clientY);end()}
   touch=null;
  },{passive:true});
  header.addEventListener('touchcancel',()=>{if(pointer===null)end(true);touch=null},{passive:true});
- for(const type of ['touchstart','touchmove','touchend'])header.addEventListener(type,e=>e.stopPropagation(),{passive:type!=='touchmove'});
+ for(const type of ['touchstart','touchmove','touchend'])
+  header.addEventListener(type,e=>e.stopPropagation(),{passive:type!=='touchmove'});
 }
-let bodyTouch=null;
 for(const content of [el.querySelector('#spotList'),el.querySelector('#drawerRouteList')]){
  if(!content)continue;
+ let bodyGesture=null;
  content.addEventListener('touchstart',e=>{
-  if(e.touches.length!==1||e.target.closest(bodySkip)){bodyTouch=null;return}
-  const t=e.touches[0];bodyTouch={id:t.identifier,x:t.clientX,y:t.clientY,active:false,ignore:false};
+  if(e.touches.length!==1||e.target.closest(bodySkip)){bodyGesture=null;return}
+  const t=e.touches[0];
+  bodyGesture={id:t.identifier,x:t.clientX,y:t.clientY,active:false,ignore:false};
   e.stopPropagation();
  },{passive:true});
  content.addEventListener('touchmove',e=>{
-  if(!bodyTouch||e.touches.length!==1||bodyTouch.ignore)return;
-  const t=e.touches[0],dy=t.clientY-bodyTouch.y,dx=t.clientX-bodyTouch.x;
-  if(!bodyTouch.active){
-   if(Math.abs(dx)>Math.abs(dy)*1.2){bodyTouch.ignore=true;return}
+  const g=bodyGesture;
+  if(!g||e.touches.length!==1||g.ignore)return;
+  const t=e.touches[0],dy=t.clientY-g.y,dx=t.clientX-g.x;
+  if(!g.active){
+   if(Math.abs(dx)>Math.abs(dy)*1.2){g.ignore=true;return}
    if(Math.abs(dy)<10)return;
-   if((Math.max(el.scrollTop,content.scrollTop)>1&&dy>0)||(level==='full'&&dy<0)){bodyTouch.ignore=true;return}
-   start(bodyTouch.x,bodyTouch.y);bodyTouch.active=!!d;
+   if((Math.max(el.scrollTop,content.scrollTop)>1&&dy>0)||(level==='full'&&dy<0)){g.ignore=true;return}
+   start(g.x,g.y);g.active=!!gesture;
   }
-  if(bodyTouch.active){move(t.clientX,t.clientY,e);e.stopPropagation()}
+  if(g.active){move(t.clientX,t.clientY,e);e.stopPropagation()}
  },{passive:false});
  content.addEventListener('touchend',e=>{
-  if(bodyTouch?.active){const t=[...e.changedTouches].find(x=>x.identifier===bodyTouch.id);
-   if(t)move(t.clientX,t.clientY);end();e.stopPropagation()}
-  bodyTouch=null;
+  if(bodyGesture?.active){
+   const t=[...e.changedTouches].find(item=>item.identifier===bodyGesture.id);
+   if(t&&gesture&&Math.abs(t.clientY-gesture.lastY)>1)move(t.clientX,t.clientY);
+   end();e.stopPropagation();
+  }
+  bodyGesture=null;
  },{passive:true});
- content.addEventListener('touchcancel',()=>{if(bodyTouch?.active)end(true);bodyTouch=null},{passive:true});
+ content.addEventListener('touchcancel',()=>{if(bodyGesture?.active)end(true);bodyGesture=null},{passive:true});
+}
+function onOpened(){
+ closing=false;stopSpring();setPhysicalSurface();
+ if(closeCleanup!==null){clearTimeout(closeCleanup);closeCleanup=null}
+ level='half';lastPainted=-1;
+ const stops=detents(),initial=Math.max(stops.peek,stops.half-105);
+ paintHeight(initial);sheetVelocity=0;snap('half',0);
+}
+function onClosed(){
+ stopSpring();if(dragFrame)cancelAnimationFrame(dragFrame);
+ dragFrame=0;pendingHeight=null;gesture=null;pointer=null;touch=null;
+ closing=false;level='half';sheetVelocity=0;lastResizeGoal=null;
+ delete el.dataset.collectionDragging;
+ // Keep the final height during any legacy externally-triggered exit.
+ el.style.removeProperty('transform');el.style.removeProperty('transition');
+ if(closeCleanup!==null)clearTimeout(closeCleanup);
+ closeCleanup=setTimeout(()=>{
+  closeCleanup=null;
+  if(!el.classList.contains('visible')){
+   el.style.removeProperty('height');el.style.removeProperty('max-height');lastPainted=-1;
+  }
+ },400);
 }
 new MutationObserver(()=>{
- if(!el.classList.contains('visible')){
-  if(frame)cancelAnimationFrame(frame);frame=0;
-  if(dragFrame)cancelAnimationFrame(dragFrame);dragFrame=0;pendingHeight=null;lastPainted=-1;lastResizeGoal=null;d=null;level='half';
-  // Keep the closing card's last rendered height through the CSS exit.
-  // Clearing it here changes percentage-translate distance mid-flight on Safari.
-  if(closeCleanup!==null)clearTimeout(closeCleanup);
-  closeCleanup=setTimeout(()=>{
-   closeCleanup=null;
-   if(!el.classList.contains('visible')){
-    el.style.removeProperty('height');el.style.removeProperty('max-height');
-   }
-  },400);
- }else{
-  if(closeCleanup!==null){clearTimeout(closeCleanup);closeCleanup=null}
-  // Opening goes directly to the approved B05 half detent. Otherwise the
-  // CSS default height and the JS spring's "half" state disagree until the
-  // user first touches the card, making the first drag jump.
-  requestAnimationFrame(()=>{if(el.classList.contains('visible')&&!d)snap(level)});
- }
+ const visible=el.classList.contains('visible');
+ if(visible===wasVisible)return; // Tab/header class changes must NOT restart spring.
+ wasVisible=visible;
+ if(visible)onOpened();else onClosed();
 }).observe(el,{attributes:true,attributeFilter:['class']});
 let resizeFrame=0;
 window.addEventListener('resize',()=>{
- if(resizeFrame||!el.classList.contains('visible')||d)return;
+ if(resizeFrame||!el.classList.contains('visible')||gesture||closing)return;
  resizeFrame=requestAnimationFrame(()=>{
   resizeFrame=0;
-  if(!el.classList.contains('visible')||d)return;
+  if(!el.classList.contains('visible')||gesture||closing)return;
   if(document.activeElement?.matches?.('input,textarea,select,[contenteditable]')&&
-     window.visualViewport&&window.visualViewport.height<window.innerHeight-140)return;
+    window.visualViewport&&window.visualViewport.height<window.innerHeight-140)return;
   const goal=detents()[level];
   if(lastResizeGoal!==null&&Math.abs(goal-lastResizeGoal)<2)return;
   snap(level);
  });
 },{passive:true});
-window.__atlasCollectionSheet={getState:()=>({level,dragging:!!d,height:el.getBoundingClientRect().height,opened:el.classList.contains('visible')})};
+if(wasVisible)onOpened();
+window.__atlasCollectionSheet={
+ getState:()=>({
+  level,dragging:!!gesture,height:el.getBoundingClientRect().height,
+  opened:el.classList.contains('visible'),closing,velocity:sheetVelocity,engine:'C V5'
+ })
+};
 })();
