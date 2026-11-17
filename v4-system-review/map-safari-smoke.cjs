@@ -297,6 +297,9 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     await page.waitForFunction(()=>window.__atlasRouteV5Live?.state?.selected?.length>=1,{timeout:15000});
     await page.waitForFunction(()=>document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),{timeout:12000});
     await page.waitForFunction(()=>document.querySelector('#rc-map-pins [data-place-id^="live-map-"].fp-route-tapped'),{timeout:10000});
+    // The icon springs in the tap frame; camera begins after the 100ms
+    // C V5 sheet-size transition, so never check the resting pose too early.
+    await page.waitForTimeout(190);
     await page.waitForFunction(()=>!window.__atlasLivePlannerMap.isMoving(),{timeout:12000});
     const routePoi=await page.evaluate(()=>{
       const map=window.__atlasLivePlannerMap,pin=document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),
