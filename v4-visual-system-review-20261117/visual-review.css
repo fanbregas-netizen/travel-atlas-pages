@@ -368,3 +368,111 @@ html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+4)
  .fp-subheading > button.fp-subaction:focus-visible{
   outline:2px solid #59765f!important;outline-offset:2px!important;
 }
+
+/* EDITOR-PARITY.20261117.1
+   Actual V4 visual reference: accepted-four-screen-v18 + saved-place
+   and C V5 route controls. ONLY two open real editors: Brief and guides.
+   Original form DOM, save/cancel handlers, draft persistence, sticky action
+   behavior and media remain unchanged. */
+html.visual-after body #fpPlaceCard {
+ --ve-paper:#fffefa;
+ --ve-ink:#2b4033;
+ --ve-muted:#87998b;
+ --ve-rule:#e2e9e1;
+ --ve-soft:#f0f4ef;
+ --ve-primary:#314b3b;
+}
+html.visual-after body #fpPlaceCard .fp-block:has(> .fp-inline-editor){
+ padding:14px!important;
+ border:1px solid var(--ve-rule)!important;
+ border-radius:19px!important;
+ background:var(--ve-paper)!important;
+ box-shadow:none!important;
+}
+html.visual-after body #fpPlaceCard .fp-block > .fp-inline-editor{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr)!important;
+ align-items:start!important;
+ gap:10px!important;
+ margin:3px 0 0!important;
+ padding:0!important;
+ border:0!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+html.visual-after body #fpPlaceCard .fp-block > .fp-inline-editor :is(textarea,input){
+ box-sizing:border-box!important;
+ display:block!important;width:100%!important;min-width:0!important;
+ margin:0!important;
+ padding:12px 14px!important;
+ background:#fbfcfa!important;
+ color:var(--ve-ink)!important;
+ border:1px solid var(--ve-rule)!important;
+ border-radius:14px!important;
+ outline:none!important;box-shadow:none!important;
+ font-size:16px!important;line-height:1.5!important;
+ font-weight:450!important;letter-spacing:0!important;
+ -webkit-appearance:none!important;appearance:none!important;
+}
+html.visual-after body #fpPlaceCard .fp-block > .fp-inline-editor textarea{
+ min-height:112px!important;
+ height:112px!important;max-height:168px!important;
+ resize:vertical!important;
+}
+html.visual-after body #fpPlaceCard .fp-block > .fp-inline-editor input{
+ height:44px!important;min-height:44px!important;
+}
+html.visual-after body #fpPlaceCard .fp-block > .fp-inline-editor :is(textarea,input)::placeholder{
+ color:#98a59b!important;opacity:1!important;
+ font-weight:420!important;
+}
+html.visual-after body #fpPlaceCard .fp-block > .fp-inline-editor :is(textarea,input):focus{
+ background:var(--ve-paper)!important;
+ border-color:#9caf9f!important;
+ box-shadow:0 0 0 2px rgba(107,139,113,.10)!important;
+}
+html.visual-after body #fpPlaceCard .fp-block > .fp-inline-editor :is(.fp-editor-draft-hint,.fp-guide-detection){
+ margin:0!important;padding:1px 0!important;
+ background:transparent!important;border:0!important;
+ color:var(--ve-muted)!important;
+ font-size:12px!important;line-height:1.55!important;
+ font-weight:450!important;letter-spacing:0!important;
+}
+/* Guide editor already contains context and validation: do not repeat
+   the large 'no links yet' empty state above an open form. */
+html.visual-after body #fpPlaceCard .fp-block:has(> .fp-guide-editor) > .fp-guide-empty{
+ display:none!important;
+}
+html.visual-after body #fpPlaceCard .fp-block > .fp-inline-editor .fp-inline-actions{
+ display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+ gap:8px!important;margin:1px 0 0!important;
+ padding:7px 0 1px!important;
+ position:sticky!important;bottom:0!important;
+ background:linear-gradient(to bottom,rgba(255,254,250,.86),var(--ve-paper) 35%)!important;
+ border:0!important;box-shadow:none!important;
+}
+html.visual-after body #fpPlaceCard .fp-block > .fp-inline-editor .fp-inline-actions > button{
+ box-sizing:border-box!important;
+ flex:0 0 auto!important;
+ width:auto!important;min-width:90px!important;
+ min-height:44px!important;height:44px!important;
+ margin:0!important;padding:0 16px!important;
+ border-radius:13px!important;
+ box-shadow:none!important;
+ font-size:14px!important;line-height:1!important;
+ font-weight:690!important;letter-spacing:0!important;
+}
+html.visual-after body #fpPlaceCard .fp-block > .fp-inline-editor .fp-inline-actions > .fp-btn-primary{
+ background:var(--ve-primary)!important;
+ border:1px solid var(--ve-primary)!important;
+ color:var(--ve-paper)!important;
+}
+html.visual-after body #fpPlaceCard .fp-block > .fp-inline-editor .fp-inline-actions > .fp-btn-muted{
+ background:var(--ve-soft)!important;
+ border:1px solid var(--ve-rule)!important;
+ color:var(--ve-ink)!important;
+}
+html.visual-after body #fpPlaceCard .fp-block > .fp-inline-editor .fp-inline-actions > button:focus-visible{
+ outline:2px solid #718c75!important;outline-offset:2px!important;
+}
