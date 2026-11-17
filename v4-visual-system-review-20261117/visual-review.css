@@ -1,0 +1,100 @@
+/* Footprint Map V4 · 2026-11-17. Independent visual-only A/B acceptance.
+   Canonical reference is the EXISTING saved-place card #fpPlaceCard.
+   Do not alter sheet height, snap points, transform, touch-action, overlay state,
+   icon artwork, map engine, selection or persistence. */
+:root{--vr-paper:#fffefa;--vr-ink:#2b4033;--vr-muted:#87998b;--vr-line:#e2e9e1;--vr-soft:#f0f4ef;--vr-gold:#f1d98f;--vr-radius:19px;--vr-card:22px;--vr-shadow:0 14px 48px rgba(27,41,32,.16)}
+html.visual-after body{--vr-head-title:24px}
+html.visual-after body :is(#drawer,.destination-card,#fpSearchSheet,dialog.editor,#memorySheet,#rc-main,#rc-mini,#rvDetail,.route-library,.route-search-sheet){
+ font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+ color:var(--vr-ink)
+}
+/* Shared upper edge: same 44×5 grip, 24px title, 44px quiet close as saved place. */
+html.visual-after body :is(.drawer .drawer-head .sheet-grab::before,.fp-search-grip::before,.route-handle,.rc-handle,#rc-grab>.rc-handle,.route-search-head .route-handle,#rvDetail .grab){
+ width:44px!important;height:5px!important;border-radius:999px!important;background:#c7d0c7!important
+}
+html.visual-after body #drawer .drawer-head{
+ background:var(--vr-paper)!important;border-bottom:1px solid var(--vr-line)!important;
+ padding-left:18px!important;padding-right:18px!important
+}
+html.visual-after body #drawer .drawer-head :is(h2,.drawer-cn){
+ font-size:24px!important;line-height:1.18!important;font-weight:720!important;
+ letter-spacing:-.045em!important;color:var(--vr-ink)!important
+}
+html.visual-after body #drawer :is(.iconclose,#closeDrawer),
+html.visual-after body :is(.destination-close,#closeEditor,.fp-search-close,.route-search-head-row>button,.route-library header>button,.rc-dismiss,#rvDetail .close,.viewer-close){
+ width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;
+ border:0!important;border-radius:12px!important;background:transparent!important;
+ box-shadow:none!important;color:#728779!important;font-size:24px!important;font-weight:350!important;
+ display:inline-grid!important;place-items:center!important
+}
+/* Collection: use saved place's title-to-secondary-text rhythm. */
+html.visual-after body #drawer{background:var(--vr-paper)!important}
+html.visual-after body #drawer .fp30-detail-head{
+ background:var(--vr-paper)!important;color:var(--vr-ink)!important;
+ border-bottom-color:var(--vr-line)!important
+}
+html.visual-after body #drawer #fp30DetailTitle{font-size:20px!important;font-weight:700!important;letter-spacing:-.03em!important;color:var(--vr-ink)!important}
+html.visual-after body #drawer .fp30-entry{border-radius:19px!important;border-color:var(--vr-line)!important;background:var(--vr-paper)!important}
+html.visual-after body #drawer :is(#spotList .spotrow,#drawerRouteList .rs-row){
+ border:1px solid var(--vr-line)!important;border-radius:19px!important;background:var(--vr-paper)!important;
+ box-shadow:none!important;gap:11px!important
+}
+html.visual-after body #drawer #spotList .spotrow strong{font-size:15px!important;line-height:1.3!important;font-weight:710!important;color:var(--vr-ink)!important}
+html.visual-after body #drawer #spotList .spotrow small{font-size:12px!important;line-height:1.45!important;color:var(--vr-muted)!important}
+html.visual-after body #drawer :is(.list-desc,.footnote){font-size:12px!important;line-height:1.7!important;color:var(--vr-muted)!important}
+/* POI / map place uses the same saved card typography and corner rhythm. */
+html.visual-after body #destinationCard{
+ background:var(--vr-paper)!important;border:1px solid var(--vr-line)!important;
+ border-radius:22px!important;box-shadow:var(--vr-shadow)!important
+}
+html.visual-after body #destinationCard .destination-title{font-size:24px!important;line-height:1.18!important;font-weight:720!important;letter-spacing:-.045em!important;color:var(--vr-ink)!important}
+html.visual-after body #destinationCard .destination-category{font-size:12px!important;line-height:1.5!important;color:var(--vr-muted)!important}
+html.visual-after body #destinationCard .destination-actions button{min-height:44px!important;border-radius:13px!important;font-size:12px!important;font-weight:660!important}
+/* Search header, labels and list use the exact same visual hierarchy. */
+html.visual-after body #fpSearchSheet{background:var(--vr-paper)!important}
+html.visual-after body #fpSearchSheet .fp-search-top{background:var(--vr-paper)!important;border-bottom:1px solid var(--vr-line)!important}
+html.visual-after body #fpSearchSheet :is(.fp-search-head h2,.fp-search-title){font-size:24px!important;line-height:1.18!important;letter-spacing:-.045em!important;font-weight:720!important;color:var(--vr-ink)!important}
+html.visual-after body #fpSearchSheet .fp-search-body{background:var(--vr-paper)!important}
+html.visual-after body #fpSearchSheet :is(.fp-row-main strong,.fp-search-row strong){font-size:15px!important;font-weight:710!important;color:var(--vr-ink)!important}
+html.visual-after body #fpSearchSheet :is(.fp-row-main small,.fp-search-row small,.fp-search-label){font-size:12px!important;line-height:1.5!important;color:var(--vr-muted)!important}
+html.visual-after body #fpSearchSheet :is(.fp-search-row,.fp-search-suggestion){border-bottom-color:var(--vr-line)!important}
+html.visual-after body #fpSearchSheet .fp-search-bar{border-radius:14px!important;border-color:var(--vr-line)!important}
+html.visual-after body #searchDock{border-radius:19px!important;background:var(--vr-paper)!important}
+/* Brief editor and media, no content schema or gallery layout changes. */
+html.visual-after body dialog.editor{background:var(--vr-paper)!important;border-radius:22px!important}
+html.visual-after body dialog.editor .edit-head{padding-bottom:12px!important;border-bottom:1px solid var(--vr-line)!important}
+html.visual-after body dialog.editor #editorTitle{font-size:24px!important;line-height:1.18!important;font-weight:720!important;letter-spacing:-.045em!important;color:var(--vr-ink)!important}
+html.visual-after body dialog.editor .editor-eyebrow{font-size:11px!important;font-weight:700!important;color:#a28855!important;letter-spacing:0!important}
+html.visual-after body dialog.editor :is(.field,.atlas-stage-selector legend){font-size:13px!important;font-weight:710!important;color:var(--vr-ink)!important}
+html.visual-after body dialog.editor :is(.input,.area){border-radius:14px!important;border-color:var(--vr-line)!important;background:#fff!important;font-size:16px!important}
+html.visual-after body dialog.editor :is(.primary-btn,.secondary-btn,.danger-btn){min-height:44px!important;border-radius:13px!important}
+html.visual-after body :is(#memorySheet,.fp-media-mosaic,.fp-photo-thumb,.photo-thumb){border-radius:19px}
+html.visual-after body #memorySheet{background:var(--vr-paper)!important;box-shadow:var(--vr-shadow)!important}
+html.visual-after body #fpMediaViewer :is(.media-caption,.media-meta){font-size:13px!important;line-height:1.6!important}
+html.visual-after body .fp-card-chip{border-radius:14px!important}
+/* Route: same header composition on original C V5; physical controller untouched. */
+html.visual-after body.route-v5-live :is(#rc-main,#rc-mini){background:var(--vr-paper)!important;color:var(--vr-ink)!important}
+html.visual-after body.route-v5-live #rc-main #rc-grab{background:var(--vr-paper)!important;border-bottom:1px solid var(--vr-line)!important}
+html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper #rc-title{font-size:24px!important;font-weight:720!important;letter-spacing:-.045em!important;line-height:1.18!important;color:var(--vr-ink)!important}
+html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper #rc-subtitle{font-size:12px!important;color:var(--vr-muted)!important;line-height:1.5!important}
+html.visual-after body.route-v5-live :is(.rc-stop,.rc-choice,.rc-section){border-radius:19px!important;border-color:var(--vr-line)!important}
+html.visual-after body.route-v5-live :is(.rc-primary,.rc-soft){min-height:44px!important;border-radius:13px!important}
+html.visual-after body #rvDetail{background:var(--vr-paper)!important;border-color:var(--vr-line)!important;border-radius:22px 22px 0 0!important}
+html.visual-after body #rvDetail :is(h2,.rv-title){font-size:24px!important;font-weight:720!important;letter-spacing:-.045em!important;color:var(--vr-ink)!important}
+html.visual-after body :is(.route-library,.route-search-sheet){background:var(--vr-paper)!important;border-color:var(--vr-line)!important}
+html.visual-after body :is(.route-library header h2,.route-search-head-row h2){font-size:24px!important;line-height:1.18!important;font-weight:720!important;letter-spacing:-.045em!important}
+html.visual-after body :is(.route-search-foot button,.route-map-strip button){border-radius:13px!important}
+/* Diagnostic toolbar stays outside the app's existing UI/controller structure. */
+#visualReviewControl{position:fixed;top:calc(max(74px,env(safe-area-inset-top) + 66px));left:10px;z-index:2147483600;font:12px/1.3 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#28382e;pointer-events:none}
+#visualReviewControl *{box-sizing:border-box;font:inherit}
+#visualReviewControl .vr-toggle{pointer-events:auto;display:flex;align-items:center;gap:5px;border:1px solid #e2e9e1;border-radius:22px;background:#fffefaed;padding:5px;box-shadow:0 7px 22px #242e2333;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#visualReviewControl button,#visualReviewControl a{pointer-events:auto;min-height:34px;border:0;border-radius:16px;padding:7px 10px;background:transparent;color:#5b6a5d;text-decoration:none;white-space:nowrap;cursor:pointer;font-weight:650}
+#visualReviewControl button[aria-pressed="true"]{background:#f1d98f;color:#493b1e}
+#visualReviewControl .vr-open{padding:6px 9px}
+#visualReviewControl .vr-menu{display:none;pointer-events:auto;max-width:min(310px,calc(100vw - 20px));margin-top:6px;padding:9px;border:1px solid var(--vr-line);border-radius:17px;background:#fffefa;box-shadow:0 10px 30px #2233223b}
+#visualReviewControl[data-open="true"] .vr-menu{display:block}
+#visualReviewControl .vr-menu p{margin:0 4px 7px;color:#728779;font-size:11px;line-height:1.5}
+#visualReviewControl .vr-links{display:flex;gap:5px;flex-wrap:wrap}
+#visualReviewControl .vr-links button,#visualReviewControl .vr-links a{background:#f2f5f0;border-radius:11px}
+@media(max-width:420px){#visualReviewControl{top:calc(max(72px,env(safe-area-inset-top) + 63px));left:8px}#visualReviewControl button{padding:7px 9px}}
+@media(prefers-reduced-motion:reduce){#visualReviewControl *{transition:none!important}}
