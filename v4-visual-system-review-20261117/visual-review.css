@@ -114,88 +114,160 @@ html.visual-after body :is(.route-search-foot button,.route-map-strip button){bo
 #visualReviewControl .vr-links button,#visualReviewControl .vr-links a{background:#f2f5f0;border-radius:11px}
 @media(max-width:420px){#visualReviewControl{top:calc(max(140px,env(safe-area-inset-top) + 122px));left:8px}#visualReviewControl button{padding:7px 9px}}
 @media(prefers-reduced-motion:reduce){#visualReviewControl *{transition:none!important}}
-
-/* THREE-CARD-PARITY.20261117.1
-   Safari recording 14:44:45: 我的收藏 / 潭子湾 / 选择地点.
-   The confirmed real-place detail card is the reference, not a new mockup.
-   Scope strictly to visual-after; DO NOT change height / transform / snap /
-   touch-action / overflow or attach new gesture/route controllers. */
+/* THREE-CARD-HEADER.20261117.2
+   Verified against the user's 15:09 Safari screenshots:
+   收藏 / 潭子湾 / 选择地点. ONE identical vertical ruler:
+       top edge → grip top = 13px
+       grip = 44 × 5px
+       grip bottom → main 44px title row = 15px
+       title and × touch target share ONE baseline.
+   Only top/header CSS. Never change transform, sheet height,
+   touch-action, scroll, snap, route state, or interactive children. */
 html.visual-after body{
- --v3-paper:#fffefa;
- --v3-ink:#2b4033;
- --v3-mute:#87998b;
- --v3-rule:#e2e9e1;
- --v3-grip:#c7d0c7;
- --v3-radius:24px;
- --v3-tile:18px;
- --v3-shadow:0 -12px 42px rgba(27,41,32,.16);
+ --vh-paper:#fffefa;
+ --vh-ink:#2b4033;
+ --vh-muted:#87998b;
+ --vh-line:#e2e9e1;
+ --vh-grip:#c7d0c7;
 }
-/* A: one paper, one top silhouette, one shadow. Keep original bottom anchoring. */
 html.visual-after body #drawer,
 html.visual-after body.route-v5-live #rc-main{
- background:var(--v3-paper)!important;
- color:var(--v3-ink)!important;
- border-radius:var(--v3-radius) var(--v3-radius) 0 0!important;
- box-shadow:var(--v3-shadow)!important;
+ background:var(--vh-paper)!important;
+ border-radius:24px 24px 0 0!important;
 }
 html.visual-after body #fpPlaceCard{
- background:var(--v3-paper)!important;
- color:var(--v3-ink)!important;
- border-radius:var(--v3-radius)!important;
- border-color:var(--v3-rule)!important;
+ background:var(--vh-paper)!important;
+ border-radius:24px!important;
 }
-/* Match the detail card's 12px map-side breathing room on phone only.
-   The existing collection translateX and C V5 translateY motors remain intact. */
+/* All three cards have a 12px iPhone map-edge inset. No change to
+   existing translate/detent ownership, only static insets/width. */
 @media(max-width:620px){
  html.visual-after body #drawer{
-   width:min(510px,calc(100% - 24px))!important;
+  width:min(510px,calc(100% - 24px))!important;
  }
  html.visual-after body.route-v5-live #rc-main{
-   left:12px!important;right:12px!important;
+  left:12px!important;right:12px!important;
  }
 }
-/* B: matching grip / title / close axis.
-   Collection retains flex-wrap and route retains its own subtitle. */
+/* Card A: 收藏. Original V4 uses a two-row grid, but multiple CSS
+   generations gave it inconsistent row heights, gaps and padding.
+   Explicit grid prevents enormous empty forehead. */
 html.visual-after body #drawer .drawer-head{
- display:flex!important;flex-wrap:wrap!important;
- align-items:center!important;justify-content:space-between!important;
- min-height:0!important;
- padding:9px 18px 12px!important;
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) 44px!important;
+ grid-template-rows:21px 44px!important;
+ column-gap:8px!important;row-gap:7px!important;
+ align-items:center!important;align-content:start!important;
+ padding:5px 18px 12px!important;
  margin:0 -18px 0!important;
- background:var(--v3-paper)!important;
- border-bottom:1px solid var(--v3-rule)!important;
+ min-height:0!important;
+ background:var(--vh-paper)!important;
+ border-bottom:1px solid var(--vh-line)!important;
  box-shadow:none!important;
 }
 html.visual-after body #drawer .drawer-head .sheet-grab{
- flex:0 0 100%!important;width:100%!important;
- height:9px!important;margin:0 0 10px!important;
- background:transparent!important;
+ grid-column:1/-1!important;grid-row:1!important;
+ position:relative!important;top:auto!important;left:auto!important;
+ width:100%!important;height:21px!important;min-height:21px!important;
+ margin:0!important;padding:0!important;
+ display:grid!important;place-items:center!important;
+ background:transparent!important;border:0!important;box-shadow:none!important;
 }
 html.visual-after body #drawer .drawer-head .sheet-grab::before{
- content:""!important;display:block!important;
- width:44px!important;height:5px!important;margin:2px auto!important;
- border-radius:999px!important;background:var(--v3-grip)!important;
+ content:""!important;position:static!important;display:block!important;
+ width:44px!important;height:5px!important;
+ margin:0!important;border-radius:999px!important;
+ background:var(--vh-grip)!important;
 }
+html.visual-after body #drawer .drawer-head h2{
+ grid-column:1!important;grid-row:2!important;
+ min-width:0!important;height:44px!important;
+ display:flex!important;align-items:center!important;gap:8px!important;
+ align-self:center!important;justify-self:start!important;
+ margin:0!important;padding:0!important;
+}
+html.visual-after body #drawer .drawer-head h2 .drawer-cn{
+ white-space:nowrap!important;flex:none!important;
+}
+html.visual-after body #drawer .drawer-head h2 #sheetCount{
+ white-space:nowrap!important;
+ font-size:12px!important;font-weight:480!important;
+ color:var(--vh-muted)!important;letter-spacing:0!important;
+}
+html.visual-after body #drawer .drawer-head #closeDrawer{
+ grid-column:2!important;grid-row:2!important;
+ justify-self:end!important;align-self:center!important;
+ /* Original hand-drawn SVG mask stays; raw × stays hidden */
+ font-size:0!important;line-height:0!important;
+}
+html.visual-after body #drawer .drawer-head #closeDrawer::before{
+ content:""!important;display:block!important;
+ width:16px!important;height:16px!important;margin:auto!important;
+}
+/* Card B: 潭子湾. The grip is a sibling BEFORE the header, while
+   its approved 2-row title + actions grid must remain in place. */
+html.visual-after body #fpPlaceCard > .sheet-grab{
+ display:block!important;
+ width:44px!important;height:5px!important;
+ margin:13px auto 15px!important;
+ background:var(--vh-grip)!important;border-radius:999px!important;
+}
+html.visual-after body #fpPlaceCard .fp-card-header{
+ padding:0 18px 12px!important;
+ grid-template-rows:44px 44px!important;
+ row-gap:9px!important;
+ background:var(--vh-paper)!important;
+ border-bottom:1px solid var(--vh-line)!important;
+}
+html.visual-after body #fpPlaceCard .fp-card-header .fp-card-name{
+ align-self:center!important;
+ margin:0!important;padding:0!important;
+}
+html.visual-after body #fpPlaceCard .fp-card-header > .fp-card-close{
+ grid-column:3!important;grid-row:1!important;
+ align-self:center!important;justify-self:end!important;
+}
+/* Card C: 选择地点. Keep subtitle directly under the title,
+   but align its title and × with the same 44px primary row. */
+html.visual-after body.route-v5-live #rc-main #rc-grab{
+ padding:13px 18px 12px!important;
+ background:var(--vh-paper)!important;
+ border-bottom:1px solid var(--vh-line)!important;
+}
+html.visual-after body.route-v5-live #rc-main #rc-grab .rc-handle{
+ display:block!important;width:44px!important;height:5px!important;
+ margin:0 auto 15px!important;
+ background:var(--vh-grip)!important;border-radius:999px!important;
+}
+html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper{
+ display:flex!important;align-items:flex-start!important;gap:8px!important;
+}
+html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper>div{
+ flex:1 1 auto!important;min-width:0!important;
+}
+html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper #rc-title{
+ display:flex!important;align-items:center!important;
+ min-height:44px!important;
+ margin:0!important;padding:0!important;
+}
+html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper #rc-subtitle{
+ display:block!important;margin:0!important;padding:0!important;
+ font-size:12px!important;line-height:1.45!important;
+ color:var(--vh-muted)!important;
+}
+/* Shared primary-row typography, icon alignment and hit target.
+   Other rows are intentionally NOT forced into the same structure. */
 html.visual-after body #drawer .drawer-head h2,
-html.visual-after body #drawer .drawer-head .drawer-cn,
+html.visual-after body #drawer .drawer-head h2 .drawer-cn,
 html.visual-after body #fpPlaceCard .fp-card-header .fp-card-name,
 html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper #rc-title{
  font-size:24px!important;font-weight:720!important;
- letter-spacing:-.045em!important;line-height:1.18!important;
- color:var(--v3-ink)!important;
+ line-height:1.18!important;letter-spacing:-.045em!important;
+ color:var(--vh-ink)!important;
 }
-html.visual-after body #drawer .drawer-head h2{
- flex:1 1 auto!important;min-width:0!important;
- display:flex!important;align-items:baseline!important;gap:8px!important;
- margin:0!important;
-}
-html.visual-after body #drawer #sheetCount{
- font-size:12px!important;font-weight:480!important;
- letter-spacing:0!important;color:var(--v3-mute)!important;
-}
-html.visual-after body #drawer #closeDrawer,
+html.visual-after body #drawer .drawer-head #closeDrawer,
 html.visual-after body #fpPlaceCard .fp-card-header > .fp-card-close,
-html.visual-after body.route-v5-live #rc-grab .rc-dismiss{
+html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper .rc-dismiss{
  flex:0 0 44px!important;
  width:44px!important;height:44px!important;
  min-width:44px!important;min-height:44px!important;
@@ -205,89 +277,7 @@ html.visual-after body.route-v5-live #rc-grab .rc-dismiss{
  color:#728779!important;
  display:grid!important;place-items:center!important;
 }
-/* Collection already paints a single masked hand-drawn X; never show its
-   underlying text × or the duplicated-close defect will return. */
-html.visual-after body #drawer #closeDrawer{font-size:0!important;line-height:0!important}
-html.visual-after body #drawer #closeDrawer::before{
- content:""!important;display:block!important;width:16px!important;
- height:16px!important;margin:auto!important;
-}
-html.visual-after body.route-v5-live #rc-grab .rc-dismiss{
+html.visual-after body #fpPlaceCard .fp-card-header > .fp-card-close,
+html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper .rc-dismiss{
  font-size:24px!important;font-weight:350!important;line-height:1!important;
-}
-html.visual-after body #fpPlaceCard .sheet-grab{
- width:44px!important;height:5px!important;
- margin:9px auto 12px!important;
- background:var(--v3-grip)!important;border-radius:999px!important;
-}
-/* Keep the approved 2-row place controls while matching the other
-   cards' first title-row baseline below the grip. */
-html.visual-after body #fpPlaceCard .fp-card-header{
- padding:5px 18px 13px!important;
- border-bottom:1px solid var(--v3-rule)!important;
- background:var(--v3-paper)!important;
-}
-html.visual-after body.route-v5-live #rc-main #rc-grab{
- padding:9px 18px 12px!important;
- background:var(--v3-paper)!important;
- border-bottom:1px solid var(--v3-rule)!important;
-}
-html.visual-after body.route-v5-live #rc-main #rc-grab .rc-handle{
- display:block!important;width:44px!important;height:5px!important;
- margin:0 auto 10px!important;
- border-radius:999px!important;background:var(--v3-grip)!important;
-}
-html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper{
- align-items:center!important;gap:10px!important;
-}
-html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper #rc-title{
- margin:0 0 3px!important;
-}
-html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper #rc-subtitle{
- display:block!important;margin:0!important;
- font-size:12px!important;line-height:1.45!important;color:var(--v3-mute)!important;
-}
-/* C: inner rhythm. Same 18px side padding and tile strokes; keep original
-   list ordering, selected state, route footer and gesture targets unchanged. */
-html.visual-after body #drawer.fp30-detail #spotList{
- padding:12px 0 18px!important;margin:0!important;
-}
-html.visual-after body #drawer #spotList .spotrow,
-html.visual-after body.route-v5-live #rc-body .rc-stop,
-html.visual-after body #fpPlaceCard .fp-block{
- border:1px solid var(--v3-rule)!important;
- border-radius:var(--v3-tile)!important;
- background:var(--v3-paper)!important;
- box-shadow:none!important;
-}
-html.visual-after body #drawer #spotList .spotrow{
- min-height:80px!important;
- margin:0 0 10px!important;
- padding:10px!important;gap:11px!important;
-}
-html.visual-after body.route-v5-live #rc-body{
- padding:12px 18px 21px!important;background:var(--v3-paper)!important;
-}
-html.visual-after body.route-v5-live #rc-body .rc-stop{
- min-height:68px!important;margin:0 0 9px!important;
- padding:11px 12px!important;
-}
-html.visual-after body.route-v5-live #rc-body .rc-stop:is(.selected,.new,.is-dragging){
- /* Preserve C V5 meaningful selection/drag states, not flatten their feedback. */
- border-color:#a8c7aa!important;
-}
-html.visual-after body #drawer #spotList .spotrow strong,
-html.visual-after body.route-v5-live #rc-body .rc-stop .rc-name strong{
- font-size:15px!important;font-weight:700!important;
- line-height:1.35!important;letter-spacing:-.02em!important;
- color:var(--v3-ink)!important;
-}
-html.visual-after body #drawer #spotList .spotrow small,
-html.visual-after body.route-v5-live #rc-body .rc-stop .rc-name small{
- font-size:12px!important;line-height:1.4!important;
- color:var(--v3-mute)!important;
-}
-html.visual-after body.route-v5-live #rc-main #rc-footer{
- border-top:1px solid var(--v3-rule)!important;
- background:var(--v3-paper)!important;
 }
