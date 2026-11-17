@@ -5,7 +5,7 @@
  */
 (function(){
 'use strict';
-if(!/route-logic-review-20261117\.html$/.test(location.pathname))return;
+if(!/route-minimal-review-20261117\.html$/.test(location.pathname))return;
 var body=document.body;
 var preset=[
  {id:'ningbo',name:'宁波站',lat:29.868,lng:121.548},
