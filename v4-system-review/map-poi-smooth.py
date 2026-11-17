@@ -54,6 +54,10 @@ if path.name=='index.html':
   "map.__fpPoi29Bound=true;map.on?.('move',queueAnchorSync);map.on?.('moveend',schedule);",
   'sync-during-map-pan')
  once(
+  "  for(const [id,node] of prior)if(!visibleIds.has(id))node.remove();",
+  "  // Keep the selected SVG attached even when the POI density grid changes\n  // during centering: replacing it would truncate the accepted spring.\n  for(const [id,node] of prior)if(!visibleIds.has(id)&&id!==activePointer)node.remove();",
+  'retain-selected-geographic-icon')
+ once(
   "      window.AtlasPOIMotion?.play(b.querySelector('.fp-poi-token'),b.dataset.poiCategory,b.dataset.poiName);",
   """      // The pictogram pops while the camera smoothly pans at a CONSTANT zoom.
       window.AtlasPOIMotion?.popSelected?.(b.querySelector('.fp-poi-token'));
@@ -111,6 +115,20 @@ elif path.name=='v4-map-runtime.js':
       (window.__atlasInteractionMode==='swipe-card'
        ?focusSelectedLocation(d):focusMapPlaceIfNeeded(d));""",
   'poi-icon-pop-plus-map-pan-to-center')
+
+ once(
+  "      vectorMap.stop();\n      vectorMap.easeTo({center:[lng,lat],zoom:vectorMap.getZoom(),",
+  "      vectorMap.stop();\n      window.__atlasPOICentering=true;\n      vectorMap.easeTo({center:[lng,lat],zoom:vectorMap.getZoom(),",
+  'poi-center-overlay-motion-flag')
+ once(
+  "      vectorMap.on('move',()=>{userHasMovedMap=true;scheduleVectorBookmarkRender();if(selectedId)relayoutMemoryOpen();const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='0'});",
+  "      vectorMap.on('move',()=>{userHasMovedMap=true;scheduleVectorBookmarkRender();if(selectedId)relayoutMemoryOpen();const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity=window.__atlasPOICentering?'1':'0'});",
+  'do-not-fade-selected-poi-during-center-pan')
+ once(
+  "      vectorMap.on('moveend',()=>{rememberMapView();renderVectorBookmarks();scheduleVectorPOIs();const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='1';/* Legacy raster camera synchronizes once on provider fallback, not on every vector gesture. */});",
+  "      vectorMap.on('moveend',()=>{window.__atlasPOICentering=false;rememberMapView();renderVectorBookmarks();scheduleVectorPOIs();const pane=$('atlasPoiOverlay');if(pane)pane.style.opacity='1';/* Legacy raster camera synchronizes once on provider fallback, not on every vector gesture. */});",
+  'reset-overlay-motion-after-center')
+
  once(
   "      showDestination(point);return;",
   "      showDestination({...point,__poiTap:true});return;",
