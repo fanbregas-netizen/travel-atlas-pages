@@ -43,7 +43,7 @@ body #fpPlaceCard .fp-card-header .fp-card-name{
  grid-column:1/3!important;grid-row:1!important;
  align-self:center!important;
  margin:0!important;padding:0!important;
- font-size:24px!important;line-height:1.18!important;
+ font-size:23px!important;line-height:1.20!important;
  font-weight:720!important;letter-spacing:-.045em!important;
  color:var(--fp18-ink)!important;overflow-wrap:anywhere!important;
  max-height:none!important;overflow:visible!important;
@@ -214,6 +214,39 @@ body.fp-single-route-owner #drawer.fp30-detail .drawer-head{
 body.fp-single-route-owner #drawer.fp30-detail #spotList{
  padding-top:7px!important;
 }
+
+/* Four-screen visual contract: reuse the approved title scale and neutral
+   44px grasp affordance on the ACTUAL POI card. The original controls,
+   destination ID and C V5 motor remain unchanged. */
+body.destination-selected #destinationCard.destination-card.visible{
+ padding-top:31px!important;
+ touch-action:pan-x;
+ -webkit-user-select:none;user-select:none;
+}
+body.destination-selected #destinationCard.destination-card.visible::before{
+ content:"";position:absolute;top:12px;left:50%;
+ transform:translateX(-50%);width:44px;height:5px;
+ border-radius:999px;background:#c7d0c7;pointer-events:none;
+}
+body.destination-selected #destinationCard.destination-card .destination-title{
+ font-size:23px!important;line-height:1.2!important;
+ font-weight:720!important;letter-spacing:-.045em!important;
+ overflow-wrap:anywhere;
+}
+body.destination-selected #destinationCard.destination-card .destination-close{
+ top:23px!important;right:8px!important;width:44px!important;height:44px!important;
+ touch-action:manipulation;
+}
+body.destination-selected #destinationCard.destination-card .destination-actions button{
+ touch-action:manipulation;
+}
+body.destination-selected #destinationCard[data-fp-poi-dragging="true"]{
+ transition:none!important;will-change:translate;
+}
+@media (max-width:375px){
+ body.destination-selected #destinationCard.destination-card.visible{padding-top:29px!important}
+}
+
 /* Approved route sheet composition, keeping C V5 stop selection and Dock
    behavior untouched. No additional search bar above the sheet. */
 body.route-v5-live #rc-main #rc-grab{
