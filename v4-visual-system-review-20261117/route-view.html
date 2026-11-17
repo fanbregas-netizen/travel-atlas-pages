@@ -642,4 +642,181 @@ apply(mode);
 })();
 
 </script>
+
+<script id="rv-home-parity-v13">
+/* Independent V12 acceptance: route-star callout opens the exact four-section
+   CONTENT HIERARCHY of the existing saved-place card. Original #rvDetail DOM,
+   placeId controller, detents and "before" mode remain untouched. */
+(function(){
+'use strict';
+const homePath='/travel-atlas-pages/v4-visual-system-review-20261117/index.html';
+const placeState=()=>window.__atlasRV;
+const bubble=()=>document.getElementById('stopBubble');
+let detail=null,parity=null,viewer=null,lastId='',nearbyTicket=0;
+const elem=(tag,cls,content)=>{
+ const x=document.createElement(tag);if(cls)x.className=cls;if(content!==undefined)x.textContent=content;return x;
+};
+function goHome(target){
+ const id=bubble()?.dataset.placeId||'';
+ if(!id)return;
+ const query=new URLSearchParams({openPlace:id,visual:'after'});
+ if(target==='media')query.set('mediaPlace',id);
+ if(target==='links')query.set('sourcePlace',id);
+ location.assign(homePath+'?'+query);
+}
+function ensureViewer(){
+ if(viewer)return viewer;
+ viewer=document.createElement('dialog');viewer.id='rvParityViewer';
+ viewer.setAttribute('aria-label','查看地点照片');
+ viewer.innerHTML='<button class="rvp-viewer-close" type="button" aria-label="关闭照片">×</button><img alt="地点照片全屏查看">';
+ document.body.append(viewer);
+ viewer.querySelector('.rvp-viewer-close').addEventListener('click',()=>viewer.close());
+ viewer.addEventListener('click',e=>{if(e.target===viewer)viewer.close()});
+ viewer.addEventListener('close',()=>{viewer.querySelector('img').removeAttribute('src')});
+ return viewer;
+}
+function heading(number,title,buttonText,action){
+ const head=elem('div','fp-subheading');
+ head.append(elem('span','fp-section-index',number),elem('strong','fp-section-label',title));
+ const button=elem('button','fp-subaction rvp-section-action',buttonText);
+ button.type='button';button.setAttribute('aria-label',buttonText+' · '+title);
+ button.addEventListener('click',action);head.append(button);
+ return head;
+}
+function mount(node){
+ if(detail)return;
+ detail=node;
+ parity=document.createElement('div');parity.id='rvParity';parity.setAttribute('aria-label','与主页收藏地点一致的详情卡片');
+ const header=elem('header','rvp-header');
+ const titleRow=elem('div','rvp-title-row');
+ titleRow.append(elem('h2','rvp-title'));
+ const titleActions=elem('div','rvp-title-actions');
+ const nav=elem('button','rvp-icon rvp-nav');
+ nav.type='button';nav.setAttribute('aria-label','导航到此地点');
+ const navImg=elem('img');navImg.src='./icons/40_direction.svg';navImg.alt='';nav.append(navImg);
+ nav.addEventListener('click',()=>detail.querySelector('[data-op="nav"]')?.click());
+ const edit=elem('button','rvp-icon rvp-edit');
+ edit.type='button';edit.setAttribute('aria-label','打开主页收藏详情并编辑');
+ const editImg=elem('img');editImg.src='./icons/14_edit.svg';editImg.alt='';edit.append(editImg);
+ edit.addEventListener('click',()=>goHome('details'));
+ titleActions.append(nav,edit);titleRow.append(titleActions);
+ const meta=elem('div','rvp-meta');
+ meta.append(elem('span','rvp-stage'),elem('span','rvp-stop'));
+ header.append(titleRow,meta);
+ const scroll=elem('div','rvp-sections fp-card-scroll');
+ const brief=elem('section','fp-block rvp-section rvp-brief');
+ brief.append(heading('01','为什么想去','编辑',()=>goHome('brief')),elem('div','fp-brief-text rvp-note'));
+ const media=elem('section','fp-block rvp-section rvp-media');
+ media.append(heading('02','照片与视频','添加影像',()=>goHome('media')),elem('div','fp-media-mosaic rvp-media-grid'));
+ const links=elem('section','fp-block rvp-section rvp-links');
+ links.append(heading('03','相关资料','编辑资料',()=>goHome('links')),elem('div','fp-social-list rvp-link-list'));
+ const nearby=elem('section','fp-block rvp-section rvp-nearby');
+ const nearbyHead=heading('04','附近地点','查看附近',()=>void loadNearby());
+ const nearbyList=elem('div','rvp-nearby-list');
+ nearbyList.textContent='点击右侧图标查看附近地点';
+ nearby.append(nearbyHead,nearbyList);
+ scroll.append(brief,media,links,nearby);
+ const footer=elem('footer','fp-card-footer rvp-footer');
+ const navButton=elem('button','fp-card-chip accent','导航');navButton.type='button';
+ navButton.addEventListener('click',()=>detail.querySelector('[data-op="nav"]')?.click());
+ const homeButton=elem('button','fp-card-chip','收藏详情');homeButton.type='button';
+ homeButton.addEventListener('click',()=>goHome('details'));
+ footer.append(navButton,homeButton);
+ parity.append(header,scroll,footer);
+ detail.append(parity);
+ const observer=new MutationObserver(()=>{if(detail.classList.contains('open'))queueMicrotask(render)});
+ observer.observe(detail,{attributes:true,attributeFilter:['class']});
+ const currentBubble=bubble();
+ if(currentBubble)new MutationObserver(()=>{if(detail.classList.contains('open'))queueMicrotask(render)})
+   .observe(currentBubble,{attributes:true,attributeFilter:['data-place-id','hidden']});
+ const title=document.getElementById('bubbleTitle');
+ if(title)new MutationObserver(()=>{if(detail.classList.contains('open'))queueMicrotask(render)})
+   .observe(title,{childList:true,characterData:true,subtree:true});
+ if(detail.classList.contains('open'))render();
+}
+function render(){
+ if(!detail||!parity||!detail.classList.contains('open'))return;
+ const rv=placeState(),id=bubble()?.dataset.placeId||'';
+ const p=rv?.places?.find(q=>String(q.id)===String(id));
+ if(!p)return;
+ const changed=id!==lastId;lastId=id;
+ if(changed){nearbyTicket++;detail.scrollTop=0;parity.querySelector('.rvp-nearby-list').textContent='点击右侧图标查看附近地点'}
+ const i=rv.places.indexOf(p);
+ parity.querySelector('.rvp-title').textContent=p.title||p.name||'未命名地点';
+ parity.querySelector('.rvp-stage').textContent=p.stage==='visited'?'已到访':'想去';
+ parity.querySelector('.rvp-stop').textContent='第'+(rv.stopDays?.[i]||1)+'天 · 第'+(i+1)+'站';
+ const legacyNote=detail.querySelector(':scope > .rv-sec .brief');
+ parity.querySelector('.rvp-note').textContent=legacyNote?.textContent||'还没有记录为什么想去';
+ const grid=parity.querySelector('.rvp-media-grid');grid.replaceChildren();
+ const legacyPhotos=detail.querySelector(':scope > .rv-media .photos');
+ let count=0;
+ for(const item of legacyPhotos?.children||[]){
+  const picture=item.querySelector('img'),clip=item.querySelector('video');
+  if(picture&&picture.src){
+   const button=elem('button','rvp-photo-tile');
+   button.type='button';button.setAttribute('aria-label','全屏查看地点照片');
+   const img=picture.cloneNode(true);img.loading='lazy';button.append(img);
+   button.addEventListener('click',()=>{
+     const d=ensureViewer();d.querySelector('img').src=picture.src;try{d.showModal()}catch(_){window.open(picture.src,'_blank','noopener,noreferrer')}
+   });
+   grid.append(button);count++;
+  }else if(clip&&clip.src){
+   const tile=elem('div','rvp-video-tile');
+   const video=clip.cloneNode(true);
+   video.controls=true;video.playsInline=true;video.preload='metadata';
+   tile.append(video);grid.append(tile);count++;
+  }
+ }
+ if(!count){
+  grid.append(elem('div','rvp-media-empty','还没有照片或视频，可在收藏地点中添加'));
+  grid.classList.add('rvp-empty');
+ }else grid.classList.remove('rvp-empty');
+ const links=parity.querySelector('.rvp-link-list');links.replaceChildren();
+ const raw=detail.querySelector(':scope > .rv-links .links');
+ for(const a of raw?.querySelectorAll('a')||[]){
+  const clone=a.cloneNode(true);clone.target='_blank';clone.rel='noopener noreferrer';links.append(clone);
+ }
+ if(!links.children.length)links.append(elem('p','fp-social-empty','暂无相关资料'));
+}
+let servicePromise=null;
+function service(){
+ if(window.AtlasServices?.nearby)return Promise.resolve(window.AtlasServices);
+ if(servicePromise)return servicePromise;
+ servicePromise=new Promise((resolve,reject)=>{
+  const s=document.createElement('script');s.src='./atlas-services.js';
+  s.onload=()=>window.AtlasServices?.nearby?resolve(window.AtlasServices):reject(Error('附近地点服务未就绪'));
+  s.onerror=()=>reject(Error('附近地点服务未加载'));document.head.append(s);
+ }).catch(e=>{servicePromise=null;throw e});
+ return servicePromise;
+}
+async function loadNearby(){
+ const rv=placeState(),id=bubble()?.dataset.placeId||'';
+ const p=rv?.places?.find(q=>String(q.id)===String(id)),list=parity?.querySelector('.rvp-nearby-list');
+ if(!p||!list)return;
+ const t=++nearbyTicket;list.textContent='正在查找附近地点…';
+ try{
+  const atlas=await service();const result=await atlas.nearby(p.lat,p.lng);
+  if(t!==nearbyTicket||bubble()?.dataset.placeId!==id)return;
+  list.replaceChildren();
+  if(!result?.places?.length){list.textContent='附近暂未找到景点';return}
+  for(const place of result.places){
+   const a=elem('a','rvp-nearby-item',place.name+' · '+place.distance+' 米');
+   a.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(place.lat+','+(place.lng??place.lon));
+   a.target='_blank';a.rel='noopener noreferrer';
+   list.append(a);
+  }
+ }catch(_){if(t===nearbyTicket)list.textContent='附近地点暂时无法读取，请重试'}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+function start(){
+ const existing=document.getElementById('rvDetail');if(existing){mount(existing);return}
+ const obs=new MutationObserver(()=>{
+  const d=document.getElementById('rvDetail');
+  if(d){obs.disconnect();mount(d)}
+ });
+ obs.observe(document.body,{childList:true});
+}
+})();
+</script>
+
 </body></html>
