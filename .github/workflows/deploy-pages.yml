@@ -7,9 +7,11 @@ permissions:
   contents: read
   pages: write
   id-token: write
+# Do not cancel a Pages release that is already uploading: rapid parallel
+# system commits previously prevented the isolated previews from ever going live.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   deploy:
     runs-on: ubuntu-latest
