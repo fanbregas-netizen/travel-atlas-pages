@@ -169,6 +169,17 @@ const url='http://127.0.0.1:8766/travel-atlas-pages/v4-review-20261116/';
   assert.equal(reopened.savedId,savedId);
   assert.deepEqual(new Set(reopened.order.map(x=>x.id)),new Set(ids));
   assert.equal(reopened.order.length,2,'unstarring a route stop silently deleted it from C V5');
+  // Reopening a saved route must let the user explicitly remove a stop even
+  // if they cancelled its bookmark star after originally saving that route.
+  await page.locator('#rc-body [data-rc="stage-select"]').click();
+  await page.waitForFunction(()=>window.__atlasRouteV5Live.state.stage==='select');
+  const shown=await page.locator('#rc-body [data-rc^="pick-"]').evaluateAll(nodes=>
+    nodes.map(n=>({label:n.getAttribute('aria-label'),selected:n.classList.contains('is-on')})));
+  assert.equal(shown.length,2,'unstarred active stop disappeared from C V5 selection editor');
+  assert.ok(shown.some(s=>s.selected&&s.label.includes('回归地点甲')),
+    'unstarred route stop can no longer be explicitly removed');
+  await page.locator('#rc-footer [data-rc="stage-order"]').click();
+  await page.waitForFunction(()=>window.__atlasRouteV5Live.state.stage==='order');
   assert.deepEqual({start:reopened.start,end:reopened.end,days:reopened.order.map(x=>x.day)},
    {start:committedDate.start,end:committedDate.end,days:committedDate.order.map(x=>x.day)},
    'reopened route dates, D labels or order differ from saved itinerary');

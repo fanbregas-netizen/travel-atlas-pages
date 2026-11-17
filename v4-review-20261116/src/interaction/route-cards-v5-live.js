@@ -174,7 +174,8 @@ function rubber(value,min,max){
  return value;
 }
 function selectMarkup(){
- const pool=(state.source==='map'?allPlaces:allPlaces.filter(p=>p.starred!==false)).slice(0,100);
+ const chosen=new Set(state.selected);
+ const pool=(state.source==='map'?allPlaces:allPlaces.filter(p=>p.starred!==false||chosen.has(p.id))).slice(0,100);
  return `<p class="rc-note">从收藏或地图添加地点；至少选择两个。你可以直接点击地点，不需要先进入复杂的设置页。</p>
  <div class="rc-tabs"><button data-rc="source-saved" class="${state.source==='saved'?'is-active':''}">☆ 从收藏选择</button><button data-rc="source-map" class="${state.source==='map'?'is-active':''}">⌖ 地图选点</button></div>
  <div class="rc-rowhead"><span class="rc-section">想去的地方</span><small class="rc-note">已选 ${state.selected.length} 处</small></div>
@@ -643,7 +644,8 @@ window.__batchC={version:'V5-confirmed-date-and-auto-days',show:showReview,open:
     }else oldMap();
   };
   selectMarkup=function(){
-    const pool=(state.source==='map'?allPlaces:allPlaces.filter(p=>p.starred!==false)).slice(0,100);
+    const chosen=new Set(state.selected);
+ const pool=(state.source==='map'?allPlaces:allPlaces.filter(p=>p.starred!==false||chosen.has(p.id))).slice(0,100);
     return `${pool.length?'':''}
       <div class="rc-tabs"><button data-rc="source-saved" class="${state.source==='saved'?'is-active':''}">☆ 我的收藏</button><button data-rc="source-map" class="${state.source==='map'?'is-active':''}">⌖ 地图选点</button></div>
       <div class="rc-rowhead"><span class="rc-section">地点</span><small class="rc-note" id="rc-select-count">已选 ${state.selected.length} 处</small></div>
