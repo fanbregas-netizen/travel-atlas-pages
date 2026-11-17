@@ -183,7 +183,18 @@ async function gesture(cdp,coords){
     }
     for(const previous of [4,3,2]){
       await gesture(cdp,[[width-270,420],[width-205,420],[width-90,420]]);
-      await page.waitForFunction(index=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex===String(index),previous,{timeout:10000});
+      try{await page.waitForFunction(index=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex===String(index),previous,{timeout:10000})}
+      catch(err){
+        const actual=await page.evaluate(()=>{
+          const v=document.querySelector('#fpMediaViewer');
+          return {item:v?.dataset.itemIndex,gesture:v?.dataset.gestureState,
+           videos:Array.from(v?.querySelectorAll('video')||[]).map(x=>({i:x.closest('.fp-gallery-cell')?.dataset.itemIndex,box:x.getBoundingClientRect().toJSON()})),
+           track:v?.querySelector('.fp-gallery-track')?.style.transform};
+        });
+        console.error('Rapid reverse swipe stalled at '+previous,JSON.stringify(actual));
+        await page.screenshot({path:output+'/reverse-video-stall-'+width+'.png'});
+        throw err;
+      }
     }
     await gesture(cdp,[[sx,sy],[sx+35,sy],[Math.min(width-16,sx+110),sy]]);
     await page.waitForFunction(()=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex==='2',null,{timeout:9000});
