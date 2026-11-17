@@ -30,12 +30,13 @@ footer{text-align:center;font-size:11px;color:#819287;padding:0 12px 15px;line-h
 const select=document.getElementById('scene'), load=document.getElementById('load'), openFull=document.getElementById('openFull');
 function choose(){
 const file=select.value;
-openFull.href='./'+file+'?visual=after';
+openFull.href='./'+file+'?visual=after&review=5';
 const left=document.getElementById('before'),right=document.getElementById('after');
-for(const [frame,kind] of [[left,'before'],[right,'after']]){frame.src='./'+file+'?visual='+kind+'&compare=1';}
+for(const [frame,kind] of [[left,'before'],[right,'after']]){frame.src='./'+file+'?visual='+kind+'&compare=1&review=5';}
 document.getElementById('p1').remove();document.getElementById('p2').remove();
 load.textContent='重载两侧';
 }
 load.addEventListener('click',choose);
-select.addEventListener('change',()=>{openFull.href='./'+select.value+'?visual=after'});
+select.addEventListener('change',choose);
+choose();
 </script></body></html>
