@@ -146,7 +146,12 @@ async function gesture(cdp,coords){
     await page.waitForFunction(()=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex==='3',null,{timeout:9000});
     const vid=page.locator('#fpMediaViewer .fp-gallery-cell[data-item-index="3"] video');
     assert.equal(await vid.evaluate(v=>v.controls),true,'Native video controls removed');
-    await page.waitForFunction(()=>document.querySelector('#fpMediaViewer .fp-gallery-cell[data-item-index="3"] video')?.videoWidth>=300,null,{timeout:10000});
+    await page.waitForFunction(()=>{
+      const v=document.querySelector('#fpMediaViewer .fp-gallery-cell[data-item-index="3"] video');
+      if(!v||v.videoWidth<300)return false;
+      const r=v.getBoundingClientRect();
+      return r.width>250&&r.height>130; // wait for iPhone-style thumbnail -> fullscreen zoom to finish
+    },null,{timeout:10000});
     const vr=await vid.boundingBox();
     if(!vr||vr.width<=80||vr.height<=80){
       const videoDetail=await vid.evaluate(v=>({
