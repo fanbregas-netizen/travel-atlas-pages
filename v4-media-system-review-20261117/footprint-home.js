@@ -423,7 +423,10 @@ async function addMedia(id,files){
   await repo.addMedia(id,prepared);
   try{await window.__atlasFlowRefresh?.()}catch(e){console.warn('地图媒体缩略图刷新延迟',e)}
   if(activePlaceId===id){await renderPlace(id);if(activePlaceId===id)feedback('已保存 '+prepared.length+' 项影像到当前地点；刷新后仍可查看。')}
- }catch(e){console.error('地点媒体保存失败',e);if(activePlaceId===id)feedback('保存失败，原有内容未改动：'+(e?.message||'/* Media D · iPhone-style continuous gallery V2.
+ }catch(e){console.error('地点媒体保存失败',e);if(activePlaceId===id)feedback('保存失败，原有内容未改动：'+(e?.message||'请检查权限或空间'))}
+ finally{busy=false}
+}
+/* Media D · iPhone-style continuous gallery V2.
  * Separate motion owner, same existing place/media data and same sheet UI.
  * Never tear down the modal between adjacent photos or videos. */
 const iphoneGallery=(()=>{
@@ -738,10 +741,6 @@ const iphoneGallery=(()=>{
 })();
 function closeViewer(immediate=false){iphoneGallery.close(immediate)}
 function openViewer(items,index,originTile=null){iphoneGallery.open(items,index,originTile)}
-ll:'both',easing:'ease-out'});
- }
-}
-
 function init(){initSearch();mountPlace();window.__footprintHome={openSearch,closeSearch,openSaved:showPlaceCard,readPlaces};}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
