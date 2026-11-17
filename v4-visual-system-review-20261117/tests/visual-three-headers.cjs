@@ -46,6 +46,11 @@ fs.mkdirSync(output,{recursive:true});
   assert.ok(Math.abs(place.gripCenterOffset)<=1,'interactive grip not centered within entire card: '+place.gripCenterOffset);
   assert.ok(place.headerHeight<=146,'place card header has huge whitespace height '+place.headerHeight);
   assert.ok(place.stageToTitleGap<58,'place status row incorrectly pushed far below title: '+place.stageToTitleGap);
+  // The user reviews these editors in the actual expanded place card.
+  // Use the existing approved three-detent controller, not test-only CSS.
+  await page.evaluate(()=>window.__atlasSheetIntegration?.card?.snapTo('full'));
+  await page.waitForFunction(()=>window.__atlasSheetIntegration?.card?.getState?.().sheet==='full',null,{timeout:7000});
+  await page.waitForTimeout(550);
   // Source-level POI icon family reused, with the ORIGINAL click handlers kept.
   const sectionActionIcons=await page.evaluate(()=>{
    const buttons=[...document.querySelectorAll('#fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+4) .fp-subheading > button.fp-subaction')];
