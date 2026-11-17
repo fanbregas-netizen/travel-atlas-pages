@@ -347,7 +347,7 @@ window.__atlasCollectionSheet={
  getState:()=>({
   level,dragging:!!gesture,height:el.getBoundingClientRect().height,
   opened:el.classList.contains('visible'),closing,velocity:sheetVelocity,
-  exitY,dockRevealing,engine:'C V5 · Safari exit v2'
+  exitY,dockRevealing,engine:'C V5',release:'Safari exit v2'
  }),
  // Returns true only when this controller owns and has queued the dismissal.
  // The native closeDrawer() must then skip its immediate class removal.
