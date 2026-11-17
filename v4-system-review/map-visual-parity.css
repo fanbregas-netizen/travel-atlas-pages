@@ -34,3 +34,17 @@
 @media(prefers-reduced-motion:reduce){
  #rc-map-pins .rc-pin.rc-choice-pin.fp-map-pick-arrive{animation:none;scale:1}
 }
+
+/* Only the currently tapped POI remains above surrounding POI art after its
+   spring settles. No transform/scale or geographic coordinate is changed. */
+#atlasPoiOverlay > .fp-poi { z-index:0; }
+#atlasPoiOverlay > .fp-poi.is-selected { z-index:90 !important; }
+/* MapLibre-native selections live in their original Marker element, reparented
+   into this coordinate-identical top plane (never cloned). Keep the plane above
+   the 420 POI and 425 yellow-star layers, but below sheets and controls. */
+#atlasSelectedPoiTop {
+ position:fixed;inset:0;z-index:430;pointer-events:none;overflow:hidden;
+}
+#atlasSelectedPoiTop > .atlas-vector-selection {
+ z-index:1 !important;pointer-events:none;
+}
