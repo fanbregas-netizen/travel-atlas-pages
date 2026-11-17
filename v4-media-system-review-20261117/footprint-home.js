@@ -32,14 +32,40 @@ function pendingDraftMode(id){
 }
 /* Stage23: play only visible videos while scrolling the real place card. */
 const tileVideos=new Set();let tileVisibilityObserver=null;
-// Media V5: thumbnails are preview-only; never start background video decoders.
+/* Media D · restore approved LIVE small-card video thumbnails.
+ * Play only clipped-in-viewport muted/looping tiles. Full-screen media pauses
+ * every tile; visibility/closing gates playback without allocating another URL. */
+function tileShouldPlay(v){
+ return tileVideos.has(v)&&v.isConnected&&v.dataset.inViewport==='yes'&&
+  !document.hidden&&!placeCard?.hidden&&
+  !document.getElementById('fpMediaViewer');
+}
 function syncTilePlayback(v){
  if(!tileVideos.has(v))return;
- try{v.pause()}catch(_){}
+ if(!tileShouldPlay(v)){
+  try{v.pause()}catch(_){}
+  return;
+ }
+ if(!v.paused||v.dataset.fpPlaying==='yes')return;
+ v.dataset.fpPlaying='yes';
+ let play;
+ try{play=v.play()}catch(_){delete v.dataset.fpPlaying;return}
+ Promise.resolve(play).catch(()=>{}).then(()=>{
+  delete v.dataset.fpPlaying;
+  if(!tileShouldPlay(v))try{v.pause()}catch(_){}
+ });
 }
 function watchTileVideo(v){
- v.dataset.inViewport='no';
- syncTilePlayback(v);
+ if(!('IntersectionObserver' in window)){
+  v.dataset.inViewport='yes';syncTilePlayback(v);return;
+ }
+ if(!tileVisibilityObserver)tileVisibilityObserver=new IntersectionObserver(entries=>{
+  for(const entry of entries){
+   entry.target.dataset.inViewport=entry.isIntersecting&&entry.intersectionRatio>=.18?'yes':'no';
+   syncTilePlayback(entry.target);
+  }
+ },{threshold:[0,.18,.5]});
+ tileVisibilityObserver.observe(v);
 }
 function stopTileVideos(){
  tileVisibilityObserver?.disconnect();tileVisibilityObserver=null;
@@ -301,7 +327,7 @@ const sc=h('div','fp-card-scroll');
  const cardMedia=h('section','fp-block');
  placeCard.dataset.hasMedia=media.length?'yes':'no';cardMedia.append(sectionHeading('02','照片与视频',btn('＋ 添加',()=>filePicker.click(),'fp-subaction')));
  const filePicker=h('input');filePicker.type='file';filePicker.accept='image/*,video/*';filePicker.multiple=true;filePicker.hidden=true;filePicker.addEventListener('change',()=>addMedia(id,[...filePicker.files]));cardMedia.append(filePicker);
- if(!media.length){const box=h('div','fp-media-empty');box.append(h('span','fp-empty-text','还没有照片或视频'));cardMedia.append(box)}else{const tiles=media.slice(0,5);const mosaic=h('div','fp-media-mosaic'+(tiles.length===1?' one':tiles.length===2?' two':''));tiles.forEach((m,i)=>{const tile=btn('',()=>openViewer(media,i,tile),m.kind==='video'?'fp-video-tile':'');tile.dataset.fpMediaIndex=String(i);if(m.kind==='photo'){const img=h('img');img.src=m.src;img.alt='旅行照片 '+(i+1);img.loading='lazy';tile.append(img)}else {const video=h('video');video.muted=true;video.defaultMuted=true;video.playsInline=true;video.setAttribute('playsinline','');video.setAttribute('webkit-playsinline','');video.loop=false;video.autoplay=false;video.preload='metadata';video.controls=false;video.setAttribute('aria-label','旅行视频动态预览');try{const blob=m.blob instanceof Blob?m.blob:new Blob([m.bytes],{type:m.type||'video/mp4'});const objectUrl=URL.createObjectURL(blob);video.dataset.sourceUrl=objectUrl;video.src=objectUrl;tileVideos.add(video);video.addEventListener('canplay',()=>{try{video.pause()}catch(_){}},{once:true});watchTileVideo(video)}catch(err){console.debug('视频预览不可用',err)}tile.append(video,h('span','fp-video-indicator','▶'))}if(i===tiles.length-1&&media.length>tiles.length)tile.append(h('span','fp-tile-more','+'+(media.length-tiles.length)));mosaic.append(tile)});cardMedia.append(mosaic);cardMedia.append(h('div','fp-photo-count',`${(p.photos||[]).length} 张照片 · ${(p.videos||[]).length} 条视频`))}
+ if(!media.length){const box=h('div','fp-media-empty');box.append(h('span','fp-empty-text','还没有照片或视频'));cardMedia.append(box)}else{const tiles=media.slice(0,5);const mosaic=h('div','fp-media-mosaic'+(tiles.length===1?' one':tiles.length===2?' two':''));tiles.forEach((m,i)=>{const tile=btn('',()=>openViewer(media,i,tile),m.kind==='video'?'fp-video-tile':'');tile.dataset.fpMediaIndex=String(i);if(m.kind==='photo'){const img=h('img');img.src=m.src;img.alt='旅行照片 '+(i+1);img.loading='lazy';tile.append(img)}else {const video=h('video');video.muted=true;video.defaultMuted=true;video.playsInline=true;video.setAttribute('playsinline','');video.setAttribute('webkit-playsinline','');video.loop=true;video.autoplay=false;video.preload='metadata';video.controls=false;video.setAttribute('aria-label','旅行视频动态预览');try{const blob=m.blob instanceof Blob?m.blob:new Blob([m.bytes],{type:m.type||'video/mp4'});const objectUrl=URL.createObjectURL(blob);video.dataset.sourceUrl=objectUrl;video.src=objectUrl;tileVideos.add(video);video.addEventListener('canplay',()=>{if(activePlaceId===id)syncTilePlayback(video)},{once:true});watchTileVideo(video)}catch(err){console.debug('视频预览不可用',err)}tile.append(video,h('span','fp-video-indicator','▶'))}if(i===tiles.length-1&&media.length>tiles.length)tile.append(h('span','fp-tile-more','+'+(media.length-tiles.length)));mosaic.append(tile)});cardMedia.append(mosaic);cardMedia.append(h('div','fp-photo-count',`${(p.photos||[]).length} 张照片 · ${(p.videos||[]).length} 条视频`))}
  const cardLinks=h('section','fp-block');
  cardLinks.append(sectionHeading('03','相关攻略',btn(editMode==='link'?'收起':editorDrafts.get(draftKey(id,'link'))?.dirty?'继续编辑':'＋ 链接',()=>{editMode=editMode==='link'?'':'link';renderPlace(id)},'fp-subaction fp-section-edit')));
  const links=linksOf(p);
