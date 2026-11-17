@@ -21,12 +21,12 @@ function flushDragPaint(){if(dragFrame){cancelAnimationFrame(dragFrame);dragFram
  if(pendingHeight!==null){const h=pendingHeight;pendingHeight=null;paint(h)}}
 function setMaxHeight(){el.style.setProperty('max-height','calc(100dvh - 32px)','important')}
 function paint(h){const px=Math.max(110,Math.round(h));if(px!==lastPainted){lastPainted=px;el.style.setProperty('height',px+'px','important')}}
-function snap(next){
+function snap(next,releaseVelocity=0){
  level=next;const goal=detents()[next],start=el.getBoundingClientRect().height;
  lastResizeGoal=goal;setMaxHeight();
  if(frame)cancelAnimationFrame(frame);
  if(reduced.matches){paint(goal);return}
- let h=start,v=0,last=0,frames=0;
+ let h=start,v=clamp(releaseVelocity,-28,28),last=0,frames=0;
  const tick=t=>{const dt=clamp(last?(t-last)/1000:.016,.001,.03);last=t;
  const approved=window.FootprintV5Spring?.step(h,goal,v,dt*1000);
  if(approved){h=approved.value;v=approved.velocity}
@@ -40,7 +40,7 @@ function start(x,y){
  if(!el.classList.contains('visible')||d)return;
  if(frame)cancelAnimationFrame(frame);frame=0;
  setMaxHeight();
- d={x,y,last:y,h:el.getBoundingClientRect().height,moved:false};
+ d={x,y,last:y,h:el.getBoundingClientRect().height,moved:false,samples:[{y,t:performance.now()}]};
 }
 function move(x,y,e){
  if(!d)return;const dx=x-d.x,dy=y-d.y;
@@ -49,6 +49,8 @@ function move(x,y,e){
   if(Math.abs(dy)<7)return;
   d.moved=true;el.dataset.collectionDragging='true';
  }
+ const now=performance.now();d.samples.push({y,t:now});
+ while(d.samples.length>2&&now-d.samples[0].t>95)d.samples.shift();
  d.last=y;const a=detents(),raw=d.h-dy;
  scheduleDragPaint(raw>a.full?a.full+(raw-a.full)*.2:raw<a.peek?a.peek-(a.peek-raw)*.27:raw);
  if(e?.cancelable)e.preventDefault();
@@ -59,7 +61,10 @@ function end(cancelled=false){
  const dy=g.last-g.y,order=['peek','half','full'];
  if(level==='peek'&&dy>80){el.querySelector('#closeDrawer')?.click();return}
  const next=clamp(order.indexOf(level)+(dy<0?1:-1),0,2);
- snap(Math.abs(dy)>32?order[next]:level);
+ const samples=g.samples,first=samples[0],last=samples[samples.length-1];
+ const releaseSpeed=(last.y-first.y)/Math.max(16,last.t-first.t);
+ // Continue the approved C V5 spring from the finger's last velocity.
+ snap(Math.abs(dy)>32?order[next]:level,clamp(-releaseSpeed*16.67,-28,28));
 }
 if(header){
  header.style.touchAction='none';
@@ -107,7 +112,7 @@ for(const content of [el.querySelector('#spotList'),el.querySelector('#drawerRou
   if(!bodyTouch.active){
    if(Math.abs(dx)>Math.abs(dy)*1.2){bodyTouch.ignore=true;return}
    if(Math.abs(dy)<10)return;
-   if(el.scrollTop>1&&dy>0||level==='full'&&dy<0){bodyTouch.ignore=true;return}
+   if((Math.max(el.scrollTop,content.scrollTop)>1&&dy>0)||(level==='full'&&dy<0)){bodyTouch.ignore=true;return}
    start(bodyTouch.x,bodyTouch.y);bodyTouch.active=!!d;
   }
   if(bodyTouch.active){move(t.clientX,t.clientY,e);e.stopPropagation()}
