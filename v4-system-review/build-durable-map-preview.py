@@ -30,6 +30,7 @@ patch("map-route-parity-v9.py","src/interaction/route-cards-v5-live.js")
 patch("map-route-stable-viewport-v11.py","src/interaction/route-cards-v5-live.js")
 patch("map-route-focus-v13.py","src/interaction/route-cards-v5-live.js")
 patch("map-route-home-poi-v15.py","src/interaction/route-cards-v5-live.js")
+patch("map-route-native-poi-v16.py","src/interaction/route-cards-v5-live.js")
 patch("map-route-parity-v9.py","route-view.html")
 patch("map-pan-performance.py","v4-map-runtime.js")
 patch("map-pan-performance.py","index.html")
@@ -59,11 +60,11 @@ for page in ("index.html","journey.html","route-view.html"):
         old_script='<script defer src="./src/interaction/route-cards-v5-live.js?v=fluid-3"></script>'
         assert old_script in html
         shared='<script defer src="./atlas-map-design.js"></script>\n<script defer src="./atlas-route-buildings.js"></script>'
-        html=html.replace(old_script,shared+"\n"+old_script.replace("fluid-3","map-route-home-poi-15"),1)
+        html=html.replace(old_script,shared+"\n"+old_script.replace("fluid-3","map-route-native-poi-16"),1)
     if page in ("journey.html","route-view.html"):
         warm='<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>\n<link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>\n<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js">'
         html=html.replace("</head>",warm+"\n</head>",1)
-    style='<link rel="stylesheet" href="./map-visual-parity.css?v=map-only-10">\n<link rel="stylesheet" href="./scope-review.css?v=scope-1">'
+    style='<link rel="stylesheet" href="./map-visual-parity.css?v=map-only-11">\n<link rel="stylesheet" href="./scope-review.css?v=scope-1">'
     script='<script src="./scope-review.js?v=scope-1" data-scope="map"></script>'
     html=html.replace("</head>",style+"\n</head>",1)
     html=html.replace("</body>",script+"\n</body>",1)
