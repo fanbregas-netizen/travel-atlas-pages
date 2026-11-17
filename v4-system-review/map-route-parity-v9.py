@@ -168,7 +168,9 @@ if p.name=='route-cards-v5-live.js':
  const routeSizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(()=>{
   if(!liveMap||!target.isConnected)return;
   liveMap.resize();
-  schedule();
+  // A ResizeObserver callback happens after layout. Immediately update
+  // existing georeferenced pins in the same frame, without rebuilding DOM.
+  liveRenderCamera(false);
  }):null;
  routeSizeObserver?.observe(target);
  window.addEventListener('pagehide',()=>routeSizeObserver?.disconnect(),{once:true});""",
