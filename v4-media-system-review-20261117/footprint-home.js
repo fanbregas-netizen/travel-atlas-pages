@@ -462,11 +462,15 @@ const iphoneGallery=(()=>{
  }
  function videoURL(s,i){
   if(s.urls.has(i))return s.urls.get(i);
+  // Reuse the pre-existing card thumbnail blob URL when possible;
+  // allocating another 80MB Blob for the same video stalls mobile Safari.
+  const tile=original(s,i),tileVideo=tile?.querySelector('video');
+  if(tileVideo?.dataset.sourceUrl)return tileVideo.dataset.sourceUrl;
   const item=s.items[i],blob=item.blob instanceof Blob?item.blob:
    new Blob([item.bytes],{type:item.type||'video/mp4'});
   const url=URL.createObjectURL(blob);
   s.urls.set(i,url);
-  while(s.urls.size>2){
+  while(s.urls.size>1){
    const old=s.urls.keys().next().value;
    URL.revokeObjectURL(s.urls.get(old));s.urls.delete(old);
   }
