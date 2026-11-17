@@ -23,6 +23,11 @@ fs.mkdirSync(output,{recursive:true});
   await page.evaluate(async()=>{
    const id='visual-review-synthetic-place';
    await window.__atlasPlaceStore.save({id,title:'潭子湾',lat:31.224361,lng:121.456569,starred:true,stage:'plan',rank:2,note:'验收卡片眉头及真实内容',photos:[],videos:[],guides:[],references:[]});
+   // Saved places are mirrored in the LIVE map runtime, not automatically
+   // appended by the repository API. Match the approved V18 E2E sequence.
+   await window.__atlasSetBookmarkStarred(id,false);
+   await window.__atlasSetBookmarkStarred(id,true);
+   if(!window.__atlasDemo.getSaved().some(p=>String(p.id)===id))throw Error('Seeded place not synchronized into map runtime');
    window.__atlasDemo.openSaved(id);
   });
   await page.waitForSelector('#fpPlaceCard:not([hidden]) .atlas-card-grip',{timeout:12000});
