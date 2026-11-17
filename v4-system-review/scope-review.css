@@ -1,0 +1,22 @@
+/* Separate subsystem review control. This is additive UI only. */
+.fp-system-switch{position:fixed;z-index:9000;right:12px;top:calc(87px + env(safe-area-inset-top));font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#304235}
+.fp-system-pill{display:flex;align-items:center;gap:6px;min-height:39px;padding:7px 12px;border:1px solid #e1e9df;border-radius:999px;background:#fffefaec;box-shadow:0 4px 18px #263c2f24;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#31493a;font-size:12px;font-weight:700;touch-action:manipulation}
+.fp-system-pill:active{transform:scale(.97)}
+.fp-system-panel{position:fixed;z-index:9002;right:12px;top:calc(132px + env(safe-area-inset-top));width:min(390px,calc(100vw - 24px));max-height:calc(100dvh - 172px - env(safe-area-inset-top));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:17px 16px calc(14px + env(safe-area-inset-bottom));border:1px solid #e1e9df;background:#fffefa;border-radius:22px;box-shadow:0 14px 50px #23392b38;color:#2b4033;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+.fp-system-panel[hidden],.fp-system-veil[hidden]{display:none!important}
+.fp-system-panel header{display:flex;align-items:start;gap:12px;margin-bottom:8px}
+.fp-system-panel header>div{flex:1}
+.fp-system-kicker{font-size:11px;color:#748878;margin:0 0 4px}
+.fp-system-panel h2{font-size:21px!important;margin:0!important;line-height:1.24!important;letter-spacing:-.04em!important;font-weight:730!important}
+.fp-system-panel .fp-system-exit{width:42px;min-width:42px;height:42px;border:0;background:transparent;color:#768777;font-size:21px;border-radius:12px;touch-action:manipulation}
+.fp-system-intro{font-size:12px!important;line-height:1.65!important;color:#708072!important;margin:3px 0 12px!important}
+.fp-system-check{display:flex;align-items:start;gap:10px;padding:12px 0;border-top:1px solid #e8eee6}
+.fp-system-check>span{flex:1;font-size:13px;line-height:1.45;color:#314838}
+.fp-system-check>select{flex:0 0 78px;width:78px;min-height:34px;border:1px solid #e1e9df;border-radius:9px;background:#f3f6ef;color:#48634f;font-size:12px;padding:0 5px}
+.fp-system-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.fp-system-actions button,.fp-system-actions a{display:grid;place-items:center;min-height:44px;padding:8px 6px;text-decoration:none;border-radius:12px;border:1px solid #dce7db;background:#eff4ed;color:#31533a;font-size:12px;font-weight:700;text-align:center;touch-action:manipulation}
+.fp-system-actions button:first-child{background:#f3e9c6;border-color:#ecdfb0;color:#574922}
+.fp-system-foot{font-size:11px;color:#839286;line-height:1.5;margin-top:12px}
+.fp-system-veil{position:fixed;inset:0;z-index:9001;background:#162b2047}
+.fp-system-panel button:focus-visible,.fp-system-switch button:focus-visible,.fp-system-panel select:focus-visible{outline:2px solid #b59755;outline-offset:2px}
+@media(max-width:370px){.fp-system-switch{right:7px}.fp-system-panel{right:8px;width:calc(100vw - 16px)}}
