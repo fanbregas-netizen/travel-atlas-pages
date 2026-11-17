@@ -69,7 +69,19 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       const tok=document.querySelector('.atlas-vector-selection .fp-vector-token');
       const m=tok&&getComputedStyle(tok).transform;
       return !!m&&m.startsWith('matrix(')&&parseFloat(m.slice(7))>1.42;
-    },null,{timeout:1300});
+    },null,{timeout:1800}).catch(async()=>{
+      throw Error('POI pop did not exceed 1.42 during camera pan: '+JSON.stringify(
+       await page.evaluate(()=>{
+        const tok=document.querySelector('.atlas-vector-selection .fp-vector-token');
+        const m=window.__atlasPOIBridge.vector();
+        return {exists:!!tok,computed:tok?getComputedStyle(tok).transform:null,
+          inline:tok?.style.transform,request:tok?.dataset.poiPopMotion,
+          selectedMarkerCount:document.querySelectorAll('.atlas-vector-selection').length,
+          moving:m?.isMoving(),center:m?.getCenter().toArray(),
+          allSelectionClasses:[...document.querySelectorAll('.atlas-vector-selection')].map(x=>x.className)};
+       })
+      ));
+    });
     await page.waitForTimeout(65);
     const mid=await page.evaluate(()=>{
       const tok=document.querySelector('.atlas-vector-selection .fp-vector-token');
