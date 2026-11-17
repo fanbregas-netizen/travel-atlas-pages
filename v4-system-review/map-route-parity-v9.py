@@ -136,7 +136,14 @@ if p.name=='route-cards-v5-live.js':
   if(!place||!pin||pin.dataset.placeId!==String(liveTopPlaceId))return;
   const frame=liveMap.getContainer(),point=liveMap.project([+place.lng,+place.lat]);
   if(!frame.clientWidth||!frame.clientHeight)return;
-  const x=point.x/frame.clientWidth*100,y=point.y/frame.clientHeight*100;
+  const camera=liveMap.getCenter();
+  // MapLibre can publish the final camera center before its subsequent
+  // project() cache catches up on WebKit. When this exact geographic POI
+  // IS the camera center, the only correct final pixel is 50%/50%.
+  const atCenter=Math.abs(camera.lng-(+place.lng))<1e-7&&
+   Math.abs(camera.lat-(+place.lat))<1e-7;
+  const x=atCenter?50:point.x/frame.clientWidth*100;
+  const y=atCenter?50:point.y/frame.clientHeight*100;
   const was=pin.style.top;
   if(Math.abs((parseFloat(pin.style.left)||0)-x)>.03)pin.style.left=x+'%';
   if(Math.abs((parseFloat(pin.style.top)||0)-y)>.03)pin.style.top=y+'%';
