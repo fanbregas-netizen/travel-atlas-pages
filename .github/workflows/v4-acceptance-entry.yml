@@ -1,0 +1,60 @@
+name: Publish isolated V4 acceptance entry
+on:
+  push:
+    branches: [preview/v4-acceptance-20261117]
+    paths: ['.github/workflows/v4-acceptance-entry.yml']
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/checkout@v4
+        with:
+          ref: f2e36d7dd8b0a9577e8e3bcd47d6c73079bcc37b
+          path: __candidate
+      - name: Reproduce existing production artifact unchanged and append independent review
+        run: |
+          python3 - <<'PY'
+          import pathlib, subprocess, hashlib, shutil, json
+          text=pathlib.Path('.github/workflows/deploy-pages.yml').read_text()
+          marker='      - name: Prepare public static site\n        run: |\n'
+          block=text.split(marker,1)[1].split('\n      - ',1)[0]
+          lines=[]
+          for line in block.splitlines():
+              if line.startswith('          '): lines.append(line[10:])
+              elif not line.strip(): lines.append('')
+              else: break
+          subprocess.run(['bash','-e','-c','\n'.join(lines)],check=True)
+          root=pathlib.Path('_site')
+          def hashes():
+              return {str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in root.rglob('*') if p.is_file()}
+          original=hashes()
+          dest=root/'v4-acceptance-20261117'
+          assert not dest.exists()
+          shutil.copytree('__candidate/v4-review-20261116',dest)
+          assert len(list(p for p in dest.rglob('*') if p.is_file()))==164
+          after=hashes()
+          assert all(after[p]==h for p,h in original.items())
+          print('All',len(original),'existing deployed files unchanged; appended 164 candidate files.')
+          PY
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4
+        id: deployment
+      - name: Verify acceptance entry
+        run: |
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-acceptance-20261117/' -o /tmp/entry.html
+          cmp /tmp/entry.html __candidate/v4-review-20261116/index.html
