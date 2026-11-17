@@ -47,11 +47,30 @@ async function gesture(cdp,coords){
         return canvas.toDataURL('image/jpeg',.86);
       });
     });
-    await page.evaluate(({id,sources})=>window.__atlasPlaceStore.save({
+    const videoFixture=await page.evaluate(async()=>{
+      const canvas=document.createElement('canvas');canvas.width=320;canvas.height=180;
+      const context=canvas.getContext('2d');
+      const stream=canvas.captureStream(15),chunks=[];
+      const recorder=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp8'});
+      const result=new Promise(resolve=>recorder.addEventListener('stop',async()=>{
+        const blob=new Blob(chunks,{type:'video/webm'});
+        resolve({type:blob.type,data:Array.from(new Uint8Array(await blob.arrayBuffer()))});
+      },{once:true}));
+      recorder.addEventListener('dataavailable',e=>{if(e.data.size)chunks.push(e.data)});
+      recorder.start();
+      for(let frame=0;frame<7;frame++){
+        context.fillStyle='hsl('+(frame*35)+' 55% 58%)';
+        context.fillRect(0,0,320,180);
+        await new Promise(resolve=>setTimeout(resolve,62));
+      }
+      recorder.stop();const fixture=await result;stream.getTracks().forEach(track=>track.stop());
+      return fixture;
+    });
+    await page.evaluate(({id,sources,videoFixture})=>window.__atlasPlaceStore.save({
       id,lat:29.492,lng:121.905,title:'媒体动效验收地点',starred:true,stage:'visited',
       photos:[{id:'p1',name:'第一张',src:sources[0]},{id:'p2',name:'第二张',src:sources[1]},{id:'p3',name:'第三张',src:sources[2]}],
-      videos:[{id:'vid-1',name:'旅行视频',type:'video/mp4',bytes:new Uint8Array([0,0,0,24,102,116,121,112]).buffer}],guides:[],note:'原始 Brief'
-    }),{id,sources});
+      videos:[{id:'vid-1',name:'旅行视频',type:videoFixture.type,bytes:new Uint8Array(videoFixture.data).buffer}],guides:[],note:'原始 Brief'
+    }),{id,sources,videoFixture});
     await page.evaluate(async id=>{
       await window.__atlasSetBookmarkStarred(id,false);
       await window.__atlasSetBookmarkStarred(id,true);
@@ -127,6 +146,7 @@ async function gesture(cdp,coords){
     await page.waitForFunction(()=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex==='3',null,{timeout:9000});
     const vid=page.locator('#fpMediaViewer .fp-gallery-cell[data-item-index="3"] video');
     assert.equal(await vid.evaluate(v=>v.controls),true,'Native video controls removed');
+    await page.waitForFunction(()=>document.querySelector('#fpMediaViewer .fp-gallery-cell[data-item-index="3"] video')?.videoWidth>=300,null,{timeout:10000});
     const vr=await vid.boundingBox();
     assert.ok(vr&&vr.width>80&&vr.height>80,'Fullscreen video has no display area');
     const sx=Math.round(vr.x+vr.width*.46),sy=Math.round(vr.y+Math.min(25,vr.height*.15));
