@@ -110,10 +110,10 @@ once(
  'route-focused-state-and-camera')
 
 once(
- """  routeMap.style.bottom=Math.max(0,px)+'px';""",
- """  // Full-viewport map stays fixed. The approved C V5 sheet floats above.
-  // As the user drags it, keep the WHOLE route within the uncovered area.
-  routeMap.style.bottom='0px';
+ "  main.style.height=px+'px';",
+ """  main.style.height=px+'px';
+  // The sheet moves OVER the independent full-screen map, so re-frame the
+  // full route in its exposed area without changing WebGL canvas size.
   scheduleVisibleRouteFit();""",
  'sheet-drag-fits-entire-route')
 
