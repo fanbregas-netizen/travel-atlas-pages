@@ -1,0 +1,36 @@
+/* Map-system-only V4 iPhone Safari acceptance.
+   The approved card geometry, C V5 gestures, and route order remain untouched. */
+#atlasPoiOverlay > .fp-poi { contain:layout style; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+#atlasPoiOverlay > .fp-poi .fp-poi-token { transform-origin:center; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+#atlasPoiOverlay > .fp-poi.is-selected .fp-poi-label { opacity:1; }
+#rc-map-pins .rc-pin.rc-choice-pin {
+  width:34px;height:34px;min-width:34px;min-height:34px;
+  display:grid;place-items:center;border-radius:50%;font-size:20px;line-height:1;
+  background:#fffefa;color:#c9ad79;border:1.7px solid #344149;
+  box-shadow:0 3px 11px #26392b24;transform:translate(-50%,-50%);
+  -webkit-tap-highlight-color:transparent;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.selected {
+  background:#fffefa;color:#c9ad79;border-color:#344149;
+  box-shadow:0 0 0 3px #eac76440,0 4px 13px #26392b25;
+}
+#rc-map-pins .rc-pin.rc-choice-pin[data-place-id^="live-map-"]{
+  font-size:19px;color:#355e45;background:#fffefa;border-color:#517356;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-map-pick-arrive {
+  animation:fp-map-arrival 490ms cubic-bezier(.22,.8,.25,1) both;
+}
+@keyframes fp-map-arrival {
+  0% { scale:.84;opacity:.7; }
+  48% { scale:1.115;opacity:1; }
+  75% { scale:.975; }
+  100% { scale:1;opacity:1; }
+}
+/* One sharp WebGL map surface, one stable geographic overlay; never fade the
+   vector canvas during a POI tap (that created perceived double contours). */
+#atlasVectorMap .maplibregl-canvas,
+#rc-live-map-canvas .maplibregl-canvas{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+#rc-map .rc-map-caption{pointer-events:none}
+@media(prefers-reduced-motion:reduce){
+ #rc-map-pins .rc-pin.rc-choice-pin.fp-map-pick-arrive{animation:none;scale:1}
+}
