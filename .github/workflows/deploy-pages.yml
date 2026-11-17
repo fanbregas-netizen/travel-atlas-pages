@@ -20,6 +20,18 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      # Independent MAP preview is copied into its own Pages directory.
+      # Root index.html and the rest of the public product are not edited.
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/v4-clean-ui-20261116
+          path: __v4_map_base
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/v4-acceptance-20261117
+          path: __v4_map_patches
+          persist-credentials: false
       - name: Prepare public static site
         run: |
           mkdir -p _site
@@ -512,6 +524,18 @@ jobs:
           assert (root/'v4-map-system-review-20261117/index.html').is_file()
           print('PASS existing',len(previous),'official + other review assets unchanged')
           PY
+      - name: Restore blue-gray map-only preview in EVERY Pages deployment
+        run: |
+          python3 __v4_map_patches/v4-system-review/build-durable-map-preview.py \
+            __v4_map_base/v4-review-20261116 \
+            __v4_map_patches/v4-system-review \
+            _site/v4-map-system-review-20261117
+          test -s _site/v4-map-system-review-20261117/index.html
+          test -s _site/v4-map-system-review-20261117/map-home-bluegray-v18.js
+          grep -q 'bluegray-19' _site/v4-map-system-review-20261117/index.html
+          grep -q 'map-home-bluegray-v18.js' _site/v4-map-system-review-20261117/index.html
+          # Root is still the approved official page, unchanged byte-for-byte.
+          cmp index.html _site/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
