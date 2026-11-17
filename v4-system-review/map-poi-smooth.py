@@ -79,18 +79,25 @@ elif path.name=='v4-map-runtime.js':
   "    select:(place)=>showDestination({...place,__poiTap:true}),",
   'overlay-poi-tap')
  once(
-  """     if(node){
-       vectorSelectionMarker?.remove();vectorSelectionMarker=null;
-       node.classList.add('is-selected');
-       return;
-     }""",
-  """     if(node){
-       vectorSelectionMarker?.remove();vectorSelectionMarker=null;
-       node.classList.add('is-selected');
-       window.AtlasPOIMotion?.popSelected?.(node.querySelector('.fp-poi-token'));
-       return;
-     }""",
-  'enlarge-one-existing-poi')
+  """  function showVectorSelection(place){
+    if(!isVector())return;
+    if(vectorSelectionMarker)vectorSelectionMarker.remove();""",
+  """  function showVectorSelection(place){
+    if(!isVector())return;
+    // Reuse the existing georeferenced POI instead of painting a duplicate.
+    const node=Array.from(document.querySelectorAll('#atlasPoiOverlay > .fp-poi')).find(el=>
+      el.dataset.poiId===String(place.id||'')&&
+      Math.abs(Number(el.dataset.poiLat)-Number(place.lat))<.00001&&
+      Math.abs(Number(el.dataset.poiLng)-Number(place.lng))<.00001);
+    if(node){
+      vectorSelectionMarker?.remove();vectorSelectionMarker=null;
+      node.classList.add('is-selected');
+      window.AtlasPOIMotion?.popSelected?.(node.querySelector('.fp-poi-token'));
+      return;
+    }
+    if(vectorSelectionMarker)vectorSelectionMarker.remove();""",
+  'one-existing-poi-owner')
+
  once(
   """    vectorSelectionMarker=new window.maplibregl.Marker({element:pin,anchor:'center'}).setLngLat([+place.lng,+place.lat]).addTo(vectorMap);
     if(window.AtlasPOIMotion?.categoryId(place.category,place.name))""",
