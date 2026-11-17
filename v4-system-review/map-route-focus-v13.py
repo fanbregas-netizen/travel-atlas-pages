@@ -40,6 +40,12 @@ once(
    try{
     if((liveMap.getLayoutProperty(id,'visibility')||'visible')!==visibility)
      liveMap.setLayoutProperty(id,'visibility',visibility);
+    // Homepage replaces the providers' bright blue/red sprite icons with
+    // its own semantic hand-drawn layer. Hide ONLY the native icon glyph;
+    // text labels and road/settlement names remain visible and clickable.
+    // Apply even when no tile-derived custom icons are available yet.
+    if(selecting&&liveMap.getPaintProperty(id,'icon-opacity')!==0)
+     liveMap.setPaintProperty(id,'icon-opacity',0);
    }catch(_){}
   }
  }
