@@ -92,5 +92,32 @@ once(
  "liveMap.easeTo({center:routeVisibleCameraCenter(+place.lng,+place.lat),zoom:liveMap.getZoom(),",
  'stored-marker-visible-center-pan')
 
+# The full-screen map no longer resizes with C V5's card height.
+# Remove obsolete resize() calls from tap/start/moveend; MapLibre's native
+# ResizeObserver still covers real window orientation/viewport changes.
+once(
+ """   if(focusSerial!==liveTapFocusSerial||!liveMap)return;
+   liveMap.resize();""",
+ """   if(focusSerial!==liveTapFocusSerial||!liveMap)return;""",
+ 'no-map-resize-on-tap')
+once(
+ """ liveMap.on('moveend',()=>{
+  // The C V5 sheet changes map height; catch the final viewport size
+  // before committing geo-to-screen positions after the camera move.
+  liveMap.resize();liveRenderCamera(true);
+  requestAnimationFrame(keepSelectedRouteGeoAligned);
+ });""",
+ """ liveMap.on('moveend',()=>{
+  // Camera ends: update existing pin positions, never resize the full
+  // viewport (MapLibre resize could synchronously re-trigger moveend).
+  liveRenderCamera(true);
+  requestAnimationFrame(keepSelectedRouteGeoAligned);
+ });""",
+ 'no-recursive-map-resize-on-moveend')
+once(
+ " if(liveMap)requestAnimationFrame(()=>{liveMap.resize();liveRenderCamera()});",
+ " if(liveMap)requestAnimationFrame(()=>liveRenderCamera());",
+ 'no-resize-on-map-pick-mode')
+
 p.write_text(s,encoding='utf-8')
 print('PASS C V5 route stable full-viewport map and exposed-map POI focus:',p)
