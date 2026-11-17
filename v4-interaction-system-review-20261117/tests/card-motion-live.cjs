@@ -11,13 +11,13 @@ if(!executablePath)throw Error('Chromium missing');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const out='interaction-motion-evidence';
 fs.mkdirSync(out,{recursive:true});
-async function drag(page,ctx,x,y,distance,sample,settleMs=1030){
+async function drag(page,ctx,x,y,distance,sample,settleMs=1030,stepDelay=27){
  const session=await ctx.newCDPSession(page),id=9,points=[];
  const point=(y0)=>[{x:Math.round(x),y:Math.round(y0),id}];
  try{
   await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:point(y)});
   for(let i=1;i<=9;i++){
-   await sleep(27);
+   await sleep(stepDelay);
    await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:point(y+distance*i/9)});
    points.push(await page.evaluate(sample));
   }
@@ -73,10 +73,21 @@ async function drag(page,ctx,x,y,distance,sample,settleMs=1030){
    assert.ok(Math.max(...up.points.map(p=>p.height))>start.height+40,'collection not following upward touch');
    assert.equal(up.rest.level,'full','collection did not snap to full');
    const grip2=await page.locator('#drawer .drawer-head .sheet-grab').boundingBox();
-   const down=await drag(page,ctx,grip2.x+grip2.width/2,grip2.y+grip2.height/2,145,sample);
-   assert.ok(Math.min(...down.points.map(p=>p.height))<up.rest.height-40,'collection not following downward touch');
-   assert.equal(down.rest.level,'half','collection did not spring back to half');
-   const collection={entry:collectionEntry,start,up:{during:up.points.map(p=>p.height),rest:up.rest},down:{during:down.points.map(p=>p.height),rest:down.rest}};
+   // C V5: a FAST 145px flick from full may skip half and land at peek.
+   const fastDown=await drag(page,ctx,grip2.x+grip2.width/2,grip2.y+grip2.height/2,145,sample);
+   assert.equal(fastDown.rest.level,'peek','C V5 fast flick did not skip the intermediate detent');
+   const gripReturn=await page.locator('#drawer .drawer-head .sheet-grab').boundingBox();
+   const fastUp=await drag(page,ctx,gripReturn.x+gripReturn.width/2,gripReturn.y+gripReturn.height/2,-160,sample);
+   assert.equal(fastUp.rest.level,'full','C V5 upward flick did not use the same velocity-based detent');
+   const gripSlow=await page.locator('#drawer .drawer-head .sheet-grab').boundingBox();
+   // SLOW swipe: same distance, but no flick assist, so it lands on half.
+   const down=await drag(page,ctx,gripSlow.x+gripSlow.width/2,gripSlow.y+gripSlow.height/2,145,sample,1030,65);
+   assert.ok(Math.min(...down.points.map(p=>p.height))<fastUp.rest.height-40,'collection not following downward touch');
+   assert.equal(down.rest.level,'half','C V5 slow swipe did not settle at half');
+   const collection={entry:collectionEntry,start,up:{during:up.points.map(p=>p.height),rest:up.rest},
+     fastDown:{during:fastDown.points.map(p=>p.height),rest:fastDown.rest},
+     fastUp:{during:fastUp.points.map(p=>p.height),rest:fastUp.rest},
+     down:{during:down.points.map(p=>p.height),rest:down.rest}};
    await page.screenshot({path:out+'/collection-'+width+'.png'});
    // Test the actual confirmed downward close gesture, not merely tapping X.
    const grip3=await page.locator('#drawer .drawer-head .sheet-grab').boundingBox();
