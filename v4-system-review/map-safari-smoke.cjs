@@ -34,8 +34,22 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     },base);
     await page.waitForFunction(()=>document.querySelectorAll('#atlasBookmarkOverlay [data-place-id="webkit-map-one-star"]').length===1,{timeout:15000});
     const first={name:'海浪动效测试',category:'sea',lat:base.lat,lng:base.lng};
+    await page.waitForFunction(()=>!window.__atlasPOIBridge.vector()?.isMoving(),{timeout:15000});
+    const beforePoiZoom=await page.evaluate(()=>window.__atlasCameraQA().zoom);
     await page.evaluate(p=>window.__atlasPOIBridge.select(p),first);
+    // Regression for the missing USER-REQUESTED map zoom: the POI tap must
+    // genuinely enlarge the vector map, not merely pulse the POI SVG.
+    await page.waitForFunction(z=>window.__atlasCameraQA().zoom>z+0.12,beforePoiZoom,{timeout:12000});
+    assert.equal(await page.evaluate(()=>window.__atlasPOIBridge.vector()?.isMoving()),true,
+      'POI zoom should animate gradually rather than jumping between camera states');
+    await page.waitForFunction(()=>!window.__atlasPOIBridge.vector()?.isMoving(),{timeout:15000});
+    const afterPoiZoom=await page.evaluate(()=>window.__atlasCameraQA().zoom);
+    assert.ok(afterPoiZoom-beforePoiZoom>=0.50,
+      'Tap must produce visible native camera enlargement; start='+beforePoiZoom+' end='+afterPoiZoom);
+    assert.ok(afterPoiZoom-beforePoiZoom<=0.74,
+      'Zoom increment must be moderate, avoiding heavy tile reload/flash');
     await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='海浪动效测试',{timeout:17000});
+    console.log('PASS POI native animated camera zoom '+JSON.stringify({width,beforePoiZoom,afterPoiZoom}));
     await page.waitForFunction(()=>!!document.querySelector('.fp-internal-poi-svg'),{timeout:17000});
     await page.evaluate(p=>window.__atlasPOIBridge.select(p),{...first,name:'公园切点测试',category:'park'});
     await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='公园切点测试',{timeout:17000});
@@ -66,7 +80,8 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.equal(layers.duplicateStarIds,0,'A saved place must have only one yellow star hit target');
     assert.equal((await page.locator('#atlasBookmarkOverlay [data-place-id="webkit-map-one-star"]').count()),1,'Expected the real test place to own exactly one yellow star');
     assert.equal(layers.visibleSurfaces.length,1,'No duplicate visible basemap surfaces');
-    assert.equal(layers.health.ready,true,'Map remains ready after POI switching');
+    await page.waitForFunction(()=>window.__atlasMapHealth()?.ready,{timeout:20000});
+    assert.equal((await page.evaluate(()=>window.__atlasMapHealth())).ready,true,'Map remains ready after POI switching');
     if(errors.some(e=>/SyntaxError|ReferenceError|TypeError/.test(e)))throw Error('Uncaught map JS: '+JSON.stringify(errors));
     console.log('PASS WebKit simulated iPhone '+JSON.stringify({width,provider:health.provider,visibleSurfaces:layers.visibleSurfaces,duplicateStarIds:layers.duplicateStarIds}));
     // The recording shows the C V5 route picker opening to a blank map, then
