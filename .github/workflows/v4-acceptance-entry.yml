@@ -88,7 +88,12 @@ jobs:
           scopes=('map','interaction','visual','media')
           for scope in scopes:
               target=root/('v4-'+scope+'-system-review-20261117')
-              assert not target.exists()
+              if target.exists():
+                  # Other teams' reviews already published by the latest main artifact.
+                  # Keep their exact contents; map-only work must not overwrite them.
+                  assert scope!='map',str(target)
+                  print('Preserving independent '+scope+' preview')
+                  continue
               shutil.copytree(dest,target)
               if scope=='map':
                   # A single, auditable runtime file is modified only in the map copy.
