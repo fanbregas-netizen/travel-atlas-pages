@@ -25,6 +25,8 @@ function fmt(date){const s=(date||'').split('-');return s.length===3?Number(s[1]
 function diffDays(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000)+1}
 function datedDayLabel(day){const d=new Date(state.start+'T12:00:00');d.setDate(d.getDate()+Math.max(0,day-1));return '第'+day+'天 · '+fmt(localDate(d))}
 const storeKey='__footprint_v4_batch_c_review_20261111_v1';
+// Shared by the reviewed nested V5 controller AND the real route persistence adapter.
+const routeEngine=window.FootprintRouteEngine;
 let checks={};
 try{checks=JSON.parse(localStorage.getItem(storeKey)||'{}')||{}}catch(_){}
 checks.C01='ok';
@@ -619,7 +621,6 @@ window.__batchC={version:'V5-confirmed-date-and-auto-days',show:showReview,open:
   }
 
 /* Approved C V5: optional route settings use its existing mini sheet. */
-const routeEngine=window.FootprintRouteEngine;
 const routeModes=[['car','驾车'],['walk','步行'],['bike','骑行'],['transit','公共交通']];
 const routeModeName=mode=>routeModes.find(x=>x[0]===mode)?.[1]||'驾车';
 const routeLegKey=i=>{
