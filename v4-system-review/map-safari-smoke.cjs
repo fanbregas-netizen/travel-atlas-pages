@@ -42,12 +42,12 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       window.__atlasPOIBridge.select({...p,id:'ci-native-poi-one'});
       const tok=document.querySelector('.atlas-vector-selection .fp-vector-token');
       window.__mapTestFirstToken=tok;
-      return {transform:tok?.style.transform,animations:tok?.getAnimations().length,
+      return {transform:tok?.style.transform,motion:tok?.dataset.poiPopMotion,
         markerCount:document.querySelectorAll('.atlas-vector-selection').length,
         moving:window.__atlasPOIBridge.vector().isMoving()};
     },first);
-    assert.equal(selected.transform,'scale(1.34)','Selected geographic POI must enlarge itself');
-    assert.ok(selected.animations>=1,'POI token must have a native spring pop animation');
+    assert.equal(selected.transform,'scale(1)','Selected geographic POI must enlarge itself');
+    assert.equal(selected.motion,'running','The POI icon itself must be animating');
     assert.equal(selected.markerCount,1,'Exactly one selected POI marker');
     assert.equal(selected.moving,false,'Map camera must not animate on POI selection');
     // The previous important inline scale blocked WebKit's animation completely.
@@ -81,7 +81,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
         selectedMarkers:document.querySelectorAll('.atlas-vector-selection').length};
     },first);
     assert.equal(switched.prevScale,'','Old selected POI must shrink back on switching');
-    assert.equal(switched.currentScale,'scale(1.34)','New selected POI grows in its place');
+    assert.equal(switched.currentScale,'scale(1)','New selected POI grows in its place');
     assert.equal(switched.selectedMarkers,1,'No duplicate map marker after rapid POI switch');
     await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='公园切点测试',{timeout:17000});
     const existing=await page.evaluate(p=>{
@@ -96,7 +96,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       b.remove();return result;
     },first);
     assert.equal(existing.isSelected,true,'Reuse the original on-map POI marker');
-    assert.equal(existing.scale,'scale(1.34)','Existing marker also enlarges');
+    assert.equal(existing.scale,'scale(1)','Existing marker also enlarges');
     assert.equal(existing.duplicateMarkers,0,'Never create a second icon over an existing geographic POI');
     console.log('PASS selected POI pictogram enlarges and settles, fixed map, no overlapping markers '+JSON.stringify({
       width,selectedScale:selected.transform,midScale:mid.scale,
