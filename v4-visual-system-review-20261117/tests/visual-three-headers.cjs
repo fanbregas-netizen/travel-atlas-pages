@@ -4,15 +4,16 @@
 const fs=require('node:fs');
 const assert=require('node:assert/strict');
 const cp=require('node:child_process');
-const {chromium}=require('playwright-core');
+const {chromium,webkit}=require('playwright-core');
 const binary=['google-chrome','google-chrome-stable','chromium'].map(x=>{try{return cp.execFileSync('which',[x],{encoding:'utf8'}).trim()}catch{return null}}).find(Boolean);
-if(!binary)throw new Error('Chrome not installed on QA runner');
+const engine=process.env.VISUAL_BROWSER==='webkit'?'webkit':'chromium';
+if(engine==='chromium'&&!binary)throw new Error('Chrome not installed on QA runner');
 const base='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-visual-system-review-20261117/';
-const output='visual-review-live-evidence';
+const output='visual-review-live-evidence'+(engine==='webkit'?'/webkit':'');
 fs.mkdirSync(output,{recursive:true});
 (async()=>{
- const browser=await chromium.launch({headless:true,executablePath:binary,args:['--no-sandbox','--disable-dev-shm-usage']});
- const evidence={source:'public GitHub Pages, not local files',url:base,viewport:{width:390,height:844},results:[],pageErrors:[]};
+ const browser=engine==='webkit'?await webkit.launch({headless:true}):await chromium.launch({headless:true,executablePath:binary,args:['--no-sandbox','--disable-dev-shm-usage']});
+ const evidence={source:'public GitHub Pages, not local files',engine,url:base,viewport:{width:390,height:844},results:[],pageErrors:[]};
  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2,serviceWorkers:'block'});
  const page=await context.newPage();
  page.on('pageerror',e=>{evidence.pageErrors.push(String(e.message).slice(0,250))});
@@ -71,7 +72,7 @@ fs.mkdirSync(output,{recursive:true});
   await page.screenshot({path:output+'/route.png',fullPage:false});
   for(const card of ['place','favorites','route'])assert.ok(fs.statSync(output+'/'+card+'.png').size>10000,card+' screenshot missing');
   fs.writeFileSync(output+'/metrics.json',JSON.stringify(evidence,null,2));
-  console.log('PASS PUBLIC CHROME RENDERED: '+JSON.stringify(evidence.results));
+  console.log('PASS PUBLIC '+engine.toUpperCase()+' RENDERED: '+JSON.stringify(evidence.results));
   console.log('CAPTURED '+fs.readdirSync(output).join(', '));
  }catch(e){
   fs.writeFileSync(output+'/metrics.json',JSON.stringify({...evidence,error:String(e.stack||e)},null,2));
