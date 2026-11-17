@@ -70,3 +70,57 @@
 #pinLayer .route-pin.active .pin-body{background:#e8f1ea;color:#294938;border-color:#88a99a;outline:none;box-shadow:0 5px 16px #22413138}
 @keyframes fp-route-stop-pop{0%{scale:1}35%{scale:1.4}65%{scale:1.13}100%{scale:1.2}}
 @media(prefers-reduced-motion:reduce){#rc-map-pins .rc-pin.fp-map-pick-arrive,#pinLayer .route-pin.active{animation:none!important}}
+
+
+/* fp-route-stable-viewport-v11
+   iPhone route-planner map is a STABLE full-screen geographic canvas.
+   The confirmed C V5 spring sheet floats ABOVE that map. Never resize or
+   scale WebGL tiles when the sheet is dragged down/up. */
+body.route-v5-live #rc-map {
+  position:absolute!important;
+  inset:0!important;
+  top:0!important;right:0!important;bottom:0!important;left:0!important;
+  width:100%!important;height:100%!important;max-height:none!important;
+  transform:none!important;transition:none!important;
+  overflow:hidden!important;isolation:isolate;
+}
+body.route-v5-live #rc-live-map-canvas {
+  position:absolute!important;inset:0!important;
+  width:100%!important;height:100%!important;
+  transform:none!important;transition:none!important;
+  contain:layout paint;
+}
+body.route-v5-live #rc-map .map-art{display:none!important}
+body.route-v5-live #rc-map-pins,
+body.route-v5-live #rc-map svg.rc-route{height:100%;width:100%}
+body.route-v5-live #rc-main{
+  z-index:7; /* floating sheet above same unchanged map and POI plane */
+}
+body.route-v5-live #rc-map.rc-map-picking .rc-map-caption {
+  display:none!important; /* keep map-select mode open and uncluttered */
+}
+body.route-v5-live #rc-live-map-pick-hint {
+  top:calc(77px + env(safe-area-inset-top,0px));
+  left:14px;right:14px;
+  border-radius:16px;
+  padding:7px 8px 7px 13px;
+  font-size:12px;line-height:1.4;
+  background:#fffefaed;
+  box-shadow:0 3px 12px #263c2a22;
+}
+body.route-v5-live .fp-system-switch {
+  display:none!important; /* review-only overlay is not route product UI */
+}
+body.route-v5-live #rc-live-map-canvas .maplibregl-ctrl-bottom-right {
+  bottom:var(--fp-route-sheet-overlay,280px)!important;
+  right:8px!important;
+}
+body.route-v5-live #rc-live-map-canvas .maplibregl-ctrl-attrib{
+  max-width:min(250px,calc(100vw - 35px));
+  font-size:9px;line-height:15px;
+  background:#fffefaee;
+  border-radius:10px;
+}
+@media(prefers-reduced-motion:reduce){
+  body.route-v5-live #rc-map {transition:none!important}
+}
