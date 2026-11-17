@@ -50,6 +50,25 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.equal(layers.health.ready,true,'Map remains ready after POI switching');
     if(errors.some(e=>/SyntaxError|ReferenceError|TypeError/.test(e)))throw Error('Uncaught map JS: '+JSON.stringify(errors));
     console.log('PASS WebKit simulated iPhone '+JSON.stringify({width,provider:health.provider,visibleSurfaces:layers.visibleSurfaces,duplicateStarIds:layers.duplicateStarIds}));
+    // The recording shows the C V5 route picker opening to a blank map, then
+    // switching to oversized black building silhouettes. Test the map surface
+    // only; route state and card gestures are not modified.
+    await page.goto(new URL('./journey.html',URL).href,{waitUntil:'domcontentloaded',timeout:60000});
+    await page.waitForFunction(()=>window.__atlasLivePlannerMap?.isStyleLoaded?.()===true,{timeout:55000});
+    await page.waitForFunction(()=>{const c=document.querySelector('#rc-live-map-canvas canvas');return !!c&&c.width>50&&c.height>50},{timeout:18000});
+    const picker=await page.evaluate(()=>{
+      const m=window.__atlasLivePlannerMap;
+      const st=m?.getStyle?.();
+      return {visible:!!m&&!!document.querySelector('#rc-live-map-canvas canvas'),
+        mapStyleUrl:window.FootprintSharedMap?.routeFigureStyle?.(),
+        hasOldBlackBuildingOverlay:!!st?.layers?.some(x=>x.id==='footprint-buildings-black'),
+        sourceCount:Object.keys(st?.sources||{}).length};
+    });
+    assert.equal(picker.visible,true);
+    assert.equal(picker.mapStyleUrl,'https://tiles.openfreemap.org/styles/bright');
+    assert.equal(picker.hasOldBlackBuildingOverlay,false);
+    assert.ok(picker.sourceCount>0,'Real vector basemap layers should load');
+    console.log('PASS WebKit V4 shared route picker basemap '+JSON.stringify({width,...picker}));
    }finally{await context.close();}
   }
  }finally{await browser.close();}
