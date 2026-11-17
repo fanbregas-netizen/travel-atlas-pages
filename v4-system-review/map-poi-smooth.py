@@ -55,21 +55,62 @@ if path.name=='index.html':
   'sync-during-map-pan')
  once(
   "      window.AtlasPOIMotion?.play(b.querySelector('.fp-poi-token'),b.dataset.poiCategory,b.dataset.poiName);",
-  """      // Instantly pop the SINGLE POI pictogram; the geographic map stays fixed.
+  """      // The pictogram pops while the camera smoothly pans at a CONSTANT zoom.
       window.AtlasPOIMotion?.popSelected?.(b.querySelector('.fp-poi-token'));
       window.AtlasPOIMotion?.play(b.querySelector('.fp-poi-token'),b.dataset.poiCategory,b.dataset.poiName);""",
   'existing-poi-apple-scale')
 elif path.name=='v4-map-runtime.js':
- # The selected map pictogram grows. The MAP never zooms as a side effect
- # of a POI tap. Other approved searches, saved stars, route camera flows
- # keep their original behavior.
+ # The user-approved POI pictogram pop runs IN PLACE; map camera should
+ # smoothly PAN (not ZOOM) to put the same geographic location at the
+ # actual center of the iPhone screen. Rapid taps cancel the prior pan.
+ once(
+  """  let destinationRevealToken=0,destinationRevealTimer=null;
+  function showDestination(d){""",
+  """  let destinationRevealToken=0,destinationRevealTimer=null;
+  function centerTappedPOI(d){
+    const lat=Number(d?.lat),lng=Number(d?.lng);
+    if(d?.lat==null||d?.lng==null||!Number.isFinite(lat)||!Number.isFinite(lng)||
+        Math.abs(lat)>85.05||Math.abs(lng)>180)return false;
+    const prefersStill=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+    const duration=prefersStill?0:500;
+    const easing=t=>1-Math.pow(1-t,3);
+    // Use the renderer's camera (not CSS-translation of raster tiles):
+    // vector canvas and georeferenced POI SVGs must move as one surface.
+    if(isVector()&&vectorMap){
+      const p=vectorMap.project([lng,lat]);
+      const canvas=vectorMap.getContainer();
+      if(!p||Math.hypot(p.x-canvas.clientWidth/2,p.y-canvas.clientHeight/2)<2)return false;
+      userHasMovedMap=true;
+      vectorMap.stop();
+      vectorMap.easeTo({center:[lng,lat],zoom:vectorMap.getZoom(),
+        duration,easing,essential:true});
+      return true;
+    }
+    if(isOfficial()&&officialMap){
+      userHasMovedMap=true;
+      officialMap.setZoomAndCenter(officialMap.getZoom(),wgsToGcj(lng,lat),
+        prefersStill,duration);
+      return true;
+    }
+    if(map){
+      const p=map.project?.([lng,lat]),container=map.getContainer?.();
+      if(p&&container&&Math.hypot(p.x-container.clientWidth/2,p.y-container.clientHeight/2)<2)return false;
+      userHasMovedMap=true;
+      map.stop?.();
+      map.easeTo({center:[lng,lat],zoom:map.getZoom(),duration,easing,essential:true});
+      return true;
+    }
+    return false;
+  }
+  function showDestination(d){""",
+  'poimap-pan-center-function')
  once(
   """    const moving=window.__atlasInteractionMode==='swipe-card'
       ?focusSelectedLocation(d):focusMapPlaceIfNeeded(d);""",
-  """    const moving=d.__poiTap?false:
+  """    const moving=d.__poiTap?centerTappedPOI(d):
       (window.__atlasInteractionMode==='swipe-card'
        ?focusSelectedLocation(d):focusMapPlaceIfNeeded(d));""",
-  'poi-tap-does-not-zoom-map')
+  'poi-icon-pop-plus-map-pan-to-center')
  once(
   "      showDestination(point);return;",
   "      showDestination({...point,__poiTap:true});return;",
