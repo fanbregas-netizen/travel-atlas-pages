@@ -352,7 +352,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       const m=window.__atlasLivePlannerMap,pin=document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),
         area=window.__atlasRouteViewportQA?.();
       return !!m&&!m.isMoving()&&!!pin&&!!area&&
-        Math.abs((parseFloat(pin.style.top)||0)*area.height/100-area.targetY)<12;
+        Math.abs((parseFloat(pin.style.top)||0)*area.height/100-(window.__atlasRouteCameraTargetQA?.targetY??area.targetY))<8;
     },null,{timeout:16000}).catch(async()=>{
       throw Error('Route tapped location failed visible-map center: '+JSON.stringify(
         await page.evaluate(()=>{
@@ -383,7 +383,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
         homeCategoryMapReady:typeof window.AtlasPOIIcons?.categoryFor==='function',
         semanticHospital:window.AtlasPOIIcons?.categoryFor?.('hospital','上海市嘉定区南翔医院')==='hospital',
         semanticIconSrc:window.AtlasPOIIcons?.fileFor?.('hospital','医院'),
-        centerErrorPx:Math.hypot(x-frame.width/2,y-(visible?.targetY??frame.height/2)),
+        centerErrorPx:Math.hypot(x-frame.width/2,y-(window.__atlasRouteCameraTargetQA?.targetY??visible?.targetY??frame.height/2)),
         visibleAboveSheet:y<(visible?.sheetTop??frame.height)-16,
         mapUncoveredBottom:visible?.visibleBottom,
         targetY:visible?.targetY,sheetTop:visible?.sheetTop,
