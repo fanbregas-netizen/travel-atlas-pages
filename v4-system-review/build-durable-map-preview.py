@@ -39,7 +39,7 @@ patch("map-camera-coherence.py","v4-map-runtime.js")
 patch("map-camera-coherence.py","index.html")
 for asset in ("v4-map-runtime.js","src/map/shared-v4-map.js","src/interaction/route-cards-v5-live.js","src/interaction/poi-svg-motion-v4.js"):
     subprocess.run(["node","--check",str(target/asset)],check=True)
-for asset in ("scope-review.js","scope-review.css","map-visual-parity.css"):
+for asset in ("scope-review.js","scope-review.css","map-visual-parity.css","map-home-bluegray-v18.css","map-home-bluegray-v18.js"):
     shutil.copyfile(patchdir/asset,target/asset)
 for page in ("index.html","journey.html","route-view.html"):
     file=target/page
@@ -56,6 +56,7 @@ for page in ("index.html","journey.html","route-view.html"):
         assert "poi-pop-5" in html
         assert "map-safari-acceptance-8" in html
         assert "The selected icon already animates in place" in html
+        html=html.replace("</head>",'<link rel="stylesheet" href="./map-home-bluegray-v18.css?v=bluegray-18">\n<script defer src="./map-home-bluegray-v18.js?v=bluegray-18"></script>\n</head>',1)
     if page=="journey.html":
         old_script='<script defer src="./src/interaction/route-cards-v5-live.js?v=fluid-3"></script>'
         assert old_script in html
@@ -75,8 +76,8 @@ for rel,digest in originals.items():
     assert copied.is_file(),rel
     if rel not in allowed:
         assert hashlib.sha256(copied.read_bytes()).digest()==digest,rel
-assert sum(1 for f in target.rglob("*") if f.is_file())==167
+assert sum(1 for f in target.rglob("*") if f.is_file())==169
 assert "window.AtlasPOIMotion=Object.freeze({play,popSelected" in (target/"src/interaction/poi-svg-motion-v4.js").read_text()
 assert "function liveRenderCamera(rebuild=true)" in (target/"src/interaction/route-cards-v5-live.js").read_text()
 assert "return 'https://tiles.openfreemap.org/styles/bright';" in (target/"src/map/shared-v4-map.js").read_text()
-print("PASS persistent isolated map preview: 167 assets, 7 scoped modified source files, official files unaffected")
+print("PASS persistent isolated map preview: 169 assets, homepage-only bluegray map, official files unaffected")
