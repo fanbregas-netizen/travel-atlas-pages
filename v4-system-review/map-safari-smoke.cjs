@@ -296,6 +296,27 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     });
     await page.waitForFunction(()=>window.__atlasRouteV5Live?.state?.selected?.length>=1,{timeout:15000});
     await page.waitForFunction(()=>document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),{timeout:12000});
+    await page.waitForFunction(()=>document.querySelector('#rc-map-pins [data-place-id^="live-map-"].fp-route-tapped'),{timeout:10000});
+    await page.waitForFunction(()=>!window.__atlasLivePlannerMap.isMoving(),{timeout:12000});
+    const routePoi=await page.evaluate(()=>{
+      const map=window.__atlasLivePlannerMap,pin=document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),
+        frame=document.getElementById('rc-map').getBoundingClientRect(),img=pin?.querySelector('.fp-route-poi-art');
+      const x=(parseFloat(pin?.style.left)||0)*frame.width/100,
+        y=(parseFloat(pin?.style.top)||0)*frame.height/100;
+      return {
+        pinCount:document.querySelectorAll('#rc-map-pins [data-place-id^="live-map-"]').length,
+        foreground:pin?.classList.contains('fp-route-tapped'),zIndex:Number(getComputedStyle(pin).zIndex),
+        hasHanddrawnIcon:!!img&&/\/icons\/(?:16_add_place|21_mountain|22_sea|23_forest|24_town|26_lake|43_food|44_stay|45_museum|46_park|47_coffee|48_transit)\.svg$/.test(img.getAttribute('src')||''),
+        centerErrorPx:Math.hypot(x-frame.width/2,y-frame.height/2),zoom:map.getZoom()
+      };
+    });
+    assert.equal(routePoi.pinCount,1,'Route map point created duplicate pins');
+    assert.equal(routePoi.foreground,true,'Route POI lost selected foreground after motion');
+    assert.ok(routePoi.zIndex>=16,'Selected route POI not in top map layer');
+    assert.equal(routePoi.hasHanddrawnIcon,true,'Route POI did not reuse V3 handdrawn art');
+    assert.ok(routePoi.centerErrorPx<3,'Selected route pin did not settle at geographic viewport center: '+JSON.stringify(routePoi));
+    await page.screenshot({path:`map-evidence/route-map-poi-home-parity-${width}.png`,animations:'disabled'});
+
     await page.waitForTimeout(570);
     const initialPin=await page.locator('#rc-map-pins [data-place-id^="live-map-"]').first().evaluate(el=>parseFloat(el.style.left));
     await page.evaluate(()=>{
