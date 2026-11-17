@@ -8,7 +8,7 @@ const {chromium,webkit}=require('playwright-core');
 const binary=['google-chrome','google-chrome-stable','chromium'].map(x=>{try{return cp.execFileSync('which',[x],{encoding:'utf8'}).trim()}catch{return null}}).find(Boolean);
 const engine=process.env.VISUAL_BROWSER==='webkit'?'webkit':'chromium';
 if(engine==='chromium'&&!binary)throw new Error('Chrome not installed on QA runner');
-const base='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-visual-system-review-20261117/';
+const base=process.env.VISUAL_TEST_BASE||'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-visual-system-review-20261117/';
 const output='visual-review-live-evidence'+(engine==='webkit'?'/webkit':'');
 fs.mkdirSync(output,{recursive:true});
 (async()=>{
