@@ -46,9 +46,25 @@ async function drag(page,ctx,x,y,distance,sample,settleMs=1030){
     row.className='spotrow';row.textContent='触控自检地点';row.type='button';
     list.replaceChildren(row);drawer.scrollTop=0;
    });
-   await sleep(1000);
+   // Film the physical C V5 collection entrance instead of checking only rest.
+   const collectionEntry=await page.evaluate(async()=>{
+    const el=document.querySelector('#drawer'),frames=[];
+    for(let i=0;i<58;i++){
+     await new Promise(done=>requestAnimationFrame(done));
+     const rect=el.getBoundingClientRect();
+     frames.push({h:rect.height,y:rect.top,transition:getComputedStyle(el).transitionDuration,
+       transform:getComputedStyle(el).transform});
+    }
+    return frames;
+   });
+   fs.writeFileSync(out+'/collection-entry-'+width+'.json',JSON.stringify(collectionEntry,null,2));
+   assert.ok(collectionEntry.every(p=>parseFloat(p.transition)===0),'collection still overlays a second CSS transition');
+   assert.ok(collectionEntry.every(p=>Math.abs(p.y+p.h-844)<6),'collection not physically anchored to bottom');
+   assert.ok(Math.max(...collectionEntry.map(p=>p.h))-collectionEntry.at(-1).h<38,'collection entrance has excessive overshoot');
+   await sleep(300);
    const sample=()=>window.__atlasCollectionSheet.getState();
    const start=await page.evaluate(sample);
+   assert.equal(start.engine,'C V5','collection is still using its old motion controller');
    assert.equal(start.level,'half','collection did not start at approved half');
    const grip=await page.locator('#drawer .drawer-head .sheet-grab').boundingBox();
    assert.ok(grip&&grip.height>2,'missing drag grip');
@@ -60,23 +76,31 @@ async function drag(page,ctx,x,y,distance,sample,settleMs=1030){
    const down=await drag(page,ctx,grip2.x+grip2.width/2,grip2.y+grip2.height/2,145,sample);
    assert.ok(Math.min(...down.points.map(p=>p.height))<up.rest.height-40,'collection not following downward touch');
    assert.equal(down.rest.level,'half','collection did not spring back to half');
-   const collection={start,up:{during:up.points.map(p=>p.height),rest:up.rest},down:{during:down.points.map(p=>p.height),rest:down.rest}};
+   const collection={entry:collectionEntry,start,up:{during:up.points.map(p=>p.height),rest:up.rest},down:{during:down.points.map(p=>p.height),rest:down.rest}};
    await page.screenshot({path:out+'/collection-'+width+'.png'});
    // Test the actual confirmed downward close gesture, not merely tapping X.
    const grip3=await page.locator('#drawer .drawer-head .sheet-grab').boundingBox();
    const peekSwipe=await drag(page,ctx,grip3.x+grip3.width/2,grip3.y+grip3.height/2,163,sample);
    assert.equal(peekSwipe.rest.level,'peek','downswipe from half did not reach peek');
    const grip4=await page.locator('#drawer .drawer-head .sheet-grab').boundingBox();
-   await drag(page,ctx,grip4.x+grip4.width/2,grip4.y+grip4.height/2,143,sample,5);
-   await sleep(80);
-   const closing=await page.evaluate(()=>({visible:document.querySelector('#drawer').classList.contains('visible'),
-     inlineHeight:document.querySelector('#drawer').style.height}));
-   assert.equal(closing.visible,false,'collection close control did not dismiss sheet');
-   assert.ok(closing.inlineHeight,'collection height was cleared before dismissal animation completed');
-   await sleep(480);
-   const afterClose=await page.evaluate(()=>document.querySelector('#drawer').style.height);
-   assert.equal(afterClose,'','collection retained stale height after close animation');
-   collection.close={gesture:'half -> peek -> swipe dismiss',closing,cleaned:true};
+   const closingSwipe=await drag(page,ctx,grip4.x+grip4.width/2,grip4.y+grip4.height/2,143,sample,20);
+   await sleep(70);
+   const closing=await page.evaluate(()=>({
+     ...window.__atlasCollectionSheet.getState(),
+     inlineHeight:document.querySelector('#drawer').style.height
+   }));
+   assert.equal(closing.opened,true,'collection disappeared before the C V5 dismissal spring played');
+   assert.equal(closing.closing,true,'collection is not running its physical closing spring');
+   assert.ok(closing.height<peekSwipe.rest.height-35,'closing did not move the card downward');
+   await sleep(1450);
+   const afterClose=await page.evaluate(()=>({
+     ...window.__atlasCollectionSheet.getState(),
+     inlineHeight:document.querySelector('#drawer').style.height
+   }));
+   assert.equal(afterClose.opened,false,'swipe dismissal did not call original close logic');
+   assert.equal(afterClose.inlineHeight,'','collection retained stale height after close animation');
+   fs.writeFileSync(out+'/collection-close-'+width+'.json',JSON.stringify({closingSwipe,closing,afterClose},null,2));
+   collection.close={gesture:'half -> peek -> swipe dismiss',closing,afterClose,cleaned:true};
    await page.goto(base+'journey.html?interaction-qa='+width,{waitUntil:'domcontentloaded',timeout:60000});
    await page.waitForFunction(()=>!!window.__atlasRouteV5Live?.ready&&!!window.__batchC?.state&&!!document.querySelector('#rc-main'),null,{timeout:25000});
    // Record the REAL entrance every frame. CSS/JS double motion previously produced
@@ -120,6 +144,6 @@ async function drag(page,ctx,x,y,distance,sample,settleMs=1030){
    await ctx.close();
   }
   fs.writeFileSync(out+'/card-motion-report.json',JSON.stringify(report,null,2));
-  console.log('PASS interaction review real-card 375/390/430: collection drag+animated close, bounded route entry, drag and map edge synchrony');
+  console.log('PASS interaction review real-card 375/390/430: B05 uses C V5 motor, physical entry, 3 detents, spring dismissal; route map synchronized');
  }finally{await browser.close()}
 })().catch(e=>{console.error('FAIL isolated interaction motion: '+e.stack);process.exitCode=1});
