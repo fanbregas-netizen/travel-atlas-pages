@@ -313,3 +313,54 @@ html.visual-after body #fpPlaceCard .fp-card-header > .fp-card-close,
 html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper .rc-dismiss{
  font-size:24px!important;font-weight:350!important;line-height:1!important;
 }
+
+/* SECTION-ACTION-ICONS.20261117.1
+   Reuse ORIGINAL POI-series hand-drawn SVG files (64px viewBox,
+   black #161616 stroke, round caps/joins). CSS-only visual substitution:
+   leaves the existing edit, file-picker, and guide-link button events intact.
+   Before mode stays the original text-button design. */
+html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+3)
+ .fp-subheading > button.fp-subaction{
+  box-sizing:border-box!important;
+  display:grid!important;place-items:center!important;
+  flex:0 0 44px!important;
+  width:44px!important;height:44px!important;
+  min-width:44px!important;max-width:44px!important;
+  min-height:44px!important;max-height:44px!important;
+  padding:0!important;margin:0 0 0 auto!important;
+  border:1px solid #dfe7dd!important;
+  border-radius:13px!important;
+  background:#f2f5f0!important;
+  box-shadow:none!important;
+  font-size:0!important;line-height:0!important;
+  color:transparent!important;
+  opacity:1!important;visibility:visible!important;
+  pointer-events:auto!important;
+  cursor:pointer!important;
+}
+html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+3)
+ .fp-subheading > button.fp-subaction::before{
+  content:""!important;display:block!important;
+  width:23px!important;height:23px!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:contain!important;
+  pointer-events:none!important;
+}
+html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(1)
+ .fp-subheading > button.fp-subaction::before{
+  background-image:url('/travel-atlas-pages/v4-review-20261116/icons/14_edit.svg')!important;
+}
+html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(2)
+ .fp-subheading > button.fp-subaction::before{
+  background-image:url('/travel-atlas-pages/v4-review-20261116/icons/13_add_media.svg')!important;
+}
+html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(3)
+ .fp-subheading > button.fp-subaction::before{
+  background-image:url('/travel-atlas-pages/v4-review-20261116/icons/29_open_link.svg')!important;
+}
+/* Preserve the approved 44px accessible hit target; focus still visible. */
+html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+3)
+ .fp-subheading > button.fp-subaction:focus-visible{
+  outline:2px solid #59765f!important;outline-offset:2px!important;
+}
