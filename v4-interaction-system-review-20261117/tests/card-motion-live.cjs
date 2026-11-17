@@ -11,7 +11,7 @@ if(!executablePath)throw Error('Chromium missing');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const out='interaction-motion-evidence';
 fs.mkdirSync(out,{recursive:true});
-async function drag(page,ctx,x,y,distance,sample){
+async function drag(page,ctx,x,y,distance,sample,settleMs=1030){
  const session=await ctx.newCDPSession(page),id=9,points=[];
  const point=(y0)=>[{x:Math.round(x),y:Math.round(y0),id}];
  try{
@@ -22,7 +22,7 @@ async function drag(page,ctx,x,y,distance,sample){
    points.push(await page.evaluate(sample));
   }
   await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-  await sleep(1030);
+  await sleep(settleMs);
   return {points,rest:await page.evaluate(sample)};
  }finally{await session.detach().catch(()=>{})}
 }
@@ -62,8 +62,12 @@ async function drag(page,ctx,x,y,distance,sample){
    assert.equal(down.rest.level,'half','collection did not spring back to half');
    const collection={start,up:{during:up.points.map(p=>p.height),rest:up.rest},down:{during:down.points.map(p=>p.height),rest:down.rest}};
    await page.screenshot({path:out+'/collection-'+width+'.png'});
-   // Closing geometry must not jump when the visible class is removed.
-   await page.evaluate(()=>document.querySelector('#closeDrawer')?.click());
+   // Test the actual confirmed downward close gesture, not merely tapping X.
+   const grip3=await page.locator('#drawer .drawer-head .sheet-grab').boundingBox();
+   const peekSwipe=await drag(page,ctx,grip3.x+grip3.width/2,grip3.y+grip3.height/2,163,sample);
+   assert.equal(peekSwipe.rest.level,'peek','downswipe from half did not reach peek');
+   const grip4=await page.locator('#drawer .drawer-head .sheet-grab').boundingBox();
+   await drag(page,ctx,grip4.x+grip4.width/2,grip4.y+grip4.height/2,143,sample,5);
    await sleep(80);
    const closing=await page.evaluate(()=>({visible:document.querySelector('#drawer').classList.contains('visible'),
      inlineHeight:document.querySelector('#drawer').style.height}));
@@ -72,7 +76,7 @@ async function drag(page,ctx,x,y,distance,sample){
    await sleep(480);
    const afterClose=await page.evaluate(()=>document.querySelector('#drawer').style.height);
    assert.equal(afterClose,'','collection retained stale height after close animation');
-   collection.close={closing,cleaned:true};
+   collection.close={gesture:'half -> peek -> swipe dismiss',closing,cleaned:true};
    await page.goto(base+'journey.html?interaction-qa='+width,{waitUntil:'domcontentloaded',timeout:60000});
    await page.waitForFunction(()=>!!window.__atlasRouteV5Live?.ready&&!!window.__batchC?.state&&!!document.querySelector('#rc-main'),null,{timeout:25000});
    // Record the REAL entrance every frame. CSS/JS double motion previously produced
