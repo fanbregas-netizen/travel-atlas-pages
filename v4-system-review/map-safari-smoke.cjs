@@ -25,7 +25,19 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     await page.waitForFunction(()=>{
       const t=window.__atlasBlueGrayMap?.status?.();
       return !!t?.ready&&t.applied>0&&t.theme==='bluegray-v18';
-    },null,{timeout:15000});
+    },null,{timeout:5000}).catch(async()=>{
+      const debug=await page.evaluate(()=>({
+        hasThemeObj:!!window.__atlasBlueGrayMap,
+        themeStatus:window.__atlasBlueGrayMap?.status?.(),
+        bridge:!!window.__atlasPOIBridge,
+        vector:!!window.__atlasPOIBridge?.vector?.(),
+        loaded:window.__atlasPOIBridge?.vector?.()?.isStyleLoaded?.(),
+        link:!!document.querySelector('link[href*="map-home-bluegray"]'),
+        script:!!document.querySelector('script[src*="map-home-bluegray"]'),
+        scripts:[...document.scripts].filter(x=>x.src.includes('bluegray')).map(x=>x.src)
+      }));
+      throw Error('Real bluegray map theme not applied: '+JSON.stringify({debug,errors}));
+    });
     const palette=await page.evaluate(()=>{
       const m=window.__atlasPOIBridge.vector(),p=window.__atlasBlueGrayMap.palette;
       const layers=m.getStyle().layers;
