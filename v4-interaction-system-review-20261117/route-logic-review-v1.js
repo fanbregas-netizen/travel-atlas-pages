@@ -89,7 +89,7 @@ var anchorMap=null,anchorQueued=false;
 function toast(s){
  var t=el('fpRouteToast');if(!t)return;
  clearTimeout(timer);t.textContent=s;t.classList.add('show');
- timer=setTimeout(function(){t.classList.remove('show')},2600);
+ timer=setTimeout(function(){t.classList.remove('show')},1450);
 }
 function create(){
  body.classList.add('fp-route-review');
@@ -237,7 +237,7 @@ function syncRoute(){
 }
 function updateSummary(){
  var status=el('fpRouteBadge');
- if(status)status.textContent='交互演示 · '+state.order.length+'站 · '+daysTotal()+'天 · '+modeLabels[state.mode]+' · 不改动收藏';
+ if(status)status.textContent='演示 · '+state.order.length+' 站 · '+daysTotal()+' 天';
  var edit=el('routeEditV5');if(edit){edit.textContent='调整路线';edit.setAttribute('aria-label','打开路线规划')}
  window.__atlasRV?.setTripDetails?.({startDate:state.start,endDate:state.end,origin:endpointName(state.from,false),destination:endpointName(state.to,true)});
  scheduleAnchors();
@@ -322,7 +322,7 @@ function changeSetting(type,value){
 function onPanelClick(e){
  var n=e.target.closest('[data-tab],[data-close-panel],[data-pick],[data-action],[data-mode],[data-lock],[data-move]');
  if(!n)return;
- if(n.dataset.tab){state.tab=n.dataset.tab;renderPanel();return}
+ if(n.dataset.tab){state.tab=n.dataset.tab;renderPanel();el('fpRoutePanelBody').scrollTop=0;return}
  if(n.hasAttribute('data-close-panel')){closePanel();return}
  if(n.dataset.pick){choosePoint(n.dataset.pick);return}
  if(n.dataset.lock){var id=n.dataset.lock;if(state.locked.has(id))state.locked.delete(id);else state.locked.add(id);renderPanel();return}
@@ -520,10 +520,12 @@ function paintAnchors(){
  var p=first?map.project([+first.lng,+first.lat]):a,q=last?map.project([+last.lng,+last.lat]):b;
  var valid=function(pt){return pt&&Number.isFinite(pt.x)&&Number.isFinite(pt.y)};
  if(![a,b,p,q].every(valid))return;
- el('fpRouteStartLine').setAttribute('d','M '+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L '+p.x.toFixed(1)+' '+p.y.toFixed(1));
- el('fpRouteEndLine').setAttribute('d','M '+q.x.toFixed(1)+' '+q.y.toFixed(1)+' L '+b.x.toFixed(1)+' '+b.y.toFixed(1));
- positionPin('fpRouteStartPin',a,a.x>35&&a.x<w-35&&a.y>145&&a.y<h-175);
- positionPin('fpRouteEndPin',b,b.x>35&&b.x<w-35&&b.y>145&&b.y<h-175);
+ var aVisible=a.x>35&&a.x<w-35&&a.y>145&&a.y<h-175;
+ var bVisible=b.x>35&&b.x<w-35&&b.y>145&&b.y<h-175;
+ el('fpRouteStartLine').setAttribute('d',aVisible?'M '+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L '+p.x.toFixed(1)+' '+p.y.toFixed(1):'');
+ el('fpRouteEndLine').setAttribute('d',bVisible?'M '+q.x.toFixed(1)+' '+q.y.toFixed(1)+' L '+b.x.toFixed(1)+' '+b.y.toFixed(1):'');
+ positionPin('fpRouteStartPin',a,aVisible);
+ positionPin('fpRouteEndPin',b,bVisible);
 }
 function bindMapProjection(){
  var tries=0;
@@ -581,7 +583,6 @@ window.__fpRouteMakeFallbackMap=function(){
 };
 function initialize(){
  create();updateSummary();bindMapProjection();
- toast('已载入真实产品路线界面 · 可点选黄色星标');
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize,{once:true});else initialize();
 })();
