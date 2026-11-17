@@ -63,9 +63,13 @@ once(
 once(
  """  setTimeout(()=>{
    if(focusSerial!==liveTapFocusSerial||!liveMap)return;""",
- """  requestAnimationFrame(()=>{
-   if(focusSerial!==liveTapFocusSerial||!liveMap)return;""",
+ """  if(focusSerial!==liveTapFocusSerial||!liveMap)return;""",
  'fixed-map-immediate-pan-start')
+
+once(
+ "liveMap.jumpTo({center:[lng,lat]});liveRenderCamera(true);return;",
+ "liveMap.jumpTo({center:routeVisibleCameraCenter(lng,lat)});liveRenderCamera(true);return;",
+ 'reduced-motion-visible-center')
 
 once(
  "liveMap.easeTo({center:[lng,lat],zoom:liveMap.getZoom(),duration:470,",
@@ -74,7 +78,7 @@ once(
 
 once(
  "  },135);",
- "  });",
+ "",
  'remove-obsolete-135ms-delay')
 
 once(
