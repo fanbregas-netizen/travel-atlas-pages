@@ -110,6 +110,13 @@ if p.name=='route-cards-v5-live.js':
  once(
  " window.__atlasLivePlannerMap=liveMap;",
  """ window.__atlasLivePlannerMap=liveMap;
+ window.__atlasRoutePoiQA=()=>{
+  const p=allPlaces.find(x=>String(x.id)===String(liveTopPlaceId));
+  const xy=p&&liveMap?.project([+p.lng,+p.lat]);
+  return {place:p?{id:p.id,lat:p.lat,lng:p.lng}:null,
+    projected:xy?{x:xy.x,y:xy.y}:null,
+    center:liveMap?.getCenter()?.toArray(),moving:liveMap?.isMoving()};
+ };
  // Tap a previously saved marker with the same Apple-like POI raise/center.
  // The existing C V5 button listener still owns selection and route state.
  routeMap.querySelector('#rc-map-pins')?.addEventListener('click',e=>{
