@@ -53,7 +53,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     // The recording shows the C V5 route picker opening to a blank map, then
     // switching to oversized black building silhouettes. Test the map surface
     // only; route state and card gestures are not modified.
-    await page.goto(new URL('./journey.html',URL).href,{waitUntil:'domcontentloaded',timeout:60000});
+    await page.goto(new (require('node:url').URL)('./journey.html',URL).href,{waitUntil:'domcontentloaded',timeout:60000});
     await page.waitForFunction(()=>window.__atlasLivePlannerMap?.isStyleLoaded?.()===true,{timeout:55000});
     await page.waitForFunction(()=>{const c=document.querySelector('#rc-live-map-canvas canvas');return !!c&&c.width>50&&c.height>50},{timeout:18000});
     const picker=await page.evaluate(()=>{
