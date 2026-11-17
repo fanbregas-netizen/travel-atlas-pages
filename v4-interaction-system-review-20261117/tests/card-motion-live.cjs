@@ -102,7 +102,8 @@ async function drag(page,ctx,x,y,distance,sample,settleMs=1030,stepDelay=27){
    }));
    assert.equal(closing.opened,true,'collection disappeared before the C V5 dismissal spring played');
    assert.equal(closing.closing,true,'collection is not running its physical closing spring');
-   assert.ok(closing.height<peekSwipe.rest.height-35,'closing did not move the card downward');
+   fs.writeFileSync(out+'/collection-closing-debug-'+width+'.json',JSON.stringify({peek:peekSwipe.rest,closing,closingSwipe},null,2));
+   assert.ok(closing.height<peekSwipe.rest.height-35,'closing did not move the card downward: '+JSON.stringify({peek:peekSwipe.rest,closing,closingSwipe:closingSwipe.rest}));
    await sleep(1450);
    const afterClose=await page.evaluate(()=>({
      ...window.__atlasCollectionSheet.getState(),
