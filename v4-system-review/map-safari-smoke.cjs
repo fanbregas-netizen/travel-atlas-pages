@@ -301,6 +301,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     // C V5 sheet-size transition, so never check the resting pose too early.
     await page.waitForTimeout(190);
     await page.waitForFunction(()=>!window.__atlasLivePlannerMap.isMoving(),{timeout:12000});
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     const routePoi=await page.evaluate(()=>{
       const map=window.__atlasLivePlannerMap,pin=document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),
         frame=document.getElementById('rc-map').getBoundingClientRect(),img=pin?.querySelector('.fp-route-poi-art');
