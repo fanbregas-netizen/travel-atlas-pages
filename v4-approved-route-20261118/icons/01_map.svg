@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" aria-label="Map">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M32 7 C44 7 54 14 57 25 C59 37 54 49 43 55 C32 61 19 57 12 47 C4 35 8 21 17 13 C22 9 27 7 32 7Z"/>
+  <path d="M10 36 C20 30 30 34 38 30 C46 26 52 28 56 31" stroke-width="1.6" opacity=".55"/>
+  <path d="M30 9 C27 20 29 34 26 46 C25 51 26 55 28 58" stroke-width="1.6" opacity=".55"/>
+ </g>
+</svg>

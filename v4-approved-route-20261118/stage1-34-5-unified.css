@@ -1,0 +1,53 @@
+/* Stage 1.34.5 · one real saved-place experience, no extra legacy layout. */
+body.atlas-orbit-installed.memory-open #memorySheet,
+body.atlas-orbit-installed.memory-open #memorySheet.visible,
+body.atlas-orbit-installed.memory-open #memorySheet.journal-open{
+ visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+ -webkit-transform:none!important;transform:none!important;
+}
+/* The old full-screen memory shell must never flash between a tap and the
+   geographic camera's move-end event. Its state and edit actions still work. */
+body.atlas-orbit-installed.memory-open #amapSurface,
+body.atlas-orbit-installed.memory-open #atlasVectorMap,
+body.atlas-orbit-installed.memory-open #map,
+body.atlas-orbit-installed.memory-open #atlasPoiOverlay,
+body.atlas-orbit-installed.memory-open #atlasBookmarkOverlay{filter:none!important;-webkit-filter:none!important}
+body.atlas-orbit-installed.memory-open #memorySheet:before,
+body.atlas-orbit-installed.memory-open #memorySheet:after{content:none!important;display:none!important}
+/* Conflicting animations from earlier stages have been retired. SVG geometry
+   and content are animated exclusively by atlas-orbit.js in one timeline. */
+#atlasOrbit.is-open .orbit-bubble,
+#atlasOrbit.is-closing .orbit-bubble,
+#atlasOrbit.is-open .orbit-content,
+#atlasOrbit.is-closing .orbit-content,
+#atlasOrbit.is-open .orbit-content > *,
+#atlasOrbit.is-closing .orbit-content > *{animation:none!important;transition:none!important}
+#atlasOrbit{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Helvetica Neue",sans-serif!important;touch-action:pan-x pan-y}
+#atlasOrbit .orbit-backdrop{background:rgba(21,29,26,.035)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#atlasOrbit .orbit-bubble{background:none!important;border:0!important;box-shadow:none!important;overflow:visible!important;contain:layout style!important;isolation:isolate}
+#atlasOrbit .orbit-svg{overflow:visible!important;filter:drop-shadow(0 13px 23px rgba(25,35,29,.17)) drop-shadow(0 1px 2px rgba(27,33,27,.08))!important}
+#atlasOrbit .orbit-svg path{fill:#fffefa!important;stroke:rgba(255,255,255,.99)!important;stroke-width:2.8!important;stroke-linecap:round!important;stroke-linejoin:round!important;vector-effect:non-scaling-stroke!important}
+#atlasOrbit .orbit-content{color:#27332f!important;overflow:hidden!important;gap:5px!important;line-height:1.36!important}
+#atlasOrbit .orbit-bubble.tl .orbit-content,#atlasOrbit .orbit-bubble.bl .orbit-content,#atlasOrbit .orbit-bubble.br .orbit-content{padding:11px 12px 8px!important}
+#atlasOrbit .orbit-bubble.tr .orbit-content{padding:10px 12px 9px!important}
+#atlasOrbit .orbit-kicker{font-weight:720!important;font-size:clamp(11px,2.8vw,12px)!important;letter-spacing:-.02em!important;color:#26362d!important}
+#atlasOrbit .orbit-kicker-icon{width:16px!important;height:16px!important;opacity:.86!important;filter:none!important}
+#atlasOrbit .orbit-ref-sub,#atlasOrbit .orbit-small{color:#71817a!important;font-size:clamp(10.5px,2.65vw,11.5px)!important;line-height:1.45!important}
+#atlasOrbit .orbit-ref-brief-text{-webkit-line-clamp:2!important;line-height:1.5!important}
+#atlasOrbit .orbit-ref-small-action{background:transparent!important;border:0!important;font-size:10.5px!important;font-weight:680!important;color:#52695c!important;padding:0!important;min-height:20px!important}
+#atlasOrbit .orbit-premium-media{min-height:40px!important;flex:1 1 auto!important;border-radius:9px!important;background:linear-gradient(132deg,#e5eae3,#f5f4ee 64%,#e0e9e1)!important;border:1px solid #e5eae2!important}
+#atlasOrbit .orbit-premium-placeholder{color:#65786e!important;font-size:10.5px!important;font-weight:600!important}
+#atlasOrbit .orbit-premium-plus{background:#fffefa!important;color:#536b59!important}
+#atlasOrbit .orbit-center{filter:none!important;box-shadow:0 6px 21px rgba(41,40,28,.17),0 0 0 3px rgba(255,255,255,.78)!important;transition:box-shadow .18s ease!important}
+#atlasOrbit .orbit-center:active{box-shadow:0 4px 11px #353a2f23!important}
+#atlasOrbit .orbit-action:focus-visible,#atlasOrbit .orbit-center:focus-visible,#atlasOrbit .orbit-bubble:focus-visible{outline:2px solid #c2a356!important;outline-offset:5px!important}
+@media(prefers-reduced-motion:reduce){#atlasOrbit .orbit-svg{filter:none!important}}
+/* The actual yellow saved star is the center. No second cream tile or muted star. */
+#atlasOrbit .orbit-center{background:transparent!important;border:0!important;border-radius:50%!important;box-shadow:none!important;filter:none!important;width:48px!important;height:48px!important;padding:0!important}
+#atlasOrbit .orbit-center svg{width:46px!important;height:46px!important;display:block!important;filter:drop-shadow(0 3px 5px rgba(51,45,25,.22))!important}
+#atlasOrbit .orbit-center svg path{fill:#f7c746!important;stroke:#323932!important;stroke-width:2.55!important}
+#atlasOrbit.is-open .orbit-center{animation:atlas345StarFocus .38s cubic-bezier(.18,.89,.29,1.05) both!important;transform-origin:center!important}
+#atlasOrbit.is-closing .orbit-center{animation:atlas345StarDismiss .26s ease-in both!important}
+@keyframes atlas345StarFocus{from{opacity:0;transform:translate(-50%,-50%) scale(.81)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes atlas345StarDismiss{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-50%) scale(.82)}}
+@media(prefers-reduced-motion:reduce){#atlasOrbit.is-open .orbit-center,#atlasOrbit.is-closing .orbit-center{animation:none!important;opacity:1!important;transform:translate(-50%,-50%)!important}}
