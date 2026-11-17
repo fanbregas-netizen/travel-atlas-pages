@@ -444,6 +444,9 @@ const iphoneGallery=(()=>{
    '#fpMediaViewer .fp-gallery-cell{height:100%;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;padding:calc(env(safe-area-inset-top,0px) + 48px) 10px calc(env(safe-area-inset-bottom,0px) + 56px)}',
    '#fpMediaViewer .fp-gallery-cell>img,#fpMediaViewer .fp-gallery-cell>video{display:block;position:relative;width:auto!important;height:auto!important;max-width:min(96vw,900px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 116px)!important;object-fit:contain!important;border-radius:0;transform:translateZ(0);-webkit-user-drag:none;user-select:none}',
    '#fpMediaViewer .fp-gallery-cell>video{touch-action:auto!important;max-width:96vw!important;width:min(96vw,900px)!important;min-height:180px!important;aspect-ratio:auto 16/9}',
+   '#fpMediaViewer .fp-gallery-video-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:min(96vw,900px);max-height:calc(100dvh - 116px);aspect-ratio:16/9}',
+   '#fpMediaViewer .fp-gallery-video-wrap>video{display:block;position:relative;width:100%!important;height:auto!important;max-width:100%!important;max-height:calc(100dvh - 116px)!important;min-height:180px!important;object-fit:contain!important;touch-action:auto!important}',
+   '#fpMediaViewer .fp-gallery-video-gesture{position:absolute;top:0;left:0;right:0;bottom:74px;z-index:2;cursor:grab;touch-action:none;background:transparent}',
    '#fpMediaViewer .fp-gallery-video-standby{position:relative;width:min(96vw,900px);height:min(53vw,50dvh);min-height:168px;max-height:54dvh;display:flex;align-items:center;justify-content:center;background:#222527;border-radius:9px;overflow:hidden;color:white}',
    '#fpMediaViewer .fp-gallery-video-standby img{width:100%;height:100%;object-fit:contain}',
    '#fpMediaViewer .fp-gallery-video-icon{position:absolute;display:grid;place-items:center;width:52px;height:52px;background:rgba(0,0,0,.48);border-radius:50%;font-size:20px}',
@@ -492,7 +495,15 @@ const iphoneGallery=(()=>{
   v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
   v.controls=true;v.preload='metadata';v.disablePictureInPicture=true;
   v.src=videoURL(s,i);
-  cell.replaceChildren(v);v.muted=false;
+  const wrap=h('div','fp-gallery-video-wrap');
+  const gesture=h('div','fp-gallery-video-gesture');
+  gesture.setAttribute('aria-label','轻扫切换视频，点按播放或暂停');
+  gesture.addEventListener('click',()=>{
+   if(performance.now()<s.suppressClickUntil||s.closed||s.closing)return;
+   if(v.paused){const play=v.play();play?.catch?.(()=>{})}
+   else try{v.pause()}catch(_){}
+  });
+  wrap.append(v,gesture);cell.replaceChildren(wrap);v.muted=false;
  }
  function releaseVideo(s,cell){
   const v=cell.querySelector('video');if(!v)return;
