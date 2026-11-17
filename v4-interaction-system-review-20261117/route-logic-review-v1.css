@@ -98,3 +98,12 @@ body.fp-route-review .route-pin.active .rv-star{transform:scale(1.22)!important;
 body.fp-route-fallback #pinLayer{z-index:5}
 @media(max-width:375px){#fpRouteTools{width:calc(100vw - 18px)}#fpRouteTools button{font-size:10px}.fp-r-stop{gap:4px}.fp-r-icon-btn{width:26px}.fp-r-panel-head strong{font-size:18px}}
 @media(prefers-reduced-motion:reduce){#fpRoutePanel,#fpRouteCard,#fpRouteTools,#stopsDock,#fpRouteCardBackdrop,.fp-r-backdrop{transition-duration:.01ms!important}}
+
+/* 起终点是独立于途经站点的固定地图锚点。虚线明确区分规划衔接与真实道路线。 */
+#fpRouteAnchors{position:fixed;inset:0;pointer-events:none;z-index:8}
+#fpRouteAnchorLines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+#fpRouteAnchorLines path{fill:none;stroke:#bd9451;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:4 6;opacity:.82}
+#fpRouteAnchors>button{position:absolute;pointer-events:auto;transform:translate(-50%,-100%);border:2px solid #fffefa;box-shadow:0 4px 14px #262d2350;width:37px;height:37px;display:grid;place-items:center;color:#fffefa;background:#33423a;border-radius:50% 50% 50% 12px;font-size:13px;font-weight:780;line-height:1;z-index:2}
+#fpRouteAnchors>button#fpRouteEndPin{background:#b89043}
+#fpRouteAnchors>button[hidden]{display:none!important}
+body.fp-route-place-open #fpRouteAnchors>button{pointer-events:none}
