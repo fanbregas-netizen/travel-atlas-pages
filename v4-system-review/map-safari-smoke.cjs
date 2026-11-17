@@ -391,6 +391,63 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.ok(Math.abs(initialPin-midPin)>0.1,'Selected route pin must follow camera while it is moving; initial='+initialPin+', mid='+midPin);
     assert.equal(await page.locator('#rc-map-pins [data-place-id^="live-map-"]').count(),1,'One selected route marker only');
     await page.waitForFunction(()=>!window.__atlasLivePlannerMap.isMoving(),{timeout:12000});
+    // Dedicated route-page contract: ordinary POIs only assist during
+    // explicit map selection, while the entire itinerary remains above
+    // every approved C V5 card position on the unchanging vector canvas.
+    const selectingLayers=await page.evaluate(()=>window.__atlasRouteFocusQA?.());
+    assert.equal(selectingLayers.mode,'select','Route picker must enable nearby POIs only while selecting');
+    assert.equal(selectingLayers.visiblePoiLayers.length,selectingLayers.poiLayers.filter(Boolean).length,
+      'Map-select mode must restore the ordinary POI symbol layers');
+
+    await page.evaluate(()=>{
+      const m=window.__atlasLivePlannerMap,c=m.getCenter(),
+        v=[c.lng+0.013,c.lat+0.009];
+      m.fire('click',{lngLat:{lng:v[0],lat:v[1]},point:m.project(v)});
+    });
+    await page.waitForFunction(()=>window.__atlasRouteV5Live?.state?.selected?.length>=2,{timeout:12000});
+    await page.evaluate(()=>window.__atlasRouteV5Live.stage('preview'));
+    await page.waitForFunction(()=>{
+      const r=window.__atlasRouteFocusQA?.();
+      return r?.stage==='preview'&&r.mode==='route'&&r.fit?.stops>=2;
+    },{timeout:15000});
+    const sampleFullRoute=()=>page.evaluate(()=>{
+      const m=window.__atlasLivePlannerMap,r=window.__atlasRouteFocusQA(),
+        pane=m.getContainer().getBoundingClientRect(),card=document.getElementById('rc-main').getBoundingClientRect(),
+        top=Math.max(0,card.top-pane.top);
+      const pts=r.stops.map(p=>m.project([+p.lng,+p.lat]));
+      return {stage:r.stage,mode:r.mode,poiLayers:r.poiLayers.length,
+        visiblePoiLayers:r.visiblePoiLayers.length,fit:r.fit,
+        mapHeight:pane.height,cardTop:top,
+        canvasHeight:document.querySelector('#rc-live-map-canvas canvas').getBoundingClientRect().height,
+        cardHeight:card.height,points:pts.map(p=>({x:p.x,y:p.y})),
+        allVisible:pts.length>=2&&pts.every(p=>p.x>8&&p.x<pane.width-8&&p.y>10&&p.y<top-10),
+        routeLineCount:document.querySelectorAll('#rc-map svg.rc-route polyline').length};
+    });
+    await page.waitForTimeout(1000);
+    const initialRoute=await sampleFullRoute();
+    assert.equal(initialRoute.mode,'route','Entering preview must end POI-picking mode');
+    assert.equal(initialRoute.visiblePoiLayers,0,'Ordinary POI labels remained in route preview');
+    assert.ok(initialRoute.routeLineCount>=2,'Route connecting polyline missing from preview');
+    assert.equal(initialRoute.allVisible,true,'Entire preview route must stay above C V5 card: '+JSON.stringify(initialRoute));
+    const grab=await page.locator('#rc-grab').boundingBox();
+    assert.ok(grab,'Route preview grip missing');
+    await page.mouse.move(grab.x+grab.width*.52,grab.y+20);
+    await page.mouse.down();
+    await page.mouse.move(grab.x+grab.width*.52,grab.y-142,{steps:12});
+    await page.mouse.up();
+    await page.waitForTimeout(1100);
+    const movedRoute=await sampleFullRoute();
+    assert.ok(movedRoute.cardHeight>initialRoute.cardHeight+48,
+      'C V5 card drag did not expand: '+JSON.stringify({initialRoute,movedRoute}));
+    assert.equal(movedRoute.allVisible,true,
+      'Expanded card covered part of planned route: '+JSON.stringify(movedRoute));
+    assert.ok(Math.abs(movedRoute.mapHeight-initialRoute.mapHeight)<1 &&
+      Math.abs(movedRoute.canvasHeight-initialRoute.canvasHeight)<1,
+      'Card drag resized or stretched underlying map: '+JSON.stringify({initialRoute,movedRoute}));
+    console.log('PASS route always visible above card; map fixed; POIs contextual '+JSON.stringify({
+      width,poiLayers:movedRoute.poiLayers,preview:initialRoute.cardHeight,
+      expanded:movedRoute.cardHeight,mapHeight:movedRoute.mapHeight,
+      initialPoints:initialRoute.points,expandedPoints:movedRoute.points}));
     console.log('PASS WebKit V4 shared route picker basemap '+JSON.stringify({width,...picker}));
    }finally{await context.close();}
   }
