@@ -646,7 +646,7 @@ const iphoneGallery=(()=>{
   if(s.closing)return;
   s.closing=true;s.locked=true;s.viewer.dataset.gestureState='closing';
   if(s.gestureRAF){cancelAnimationFrame(s.gestureRAF);s.gestureRAF=0}
-  const media=mediaAt(s),duration=290;
+  const media=mediaAt(s),duration=350; // 退出稍缓于进入，保留现有跟手曲线与原位收缩
   const from=media?.getBoundingClientRect();
   const tile=original(s,s.index),to=tile?.getBoundingClientRect();
   chrome(s,0);
@@ -658,7 +658,7 @@ const iphoneGallery=(()=>{
   if(media?.tagName==='VIDEO'){
    // Safari video renders in a separate hardware layer; never warp it.
    try{media.pause()}catch(_){}
-   if(s.track.animate)try{s.track.animate([{opacity:1},{opacity:0}],{duration:180,fill:'forwards'})}catch(_){}
+   if(s.track.animate)try{s.track.animate([{opacity:1},{opacity:0}],{duration:duration-45,fill:'forwards'})}catch(_){}
    setTimeout(()=>cleanup(s),duration);
    return;
   }
@@ -688,7 +688,7 @@ const iphoneGallery=(()=>{
     ],{duration,easing:ease,fill:'forwards'});
    }catch(_){}
   }else if(s.track.animate){
-   try{s.track.animate([{opacity:1},{opacity:0}],{duration:210,fill:'forwards'})}catch(_){}
+   try{s.track.animate([{opacity:1},{opacity:0}],{duration:duration-55,fill:'forwards'})}catch(_){}
   }
   setTimeout(()=>cleanup(s),duration+22);
  }
