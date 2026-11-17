@@ -136,9 +136,10 @@ function paintHeight(h){
  main.style.height=px+'px';
  routeMap.style.bottom=Math.max(0,px)+'px';
 }
-function springTo(target){
+function springTo(target,releaseVelocity=null){
  cancelAnimationFrame(sheetMotion);
  targetHeight=target;
+ if(Number.isFinite(releaseVelocity))sheetVelocity=Math.max(-28,Math.min(28,releaseVelocity));
  if(reduce()){sheetVelocity=0;paintHeight(target);scheduleMapLayout();return}
  function tick(){
   sheetVelocity=(sheetVelocity+(targetHeight-height)*.105)*.75;
@@ -148,11 +149,11 @@ function springTo(target){
  }
  sheetMotion=requestAnimationFrame(tick);
 }
-function snap(level){
+function snap(level,releaseVelocity=null){
  sheetLevel=level;
  const choices=snapFractions();
  if(!choices[level])level='half';
- springTo(snapPx(level));
+ springTo(snapPx(level),releaseVelocity);
 }
 function mainGestureBounds(){const v=snapFractions();return [snapPx('peek'),snapPx('full')]}
 function rubber(value,min,max){
@@ -547,7 +548,9 @@ function finish(e,cancel){
   const values=['peek','half','full'],dist=values.map(v=>Math.abs(snapPx(v)-height));
   let ix=dist.indexOf(Math.min(...dist));
   if(Math.abs(g.velocity)>.42)ix=Math.max(0,Math.min(2,ix+(g.velocity<0?1:-1)));
-  snap(values[ix]);return;
+  // Use the final touch speed as the initial spring velocity; never restart from zero.
+  const release=performance.now()-g.lastAt<95?-g.velocity*16.67:0;
+  snap(values[ix],release);return;
  }
  if(miniGesture&&miniGesture.id===e.pointerId){
   const dy=e.clientY-miniGesture.startY;miniGesture=null;e.preventDefault();
