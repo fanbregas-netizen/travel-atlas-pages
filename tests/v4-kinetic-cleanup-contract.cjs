@@ -37,6 +37,14 @@ assert.match(cleanPoiCss,/body\.fp-search-open #destinationCard/);
 
 assert.match(poi,/const poiMotion=new WeakMap/);
 const journey=read('journey.html'),route=read('src/interaction/route-cards-v5-live.js');
+const mapPage=read('route-view.html');
+for(const dead of ['id="saveRoute"','id="addStop"','id="saveRouteDialog"','id="addStopDialog"','function openSave()','function openAddStop()','async function saveRoute(e)']){
+ assert.ok(!mapPage.includes(dead),'obsolete second route authoring still exists: '+dead);
+}
+const routeScripts=[...mapPage.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).filter(Boolean);
+assert.ok(routeScripts.length>=3,'route view lost inline runtime scripts');
+for(let i=0;i<routeScripts.length;i++)new (require('node:vm').Script)(routeScripts[i],{filename:'route-view inline script '+i});
+
 assert.ok(journey.indexOf('v5-unified-spring.js')<journey.indexOf('route-cards-v5-live.js'));
 assert.match(route,/window\.FootprintV5Spring/);
 new (require('node:vm').Script)(route,{filename:'route-cards-v5-live.js'});
