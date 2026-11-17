@@ -19,6 +19,12 @@ async function testKind(kind){
   assert.equal(await page.locator('#rc-main').count(),1);
   assert.equal(await page.locator('#rc-mini').count(),1);
   assert.equal(await page.locator('#rc-live-map-canvas').count(),1);
+  await page.waitForSelector('#rc-approved-tabs [data-approved-tab="places"]',{timeout:12000});
+  assert.equal(await page.locator('#rc-approved-summary strong').textContent(),'路线规划');
+  await page.locator('#rc-approved-tabs [data-approved-tab="settings"]').click();
+  assert.ok(await page.locator('#rc-approved-panel').isVisible(),'Approved settings step missing');
+  await page.locator('#rc-approved-tabs [data-approved-tab="places"]').click();
+  assert.ok(await page.locator('#rc-approved-places').isVisible(),'Approved saved places step missing');
   const grip=await page.locator('#rc-grab .rc-handle').boundingBox();
   const sheet=await page.locator('#rc-main').boundingBox();
   assert.ok(grip&&sheet&&Math.abs(grip.x+grip.width/2-(sheet.x+sheet.width/2))<5,'Card grip not centered');
@@ -41,6 +47,10 @@ async function testKind(kind){
   await page.waitForFunction(()=>window.__atlasRouteV5Live?.loaded===true,null,{timeout:28000});
   const rows=page.locator('#rc-body [data-rc^="pick-"]');
   await rows.first().waitFor({timeout:15000});
+  await page.locator('#rc-approved-filter').fill('海边二');
+  assert.equal(await page.locator('#rc-body .rc-stop-pick:visible').count(),1,'Saved place filter failed');
+  await page.locator('#rc-approved-filter').fill('');
+  assert.equal(await page.locator('#rc-body .rc-stop-pick:visible').count(),4,'Saved place filter could not reset');
   for(let i=0;i<4;i++)await rows.nth(i).click({timeout:18000});
   await page.locator('#rc-footer [data-rc="stage-order"]').click({timeout:15000});
   await page.waitForFunction(()=>window.__atlasRouteV5Live?.state.stage==='order');
