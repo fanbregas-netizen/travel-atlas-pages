@@ -76,3 +76,21 @@
 - [旧独立预览测试复测通过](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43980059051)（此项检查的是 `integration-v4-real-e2e-review`，不能替代当前候选产品专项 E2E）。
 
 **发布门槛仍未解除**：暂未完成原全量 35/35 的所有例外场景、iPhone Safari 真机视觉和 60/120Hz 连续手势、视频在真实设备上的长时间播放/音频/系统全屏，以及全部 CSS 计算样式审计。本轮没有修改正式 `main` 或生产 Pages，也没有发布最终验收入口。
+
+## 2026-11-17｜第三轮系统级整合核查（当前本轮交付候选）
+
+实际代码提交记录：`854c86c3`（离线地图真实站点）、`4f108a86` 与 `bcc63210`（移除隐藏第二套路线保存/加点/排序及无用 JS）、`1413489c`（取消收藏仍保留已保存线路）、`fbc02f42`（缺失地点防数据覆盖）、`f7d2899d`（WebKit 初次加载 44px 空白抓手修复）、`cfe72930`（已保存路线取消星标仍可在选择卡编辑）。本节只跟踪本分支实际源文件，不涉及正式 main。
+
+| 场景 | 事实证据 | 结论 |
+|---|---|---|
+| C V5 编辑→路线地图→收藏点详情；地图 CDN 双断网时可打开实际地点/回主卡片 | [WebKit 与 Chromium E2E](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43994056019) | 通过 |
+| 移除路线地图第二套保存/加点/不可持久化排序 | [WebKit 与 Chromium E2E](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43994551769) | 通过 |
+| 已存路线中的地点取消星标，不掉站；Brief/照片/视频保留 | [WebKit 与 Chromium E2E](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43994876757) | 通过 |
+| 已保存路线引用地点已被删除或坐标不完整，阻止静默覆盖为更短路线 | [WebKit 与 Chromium E2E](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43995262253) | 通过 |
+| C V5 首屏先呈现真正半屏卡片（不暴露 44px 初始化状态），后续弹簧维持原参数 | [WebKit 与 Chromium E2E](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43995446814) | 通过 |
+| 原 B05 收藏与 POI、搜索、视频/Brief/攻略/导航、路线保存/ZIP 持久化 | 上述测试及[最近系统测试](https://github.com/fanbregas-netizen/travel-atlas-pages/actions/runs/43995446828) | 已覆盖核心链路 |
+| 在 C V5 已保存线路选择页显式取消/恢复已取消星标的站点 | 提交 `51f42565` 改为按真实 `aria-pressed` 检查并执行点击；见该提交工作流 | 须按该提交工作流结论核实 |
+
+**明确未完成/不可伪称**：全量历史 CSS 动态审计、35/35 全部异常交互重测、连续 iPhone Safari 真机视觉与 60/120Hz 手势/视频实际播放、生产隔离 GitHub Pages 站点的独立配置及 URL 验证。该公共仓库已经用 Pages 发布正式 main；直接从此仓库的 PR 分支部署 GitHub Pages 会影响正式站点，禁止。私有源仓库单独 Pages 的网站设置目前没有经现有 GitHub 工具验证或授权配置，不能制造验收网址。
+
+**发布条件**：完整产品已通过真实 iPhone Safari 验收、可以经 GitHub Pages 提供独立可访问入口且原 main 绝不受影响后，才交给用户；PR #8 保持 Draft。
