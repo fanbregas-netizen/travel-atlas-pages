@@ -508,12 +508,15 @@ html.visual-after body #rvDetail.open{transform:translate(-50%,0)!important}
 html.visual-after body #rvDetail[data-atlas-dragging]{transition:none!important}
 html.visual-after body #rvDetail[data-atlas-snap="peek"].open{
  height:min(32dvh,calc(100dvh - 90px))!important;
+ max-height:min(32dvh,calc(100dvh - 90px))!important;
 }
 html.visual-after body #rvDetail[data-atlas-snap="half"].open{
  height:min(58dvh,530px)!important;
+ max-height:min(58dvh,530px)!important;
 }
 html.visual-after body #rvDetail[data-atlas-snap="full"].open{
  height:calc(100dvh - 26px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;
+ max-height:calc(100dvh - 26px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;
 }
 html.visual-after body #rvDetail > :is(h2,.addr,.rv-sec,.ops){display:none!important}
 html.visual-after body #rvDetail > .grab{
