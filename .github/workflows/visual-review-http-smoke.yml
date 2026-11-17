@@ -1,0 +1,40 @@
+name: Visual V4 independent Pages live-link check
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/visual-review-http-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe actual public visual review pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-visual-system-review-20261117'
+          fetch_page() {
+            local page="$1" out="$2"
+            echo "::group::Checking $page"
+            curl -fSL --retry 8 --retry-delay 6 --retry-all-errors \
+              --connect-timeout 10 --max-time 30 \
+              -H 'Cache-Control: no-cache' \
+              -w 'HTTP=%{http_code} final_url=%{url_effective} size=%{size_download}\n' \
+              "$ROOT/$page" -o "$out"
+            test -s "$out"
+            echo "::endgroup::"
+          }
+          fetch_page 'index.html?test=visual-v8' /tmp/visual-index.html
+          grep -q 'visual-review.css?v=8' /tmp/visual-index.html
+          grep -q 'visual-review-bootstrap-inline' /tmp/visual-index.html
+          fetch_page 'journey.html?test=visual-v8' /tmp/visual-journey.html
+          grep -q 'visual-review.css?v=8' /tmp/visual-journey.html
+          fetch_page 'compare.html?test=visual-v8' /tmp/visual-compare.html
+          grep -q '改前' /tmp/visual-compare.html
+          fetch_page 'visual-review.css?v=8' /tmp/visual-review.css
+          grep -q 'atlas-card-grip' /tmp/visual-review.css
+          echo 'SUCCESS: public HTML and CSS live, actual V8 loaded'
