@@ -323,6 +323,20 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       'Route map must fill the unscaled full screen behind card: '+JSON.stringify(invariant));
     await page.locator('[data-rc="source-map"]').first().click({timeout:12000});
     await page.waitForFunction(()=>document.querySelector('#rc-map')?.classList.contains('rc-map-picking'),{timeout:15000});
+    // The route selection should use the EXACT homepage Stage1.29 renderer,
+    // not another POI icon set or the map provider's colored glyphs.
+    const homeOverlay=await page.evaluate(()=>({
+      hasRenderer:/function candidatesFromVector\(map\)/.test(
+        document.getElementById('atlas-route-home-poi-renderer')?.textContent||''),
+      hasDOMPlane:!!document.querySelector('#rc-map > #atlasPoiOverlay'),
+      sameMap:window.__atlasPOIBridge?.vector?.()===window.__atlasLivePlannerMap,
+      handdrawnMap:window.AtlasPOIIcons?.icons?.hospital==='51_hospital',
+      hasNativeIconSuppression:/icon-opacity',0/.test(
+        document.getElementById('atlas-route-home-poi-renderer')?.textContent||'')
+    }));
+    assert.ok(homeOverlay.hasRenderer&&homeOverlay.hasDOMPlane&&homeOverlay.sameMap&&
+      homeOverlay.handdrawnMap&&homeOverlay.hasNativeIconSuppression,
+      'Route map did not use the exact homepage source POI renderer: '+JSON.stringify(homeOverlay));
     // A real user cannot tap the map before the accepted C V5 sheet spring
     // finishes its 530ms transition to peek. Reproduce the settled UI.
     await page.waitForTimeout(620);
@@ -450,6 +464,9 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     const initialRoute=await sampleFullRoute();
     assert.equal(initialRoute.mode,'route','Entering preview must end POI-picking mode');
     assert.equal(initialRoute.visiblePoiLayers,0,'Ordinary POI labels remained in route preview');
+    await page.waitForTimeout(260);
+    assert.equal(await page.locator('#rc-map #atlasPoiOverlay .fp-poi').count(),0,
+      'Homepage semantic POI symbols must disappear outside map selection');
     assert.ok(initialRoute.routeLineCount>=2,'Route connecting polyline missing from preview');
     assert.equal(initialRoute.allVisible,true,'Entire preview route must stay above C V5 card: '+JSON.stringify(initialRoute));
     const grab=await page.locator('#rc-grab').boundingBox();
