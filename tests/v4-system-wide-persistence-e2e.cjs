@@ -115,6 +115,8 @@ const url='http://127.0.0.1:8766/travel-atlas-pages/v4-review-20261116/';
   await page.waitForFunction(()=>document.querySelector('#routeBootRetry')?.hidden===false,
     null,{timeout:20000});
   await page.waitForSelector('#rvDetail',{state:'attached',timeout:15000});
+  assert.equal(await page.locator('#saveRoute,#addStop,#saveRouteDialog,#addStopDialog').count(),0,
+    'read-only route map still contains the second hidden planner');
   assert.equal(await page.locator('#routeEditV5').getAttribute('href'),
     './journey.html?saved='+encodeURIComponent(savedId),
     'route preview edit button must return to the ONE approved route planner');
