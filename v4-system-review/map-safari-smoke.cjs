@@ -12,6 +12,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
    const page=await context.newPage(),errors=[];
    page.on('pageerror',e=>errors.push(e.message));
    try{
+    if(process.env.MAP_ROUTE_ONLY!=='1'){
     await page.goto(URL,{waitUntil:'domcontentloaded',timeout:60000});
     await page.waitForFunction(()=>typeof window.__atlasMapHealth==='function'&&typeof window.__atlasCameraQA==='function'&&typeof window.__atlasPOIBridge?.select==='function',{timeout:45000});
     await page.waitForFunction(()=>window.__atlasMapHealth().ready,{timeout:48000}).catch(async()=>{
@@ -269,6 +270,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.equal((await page.evaluate(()=>window.__atlasMapHealth())).ready,true,'Map remains ready after POI switching');
     if(errors.some(e=>/SyntaxError|ReferenceError|TypeError/.test(e)))throw Error('Uncaught map JS: '+JSON.stringify(errors));
     console.log('PASS WebKit simulated iPhone '+JSON.stringify({width,provider:health.provider,visibleSurfaces:layers.visibleSurfaces,duplicateStarIds:layers.duplicateStarIds}));
+    }
     // The recording shows the C V5 route picker opening to a blank map, then
     // switching to oversized black building silhouettes. Test the map surface
     // only; route state and card gestures are not modified.
