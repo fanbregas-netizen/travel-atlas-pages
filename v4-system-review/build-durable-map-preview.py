@@ -24,8 +24,9 @@ patch("map-runtime-repairs.py","v4-map-runtime.js")
 patch("map-shared-style-repairs.py","src/map/shared-v4-map.js")
 patch("map-poi-smooth.py","v4-map-runtime.js")
 patch("map-poi-smooth.py","index.html")
+patch("map-poi-icon-pop.py","src/interaction/poi-svg-motion-v4.js")
 patch("map-route-smooth.py","src/interaction/route-cards-v5-live.js")
-for asset in ("v4-map-runtime.js","src/map/shared-v4-map.js","src/interaction/route-cards-v5-live.js"):
+for asset in ("v4-map-runtime.js","src/map/shared-v4-map.js","src/interaction/route-cards-v5-live.js","src/interaction/poi-svg-motion-v4.js"):
     subprocess.run(["node","--check",str(target/asset)],check=True)
 for asset in ("scope-review.js","scope-review.css","map-visual-parity.css"):
     shutil.copyfile(patchdir/asset,target/asset)
@@ -40,6 +41,8 @@ for page in ("index.html","journey.html","route-view.html"):
     if page=="index.html":
         html=html.replace("v4-map-runtime.js?v=real-handoff-19","v4-map-runtime.js?v=map-safari-acceptance-3")
         html=html.replace("v4-map-runtime.js?v=parity-11","v4-map-runtime.js?v=map-safari-preload-3")
+        html=html.replace("poi-svg-motion-v4.js?v=cv5-18","poi-svg-motion-v4.js?v=poi-pop-4")
+        assert "poi-pop-4" in html
         assert "map-safari-acceptance-3" in html
         assert "The selected icon already animates in place" in html
     if page=="journey.html":
@@ -55,13 +58,14 @@ for page in ("index.html","journey.html","route-view.html"):
     html=html.replace("</head>",style+"\n</head>",1)
     html=html.replace("</body>",script+"\n</body>",1)
     file.write_text(html,encoding="utf-8")
-allowed={"index.html","journey.html","route-view.html","v4-map-runtime.js","src/map/shared-v4-map.js","src/interaction/route-cards-v5-live.js"}
+allowed={"index.html","journey.html","route-view.html","v4-map-runtime.js","src/map/shared-v4-map.js","src/interaction/route-cards-v5-live.js","src/interaction/poi-svg-motion-v4.js"}
 for rel,digest in originals.items():
     copied=target/rel
     assert copied.is_file(),rel
     if rel not in allowed:
         assert hashlib.sha256(copied.read_bytes()).digest()==digest,rel
 assert sum(1 for f in target.rglob("*") if f.is_file())==167
+assert "window.AtlasPOIMotion=Object.freeze({play,popSelected" in (target/"src/interaction/poi-svg-motion-v4.js").read_text()
 assert "function liveRenderCamera(rebuild=true)" in (target/"src/interaction/route-cards-v5-live.js").read_text()
 assert "return 'https://tiles.openfreemap.org/styles/bright';" in (target/"src/map/shared-v4-map.js").read_text()
-print("PASS persistent isolated map preview: 167 assets, 6 scoped modified source files, official files unaffected")
+print("PASS persistent isolated map preview: 167 assets, 7 scoped modified source files, official files unaffected")
