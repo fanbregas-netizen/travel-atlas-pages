@@ -117,5 +117,89 @@ function acknowledgePoi(node){
   }
  });
 }
+// The existing POI preview also follows a real vertical finger gesture.
+// It is intentionally the same card: there is no extra overlay or sheet.
+// A downward swipe dismisses it; an incomplete swipe rebounds to rest.
+function enableCardGestures(el){
+ if(!el||el.dataset.fpPoiGestureOwner)return;
+ el.dataset.fpPoiGestureOwner='v4';
+ let active=null,pointer=null,touch=null;
+ const skip='button,a,input,select,textarea,[contenteditable]';
+ const start=(x,y)=>{
+  if(active||!el.classList.contains('visible')||el.inert)return;
+  const running=motion.get(el);
+  running?.cancel?.();motion.delete(el);
+  active={x,y,lastY:y,moved:false};
+ };
+ const move=(x,y,e)=>{
+  if(!active)return;
+  const dx=x-active.x,dy=y-active.y;
+  if(!active.moved){
+   if(Math.abs(dx)>Math.abs(dy)*1.2&&Math.abs(dx)>7){active=null;return}
+   if(Math.abs(dy)<6)return;
+   active.moved=true;
+   el.dataset.fpPoiDragging='true';
+  }
+  active.lastY=y;
+  // Preserve a small elastic resistance when the user pulls upward.
+  const t=dy<0?dy*.22:dy;
+  el.style.setProperty('translate','0 '+t.toFixed(2)+'px','important');
+  if(e?.cancelable)e.preventDefault();
+ };
+ const end=(cancelled=false)=>{
+  if(!active)return;
+  const g=active;active=null;delete el.dataset.fpPoiDragging;
+  const dy=g.lastY-g.y;
+  if(!cancelled&&g.moved&&dy>95){
+   el.querySelector('#destinationClose')?.click();return;
+  }
+  const from=g.moved?(dy<0?dy*.22:dy):0;
+  const motor=window.FootprintRubberSpring;
+  if(reduced()||typeof motor?.animate!=='function'){
+   el.style.removeProperty('translate');return;
+  }
+  const prior=motion.get(el);prior?.cancel?.();motion.delete(el);
+  let run=null;
+  run=motor.animate({from,to:0,epsilon:.02,maxMs:650,
+   onFrame:y=>el.style.setProperty('translate','0 '+y.toFixed(2)+'px','important'),
+   onDone:()=>{if(motion.get(el)===run){motion.delete(el);el.style.removeProperty('translate')}}
+  });
+  motion.set(el,run);
+ };
+ // Pointer events on the card body, excluding all existing live controls.
+ el.addEventListener('pointerdown',e=>{
+  if(e.button!==undefined&&e.button!==0||e.target.closest(skip))return;
+  start(e.clientX,e.clientY);
+  if(active){pointer=e.pointerId;try{el.setPointerCapture(pointer)}catch(_){}}
+ });
+ document.addEventListener('pointermove',e=>{
+  if(pointer!==null&&e.pointerId===pointer)move(e.clientX,e.clientY,e);
+ },{passive:false});
+ document.addEventListener('pointerup',e=>{
+  if(pointer===null||e.pointerId!==pointer)return;
+  move(e.clientX,e.clientY,e);pointer=null;end();
+ });
+ document.addEventListener('pointercancel',e=>{
+  if(pointer!==null&&e.pointerId===pointer){pointer=null;end(true)}
+ });
+ // Real Safari touch fallback if the moving card loses pointer capture.
+ el.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1||e.target.closest(skip)){touch=null;return}
+  const t=e.touches[0];touch=t.identifier;
+  if(pointer===null)start(t.clientX,t.clientY);
+ },{passive:true});
+ el.addEventListener('touchmove',e=>{
+  if(pointer!==null||touch===null||e.touches.length!==1)return;
+  const t=e.touches[0];if(t.identifier===touch)move(t.clientX,t.clientY,e);
+ },{passive:false});
+ el.addEventListener('touchend',e=>{
+  if(touch===null)return;
+  const t=[...e.changedTouches].find(v=>v.identifier===touch);
+  if(pointer===null&&t){move(t.clientX,t.clientY);end()}
+  touch=null;
+ });
+ el.addEventListener('touchcancel',()=>{if(pointer===null)end(true);touch=null});
+}
+enableCardGestures(document.getElementById('destinationCard'));
 window.FootprintElasticHandoff=Object.freeze({version:'19',revealCard,acknowledgePoi,stop});
 })();
