@@ -489,12 +489,12 @@ jobs:
           path: __map_v4_source
       - uses: actions/checkout@v4
         with:
-          ref: 880807388e9085c5e67e93ec14e63828ccaf9603
+          ref: 79368360e5f2f1a258fe166f738ec6447431acdc
           path: __map_review_patch
       - name: Append durable independent V4 map Safari acceptance (no product merge)
         run: |
           test "$(git -C __map_v4_source rev-parse HEAD)" = 54c2b68347e3bfe2a7e7ed47ef63e12550e007b7
-          test "$(git -C __map_review_patch rev-parse HEAD)" = 880807388e9085c5e67e93ec14e63828ccaf9603
+          test "$(git -C __map_review_patch rev-parse HEAD)" = 79368360e5f2f1a258fe166f738ec6447431acdc
           python3 - <<'PY'
           from pathlib import Path
           import hashlib,subprocess
@@ -529,6 +529,10 @@ jobs:
           curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}index.html" -o /tmp/map-durable-index
           grep -q 'atlas-v4-map-system-review-20261117-' /tmp/map-durable-index
           grep -q 'map-safari-acceptance-3' /tmp/map-durable-index
+          grep -Fq 'poi-svg-motion-v4.js?v=poi-pop-4' /tmp/map-durable-index
+          curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}src/interaction/poi-svg-motion-v4.js" -o /tmp/map-durable-poi-pop.js
+          node --check /tmp/map-durable-poi-pop.js
+          grep -Fq 'function popSelected(token)' /tmp/map-durable-poi-pop.js
           echo 'PASS public map Safari review URL persists after the normal main deployment'
       - name: Verify new four-system preview returns HTTP 200 from public Pages
         run: |
