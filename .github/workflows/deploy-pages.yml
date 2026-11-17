@@ -37,10 +37,13 @@ jobs:
           new='atlas-v4-media-system-review-20261117-'
           for html in root.rglob('*.html'):
               data=html.read_text(encoding='utf-8')
-              if old in data: html.write_text(data.replace(old,new),encoding='utf-8')
+              data=data.replace(old,new)
+              if html.name == 'index.html':
+                  data=data.replace('./footprint-home.js?v=search-physical-19','./footprint-home.js?v=media-iphone-v2-20261117')
+              html.write_text(data,encoding='utf-8')
           sw=root/'sw.js'
           data=sw.read_text(encoding='utf-8')
-          sw.write_text(data.replace('footprint-v4-review-20261116-v19c','footprint-v4-media-system-review-20261117-v1'),encoding='utf-8')
+          sw.write_text(data.replace('footprint-v4-review-20261116-v19c','footprint-v4-media-system-review-20261117-v2'),encoding='utf-8')
           for name in ('index.html','journey.html','route-view.html'):
               assert new in (root/name).read_text(encoding='utf-8'),name
           PYMEDIA
@@ -496,6 +499,7 @@ jobs:
           URL='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-media-system-review-20261117/'
           curl -fsSL --retry 15 --retry-delay 3 --retry-all-errors --max-time 25 "${URL}index.html" -o /tmp/v4-media-index.html
           grep -q 'atlas-v4-media-system-review-20261117-' /tmp/v4-media-index.html
+          grep -q 'media-iphone-v2-20261117' /tmp/v4-media-index.html
           for path in media-qa.html src/media/media-core.js footprint-home.js journey.html route-view.html; do
             curl -fsSL --retry 8 --retry-delay 2 --retry-all-errors --max-time 25 "${URL}${path}" -o "/tmp/media-check-$(basename "$path")"
             test -s "/tmp/media-check-$(basename "$path")"
