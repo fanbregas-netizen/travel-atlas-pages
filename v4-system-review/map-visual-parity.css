@@ -48,3 +48,25 @@
 #atlasSelectedPoiTop > .atlas-vector-selection {
  z-index:1 !important;pointer-events:none;
 }
+
+/* C V5 planner: exact porcelain/green token language and original V3 icon art. */
+#rc-map{background:#f7f6f3!important}
+#rc-map .rc-map-caption span{background:rgba(255,254,250,.94);border-color:#b2c3b8a6;color:#405a4b;box-shadow:0 3px 13px #182b251a}
+#rc-map-pins .rc-pin.rc-choice-pin{width:48px;height:48px;min-width:48px;min-height:48px;border:0;background:transparent!important;border-radius:15px;box-shadow:none!important;display:grid;place-items:center;transform:translate(-50%,-50%);scale:1}
+#rc-map-pins .rc-pin.rc-choice-pin .fp-route-poi-art{width:32px;height:32px;display:block;object-fit:contain;border:1px solid #b0c6bc;border-radius:12px;padding:5px;background:#f8faf8f7;box-shadow:0 3px 9px #23343529}
+#rc-map-pins .rc-pin.rc-choice-pin.selected .fp-route-poi-art{background:#e8f1ea;border-color:#aabfba}
+#rc-map-pins .rc-pin.rc-choice-pin[data-route-only="1"] .fp-route-poi-art{border-color:#8ca99b}
+#rc-map-pins .rc-pin.rc-choice-pin:focus-visible{outline:2px solid #75969a;outline-offset:-3px}
+#rc-map-pins .rc-pin{z-index:2}
+#rc-map-pins .rc-pin.rc-current,#rc-map-pins .rc-pin.fp-route-tapped{z-index:16!important;scale:1.2}
+#rc-map-pins .rc-pin.fp-map-pick-arrive{animation:fp-route-poi-home-spring 490ms cubic-bezier(.19,.9,.28,1) both!important}
+@keyframes fp-route-poi-home-spring{0%{scale:1;opacity:1}32%{scale:1.42}61%{scale:1.12}81%{scale:1.24}100%{scale:1.2;opacity:1}}
+#rc-map .rc-route polyline{vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+/* Saved route detail: preserve numbered stops, unify map token materials. */
+#pinLayer .route-pin{z-index:1;filter:none}
+#pinLayer .route-pin .pin-body{background:#f8faf8f7;border:1.5px solid #aabfba;border-radius:14px;transform:rotate(0);box-shadow:0 3px 9px #2334352e;color:#314b3e}
+#pinLayer .route-pin .pin-body>span{transform:none;font-size:15px}
+#pinLayer .route-pin.active{z-index:24!important;scale:1.2;animation:fp-route-stop-pop 480ms cubic-bezier(.19,.9,.28,1) both}
+#pinLayer .route-pin.active .pin-body{background:#e8f1ea;color:#294938;border-color:#88a99a;outline:none;box-shadow:0 5px 16px #22413138}
+@keyframes fp-route-stop-pop{0%{scale:1}35%{scale:1.4}65%{scale:1.13}100%{scale:1.2}}
+@media(prefers-reduced-motion:reduce){#rc-map-pins .rc-pin.fp-map-pick-arrive,#pinLayer .route-pin.active{animation:none!important}}
