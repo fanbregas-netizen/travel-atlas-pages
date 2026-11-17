@@ -768,7 +768,7 @@ const iphoneGallery=(()=>{
    s.track.style.transform=transform(-s.width);
    s.viewer.dataset.itemIndex=String(s.index);
    s.drag=null;s.locked=false;s.viewer.dataset.gestureState='rest';
-   updateLabel(s);chrome(s,1);
+   updateLabel(s);chrome(s,1);s.scrim.style.opacity='.93';
    if(s.queuedDir){
     const queued=s.queuedDir;s.queuedDir=0;
     // A rapid flick should not create/decode the intermediate video.
@@ -809,7 +809,6 @@ const iphoneGallery=(()=>{
   s.onTouchStart=e=>{
    if(s.closing||e.touches.length!==1||e.target.closest('button')){s.drag=null;return}
    freezePhotoEntrance(s);
-   freezeScrim(s);
    const touchedVideo=e.target.closest('video');
    if(touchedVideo){
     const rect=touchedVideo.getBoundingClientRect();
@@ -827,6 +826,7 @@ const iphoneGallery=(()=>{
     else return;
    }
    if(!g.mode)return;
+   if(!g.backdropFrozen){freezeScrim(s);g.backdropFrozen=true}
    if(e.cancelable)e.preventDefault();
    g.dx=dx;g.dy=dy;
    const elapsed=Math.max(16,performance.now()-g.t0);
@@ -861,7 +861,7 @@ const iphoneGallery=(()=>{
     const dir=dx<0?1:-1;
     if(s.items[s.index+dir]&&(Math.abs(dx)>Math.min(94,s.width*.21)||(Math.abs(dx)>25&&Math.abs(g.vx)>.52)))navigate(s,dir);
     else settle(s);
-   }else{s.drag=null}
+   }else{s.drag=null;s.scrim.style.opacity='.93'}
    s.suppressClickUntil=performance.now()+350;
    // Touchend and pointerup can both fire for one physical finger release.
    // Consume the gesture once so it cannot navigate two items.
