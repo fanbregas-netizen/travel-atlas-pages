@@ -168,6 +168,35 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.equal(switched.prevScale,'','Old selected POI must shrink back on switching');
     assert.equal(switched.currentScale,'scale(1)','New selected POI grows in its place');
     assert.equal(switched.selectedMarkers,1,'No duplicate map marker after rapid POI switch');
+    // The actual iPhone recording at 17:26 revealed a near-white card
+    // mid-switch. Measure the real rendered label while the native camera
+    // is still centering; this must never fade the existing sheet to zero.
+    const continuity=await page.evaluate(async()=>{
+      const card=document.getElementById('destinationCard');
+      const title=document.getElementById('destinationTitle');
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      const immediateName=title.textContent.trim();
+      let minOpacity=1,hiddenFrames=0,frames=0;
+      const start=performance.now();
+      await new Promise(resolve=>{
+        const sample=()=>{
+          const opacity=parseFloat(getComputedStyle(title).opacity);
+          if(Number.isFinite(opacity))minOpacity=Math.min(minOpacity,opacity);
+          if(!card.classList.contains('visible')||!card.isConnected||card.inert)hiddenFrames++;
+          frames++;
+          if(performance.now()-start<380)requestAnimationFrame(sample);
+          else resolve();
+        };
+        requestAnimationFrame(sample);
+      });
+      return {immediateName,minOpacity,hiddenFrames,frames,cardConnected:card.isConnected};
+    });
+    assert.equal(continuity.immediateName,'公园切点测试',
+      'POI card must show newest selection within two visual frames: '+JSON.stringify(continuity));
+    assert.ok(continuity.minOpacity>=.97,
+      'POI-to-POI switch faded the live card to white: '+JSON.stringify(continuity));
+    assert.equal(continuity.hiddenFrames,0,
+      'Same card disappeared, went inert or became unclickable during switch');
     await page.waitForFunction(()=>!window.__atlasPOIBridge.vector()?.isMoving(),{timeout:12000});
     const secondCentered=await page.evaluate(p=>{
       const m=window.__atlasPOIBridge.vector(),pos=m.project([p.lng+0.014,p.lat+0.009]),box=m.getContainer();
