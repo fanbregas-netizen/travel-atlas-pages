@@ -56,7 +56,7 @@ for page in ("index.html","journey.html","route-view.html"):
         assert "poi-pop-5" in html
         assert "map-safari-acceptance-8" in html
         assert "The selected icon already animates in place" in html
-        html=html.replace("</head>",'<link rel="stylesheet" href="./map-home-bluegray-v18.css?v=bluegray-18">\n<script defer src="./map-home-bluegray-v18.js?v=bluegray-18"></script>\n</head>',1)
+        html=html.replace("</head>",'<link rel="stylesheet" href="./map-home-bluegray-v18.css?v=bluegray-19">\n<script defer src="./map-home-bluegray-v18.js?v=bluegray-19"></script>\n</head>',1)
     if page=="journey.html":
         old_script='<script defer src="./src/interaction/route-cards-v5-live.js?v=fluid-3"></script>'
         assert old_script in html
