@@ -1,0 +1,110 @@
+name: V4 route map isolated iPhone WebKit regression
+on:
+  push:
+    branches: [preview/v4-acceptance-20261117]
+    paths:
+      - '.github/workflows/v4-route-only-webkit.yml'
+      - 'v4-system-review/map-runtime-repairs.py'
+      - 'v4-system-review/map-shared-style-repairs.py'
+      - 'v4-system-review/map-poi-smooth.py'
+      - 'v4-system-review/map-pan-performance.py'
+      - 'v4-system-review/map-camera-coherence.py'
+      - 'v4-system-review/map-poi-icon-pop.py'
+      - 'v4-system-review/map-route-smooth.py'
+      - 'v4-system-review/map-route-parity-v9.py'
+      - 'v4-system-review/map-route-stable-viewport-v11.py'
+      - 'v4-system-review/map-visual-parity.css'
+      - 'v4-system-review/map-safari-smoke.cjs'
+permissions:
+  contents: read
+jobs:
+  safari-route-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/v4-clean-ui-20261116
+          path: __candidate
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/v4-acceptance-20261117
+          path: __prototype
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assert exact full V4 source
+        run: test "$(git -C __candidate rev-parse HEAD)" = 54c2b68347e3bfe2a7e7ed47ef63e12550e007b7
+      - name: Assemble isolated map-only artifact and validate JavaScript
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,shutil,subprocess
+          base=Path('__candidate/v4-review-20261116')
+          review=Path('review')
+          shutil.copytree(base,review)
+          assert len(list(x for x in review.rglob('*') if x.is_file()))==164
+          subprocess.run(['python3','__prototype/v4-system-review/map-runtime-repairs.py',str(review/'v4-map-runtime.js')],check=True)
+          subprocess.run(['node','--check',str(review/'v4-map-runtime.js')],check=True)
+          subprocess.run(['python3','__prototype/v4-system-review/map-shared-style-repairs.py',str(review/'src/map/shared-v4-map.js')],check=True)
+          subprocess.run(['node','--check',str(review/'src/map/shared-v4-map.js')],check=True)
+          subprocess.run(['python3','__prototype/v4-system-review/map-poi-smooth.py',str(review/'v4-map-runtime.js')],check=True)
+          subprocess.run(['python3','__prototype/v4-system-review/map-poi-smooth.py',str(review/'index.html')],check=True)
+          subprocess.run(['python3','__prototype/v4-system-review/map-poi-icon-pop.py',str(review/'src/interaction/poi-svg-motion-v4.js')],check=True)
+          subprocess.run(['node','--check',str(review/'src/interaction/poi-svg-motion-v4.js')],check=True)
+          subprocess.run(['python3','__prototype/v4-system-review/map-route-smooth.py',str(review/'src/interaction/route-cards-v5-live.js')],check=True)
+          subprocess.run(['python3','__prototype/v4-system-review/map-route-parity-v9.py',str(review/'src/interaction/route-cards-v5-live.js')],check=True)
+          subprocess.run(['python3','__prototype/v4-system-review/map-route-stable-viewport-v11.py',str(review/'src/interaction/route-cards-v5-live.js')],check=True)
+          subprocess.run(['python3','__prototype/v4-system-review/map-route-parity-v9.py',str(review/'route-view.html')],check=True)
+          for asset in ('v4-map-runtime.js','index.html','src/interaction/poi-svg-motion-v4.js'):
+              subprocess.run(['python3','__prototype/v4-system-review/map-pan-performance.py',str(review/asset)],check=True)
+          for asset in ('v4-map-runtime.js','index.html'):
+              subprocess.run(['python3','__prototype/v4-system-review/map-camera-coherence.py',str(review/asset)],check=True)
+          subprocess.run(['node','--check',str(review/'v4-map-runtime.js')],check=True)
+          subprocess.run(['node','--check',str(review/'src/interaction/route-cards-v5-live.js')],check=True)
+          shutil.copyfile('__prototype/v4-system-review/map-visual-parity.css',review/'map-visual-parity.css')
+          for asset in ('scope-review.js','scope-review.css'):
+              shutil.copyfile('__prototype/v4-system-review/'+asset,review/asset)
+          for page in ('index.html','journey.html','route-view.html'):
+              file=review/page
+              html=file.read_text()
+              assert 'atlas-v4-review-20261116-' in html
+              html=html.replace('atlas-v4-review-20261116-','atlas-v4-map-system-review-20261117-')
+              html=html.replace('shared-v4-map.js?v=c4','shared-v4-map.js?v=map-parity-2').replace('shared-v4-map.js?v=route-precision-1','shared-v4-map.js?v=map-parity-2').replace('shared-v4-map.js?v=4-unified','shared-v4-map.js?v=map-parity-2')
+              if page=='index.html':
+                  html=html.replace('poi-svg-motion-v4.js?v=cv5-18','poi-svg-motion-v4.js?v=poi-pop-5')
+                  assert 'poi-pop-5' in html
+              if page=='journey.html':
+                  old='<script defer src="./src/interaction/route-cards-v5-live.js?v=fluid-3"></script>'
+                  assert old in html
+                  html=html.replace(old,'<script defer src="./atlas-map-design.js"></script>\n<script defer src="./atlas-route-buildings.js"></script>\n'+old.replace('v=fluid-3','v=map-route-viewport-11'),1)
+              if page in ('journey.html','route-view.html'):
+                  html=html.replace('</head>','<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>\n<link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>\n<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js">\n</head>',1)
+              html=html.replace('</head>','<link rel="stylesheet" href="./map-visual-parity.css?v=map-only-6">\n<link rel="stylesheet" href="./scope-review.css?v=scope-1">\n</head>',1)
+              html=html.replace('</body>','<script src="./scope-review.js?v=scope-1" data-scope="map"></script>\n</body>',1)
+              file.write_text(html)
+          for old in base.rglob('*'):
+              if not old.is_file():continue
+              rel=old.relative_to(base)
+              if rel in (Path('index.html'),Path('journey.html'),Path('route-view.html'),Path('v4-map-runtime.js'),Path('src/map/shared-v4-map.js'),Path('src/interaction/route-cards-v5-live.js'),Path('src/interaction/poi-svg-motion-v4.js')):continue
+              assert hashlib.sha256(old.read_bytes()).digest()==hashlib.sha256((review/rel).read_bytes()).digest(),str(rel)
+          assert len(list(x for x in review.rglob('*') if x.is_file()))==167
+          print('Isolated map artifact validated, other system resources identical.')
+          PY
+      - run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps webkit
+      - name: Simulated iPhone Safari map loading, zoom, POI motion, unique star checks
+        env:
+          MAP_REVIEW_URL: http://127.0.0.1:8765/
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory review >/tmp/map-only-http.log 2>&1 &
+          MAP_ROUTE_ONLY=1 node __prototype/v4-system-review/map-safari-smoke.cjs
+      - name: Archive actual WebKit iPhone animation frames for visual review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: route-map-safari-motion-frames
+          path: map-evidence/
+          if-no-files-found: ignore
+          retention-days: 7
