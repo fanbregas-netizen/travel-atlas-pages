@@ -71,7 +71,7 @@ elif path.name=='v4-map-runtime.js':
     }""",
   'poi-avoid-zoom-ghost')
  once(
-  "  function showVectorSelection(place){\n     if(!isVector())return;\n     if(vectorSelectionMarker)vectorSelectionMarker.remove();",
+  "  function showVectorSelection(place){\n    if(!isVector())return;\n    if(vectorSelectionMarker)vectorSelectionMarker.remove();",
   """  function showVectorSelection(place){
      if(!isVector())return;
      // POI has its OWN stable, animated hand-drawn SVG in the DOM overlay.
