@@ -1,0 +1,807 @@
+/*
+ * Footprint Map V4 | 2026-11-15 | Route visual precision pass
+ * Based on the accepted C Visual PR #15 tokens and 13:51 Safari recording.
+ * Both pages share typography, spacing, controls and visual hierarchy.
+ * The approved C V5 physics, date logic, waypoint data and map click
+ * targets are owned by their original scripts; never override transform,
+ * height, touch-action, map-marker coordinates or gesture transitions.
+ */
+:root {
+  --rp-paper:#fffefa;
+  --rp-ink:#27342f;
+  --rp-sub:#69746e;
+  --rp-quiet:#8b948c;
+  --rp-rule:#e5e7df;
+  --rp-sage:#edf1e9;
+  --rp-canvas:#f8f9f5;
+  --rp-gold:#b59a62;
+  --rp-ease:cubic-bezier(.18,.94,.2,1);
+  --rp-type:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB",sans-serif;
+}
+body.route-v5-live,
+body.route-page {
+  --rc-ink:var(--rp-ink);
+  --rc-text:#4b5750;
+  --rc-quiet:var(--rp-sub);
+  --rc-paper:var(--rp-paper);
+  --rc-sage:var(--rp-sage);
+  --rc-line:var(--rp-rule);
+  color:var(--rp-ink);
+  font-family:var(--rp-type);
+  -webkit-font-smoothing:antialiased;
+}
+body.route-v5-live :is(button,input,select,textarea),
+body.route-page :is(button,input,select,textarea) {font-family:inherit}
+body.route-v5-live :is(button,a,input,select):focus-visible,
+body.route-page :is(button,a,input,select):focus-visible {
+  outline:2px solid #a58f64!important;
+  outline-offset:2px!important;
+}
+
+/* Planning page: remove redundant navigation copy while retaining the actual
+   single controller and the already-accepted three physical card detents. */
+body.route-v5-live #rc-live-note {gap:8px}
+body.route-v5-live #rc-live-note a {
+  width:44px;height:44px;
+  border-radius:14px;
+  background:var(--rp-paper)!important;
+  color:var(--rp-ink)!important;
+  border:1px solid var(--rp-rule)!important;
+  box-shadow:0 3px 12px rgba(30,47,34,.09)!important;
+}
+body.route-v5-live #rc-live-note span {
+  padding:10px 12px!important;
+  border:1px solid var(--rp-rule)!important;
+  border-radius:13px!important;
+  color:var(--rp-ink)!important;
+  background:var(--rp-paper)!important;
+  font-size:12px!important;font-weight:675!important;
+  letter-spacing:-.015em!important;
+  box-shadow:0 3px 12px rgba(30,47,34,.06)!important;
+}
+body.route-v5-live .rc-map-caption span {
+  background:rgba(255,254,250,.94)!important;
+  border:1px solid var(--rp-rule)!important;
+  border-radius:11px!important;
+  color:var(--rp-sub)!important;
+  font-size:10px!important;
+  font-weight:570!important;
+  padding:6px 9px!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+body.route-v5-live #rc-main,
+body.route-v5-live #rc-mini {
+  background:var(--rp-paper)!important;
+  color:var(--rp-ink)!important;
+  border-radius:25px 25px 0 0!important;
+  box-shadow:0 -9px 34px rgba(26,43,32,.13)!important;
+}
+body.route-v5-live #rc-grab {padding:7px 20px 13px!important}
+body.route-v5-live #rc-grab .rc-handle,
+body.route-v5-live #rc-mini-grab .rc-handle {
+  width:40px!important;
+  background:#c9d0c7!important;
+}
+body.route-v5-live #rc-grab .rc-handle {margin-bottom:11px!important}
+body.route-v5-live #rc-grab .rc-upper .rc-eyebrow {display:none!important}
+body.route-v5-live #rc-grab .rc-upper h2 {
+  font-size:23px!important;
+  font-weight:710!important;
+  line-height:1.27!important;
+  letter-spacing:-.038em!important;
+  margin:1px 0 4px!important;
+  color:var(--rp-ink)!important;
+}
+body.route-v5-live #rc-grab .rc-upper .rc-byline {
+  font-size:11px!important;
+  font-weight:420!important;
+  line-height:1.55!important;
+  color:var(--rp-sub)!important;
+}
+body.route-v5-live #rc-grab .rc-dismiss {
+  width:38px!important;height:38px!important;min-width:38px!important;
+  color:#6b7a6d!important;
+  background:var(--rp-sage)!important;
+  border-radius:14px!important;
+  font-size:19px!important;
+}
+body.route-v5-live #rc-body {
+  padding:14px 20px 24px!important;
+  background:var(--rp-paper)!important;
+}
+body.route-v5-live #rc-body .rc-section {
+  color:#758679!important;
+  font-size:11px!important;
+  font-weight:675!important;
+  letter-spacing:0!important;
+  margin:16px 0 9px!important;
+}
+body.route-v5-live .rc-rowhead {margin:14px 0 8px!important}
+body.route-v5-live .rc-rowhead .rc-note {
+  font-size:11px!important;
+  color:var(--rp-quiet)!important;
+}
+body.route-v5-live #rc-body .rc-tabs {
+  margin:5px 0 12px!important;
+  gap:3px!important;padding:4px!important;
+  background:#eff2eb!important;
+  border-radius:13px!important;
+  border:1px solid var(--rp-rule)!important;
+  box-shadow:none!important;
+}
+body.route-v5-live #rc-body .rc-tabs button {
+  min-height:42px!important;
+  border-radius:10px!important;
+  font-size:12px!important;
+  font-weight:635!important;
+  color:var(--rp-sub)!important;
+}
+body.route-v5-live #rc-body .rc-tabs button.is-active {
+  color:var(--rp-ink)!important;
+  background:var(--rp-paper)!important;
+  box-shadow:0 1px 4px rgba(28,42,32,.045)!important;
+}
+body.route-v5-live .rc-meta {
+  column-gap:8px!important;
+  row-gap:8px!important;
+  margin-bottom:14px!important;
+}
+body.route-v5-live .rc-meta button {
+  min-width:0!important;min-height:66px!important;
+  padding:11px 12px!important;
+  border:1px solid var(--rp-rule)!important;
+  background:var(--rp-canvas)!important;
+  border-radius:13px!important;
+  box-shadow:none!important;
+}
+body.route-v5-live .rc-meta button small {
+  color:var(--rp-sub)!important;
+  font-size:10px!important;
+  font-weight:490!important;
+  line-height:1.45!important;
+  margin-bottom:5px!important;
+}
+body.route-v5-live .rc-meta button b {
+  color:var(--rp-ink)!important;
+  font-size:12px!important;
+  line-height:1.4!important;
+  font-weight:680!important;
+  letter-spacing:-.018em!important;
+}
+body.route-v5-live #rc-body .rc-stop {
+  min-height:62px!important;
+  margin:6px 0!important;
+  padding:10px 11px!important;
+  border:1px solid var(--rp-rule)!important;
+  background:var(--rp-paper)!important;
+  border-radius:14px!important;
+  box-shadow:none!important;
+}
+body.route-v5-live #rc-body .rc-stop.selected {
+  background:#f2f5ee!important;
+  border-color:#cbd8c9!important;
+}
+body.route-v5-live #rc-body .rc-stop .rc-index {
+  width:32px!important;min-width:32px!important;height:32px!important;
+  border-radius:11px!important;
+  background:var(--rp-sage)!important;
+  color:#526e5b!important;
+  font-size:12px!important;
+  font-weight:710!important;
+}
+body.route-v5-live #rc-body .rc-stop .rc-name strong {
+  color:var(--rp-ink)!important;
+  font-size:14px!important;
+  line-height:1.35!important;
+  font-weight:690!important;
+  letter-spacing:-.022em!important;
+}
+body.route-v5-live #rc-body .rc-stop .rc-name small {
+  color:var(--rp-quiet)!important;
+  font-size:11px!important;
+  line-height:1.45!important;
+  margin-top:4px!important;
+}
+body.route-v5-live .rc-grip-icon {
+  color:#78927c!important;
+  background:var(--rp-sage)!important;
+  border-radius:11px!important;
+}
+body.route-v5-live #rc-body .rc-summary {
+  padding:11px 12px!important;
+  margin:12px 0!important;
+  font-size:12px!important;
+  line-height:1.6!important;
+  color:var(--rp-sub)!important;
+  background:var(--rp-canvas)!important;
+  border:1px solid var(--rp-rule)!important;
+  border-radius:12px!important;
+}
+body.route-v5-live #rc-body .rc-shortcut {
+  margin:8px 0 10px!important;
+  align-items:baseline!important;
+}
+body.route-v5-live #rc-body .rc-shortcut b {
+  font-size:15px!important;
+  font-weight:700!important;
+  line-height:1.4!important;
+  color:var(--rp-ink)!important;
+}
+body.route-v5-live #rc-body .rc-shortcut small{
+  font-size:11px!important;color:var(--rp-sub)!important;
+}
+body.route-v5-live #rc-body .rc-preview-brief {
+  font-size:14px!important;
+  line-height:1.7!important;
+  color:#4b5750!important;
+  margin:10px 0 16px!important;
+  overflow-wrap:anywhere!important;
+}
+body.route-v5-live #rc-body .rc-fineprint {
+  color:var(--rp-quiet)!important;
+  font-size:10px!important;
+  font-weight:410!important;
+  line-height:1.55!important;
+}
+body.route-v5-live #rc-footer,
+body.route-v5-live #rc-mini-bottom {
+  padding:10px 18px calc(12px + env(safe-area-inset-bottom,0px))!important;
+  gap:8px!important;
+  background:var(--rp-paper)!important;
+  border-top:1px solid var(--rp-rule)!important;
+}
+body.route-v5-live :is(.rc-primary,.rc-soft){
+  border:1px solid var(--rp-rule)!important;
+  border-radius:13px!important;
+  font-size:12px!important;
+  font-weight:680!important;
+  letter-spacing:0!important;
+  box-shadow:none!important;
+}
+body.route-v5-live .rc-primary {
+  min-height:45px!important;
+  background:#304b3b!important;
+  color:var(--rp-paper)!important;
+  border-color:#304b3b!important;
+}
+body.route-v5-live .rc-soft {
+  min-height:45px!important;
+  background:var(--rp-sage)!important;
+  color:#4c6754!important;
+}
+body.route-v5-live #rc-footer [data-rc="open-real-map"]{
+  flex:0 1 auto!important;
+  min-width:82px!important;
+  padding:10px 12px!important;
+  background:var(--rp-canvas)!important;
+  color:var(--rp-ink)!important;
+  white-space:nowrap!important;
+}
+body.route-v5-live #rc-mini-caption:empty {display:none!important}
+body.route-v5-live #rc-mini-title {
+  font-size:21px!important;
+  font-weight:705!important;
+  line-height:1.35!important;
+  letter-spacing:-.03em!important;
+  color:var(--rp-ink)!important;
+}
+body.route-v5-live #rc-mini-body .rc-form-field input{
+  font-size:16px!important;
+  border-radius:13px!important;
+}
+body.route-v5-live .rc-zero-state {padding-top:18px!important}
+body.route-v5-live .rc-zero-state strong{
+  color:var(--rp-ink)!important;
+  font-size:17px!important;font-weight:705!important;
+}
+
+/* Saved route map: same ink, paper, rhythm and map as the planner. */
+body.route-page #atlasMap{background:#f4f4f0!important}
+body.route-page .atlas-topbar {
+  display:grid!important;
+  grid-template-columns:44px minmax(0,1fr) 66px 44px!important;
+  column-gap:7px!important;
+  align-items:center!important;
+  top:calc(var(--safe-top) + 10px)!important;
+  left:13px!important;right:13px!important;
+}
+body.route-page .atlas-back,
+body.route-page #viewAll {
+  width:44px!important;height:44px!important;
+  min-height:44px!important;border-radius:14px!important;
+  color:var(--rp-ink)!important;
+  border:1px solid var(--rp-rule)!important;
+  background:rgba(255,254,250,.97)!important;
+  box-shadow:0 4px 13px rgba(32,45,34,.09)!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+body.route-page .atlas-brand {
+  display:flex!important;flex-direction:column!important;
+  justify-content:center!important;align-items:center!important;
+  justify-self:stretch!important;min-width:0!important;
+  padding:0!important;
+  background:transparent!important;border:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  text-align:center!important;
+}
+body.route-page .atlas-brand-top{display:none!important}
+body.route-page .atlas-brand strong {
+  max-width:100%!important;
+  font-size:14px!important;
+  font-weight:700!important;
+  line-height:1.3!important;
+  letter-spacing:-.025em!important;
+  color:var(--rp-ink)!important;
+}
+body.route-page #routeEditV5 {
+  min-width:66px!important;min-height:44px!important;
+  padding:10px 8px!important;
+  background:rgba(255,254,250,.97)!important;
+  border:1px solid var(--rp-rule)!important;
+  border-radius:14px!important;
+  font-size:12px!important;
+  font-weight:680!important;
+  color:var(--rp-ink)!important;
+  box-shadow:0 4px 13px rgba(32,45,34,.09)!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  text-decoration:none!important;
+}
+body.route-page #viewAll {
+  position:static!important;
+  z-index:auto!important;
+  padding:0!important;
+}
+body.route-page .atlas-legend {
+  top:calc(var(--safe-top) + 69px)!important;
+  left:13px!important;
+  max-width:calc(100vw - 26px)!important;
+  padding:7px 10px!important;
+  font-size:10px!important;
+  line-height:1.5!important;
+  color:var(--rp-sub)!important;
+  border:1px solid var(--rp-rule)!important;
+  border-radius:11px!important;
+  background:rgba(255,254,250,.95)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+body.route-page .atlas-status{
+  top:calc(var(--safe-top) + 68px)!important;
+  padding:8px 11px!important;
+  border:1px solid var(--rp-rule)!important;
+  border-radius:11px!important;
+  background:var(--rp-paper)!important;
+  color:var(--rp-sub)!important;
+  box-shadow:0 4px 12px rgba(30,45,32,.08)!important;
+  font-size:11px!important;
+  line-height:1.4!important;
+}
+body.route-page #stopsDock.atlas-stops {
+  left:12px!important;right:12px!important;
+  bottom:calc(var(--safe-bottom) + 10px)!important;
+  padding:9px!important;
+  border:1px solid var(--rp-rule)!important;
+  border-radius:20px!important;
+  background:rgba(255,254,250,.96)!important;
+  box-shadow:0 5px 23px rgba(27,45,33,.13)!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+body.route-page .rv-railrow {gap:7px!important}
+body.route-page #stopRail.stop-rail {gap:7px!important;padding:1px 0!important}
+body.route-page .stop-chip {
+  min-width:134px!important;
+  max-width:214px!important;
+  min-height:48px!important;
+  padding:9px 10px!important;
+  border:1px solid var(--rp-rule)!important;
+  border-radius:13px!important;
+  background:var(--rp-canvas)!important;
+  color:var(--rp-ink)!important;
+  box-shadow:none!important;
+  gap:7px!important;
+}
+body.route-page .stop-chip.active {
+  background:var(--rp-sage)!important;
+  border-color:#bed0c0!important;
+}
+body.route-page .stop-chip .chip-number {
+  height:28px!important;min-width:28px!important;
+  background:#e7ece3!important;color:#49604d!important;
+  border-radius:10px!important;
+  font-size:11px!important;font-weight:730!important;
+}
+body.route-page .stop-chip.active .chip-number {
+  background:#344f3e!important;color:var(--rp-paper)!important;
+}
+body.route-page .stop-chip .stop-day {
+  color:#7a765c!important;
+  font-size:10px!important;
+  font-weight:600!important;
+  white-space:nowrap!important;
+}
+body.route-page.rv-one-day .stop-chip .stop-day {display:none!important}
+body.route-page .stop-chip .chip-name {
+  font-size:12px!important;
+  font-weight:680!important;
+  line-height:1.35!important;
+  letter-spacing:-.015em!important;
+  color:var(--rp-ink)!important;
+}
+body.route-page .stop-chip::before{opacity:.5!important;width:6px!important}
+body.route-page #rvDetail {
+  background:var(--rp-paper)!important;
+  color:var(--rp-ink)!important;
+  border-radius:25px 25px 0 0!important;
+  box-shadow:0 -10px 35px rgba(27,45,34,.13)!important;
+  padding:17px 20px calc(19px + env(safe-area-inset-bottom))!important;
+}
+body.route-page #rvDetail .grab{
+  width:41px!important;height:5px!important;
+  background:#cbd1c8!important;
+  margin-bottom:14px!important;
+}
+body.route-page #rvDetail h2 {
+  color:var(--rp-ink)!important;
+  font-size:23px!important;
+  font-weight:710!important;
+  line-height:1.3!important;
+  letter-spacing:-.038em!important;
+}
+body.route-page #rvDetail .addr{
+  font-size:12px!important;color:var(--rp-sub)!important;
+  line-height:1.55!important;
+}
+body.route-page #rvDetail .rv-sec>small{
+  font-size:11px!important;
+  font-weight:660!important;
+  line-height:1.4!important;
+  letter-spacing:0!important;
+  color:#877957!important;
+}
+body.route-page #rvDetail .brief {
+  font-size:14px!important;
+  line-height:1.7!important;
+  font-weight:430!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  color:#4b5750!important;
+}
+body.route-page #rvDetail .rv-sec{
+  padding-bottom:15px!important;
+  margin-bottom:15px!important;
+  border-bottom:1px solid var(--rp-rule)!important;
+}
+body.route-page #rvDetail .rv-sec:last-of-type {border-bottom:0!important}
+body.route-page #rvDetail .rv-links a {
+  background:var(--rp-canvas)!important;
+  border:1px solid var(--rp-rule)!important;
+  border-radius:12px!important;
+  color:var(--rp-ink)!important;
+  font-size:12px!important;
+}
+body.route-page #rvDetail .rv-links-empty {
+  color:var(--rp-quiet)!important;
+  font-size:12px!important;
+  line-height:1.6!important;
+}
+body.route-page #rvDetail .ops button {
+  min-height:44px!important;
+  background:var(--rp-canvas)!important;
+  border:1px solid var(--rp-rule)!important;
+  border-radius:13px!important;
+  color:var(--rp-ink)!important;
+  font-size:12px!important;
+  font-weight:660!important;
+}
+body.route-page #rvDetail .ops button[data-op="nav"]{
+  background:var(--rp-sage)!important;
+  border-color:#dbe5da!important;
+  color:#3b5d46!important;
+}
+body.route-page .rv-callout{
+  max-width:min(230px,72vw)!important;
+  background:var(--rp-paper)!important;
+  border:1px solid var(--rp-rule)!important;
+  border-radius:13px!important;
+  color:var(--rp-ink)!important;
+  box-shadow:0 6px 18px rgba(28,44,34,.12)!important;
+  padding:8px 11px!important;
+}
+body.route-page .rv-callout small {
+  color:var(--rp-sub)!important;
+  font-size:10px!important;
+  font-weight:620!important;
+  letter-spacing:0!important;
+}
+body.route-page .rv-callout span{
+  color:var(--rp-ink)!important;
+  font-size:12px!important;
+  font-weight:680!important;
+}
+@media(max-width:375px){
+  body.route-v5-live #rc-grab {padding-inline:16px!important}
+  body.route-v5-live #rc-body {padding-inline:16px!important}
+  body.route-v5-live #rc-footer {padding-inline:14px!important}
+  body.route-page .atlas-topbar {left:9px!important;right:9px!important;column-gap:5px!important}
+  body.route-page #stopsDock.atlas-stops {left:9px!important;right:9px!important}
+  body.route-page #rvDetail {padding-inline:16px!important}
+}
+
+/* Precision corrections after matching the recording frame by frame. */
+body.route-v5-live #rc-body .rc-stop-pick .rc-index {display:none!important}
+body.route-v5-live #rc-body .rc-stop-pick .rc-name small:empty {display:none!important}
+body.route-v5-live #rc-body .rc-stop-pick .rc-name small:not(:empty) {margin-top:4px!important}
+body.route-v5-live #rc-body .rc-stop-pick .rc-pick-check {
+  width:34px!important;height:34px!important;min-width:34px!important;
+  border-radius:11px!important;
+  background:var(--rp-sage)!important;color:#4f6c54!important;
+  display:grid!important;place-items:center!important;
+  font-size:17px!important;font-weight:520!important;
+}
+body.route-v5-live #rc-body .rc-stop-pick.selected .rc-pick-check{
+  background:#dce9db!important;color:#2e583b!important;
+}
+body.route-v5-live #rc-body .rc-stop-pick .rc-name strong{
+  font-weight:680!important;font-size:14px!important;
+}
+body.route-v5-live #rc-footer .rc-save-status {
+  flex:1;min-width:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:660;
+  line-height:1.4;
+  color:#577361;
+  background:var(--rp-sage);
+  border:1px solid var(--rp-rule);
+  border-radius:13px;
+  padding:10px 12px;
+}
+body.route-v5-live #rc-body .rc-shortcut b{
+  font-size:15px!important;
+}
+body.route-v5-live #rc-body .rc-shortcut small {
+  text-align:right!important;
+  white-space:nowrap!important;
+}
+/* Keep the route's three footer items balanced in saved mode on narrow iPhones. */
+@media(max-width:375px){
+  body.route-v5-live #rc-footer [data-rc="open-real-map"]{
+    min-width:72px!important;padding:8px 9px!important;
+  }
+}
+
+/* Final content hierarchy: keep place/date controls readable but remove
+   the last nested card around repeated start-to-end summary text. */
+body.route-v5-live #rc-body .rc-summary.rc-ends,
+body.route-v5-live #rc-body .rc-summary.rc-order-summary {
+  margin:12px 0!important;
+  padding:2px 0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  color:var(--rp-sub)!important;
+  font-size:11px!important;
+  line-height:1.6!important;
+  box-shadow:none!important;
+}
+body.route-v5-live #rc-body .rc-route-disclaimer {
+  margin:10px 0 0!important;
+  padding:0!important;
+  font-size:10px!important;
+  line-height:1.5!important;
+  color:var(--rp-quiet)!important;
+}
+/* Preserve the real 44-px touch surface while balancing three saved actions. */
+body.route-v5-live #rc-footer .rc-save-status {
+  min-height:45px!important;
+  white-space:nowrap!important;
+}
+body.route-page .atlas-brand strong {
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+
+/* A caption is not a decorative pill when its instruction is empty. */
+body.route-v5-live #rc-map .rc-map-caption span:empty {display:none!important}
+
+
+/* 2026-11-15 precision defect: a legacy min-height:38px!important turned
+   the tiny #rvDetail grab bar into a solid beige square in iPhone recordings.
+   Keep a 72x38 accessible touch target, but only paint a 42x5 line. */
+body.route-page #rvDetail .grab {
+  display:grid!important;
+  place-items:center!important;
+  width:72px!important;
+  height:38px!important;
+  min-height:38px!important;
+  max-height:38px!important;
+  padding:0!important;
+  margin:-8px auto 5px!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  touch-action:none!important;
+}
+body.route-page #rvDetail .grab::before{
+  content:"";
+  display:block;
+  width:42px;height:5px;
+  border-radius:10px;
+  background:#c8d0c7;
+}
+body.route-page #rvDetail .addr:empty{display:none!important}
+/* The day picker is the sole day label on the sorting row. */
+body.route-v5-live #rc-order-list .rc-stop .rc-name small:empty{display:none!important}
+/* Keep long place labels within content columns without clipping controls. */
+body.route-v5-live #rc-body .rc-stop .rc-name,
+body.route-v5-live #rc-body .rc-meta button,
+body.route-page .stop-chip {min-width:0!important}
+body.route-v5-live #rc-body .rc-stop .rc-name strong,
+body.route-page .stop-chip .chip-name{
+  overflow-wrap:anywhere!important;
+}
+body.route-v5-live #rc-body .rc-stop .rc-name small{line-height:1.45!important}
+
+
+/* 2026-11-16 · C VISUAL PARITY ACROSS BOTH ROUTE PAGES
+ * Reuse confirmed PR15 tokens, not new route-only palette/typography.
+ * Keep all C V5 state logic, date picker, gestures, map sources untouched.
+ */
+body.route-v5-live,body.route-page {
+  --rp-paper:var(--fpv-paper,#fffefa);
+  --rp-ink:var(--fpv-ink,#27342f);
+  --rp-sub:var(--fpv-secondary,#69746e);
+  --rp-quiet:var(--fpv-tertiary,#8b948c);
+  --rp-rule:var(--fpv-line,#e5e7df);
+  --rp-sage:#edf1e9;
+  --rp-canvas:var(--fpv-surface,#faf9f5);
+  --rp-gold:var(--fpv-gold,#b59a62);
+  --rp-type:var(--fpv-type,-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif);
+}
+body.route-v5-live :is(#rc-main,#rc-mini),
+body.route-page #rvDetail {
+  font-family:var(--rp-type)!important;
+  color:var(--rp-ink)!important;
+  background:var(--rp-paper)!important;
+  box-shadow:var(--fpv-shadow-sheet)!important;
+}
+body.route-v5-live #rc-grab .rc-upper h2,
+body.route-page #rvDetail h2 {
+  color:var(--rp-ink)!important;
+  font-size:clamp(20px,5.2vw,23px)!important;
+  line-height:1.32!important;
+  font-weight:700!important;
+  letter-spacing:-.033em!important;
+}
+body.route-v5-live #rc-grab .rc-upper .rc-byline,
+body.route-page #rvDetail .addr {
+  color:var(--rp-sub)!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+}
+body.route-v5-live #rc-body .rc-section,
+body.route-page #rvDetail .rv-sec > small {
+  color:#837550!important;
+  font-size:11px!important;
+  font-weight:650!important;
+  letter-spacing:.03em!important;
+}
+body.route-v5-live #rc-body .rc-stop,
+body.route-v5-live #rc-body .rc-summary {
+  border-color:var(--rp-rule)!important;
+  border-radius:var(--fpv-radius-tile,16px)!important;
+  box-shadow:none!important;
+}
+body.route-v5-live #rc-body .rc-stop .rc-name strong,
+body.route-page .stop-chip .chip-name {
+  color:var(--rp-ink)!important;
+  font-size:14px!important;
+  line-height:1.35!important;
+  font-weight:680!important;
+  letter-spacing:-.02em!important;
+}
+body.route-v5-live #rc-body .rc-stop .rc-name small,
+body.route-page #rvDetail .rv-links-empty {
+  font-size:12px!important;
+  color:var(--rp-sub)!important;
+  line-height:1.55!important;
+}
+body.route-v5-live #rc-body .rc-preview-brief,
+body.route-page #rvDetail .brief {
+  font-size:14px!important;
+  line-height:1.72!important;
+  font-weight:420!important;
+  color:#4b5750!important;
+}
+body.route-v5-live #rc-body .rc-meta button {
+  border-color:var(--rp-rule)!important;
+  background:var(--rp-canvas)!important;
+  box-shadow:none!important;
+}
+body.route-v5-live :is(#rc-footer,#rc-mini-bottom),
+body.route-page #stopsDock.atlas-stops {
+  background:var(--rp-paper)!important;
+  border-color:var(--rp-rule)!important;
+}
+body.route-page .stop-chip {
+  color:var(--rp-ink)!important;
+  border-color:var(--rp-rule)!important;
+  background:var(--rp-canvas)!important;
+}
+body.route-page .stop-chip.active {
+  background:#edf1e9!important;
+  border-color:#d3dfd1!important;
+}
+body.route-page .atlas-brand strong {
+  color:var(--rp-ink)!important;
+  font-size:14px!important;
+  line-height:1.35!important;
+  font-weight:700!important;
+}
+body.route-page :is(.atlas-back,#viewAll,#routeEditV5) {
+  background:rgba(255,254,250,.96)!important;
+  color:var(--rp-ink)!important;
+  border-color:var(--rp-rule)!important;
+  box-shadow:var(--fpv-shadow-control)!important;
+}
+body.route-page .atlas-legend,
+body.route-page .atlas-status {
+  color:var(--rp-sub)!important;
+  border-color:var(--rp-rule)!important;
+  background:rgba(255,254,250,.95)!important;
+  font-size:11px!important;
+}
+body.route-page #rvDetail .rv-sec{
+  border-color:var(--rp-rule)!important;
+}
+body.route-page #rvDetail .grab{
+  background:transparent!important;
+}
+body.route-page #rvDetail .grab::before{
+  background:#c8d0c7!important;
+}
+
+
+/*
+ * Nov 16 route screenshot: preserve the 44px close hit target but remove
+ * the dominant grey rounded rectangle. Header text is the visual subject.
+ * No changes to #rc-grab dragging, detent motor or route state.
+ */
+body.route-v5-live #rc-grab .rc-upper{
+  align-items:flex-start!important;
+  gap:10px!important;
+}
+body.route-v5-live #rc-grab .rc-upper > div{
+  flex:1 1 auto!important;
+  min-width:0!important;
+}
+body.route-v5-live #rc-grab .rc-dismiss{
+  flex:0 0 44px!important;
+  display:grid!important;
+  place-items:center!important;
+  width:44px!important;height:44px!important;
+  min-width:44px!important;min-height:44px!important;
+  margin:0!important;padding:0!important;
+  border:0!important;
+  border-radius:12px!important;
+  background:transparent!important;
+  color:#79867a!important;
+  box-shadow:none!important;
+  font-size:23px!important;
+  font-weight:350!important;
+  line-height:1!important;
+}
+body.route-v5-live #rc-grab .rc-handle{
+  width:42px!important;height:5px!important;
+  border-radius:8px!important;
+  background:#c8d0c7!important;
+}
+body.route-v5-live #rc-grab .rc-upper h2{
+  margin:0 0 4px!important;
+  line-height:1.32!important;
+}

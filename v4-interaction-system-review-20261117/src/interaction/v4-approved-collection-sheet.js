@@ -1,0 +1,148 @@
+/* B05: existing #drawer, original B05 tabs and original content. Adds only
+ * iPhone vertical follow/snap; no second sheet, DB, or close handler. */
+(()=>{'use strict';
+const el=document.getElementById('drawer');if(!el||el.dataset.physicalB05)return;
+el.dataset.physicalB05='v4';
+const header=el.querySelector('.drawer-head');
+const headerSkip='button,a,input,select,textarea,[contenteditable]';
+// Rows are clickable, but a deliberate vertical swipe on one must drag the
+// entire sheet (not be discarded as an interactive target). Keep text fields,
+// embedded links and separate actions native/tappable.
+const bodySkip='input,select,textarea,[contenteditable],button:not(.spotrow):not(.rs-row),a:not(.rs-row)';
+const reduced=matchMedia('(prefers-reduced-motion:reduce)');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const detents=()=>{const h=window.visualViewport?.height||innerHeight||844;
+return {peek:Math.min(h*.43,360),half:Math.min(h*.72,630),full:Math.max(h*.72+40,h-40)}};
+let level='half',d=null,frame=0,dragFrame=0,pendingHeight=null,lastPainted=-1,lastResizeGoal=null;
+function scheduleDragPaint(h){pendingHeight=h;if(dragFrame)return;
+ dragFrame=requestAnimationFrame(()=>{dragFrame=0;const next=pendingHeight;pendingHeight=null;if(next!==null)paint(next)});
+}
+function flushDragPaint(){if(dragFrame){cancelAnimationFrame(dragFrame);dragFrame=0}
+ if(pendingHeight!==null){const h=pendingHeight;pendingHeight=null;paint(h)}}
+function setMaxHeight(){el.style.setProperty('max-height','calc(100dvh - 32px)','important')}
+function paint(h){const px=Math.max(110,Math.round(h));if(px!==lastPainted){lastPainted=px;el.style.setProperty('height',px+'px','important')}}
+function snap(next){
+ level=next;const goal=detents()[next],start=el.getBoundingClientRect().height;
+ lastResizeGoal=goal;setMaxHeight();
+ if(frame)cancelAnimationFrame(frame);
+ if(reduced.matches){paint(goal);return}
+ let h=start,v=0,last=0,frames=0;
+ const tick=t=>{const dt=clamp(last?(t-last)/1000:.016,.001,.03);last=t;
+ const approved=window.FootprintV5Spring?.step(h,goal,v,dt*1000);
+ if(approved){h=approved.value;v=approved.velocity}
+ else{v+=(340*(goal-h)-35*v)*dt;h+=v*dt}
+ paint(h);
+ if(Math.abs(h-goal)<.7&&Math.abs(v)<(approved?.velocity!==undefined?.4:4)||frames++>85){paint(goal);frame=0;return}
+ frame=requestAnimationFrame(tick)};
+ frame=requestAnimationFrame(tick);
+}
+function start(x,y){
+ if(!el.classList.contains('visible')||d)return;
+ if(frame)cancelAnimationFrame(frame);frame=0;
+ setMaxHeight();
+ d={x,y,last:y,h:el.getBoundingClientRect().height,moved:false};
+}
+function move(x,y,e){
+ if(!d)return;const dx=x-d.x,dy=y-d.y;
+ if(!d.moved){
+  if(Math.abs(dx)>Math.abs(dy)*1.2&&Math.abs(dx)>7){d=null;return}
+  if(Math.abs(dy)<7)return;
+  d.moved=true;el.dataset.collectionDragging='true';
+ }
+ d.last=y;const a=detents(),raw=d.h-dy;
+ scheduleDragPaint(raw>a.full?a.full+(raw-a.full)*.2:raw<a.peek?a.peek-(a.peek-raw)*.27:raw);
+ if(e?.cancelable)e.preventDefault();
+}
+function end(cancelled=false){
+ if(!d)return;flushDragPaint();const g=d;d=null;delete el.dataset.collectionDragging;
+ if(cancelled||!g.moved){snap(level);return}
+ const dy=g.last-g.y,order=['peek','half','full'];
+ if(level==='peek'&&dy>80){el.querySelector('#closeDrawer')?.click();return}
+ const next=clamp(order.indexOf(level)+(dy<0?1:-1),0,2);
+ snap(Math.abs(dy)>32?order[next]:level);
+}
+if(header){
+ header.style.touchAction='none';
+ let pointer=null;
+ header.addEventListener('pointerdown',e=>{
+  if(e.button!==undefined&&e.button!==0||e.target.closest(headerSkip))return;
+  start(e.clientX,e.clientY);if(d){pointer=e.pointerId;header.setPointerCapture?.(pointer)}
+ });
+ header.addEventListener('pointermove',e=>{if(pointer===e.pointerId)move(e.clientX,e.clientY,e)});
+ header.addEventListener('pointerup',e=>{if(pointer===e.pointerId){move(e.clientX,e.clientY,e);pointer=null;end()}});
+ header.addEventListener('pointercancel',()=>{pointer=null;end(true)});
+ // Safari's native touch events are a fallback for iPhone builds where pointer
+ // capture is interrupted by the composited sticky heading.
+ let touch=null;
+ header.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1||e.target.closest(headerSkip)){touch=null;return}
+  const t=e.touches[0];touch=t.identifier;
+  if(pointer===null)start(t.clientX,t.clientY);
+ },{passive:true});
+ header.addEventListener('touchmove',e=>{
+  if(pointer!==null||touch===null||e.touches.length!==1)return;
+  const t=e.touches[0];if(t.identifier!==touch)return;
+  move(t.clientX,t.clientY,e);
+ },{passive:false});
+ header.addEventListener('touchend',e=>{
+  if(touch===null)return;
+  const t=[...e.changedTouches].find(x=>x.identifier===touch);
+  if(pointer===null&&t){move(t.clientX,t.clientY);end()}
+  touch=null;
+ },{passive:true});
+ header.addEventListener('touchcancel',()=>{if(pointer===null)end(true);touch=null},{passive:true});
+ for(const type of ['touchstart','touchmove','touchend'])header.addEventListener(type,e=>e.stopPropagation(),{passive:type!=='touchmove'});
+}
+let bodyTouch=null;
+for(const content of [el.querySelector('#spotList'),el.querySelector('#drawerRouteList')]){
+ if(!content)continue;
+ content.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1||e.target.closest(bodySkip)){bodyTouch=null;return}
+  const t=e.touches[0];bodyTouch={id:t.identifier,x:t.clientX,y:t.clientY,active:false,ignore:false};
+  e.stopPropagation();
+ },{passive:true});
+ content.addEventListener('touchmove',e=>{
+  if(!bodyTouch||e.touches.length!==1||bodyTouch.ignore)return;
+  const t=e.touches[0],dy=t.clientY-bodyTouch.y,dx=t.clientX-bodyTouch.x;
+  if(!bodyTouch.active){
+   if(Math.abs(dx)>Math.abs(dy)*1.2){bodyTouch.ignore=true;return}
+   if(Math.abs(dy)<10)return;
+   if(el.scrollTop>1&&dy>0||level==='full'&&dy<0){bodyTouch.ignore=true;return}
+   start(bodyTouch.x,bodyTouch.y);bodyTouch.active=!!d;
+  }
+  if(bodyTouch.active){move(t.clientX,t.clientY,e);e.stopPropagation()}
+ },{passive:false});
+ content.addEventListener('touchend',e=>{
+  if(bodyTouch?.active){const t=[...e.changedTouches].find(x=>x.identifier===bodyTouch.id);
+   if(t)move(t.clientX,t.clientY);end();e.stopPropagation()}
+  bodyTouch=null;
+ },{passive:true});
+ content.addEventListener('touchcancel',()=>{if(bodyTouch?.active)end(true);bodyTouch=null},{passive:true});
+}
+new MutationObserver(()=>{
+ if(!el.classList.contains('visible')){
+  if(frame)cancelAnimationFrame(frame);frame=0;
+  if(dragFrame)cancelAnimationFrame(dragFrame);dragFrame=0;pendingHeight=null;lastPainted=-1;lastResizeGoal=null;d=null;level='half';
+  el.style.removeProperty('height');el.style.removeProperty('max-height');
+ }else{
+  // Opening goes directly to the approved B05 half detent. Otherwise the
+  // CSS default height and the JS spring's "half" state disagree until the
+  // user first touches the card, making the first drag jump.
+  requestAnimationFrame(()=>{if(el.classList.contains('visible')&&!d)snap(level)});
+ }
+}).observe(el,{attributes:true,attributeFilter:['class']});
+let resizeFrame=0;
+window.addEventListener('resize',()=>{
+ if(resizeFrame||!el.classList.contains('visible')||d)return;
+ resizeFrame=requestAnimationFrame(()=>{
+  resizeFrame=0;
+  if(!el.classList.contains('visible')||d)return;
+  if(document.activeElement?.matches?.('input,textarea,select,[contenteditable]')&&
+     window.visualViewport&&window.visualViewport.height<window.innerHeight-140)return;
+  const goal=detents()[level];
+  if(lastResizeGoal!==null&&Math.abs(goal-lastResizeGoal)<2)return;
+  snap(level);
+ });
+},{passive:true});
+window.__atlasCollectionSheet={getState:()=>({level,dragging:!!d,height:el.getBoundingClientRect().height,opened:el.classList.contains('visible')})};
+})();
