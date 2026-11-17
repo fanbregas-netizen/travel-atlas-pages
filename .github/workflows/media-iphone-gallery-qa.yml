@@ -33,7 +33,7 @@ jobs:
           for html in root.rglob('*.html'):
               data=html.read_text(encoding='utf-8')
               data=data.replace(old,new).replace('./footprint-home.js?v=search-physical-19',
-                       './footprint-home.js?v=media-iphone-v2-20261117')
+                       './footprint-home.js?v=media-iphone-perf-v3-20261117')
               html.write_text(data,encoding='utf-8')
           PY
           node --check _site/v4-media-system-review-20261117/footprint-home.js
