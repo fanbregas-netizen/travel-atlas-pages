@@ -307,7 +307,11 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
         pinCount:document.querySelectorAll('#rc-map-pins [data-place-id^="live-map-"]').length,
         foreground:pin?.classList.contains('fp-route-tapped'),zIndex:Number(getComputedStyle(pin).zIndex),
         hasHanddrawnIcon:!!img&&/\/icons\/(?:16_add_place|21_mountain|22_sea|23_forest|24_town|26_lake|43_food|44_stay|45_museum|46_park|47_coffee|48_transit)\.svg$/.test(img.getAttribute('src')||''),
-        centerErrorPx:Math.hypot(x-frame.width/2,y-frame.height/2),zoom:map.getZoom()
+        centerErrorPx:Math.hypot(x-frame.width/2,y-frame.height/2),zoom:map.getZoom(),
+        frameSize:[frame.width,frame.height],
+        canvasSize:[map.getContainer().clientWidth,map.getContainer().clientHeight],
+        mapProjectedCenter:[map.project(map.getCenter()).x,map.project(map.getCenter()).y],
+        pinPercent:[parseFloat(pin?.style.left),parseFloat(pin?.style.top)]
       };
     });
     assert.equal(routePoi.pinCount,1,'Route map point created duplicate pins');
