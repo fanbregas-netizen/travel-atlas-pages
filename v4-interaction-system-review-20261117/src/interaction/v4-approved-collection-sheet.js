@@ -26,6 +26,14 @@ let level='half',height=0,targetHeight=0,sheetVelocity=0,sheetMotion=0;
 let gesture=null,pointer=null,touch=null,bodyTouch=null,dragFrame=0,pendingHeight=null;
 let lastPainted=-1,wasVisible=el.classList.contains('visible'),closing=false,closeCleanup=null;
 let releaseClose=false,lastResizeGoal=null;
+let exitY=0,dockMotion=null,dockRevealing=false;
+const dock=document.getElementById('appDock');
+// Hold the original Dock until the collection has physically exited.
+// This does not alter the permanent Dock style, buttons, or search motion.
+const guard=document.createElement('style');
+guard.id='atlas-collection-to-dock-motion';
+guard.textContent='body.atlas-collection-exiting #appDock{opacity:0!important;pointer-events:none!important}';
+document.head.append(guard);
 function stopSpring(){if(sheetMotion)cancelAnimationFrame(sheetMotion);sheetMotion=0}
 function paintHeight(h){
  height=h;
@@ -102,11 +110,37 @@ function move(x,y,e){
  scheduleGesturePaint(h);
  if(e?.cancelable)e.preventDefault();
 }
+function revealDock(){
+ document.body.classList.remove('atlas-collection-exiting');
+ if(!dock||el.classList.contains('visible'))return;
+ const body=document.body;
+ if(['fp-search-open','fp-place-open','destination-selected','memory-open','route-pick-active'].some(x=>body.classList.contains(x)))return;
+ if(reduced.matches)return;
+ try{dockMotion?.cancel()}catch(_){}
+ dockRevealing=true;
+ // Base Dock is translateX(-50%). The entrance adds only a small iPhone-style
+ // upward spring, without reanimating the three buttons individually.
+ dockMotion=dock.animate([
+  {transform:'translate3d(-50%,29px,0) scale(.978)',opacity:0,offset:0},
+  {transform:'translate3d(-50%,-5px,0) scale(1.007)',opacity:1,offset:.72},
+  {transform:'translate3d(-50%,0,0) scale(1)',opacity:1,offset:1}
+ ],{duration:390,easing:'cubic-bezier(.22,.82,.29,1)',fill:'both'});
+ const active=dockMotion;
+ active.finished.catch(()=>{}).then(()=>{
+  if(dockMotion!==active)return;
+  try{active.cancel()}catch(_){}
+  dockMotion=null;dockRevealing=false;
+ });
+}
 function completeOriginalClose(){
  releaseClose=true;
- if(closeButton)closeButton.click();
- else el.classList.remove('visible');
- releaseClose=false;
+ try{
+  if(closeButton)closeButton.click();
+  else el.classList.remove('visible');
+ }finally{releaseClose=false}
+ // After the original close updates Dock/body visibility, release a
+ // single restrained spring. The exit guard prevents any intermediate flash.
+ requestAnimationFrame(()=>revealDock());
 }
 function closeWithSpring(velocity=0){
  if(closing||!el.classList.contains('visible'))return;
@@ -114,7 +148,31 @@ function closeWithSpring(velocity=0){
  delete el.dataset.collectionDragging;
  gesture=null;
  setPhysicalSurface();
- springTo(0,velocity,completeOriginalClose);
+ document.body.classList.add('atlas-collection-exiting');
+ // Keep the sheet's physical HEIGHT fixed during the exit. Reflowing the
+ // entire saved-place list for every height frame stalled WebKit at peek.
+ // C V5 motor now animates only compositor transform until fully offscreen.
+ const distance=Math.max(el.getBoundingClientRect().height,110)+24;
+ const start=performance.now();
+ let offset=0,exitVelocity=clamp(-velocity,0,32),frameCount=0;
+ exitY=0;
+ if(reduced.matches){exitY=distance;completeOriginalClose();return}
+ function tick(){
+  if(!closing||!el.classList.contains('visible'))return;
+  exitVelocity=(exitVelocity+(distance-offset)*.105)*.75;
+  offset+=exitVelocity;
+  exitY=Math.max(0,offset);
+  el.style.setProperty('transform',`translate3d(-50%,${exitY.toFixed(2)}px,0)`,'important');
+  // The fail-safe is for Safari background/slow-frame recovery only.
+  if((Math.abs(distance-offset)<.65&&Math.abs(exitVelocity)<.4)||
+      ++frameCount>80||performance.now()-start>1100){
+   exitY=distance;
+   el.style.setProperty('transform',`translate3d(-50%,${distance}px,0)`,'important');
+   sheetMotion=0;completeOriginalClose();return;
+  }
+  sheetMotion=requestAnimationFrame(tick);
+ }
+ sheetMotion=requestAnimationFrame(tick);
 }
 function end(cancelled=false){
  if(!gesture)return;
@@ -124,8 +182,13 @@ function end(cancelled=false){
  if(cancelled||!g.moved){snap(level);return}
  const deltaY=g.lastY-g.startY;
  const release=performance.now()-g.lastAt<95?-g.velocity*16.67:0;
- if(level==='peek'&&deltaY>80){closeWithSpring(release);return}
  const stops=detents();
+ // A continuous deep downward drag may pass peek and dismiss directly.
+ // An ordinary 145px half/full flick still selects a detent as in C V5.
+ const deepClose=deltaY>0&&
+   (height<stops.peek-38&&deltaY>125||
+    deltaY>(g.startHeight-stops.peek)+145&&g.velocity>.15);
+ if((level==='peek'&&deltaY>72)||deepClose){closeWithSpring(release);return}
  const distances=order.map(l=>Math.abs(stops[l]-height));
  let ix=distances.indexOf(Math.min(...distances));
  if(Math.abs(g.velocity)>.42)ix=clamp(ix+(g.velocity<0?1:-1),0,2);
@@ -207,7 +270,10 @@ for(const content of [el.querySelector('#spotList'),el.querySelector('#drawerRou
  content.addEventListener('touchcancel',()=>{if(bodyGesture?.active)end(true);bodyGesture=null},{passive:true});
 }
 function onOpened(){
- closing=false;stopSpring();setPhysicalSurface();
+ closing=false;exitY=0;stopSpring();setPhysicalSurface();
+ document.body.classList.remove('atlas-collection-exiting');
+ try{dockMotion?.cancel()}catch(_){}
+ dockMotion=null;dockRevealing=false;
  if(closeCleanup!==null){clearTimeout(closeCleanup);closeCleanup=null}
  level='half';lastPainted=-1;
  const stops=detents(),initial=Math.max(stops.peek,stops.half-105);
@@ -252,7 +318,8 @@ if(wasVisible)onOpened();
 window.__atlasCollectionSheet={
  getState:()=>({
   level,dragging:!!gesture,height:el.getBoundingClientRect().height,
-  opened:el.classList.contains('visible'),closing,velocity:sheetVelocity,engine:'C V5'
+  opened:el.classList.contains('visible'),closing,velocity:sheetVelocity,
+  exitY,dockRevealing,engine:'C V5'
  })
 };
 })();
