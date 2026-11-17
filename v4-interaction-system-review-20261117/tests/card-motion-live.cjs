@@ -125,15 +125,30 @@ async function drag(page,ctx,x,y,distance,sample,settleMs=1030,stepDelay=27){
    }));
    assert.equal(afterClose.opened,false,'swipe dismissal did not call original close logic');
    assert.equal(afterClose.inlineHeight,'','collection retained stale height after close animation');
+   // The approved paired-v2 Dock motor uses requestAnimationFrame + CSS
+   // translate instead of legacy Element.animate(). Test the actual returned
+   // state, while retaining WAAPI assertions for older variants.
    const dockQA=await page.evaluate(()=>({
      count:window.__dockExitRevealCount,
      frames:window.__dockExitRevealFrames,
      opacity:getComputedStyle(document.getElementById('appDock')).opacity,
-     hiddenByExit:document.body.classList.contains('atlas-collection-exiting')
+     visibility:getComputedStyle(document.getElementById('appDock')).visibility,
+     topOpacity:getComputedStyle(document.getElementById('fpTopSearch')).opacity,
+     hiddenByExit:document.body.classList.contains('atlas-collection-exiting'),
+     motor:window.__atlasCardDockMotion?.getState?.()||null
    }));
-   assert.equal(dockQA.count,1,'Dock did not play exactly one reveal spring after closing');
-   assert.ok(dockQA.frames.some(f=>f.transform.includes('-5px')),'Dock upward overshoot is missing');
+   if(dockQA.motor){
+     assert.equal(dockQA.motor.active,false,'paired-v2 motor remains active after collection exit');
+     assert.equal(dockQA.motor.bottom,'visible','bottom Dock not restored after physical card exit');
+     assert.equal(dockQA.motor.top,'visible','top search Dock not restored after physical card exit');
+     assert.equal(dockQA.motor.bottomAnimation,'none','bottom Dock remains in transition');
+     assert.equal(dockQA.motor.topAnimation,'none','top search Dock remains in transition');
+   }else{
+     assert.equal(dockQA.count,1,'legacy Dock did not play exactly one reveal');
+     assert.ok(dockQA.frames.some(f=>f.transform.includes('-5px')),'legacy Dock upward overshoot missing');
+   }
    assert.equal(dockQA.hiddenByExit,false,'Dock remains trapped in exit guard');
+   assert.equal(dockQA.visibility,'visible','Dock visibility remains hidden after exit');
    assert.ok(Number(dockQA.opacity)>.9,'Dock was not visibly restored');
    fs.writeFileSync(out+'/collection-close-'+width+'.json',JSON.stringify({closingSwipe,closing,afterClose,dockQA},null,2));
    collection.close={gesture:'half -> peek -> swipe dismiss',closing,afterClose,cleaned:true,
