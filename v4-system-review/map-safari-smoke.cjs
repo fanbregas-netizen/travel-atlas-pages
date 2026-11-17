@@ -50,7 +50,13 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.ok(selected.animations>=1,'POI token must have a native spring pop animation');
     assert.equal(selected.markerCount,1,'Exactly one selected POI marker');
     assert.equal(selected.moving,false,'Map camera must not animate on POI selection');
-    await page.waitForTimeout(150);
+    // The previous important inline scale blocked WebKit's animation completely.
+    // Require a measured scale ABOVE the 1.34 settled marker size.
+    await page.waitForFunction(()=>{
+      const tok=document.querySelector('.atlas-vector-selection .fp-vector-token');
+      return !!tok&&parseFloat(getComputedStyle(tok).scale)>1.42;
+    },null,{timeout:1300});
+    await page.waitForTimeout(65);
     const mid=await page.evaluate(()=>{
       const tok=document.querySelector('.atlas-vector-selection .fp-vector-token');
       return {scale:tok?getComputedStyle(tok).scale:null,
