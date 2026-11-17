@@ -29,24 +29,25 @@ jobs:
             test -s "$out"
             echo "::endgroup::"
           }
-          fetch_page 'index.html?test=visual-v10' /tmp/visual-index.html
-          grep -q 'visual-review.css?v=10' /tmp/visual-index.html
+          fetch_page 'index.html?test=visual-v11' /tmp/visual-index.html
+          grep -q 'visual-review.css?v=11' /tmp/visual-index.html
           grep -q 'visual-review-bootstrap-inline' /tmp/visual-index.html
-          fetch_page 'journey.html?test=visual-v10' /tmp/visual-journey.html
-          grep -q 'visual-review.css?v=10' /tmp/visual-journey.html
-          fetch_page 'compare.html?test=visual-v10' /tmp/visual-compare.html
+          fetch_page 'journey.html?test=visual-v11' /tmp/visual-journey.html
+          grep -q 'visual-review.css?v=11' /tmp/visual-journey.html
+          fetch_page 'compare.html?test=visual-v11' /tmp/visual-compare.html
           grep -q '改前' /tmp/visual-compare.html
-          fetch_page 'visual-review.css?v=10' /tmp/visual-review.css
+          fetch_page 'visual-review.css?v=11' /tmp/visual-review.css
           grep -q 'atlas-card-grip' /tmp/visual-review.css
           grep -q '14_edit.svg' /tmp/visual-review.css
           grep -q '13_add_media.svg' /tmp/visual-review.css
           grep -q '29_open_link.svg' /tmp/visual-review.css
-          for icon in 14_edit.svg 13_add_media.svg 29_open_link.svg; do
+          grep -q '10_nearby.svg' /tmp/visual-review.css
+          for icon in 14_edit.svg 13_add_media.svg 29_open_link.svg 10_nearby.svg; do
             curl -fsSL --retry 5 --retry-delay 3 --max-time 20 \
               "https://fanbregas-netizen.github.io/travel-atlas-pages/v4-review-20261116/icons/$icon" -o /tmp/visual-poi-icon.svg
             grep -q '<svg' /tmp/visual-poi-icon.svg
           done
-          echo 'SUCCESS: public HTML and CSS live, actual V10 icon version loaded'
+          echo 'SUCCESS: public HTML and CSS live, actual V11 icon version loaded'
 
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
