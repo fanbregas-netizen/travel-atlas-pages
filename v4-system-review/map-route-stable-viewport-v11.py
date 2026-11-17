@@ -43,7 +43,10 @@ once(
   // Conversion is computed at the unchanged zoom, so map never enlarges.
   const view=routeVisibleArea();
   const pixel=liveMap.project([lng,lat]);
-  return liveMap.unproject([pixel.x,pixel.y+view.height/2-view.targetY]).toArray();
+  const center=liveMap.unproject([pixel.x,pixel.y+view.height/2-view.targetY]).toArray();
+  window.__atlasRouteCameraTargetQA={lng,lat,pixelY:pixel.y,targetY:view.targetY,
+   centerBefore:liveMap.getCenter().toArray(),centerTo:center,startedAt:performance.now()};
+  return center;
  }
  window.__atlasRouteViewportQA=routeVisibleArea;
  // Attribution must remain above the sheet; it has no impact on map
@@ -58,9 +61,21 @@ once(
 'fixed-overlay-visible-center')
 
 once(
+ """  setTimeout(()=>{
+   if(focusSerial!==liveTapFocusSerial||!liveMap)return;""",
+ """  requestAnimationFrame(()=>{
+   if(focusSerial!==liveTapFocusSerial||!liveMap)return;""",
+ 'fixed-map-immediate-pan-start')
+
+once(
  "liveMap.easeTo({center:[lng,lat],zoom:liveMap.getZoom(),duration:470,",
  "liveMap.easeTo({center:routeVisibleCameraCenter(lng,lat),zoom:liveMap.getZoom(),duration:470,",
  'picker-center-exposed-map')
+
+once(
+ "  },135);",
+ "  });",
+ 'remove-obsolete-135ms-delay')
 
 once(
  "  if(Math.hypot(v.x-box.clientWidth/2,v.y-box.clientHeight/2)<2)return;",
