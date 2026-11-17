@@ -175,3 +175,59 @@ body.route-v5-live #rc-live-map-canvas .maplibregl-ctrl-attrib{
 @media (prefers-reduced-motion:reduce){
  #rc-map-pins .rc-pin.fp-map-pick-arrive{animation:none!important}
 }
+
+
+/* v16 • Route map reuses the actual Stage1.29 homepage tile-sourced V3 POI
+   overlay. These are identical accepted home measurements; native MapLibre
+   colored glyphs are suppressed by that same homepage renderer. */
+body.route-v5-live #rc-map #atlasPoiOverlay{
+ position:absolute;inset:0;z-index:3;
+ pointer-events:none;overflow:hidden;
+}
+body.route-v5-live #rc-map #atlasPoiOverlay .fp-poi{
+ width:52px;min-width:52px;height:52px;min-height:52px;
+ position:absolute;transform:translate(-50%,-50%);
+ padding:0!important;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;gap:2px;background:transparent!important;
+ border:0!important;box-shadow:none!important;pointer-events:auto;
+ touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+ cursor:pointer;isolation:isolate;
+}
+body.route-v5-live #rc-map #atlasPoiOverlay .fp-poi-token{
+ width:31px;height:31px;flex:none;border-radius:12px;
+ display:grid;place-items:center;background:rgba(248,250,248,.94);
+ border:1px solid rgba(187,204,202,.7);
+ box-shadow:0 3px 9px rgba(35,52,53,.17);
+ backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+ transition:transform .44s cubic-bezier(.16,1.18,.28,1),
+  box-shadow .35s ease,background .3s ease;
+}
+body.route-v5-live #rc-map #atlasPoiOverlay .fp-poi-token img{
+ width:20px;height:20px;display:block;object-fit:contain;pointer-events:none;
+}
+body.route-v5-live #rc-map #atlasPoiOverlay .fp-poi-label{
+ display:none!important; /* the approved home V3 map hides duplicate pills */
+}
+body.route-v5-live #rc-map #atlasPoiOverlay .fp-poi.is-selected{
+ z-index:10!important;
+}
+body.route-v5-live #rc-map #atlasPoiOverlay .fp-poi.is-selected .fp-poi-token{
+ background:#e8f1ea;border-color:#aabfba;
+ box-shadow:0 5px 19px rgba(41,72,77,.23);
+}
+body.route-v5-live #rc-map #atlasPoiOverlay .fp-poi.is-tapped .fp-poi-token{
+ animation:fpPoiSpring .48s cubic-bezier(.19,.9,.28,1) both;
+}
+@keyframes fpPoiSpring{
+ 0%{transform:scale(1)}40%{transform:scale(1.27)}
+ 65%{transform:scale(.95)}100%{transform:scale(1)}
+}
+body.route-v5-live #rc-map #atlasPoiOverlay .fp-poi:focus-visible{
+ outline:2px solid #75969a!important;outline-offset:0!important;
+ border-radius:13px;
+}
+@media(prefers-reduced-motion:reduce){
+ body.route-v5-live #rc-map #atlasPoiOverlay .fp-poi.is-tapped .fp-poi-token{
+  animation:none!important;transform:scale(1.08)!important;
+ }
+}
