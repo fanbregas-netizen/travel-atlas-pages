@@ -17,7 +17,11 @@ const state={active:false,reason:'',top:'visible',bottom:'visible',serial:0};
 let queued=false,initialized=false;
 const set=(el,key,value)=>el.style.setProperty(key,value,'important');
 const unset=(el,key)=>el.style.removeProperty(key);
-const clear=el=>{for(const p of ['translate','opacity','visibility','pointer-events'])unset(el,p)};
+// Pin the resting docks above legacy !important :has() rules before the first
+// drawer class mutation; otherwise Safari hides them for one frame.
+const clear=el=>{for(const p of ['translate','pointer-events','z-index'])unset(el,p);
+ set(el,'opacity','1');set(el,'visibility','visible')};
+const release=el=>{for(const p of ['translate','opacity','visibility','pointer-events','z-index'])unset(el,p)};
 function reason(){
  if(body.classList.contains('atlas-collection-exiting'))return 'collection-exit';
  if(document.getElementById('drawer')?.classList.contains('visible'))return 'collection';
@@ -49,6 +53,7 @@ function position(key,y,opacity){
  set(el,'opacity',Math.max(0,Math.min(1,opacity)).toFixed(3));
  set(el,'pointer-events','none');
  set(el,'visibility','visible');
+ set(el,'z-index','1240');
 }
 function finish(key,hidden){
  stop(key);
@@ -93,7 +98,7 @@ function hideAtBoot(){
  for(const key of ['top','bottom'])finish(key,true);
 }
 function pauseForSearch(){
- for(const key of ['top','bottom']){stop(key);clear(nodes[key]);state[key]='native-search'}
+ for(const key of ['top','bottom']){stop(key);release(nodes[key]);state[key]='native-search'}
 }
 function bind(){
  for(const id of watched){
@@ -110,6 +115,7 @@ function sync(){
  if(!initialized){
   initialized=true;state.active=active;state.reason=why;
   if(active)hideAtBoot();
+  else{clear(top);clear(bottom)}
   return;
  }
  if(nativeSearch()&&!active){
@@ -135,7 +141,7 @@ window.__atlasCardDockMotion={
  version:'paired-v2',
  sync, getState:()=>({...state,topAnimation:motion.top?'running':'none',bottomAnimation:motion.bottom?'running':'none'}),
  destroy:()=>{bodyObserver.disconnect();additions.disconnect();for(const o of watchers.values())o.disconnect();
-  for(const key of ['top','bottom']){stop(key);clear(nodes[key])}
+  for(const key of ['top','bottom']){stop(key);release(nodes[key])}
   delete window.__atlasCardDockMotion;
  }
 };
