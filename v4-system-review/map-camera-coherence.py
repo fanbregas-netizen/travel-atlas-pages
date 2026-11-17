@@ -18,6 +18,14 @@ def once(old,new,label):
 
 if p.name=='v4-map-runtime.js':
  once(
+  """        pixelRatio:mobileStableMap?Math.min(window.devicePixelRatio||1,2):undefined});""",
+  """        pixelRatio:mobileStableMap?Math.min(window.devicePixelRatio||1,2):undefined,
+        // A modest wider live-vector tile cache reduces newly blank edges
+        // during neighboring POI pans without creating a second map.
+        maxTileCacheSize:mobileStableMap?64:undefined,
+        fadeDuration:200});""",
+  'moderate-safari-vector-tile-cache')
+ once(
   """  function centerTappedPOI(d){""",
   """  // The basemap and BOTH overlay planes share one camera transform.
   // Only two compositor writes per frame, independent of how many POIs exist.
