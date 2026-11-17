@@ -30,7 +30,8 @@ html.visual-after body :is(.destination-close,#closeEditor,.fp-search-close,.rou
 /* Preserve the ORIGINAL SVG masked X: this control already has a
    ::before icon and its raw × must remain hidden. Revealing that raw glyph
    creates the double-close defect visible in the user's Safari recording. */
-html.visual-after body :is(#closeDrawer,#routeSearchClose,#routeLibraryClose){
+html.visual-after body #drawer #closeDrawer,
+html.visual-after body :is(#routeSearchClose,#routeLibraryClose){
  font-size:0!important;line-height:0!important;
 }
 html.visual-after body #drawer #closeDrawer::before{
