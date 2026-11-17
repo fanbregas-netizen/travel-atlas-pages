@@ -36,6 +36,14 @@ const chrome=['google-chrome','chromium'].map(n=>{try{return cp.execFileSync('wh
   await page.waitForFunction(()=>!!window.__atlasJourneyRoute?.getState&&document.querySelectorAll('#places .place').length===1,null,{timeout:10000});
   const st=await page.evaluate(()=>({selected:window.__atlasJourneyRoute.getState().selected.length,sections:document.querySelectorAll('.builder>section.block').length,visual:!!window.__atlasJourneyVisual,rows:document.querySelectorAll('#places .place').length,tool:!!window.FootprintRouteEngine,media:!!window.FootprintMediaCore}));
   console.log('SMOKE READY',JSON.stringify(st));assert.equal(st.rows,1);assert.equal(st.visual,true);
+  console.log('SMOKE 4 activate place list');
+  await page.evaluate(()=>window.__atlasJourneyVisual?.setStep('places'));
+  await page.waitForTimeout(450);
+  console.log('SMOKE 5 click real place');
+  await page.locator('#places .place').first().click({timeout:8000});
+  const selected=await page.evaluate(()=>window.__atlasJourneyRoute.getState().selected.map(s=>s.id));
+  console.log('SMOKE SELECTED',JSON.stringify(selected));
+  assert.deepEqual(selected,['qa-smoke']);
   fs.mkdirSync('route-smoke-evidence',{recursive:true});await page.screenshot({path:'route-smoke-evidence/real-journey-390.png'});
   await ctx.close();
  }finally{await browser.close()}
