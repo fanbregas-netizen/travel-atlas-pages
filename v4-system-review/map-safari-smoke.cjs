@@ -23,6 +23,16 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     await page.waitForFunction(z=>window.__atlasCameraQA().zoom>z+0.3,base.zoom,{timeout:15000});
     await page.locator('#btnZoomOut').click({timeout:12000});
     await page.waitForFunction(z=>window.__atlasCameraQA().zoom<z+0.3,base.zoom,{timeout:15000});
+    // Create a real saved location in the throwaway test browser, not just a zero-marker assertion.
+    if((await page.evaluate(()=>window.__atlasCameraQA().zoom))<11.7){
+     await page.evaluate(c=>window.__atlasPickMapAPI.zoomTo(c.lat,c.lng,13.6),base);
+     await page.waitForFunction(()=>window.__atlasCameraQA().zoom>=13,{timeout:12000});
+    }
+    await page.evaluate(async c=>{
+     await window.__atlasPlaceStore.save({id:'webkit-map-one-star',title:'地图黄色星标验收',lat:c.lat,lng:c.lng,starred:true,stage:'plan',date:'',rank:2,note:'',photos:[],videos:[]});
+     await window.__atlasFlowRefresh();
+    },base);
+    await page.waitForFunction(()=>document.querySelectorAll('#atlasBookmarkOverlay [data-place-id="webkit-map-one-star"]').length===1,{timeout:15000});
     const first={name:'海浪动效测试',category:'sea',lat:base.lat,lng:base.lng};
     await page.evaluate(p=>window.__atlasPOIBridge.select(p),first);
     await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='海浪动效测试',{timeout:17000});
@@ -35,6 +45,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
      return {visibleSurfaces:['map','atlasVectorMap','amapSurface'].filter(visible),duplicateStarIds:marks.length-new Set(marks.map(n=>n.dataset.placeId)).size,health:window.__atlasMapHealth(),actualZoom:window.__atlasCameraQA().zoom};
     });
     assert.equal(layers.duplicateStarIds,0,'A saved place must have only one yellow star hit target');
+    assert.equal((await page.locator('#atlasBookmarkOverlay [data-place-id="webkit-map-one-star"]').count()),1,'Expected the real test place to own exactly one yellow star');
     assert.equal(layers.visibleSurfaces.length,1,'No duplicate visible basemap surfaces');
     assert.equal(layers.health.ready,true,'Map remains ready after POI switching');
     if(errors.some(e=>/SyntaxError|ReferenceError|TypeError/.test(e)))throw Error('Uncaught map JS: '+JSON.stringify(errors));
