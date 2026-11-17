@@ -20,6 +20,10 @@ jobs:
           node-version: '22'
       - name: Install browser test dependency
         run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Install Chinese UI font for screenshot inspection
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
       - name: Serve isolated review
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/route-logic-qa-server.log 2>&1 &
