@@ -69,3 +69,33 @@ jobs:
           name: visual-three-card-real-pages-screenshots
           path: visual-review-live-evidence/
           if-no-files-found: ignore
+
+  local-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser driver and Chinese fonts
+        run: |
+          npm install --no-save --ignore-scripts playwright-core@1.58.2
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+      - name: Test actual whole-product CSS and icons from local Pages mirror
+        run: |
+          set -euo pipefail
+          (cd .. && python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/visual-preview-http.log 2>&1) &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          sleep 2
+          export VISUAL_TEST_BASE='http://127.0.0.1:8765/travel-atlas-pages/v4-visual-system-review-20261117/'
+          node v4-visual-system-review-20261117/tests/visual-three-headers.cjs
+      - name: Upload V10 icon screenshot self-check
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-v10-icon-real-product-source-render
+          path: visual-review-live-evidence/
+          if-no-files-found: ignore
