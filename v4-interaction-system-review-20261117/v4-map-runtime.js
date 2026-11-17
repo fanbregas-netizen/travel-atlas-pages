@@ -1281,7 +1281,7 @@
     $('memorySheet').classList.add('visible');document.dispatchEvent(new CustomEvent('atlas:memory-open',{detail:{id:p.id}}));document.body.classList.add('memory-open');$('helptext').style.display='none';startInlineVideos(p);
     requestAnimationFrame(()=>layoutMemoryAtlas(p));
   }
-  function closeDrawer(){ $('drawer').classList.remove('visible');$('cover').classList.remove('visible') }
+  function closeDrawer(){ if(window.__atlasCollectionSheet?.requestClose?.())return; $('drawer').classList.remove('visible');$('cover').classList.remove('visible') }
   /* build .20 · 对标高德/苹果 sheet 手势：捏住眉头或列表拉到顶后继续下拉，整片随手势下滑，松手超过阈值即关闭 */
   // The accepted B05 v4-approved-collection-sheet controller exclusively owns
   // drawer swipe/snap. The retired Stage1.25 touchmove handler competed with
