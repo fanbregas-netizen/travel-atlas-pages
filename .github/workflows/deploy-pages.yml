@@ -489,12 +489,12 @@ jobs:
           path: __map_v4_source
       - uses: actions/checkout@v4
         with:
-          ref: f882473c75665e91a1990c6e73b09eff71fa2e96
+          ref: 880807388e9085c5e67e93ec14e63828ccaf9603
           path: __map_review_patch
       - name: Append durable independent V4 map Safari acceptance (no product merge)
         run: |
           test "$(git -C __map_v4_source rev-parse HEAD)" = 54c2b68347e3bfe2a7e7ed47ef63e12550e007b7
-          test "$(git -C __map_review_patch rev-parse HEAD)" = f882473c75665e91a1990c6e73b09eff71fa2e96
+          test "$(git -C __map_review_patch rev-parse HEAD)" = 880807388e9085c5e67e93ec14e63828ccaf9603
           python3 - <<'PY'
           from pathlib import Path
           import hashlib,subprocess
@@ -528,7 +528,7 @@ jobs:
           done
           curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}index.html" -o /tmp/map-durable-index
           grep -q 'atlas-v4-map-system-review-20261117-' /tmp/map-durable-index
-          grep -q 'map-safari-acceptance-2' /tmp/map-durable-index
+          grep -q 'map-safari-acceptance-3' /tmp/map-durable-index
           echo 'PASS public map Safari review URL persists after the normal main deployment'
       - name: Verify new four-system preview returns HTTP 200 from public Pages
         run: |
