@@ -479,6 +479,37 @@ jobs:
       - uses: actions/configure-pages@v5
         with:
           enablement: true
+      # Preserve the MAP review across unrelated visual/media/interaction publishes.
+      # This append-only step does not edit official root or other review assets.
+      - uses: actions/checkout@v4
+        with:
+          ref: 54c2b68347e3bfe2a7e7ed47ef63e12550e007b7
+          path: __map_v4_source
+      - uses: actions/checkout@v4
+        with:
+          ref: f882473c75665e91a1990c6e73b09eff71fa2e96
+          path: __map_review_patch
+      - name: Append durable independent V4 map Safari acceptance (no product merge)
+        run: |
+          test "$(git -C __map_v4_source rev-parse HEAD)" = 54c2b68347e3bfe2a7e7ed47ef63e12550e007b7
+          test "$(git -C __map_review_patch rev-parse HEAD)" = f882473c75665e91a1990c6e73b09eff71fa2e96
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,subprocess
+          root=Path('_site')
+          previous={str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).digest()
+                    for p in root.rglob('*') if p.is_file()}
+          subprocess.run([
+            'python3','__map_review_patch/v4-system-review/build-durable-map-preview.py',
+            '__map_v4_source/v4-review-20261116',
+            '__map_review_patch/v4-system-review',
+            '_site/v4-map-system-review-20261117'
+          ],check=True)
+          for rel,digest in previous.items():
+              assert hashlib.sha256((root/rel).read_bytes()).digest()==digest,rel
+          assert (root/'v4-map-system-review-20261117/index.html').is_file()
+          print('PASS existing',len(previous),'official + other review assets unchanged')
+          PY
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
@@ -486,6 +517,17 @@ jobs:
         run: sleep 18
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify durable independent map Safari preview returns live HTTP 200
+        run: |
+          BASE='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/'
+          for file in index.html journey.html route-view.html v4-map-runtime.js src/map/shared-v4-map.js src/interaction/route-cards-v5-live.js map-visual-parity.css; do
+            curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 -H 'Cache-Control: no-cache' "${BASE}${file}" -o /tmp/map-durable-check
+            test -s /tmp/map-durable-check
+          done
+          curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}index.html" -o /tmp/map-durable-index
+          grep -q 'atlas-v4-map-system-review-20261117-' /tmp/map-durable-index
+          grep -q 'map-safari-acceptance-2' /tmp/map-durable-index
+          echo 'PASS public map Safari review URL persists after the normal main deployment'
       - name: Verify new four-system preview returns HTTP 200 from public Pages
         run: |
           URL="https://fanbregas-netizen.github.io/travel-atlas-pages/v4-all-branches-review-20261111/"
