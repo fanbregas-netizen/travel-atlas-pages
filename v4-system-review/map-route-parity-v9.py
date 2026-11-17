@@ -136,6 +136,29 @@ if p.name=='route-cards-v5-live.js':
 """,
  'click-existing-route-poi-raises-and-centers')
 
+
+ once(
+ " liveMap.on('moveend',()=>liveRenderCamera(true));",
+ """ liveMap.on('moveend',()=>{
+  // The C V5 sheet changes map height; catch the final viewport size
+  // before committing geo-to-screen positions after the camera move.
+  liveMap.resize();liveRenderCamera(true);
+ });""",
+ 'reproject-after-map-sheet-resize')
+ once(
+ " liveMap.on('resize',schedule);",
+ """ liveMap.on('resize',schedule);
+ // A card snap changes #rc-map dimensions over multiple animation frames.
+ // One resize in startLiveMapPick() is too early; watch its final geometry.
+ const routeSizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(()=>{
+  if(!liveMap||!target.isConnected)return;
+  liveMap.resize();
+  schedule();
+ }):null;
+ routeSizeObserver?.observe(target);
+ window.addEventListener('pagehide',()=>routeSizeObserver?.disconnect(),{once:true});""",
+ 'live-route-map-resize-observer')
+
 elif p.name=='route-view.html':
  once(
  "b.onclick=e=>{e.stopPropagation();activate(i,false)};",
