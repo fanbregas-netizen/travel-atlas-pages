@@ -67,7 +67,11 @@
   if(sequence.length<2)return {order:original,baselineKm:baseline,suggestedKm:baseline,changed:false,warnings,method:'geodesic-only'};
   const protectedPosition=new Set();
   original.forEach((s,i)=>{
-   if(locked.has(id(s))||/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(String(s.time||''))||id(s)===originId||id(s)===destId)protectedPosition.add(i);
+   // Without explicit anchored coordinates, the user's first and last chosen
+   // stops are the intuitive journey boundaries. Never reverse the itinerary
+   // merely because a shorter straight-line connection exists backwards.
+   const intuitiveBoundary=(!originId&&i===0)||(!destId&&i===original.length-1);
+   if(intuitiveBoundary||locked.has(id(s))||/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(String(s.time||''))||id(s)===originId||id(s)===destId)protectedPosition.add(i);
   });
   const day=s=>Math.max(1,Math.min(60,Number(s.day)||1));
   let best=sequence.slice(),bestScore=baseline;
