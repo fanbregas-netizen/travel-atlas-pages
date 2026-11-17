@@ -31,7 +31,9 @@ const state=async page=>page.evaluate(()=>{
    height:rect(e)?.height,translate:e?getComputedStyle(e).translate:null,header:rect(e?.querySelector('.drawer-head')),
    list:rect(document.querySelector('#spotList'))},
   poi: {visible:!!d?.classList.contains('visible'),title:document.querySelector('#destinationTitle')?.textContent,
-   spring:d?.dataset.fpElasticState,translate:d?getComputedStyle(d).translate:null},
+   spring:d?.dataset.fpElasticState,translate:d?getComputedStyle(d).translate:null,
+   actionOpacity:d?Number(getComputedStyle(d.querySelector('.destination-actions')).opacity):null,
+   uniformScale:d?getComputedStyle(d).scale:null},
   detail: {visible:!!p&&!p.hidden,snap:window.__atlasSheetIntegration?.card?.getState()?.sheet,
    height:rect(p)?.height,title:p?.querySelector('.fp-card-name')?.textContent},
   search: {visible:!!s&&!s.hidden,anchored:s?.dataset.searchLayout,open:document.body.classList.contains('fp-search-open')}
@@ -148,6 +150,23 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  const offsets=diagnostics.poiSwitchFrames.map(q=>parseFloat(q.poi.translate?.split(' ')[1]||0)).filter(Number.isFinite);
  assert.ok(titles.includes('测试地点甲')&&titles.includes('测试地点乙'),'POI swaps title without visual handoff '+JSON.stringify(titles));
  assert.ok(Math.max(...offsets)>15,'POI sheet did not sink/rebound '+JSON.stringify(offsets));
+ const actionOpacity=diagnostics.poiSwitchFrames.map(q=>q.poi.actionOpacity).filter(Number.isFinite);
+ assert.ok(Math.min(...actionOpacity)<.45,'POI action labels flashed during card text handoff '+JSON.stringify(actionOpacity));
+ // Interrupt an unfinished handoff with another POI; only the final
+ // selection may commit, and the outgoing motion must not leave a
+ // stretched/inert card or stale action labels behind.
+ await page.evaluate(({lat,lng})=>window.__atlasDemo.select('快速切点丙',lat+.0004,lng+.0004),map);
+ await pause(92);
+ diagnostics.poiBeforeRapid=await state(page);
+ await page.evaluate(({lat,lng})=>window.__atlasDemo.select('快速切点丁',lat+.0005,lng+.0005),map);
+ diagnostics.poiRapidFrames=await sample(page,28,22);
+ await page.waitForFunction(()=>document.querySelector('#destinationTitle')?.textContent==='快速切点丁',null,{timeout:7000});
+ await pause(900);
+ diagnostics.poiAfterRapid=await state(page);
+ assert.equal(diagnostics.poiAfterRapid.poi.title,'快速切点丁');
+ assert.equal(diagnostics.poiAfterRapid.poi.spring,'idle','interrupted POI spring did not release ownership');
+ assert.equal(await page.locator('#destinationCard').evaluate(el=>el.inert),false,'POI card stayed inert after rapid selections');
+ assert.ok(diagnostics.poiRapidFrames.every(q=>Number.isFinite(q.poi.actionOpacity)),'POI fading produced invalid opacity');
  await page.locator('#destinationClose').click({timeout:10000});
  // Search history must really render and animate (an empty search deliberately
  // leaves the anchored dropdown hidden, so it is not a valid spring probe).
