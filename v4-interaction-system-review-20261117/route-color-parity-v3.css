@@ -235,3 +235,14 @@ body.fp-route-minimal :is(.fp-r-select,.fp-r-input,button):disabled{opacity:.45}
   transition:none!important;
  }
 }
+
+/* Transport icons use the same thin, monochrome outline language as V4 POIs.
+   The glyphs inherit each mode's text color; no extra black/fill hierarchy. */
+body.fp-route-minimal #fpRoutePanel .fp-r-mode svg,
+body.fp-route-minimal #fpRoutePanel .fp-r-mode svg :is(path,circle,rect,line,polyline){
+ stroke:currentColor!important;
+ stroke-width:1.7!important;
+ stroke-linejoin:round!important;
+ stroke-linecap:round!important;
+ fill:none!important;
+}
