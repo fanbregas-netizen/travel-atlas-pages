@@ -21,7 +21,7 @@ root.dataset.open='false';
 root.innerHTML='<div class="vr-toggle" role="group" aria-label="切换同一真实产品的两套样式">'+
  '<button type="button" data-mode="before" aria-pressed="false">改前</button>'+
  '<button type="button" data-mode="after" aria-pressed="false">改后</button>'+
- '<button type="button" class="vr-open" aria-expanded="false" aria-controls="visualReviewMenu">页面 ▾</button></div>'+
+ '<button type="button" class="vr-open" aria-expanded="false" aria-controls="visualReviewMenu">视觉对照 ▾</button></div>'+
  '<div class="vr-menu" id="visualReviewMenu"><p id="visualReviewStatus"></p>'+
  '<p>直接操作原版产品；切换样式不重置当前卡片、拖动位置与内容。进入其他页面仍可继续切换。</p>'+
  '<div class="vr-links"><a data-nav="index.html" href="'+path+'index.html">地图首页</a><button type="button" data-act="fav">我的收藏</button><button type="button" data-act="search">搜索</button><a data-nav="journey.html" href="'+path+'journey.html">C V5 路线</a></div>'+
