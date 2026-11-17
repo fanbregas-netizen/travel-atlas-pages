@@ -2,7 +2,7 @@ name: Publish isolated V4 acceptance entry
 on:
   push:
     branches: [preview/v4-acceptance-20261117]
-    paths: ['.github/workflows/v4-acceptance-entry.yml']
+    paths: ['.github/workflows/v4-acceptance-entry.yml','v4-system-review/map-runtime-repairs.py']
 permissions:
   contents: read
   pages: write
