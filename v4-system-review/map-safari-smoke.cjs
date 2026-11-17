@@ -1,6 +1,8 @@
 /* WebKit iPhone-sized independent V4 map review, no changes to product state outside this browser context. */
 const {webkit,devices}=require('playwright');
 const assert=require('node:assert/strict');
+const fs=require('node:fs');
+fs.mkdirSync('map-evidence',{recursive:true});
 const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/';
 (async()=>{
  const browser=await webkit.launch({headless:true});
@@ -114,6 +116,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.equal(surfaces.poiPlane,surfaces.starPlane,
       'POIs and saved stars must track ONE camera transform, not two asynchronous frames');
     assert.equal(surfaces.poiOpacity,'1','Do not fade POIs during auto recenter');
+    await page.screenshot({path:`map-evidence/poi-pan-${width}-mid.png`,animations:'allow'});
     if(surfaces.drift!=null)assert.ok(surfaces.drift<3,
       'Rendered on-map SVG must stay geographically aligned: '+JSON.stringify(surfaces));
 
@@ -133,6 +136,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     }));
     assert.equal(afterMotionSurfaces.poi,'','POI overlay translation must atomically clear on moveend');
     assert.equal(afterMotionSurfaces.star,'','Star overlay translation must atomically clear on moveend');
+    await page.screenshot({path:`map-evidence/poi-pan-${width}-settled.png`,animations:'disabled'});
     assert.ok(Math.abs(beforePoiCamera.lat-afterPoiCamera.lat)>.002||
               Math.abs(beforePoiCamera.lng-afterPoiCamera.lng)>.003,
       'Map must visibly PAN to clicked POI, not remain stationary');
