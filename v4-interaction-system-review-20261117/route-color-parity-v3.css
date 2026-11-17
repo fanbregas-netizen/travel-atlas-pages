@@ -1,0 +1,237 @@
+/* Footprint Map V4 · route color parity · visual-only acceptance layer
+ * Based on the accepted V4 Visual C tokens:
+ * #fffefa paper, #f8f9f5 surface, #edf1e9 sage wash, #e5e7df line,
+ * #27342f ink, #69746e muted, #b59a62 subdued gold.
+ * Keep the approved hand-drawn SVG yellow star unchanged.
+ * No marker geometry, route algorithm, input/gesture physics or storage changes.
+ */
+body.fp-route-minimal{
+ --route-paper:#fffefa;
+ --route-surface:#f8f9f5;
+ --route-sage:#edf1e9;
+ --route-line:#e5e7df;
+ --route-ink:#27342f;
+ --route-secondary:#4b5750;
+ --route-muted:#69746e;
+ --route-quiet:#78857b;
+ --route-grip:#c6cbc4;
+ --route-gold:#b59a62;
+ --route-gold-ink:#665338;
+ --route-gold-wash:#f3eddf;
+ --route-gold-line:#dfd1b4;
+ --route-control:#304b3b;
+ --route-lift:0 -9px 38px rgba(26,43,35,.13),0 -2px 8px rgba(26,43,35,.035);
+ --route-soft-shadow:0 4px 16px rgba(26,43,35,.09);
+ color:var(--route-ink);
+ font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB",sans-serif;
+ -webkit-font-smoothing:antialiased;
+ color-scheme:light;
+}
+body.fp-route-minimal :is(#stopsDock,#fpRoutePanel,#fpRouteCard,#fpRouteTools) :is(button,select,input){
+ font-family:inherit;
+ -webkit-tap-highlight-color:transparent;
+}
+body.fp-route-minimal :is(#stopsDock,#fpRoutePanel,#fpRouteCard,#fpRouteTools) :is(button,select,input):focus-visible{
+ outline:2px solid #b88f37!important;outline-offset:2px;
+}
+/* Map chrome is calm; cartography and the approved yellow stars remain primary. */
+body.fp-route-minimal .atlas-topbar::after{color:var(--route-ink)!important}
+body.fp-route-minimal .atlas-topbar :is(.atlas-back,#viewAll){
+ color:var(--route-ink)!important;
+ background:rgba(255,254,250,.96)!important;
+ border-color:var(--route-line)!important;
+ box-shadow:var(--route-soft-shadow)!important;
+}
+body.fp-route-minimal #stopsDock{
+ background:rgba(255,254,250,.973)!important;
+ border:1px solid var(--route-line)!important;
+ box-shadow:var(--route-lift)!important;
+}
+body.fp-route-minimal #stopsDock .fp-slim-summary{
+ background:transparent!important;color:var(--route-ink)!important;
+}
+body.fp-route-minimal #fpRouteSummary{color:var(--route-ink)!important}
+body.fp-route-minimal #fpRouteSmall{color:var(--route-muted)!important}
+body.fp-route-minimal #stopsDock #fpRouteTools .fp-slim-add{
+ background:var(--route-sage)!important;
+ color:var(--route-secondary)!important;
+}
+body.fp-route-minimal #stopsDock #fpRouteTools .fp-slim-edit{
+ background:var(--route-control)!important;
+ color:var(--route-paper)!important;
+}
+body.fp-route-minimal #stopsDock #fpRouteTools .fp-slim-add:active{background:#e0e9de!important}
+body.fp-route-minimal #stopsDock #fpRouteTools .fp-slim-edit:active{background:#26382e!important}
+/* Route stroke recedes behind POI markers; a soft white outline keeps the line readable. */
+body.fp-route-minimal #routeSegs .seg-outline{
+ stroke:var(--route-paper)!important;stroke-width:4.5!important;opacity:.95!important;
+}
+body.fp-route-minimal #routeSegs .seg-stroke{
+ stroke:#536659!important;stroke-width:2.25!important;opacity:.87!important;
+}
+body.fp-route-minimal #fpRouteAnchorLines path{
+ stroke:#768876!important;stroke-width:1.3!important;stroke-dasharray:3 6!important;opacity:.50!important;
+}
+body.fp-route-minimal #fpRouteAnchors>button{
+ background:var(--route-control)!important;color:var(--route-paper)!important;
+ border-color:var(--route-paper)!important;
+ box-shadow:0 2px 8px rgba(26,43,35,.16)!important;
+}
+body.fp-route-minimal #fpRouteAnchors>#fpRouteEndPin{background:#846e41!important}
+body.fp-route-minimal #pinLayer .route-pin{filter:none!important}
+/* Keep native bright yellow star asset; no synthetic recolor and no duplicate halo. */
+body.fp-route-minimal #pinLayer .rv-star{filter:drop-shadow(0 2px 3px rgba(27,39,30,.16))!important}
+body.fp-route-minimal #pinLayer .route-pin.active .rv-star{filter:drop-shadow(0 3px 7px rgba(181,154,98,.25))!important}
+
+/* Sheet: same paper, line and grip as homepage V4 collection and location cards. */
+body.fp-route-minimal #fpRoutePanel,
+body.fp-route-minimal #fpRouteCard{
+ background:var(--route-paper)!important;
+ border-color:var(--route-line)!important;
+ box-shadow:var(--route-lift)!important;
+ color:var(--route-ink)!important;
+}
+body.fp-route-minimal #fpRoutePanel .fp-r-grab,
+body.fp-route-minimal #fpRouteCard .fp-r-card-handle{
+ background:var(--route-grip)!important;
+}
+body.fp-route-minimal #fpRoutePanel .fp-r-panel-head{
+ border-bottom-color:var(--route-line)!important;
+ background:var(--route-paper)!important;
+}
+body.fp-route-minimal #fpRoutePanelTitle,
+body.fp-route-minimal #fpRouteCardTitle{color:var(--route-ink)!important}
+body.fp-route-minimal :is(.fp-r-panel-back,.fp-r-panel-settings,.fp-r-close,.fp-r-card-close,.fp-r-card-more){
+ color:var(--route-muted)!important;
+}
+body.fp-route-minimal .fp-r-backdrop,
+body.fp-route-minimal #fpRouteCardBackdrop{
+ background:rgba(26,43,35,.11)!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+
+/* Trip summary and actions — gold indicates only a proposed/selected action. */
+body.fp-route-minimal .fp-simple-overview{
+ border-bottom-color:var(--route-line)!important;
+ color:var(--route-secondary)!important;
+}
+body.fp-route-minimal .fp-simple-overview button{color:var(--route-secondary)!important}
+body.fp-route-minimal .fp-simple-chevron{color:var(--route-muted)!important}
+body.fp-route-minimal .fp-simple-optimize{
+ background:var(--route-surface)!important;
+ border:1px solid var(--route-line)!important;
+}
+body.fp-route-minimal .fp-simple-optimize strong{color:var(--route-ink)!important}
+body.fp-route-minimal .fp-simple-optimize small{color:var(--route-muted)!important}
+body.fp-route-minimal .fp-simple-optimize button,
+body.fp-route-minimal .fp-simple-approve button.primary{
+ background:var(--route-gold-wash)!important;
+ color:var(--route-gold-ink)!important;
+ border:1px solid var(--route-gold-line)!important;
+}
+body.fp-route-minimal .fp-simple-proposal{
+ background:var(--route-paper)!important;border-color:var(--route-line)!important;
+}
+body.fp-route-minimal .fp-simple-proposal strong{color:var(--route-ink)!important}
+body.fp-route-minimal .fp-simple-proposal small{color:var(--route-muted)!important}
+body.fp-route-minimal .fp-simple-approve button:not(.primary){
+ background:var(--route-sage)!important;color:var(--route-secondary)!important;
+}
+body.fp-route-minimal .fp-simple-list-head strong{color:var(--route-ink)!important}
+body.fp-route-minimal .fp-simple-list-head strong span,
+body.fp-route-minimal .fp-simple-footnote,
+body.fp-route-minimal .fp-simple-muted{color:var(--route-muted)!important}
+body.fp-route-minimal .fp-simple-undo,
+body.fp-route-minimal .fp-simple-add{color:var(--route-gold-ink)!important}
+
+/* Dense stop rows: beige was overused; numbered chips become muted sage. */
+body.fp-route-minimal .fp-r-stop{
+ border-bottom-color:var(--route-line)!important;
+ background:var(--route-paper)!important;
+}
+body.fp-route-minimal .fp-r-stop.fp-r-stop-open{background:var(--route-surface)!important}
+body.fp-route-minimal .fp-r-num{
+ background:var(--route-sage)!important;color:var(--route-control)!important;
+}
+body.fp-route-minimal .fp-r-stop .fp-r-stop-main strong{color:var(--route-ink)!important}
+body.fp-route-minimal .fp-r-stop .fp-r-select[data-day]{
+ background:var(--route-surface)!important;color:var(--route-secondary)!important;
+ border:1px solid var(--route-line)!important;
+}
+body.fp-route-minimal .fp-r-stop .fp-r-drag,
+body.fp-route-minimal .fp-r-row-more{color:var(--route-muted)!important}
+body.fp-route-minimal .fp-r-row-actions button{
+ background:var(--route-paper)!important;border-color:var(--route-line)!important;
+ color:var(--route-secondary)!important;
+}
+body.fp-route-minimal .fp-r-listing{border-bottom-color:var(--route-line)!important}
+body.fp-route-minimal .fp-r-listing .fp-r-stop-main strong{color:var(--route-ink)!important}
+body.fp-route-minimal .fp-r-listing .fp-r-stop-main small{color:var(--route-muted)!important}
+body.fp-route-minimal .fp-r-listing button:not(.selected){
+ background:var(--route-surface)!important;color:var(--route-secondary)!important;
+ border-color:var(--route-line)!important;
+}
+body.fp-route-minimal .fp-r-listing button.selected{
+ background:var(--route-gold-wash)!important;color:var(--route-gold-ink)!important;
+ border-color:var(--route-gold-line)!important;
+}
+
+/* Setup: neutral inputs, single gold selected mode; one dark-sage confirm. */
+body.fp-route-minimal .fp-simple-setting-group,
+body.fp-route-minimal .fp-simple-details{border-bottom-color:var(--route-line)!important}
+body.fp-route-minimal .fp-simple-settings h3{color:var(--route-ink)!important}
+body.fp-route-minimal .fp-r-field span{color:var(--route-muted)!important}
+body.fp-route-minimal .fp-r-fields :is(.fp-r-input,.fp-r-select),
+body.fp-route-minimal .fp-r-leg select{
+ background:var(--route-surface)!important;
+ border:1px solid var(--route-line)!important;
+ color:var(--route-ink)!important;
+}
+body.fp-route-minimal .fp-r-mode{
+ background:var(--route-surface)!important;color:var(--route-secondary)!important;
+ border-color:var(--route-line)!important;
+}
+body.fp-route-minimal .fp-r-mode.active{
+ background:var(--route-gold-wash)!important;color:var(--route-gold-ink)!important;
+ border-color:var(--route-gold-line)!important;
+}
+body.fp-route-minimal .fp-simple-details summary{color:var(--route-secondary)!important}
+body.fp-route-minimal .fp-simple-details summary span{color:var(--route-muted)!important}
+body.fp-route-minimal .fp-r-leg{border-bottom-color:var(--route-line)!important}
+body.fp-route-minimal .fp-simple-settings>.fp-r-actions button:not(.primary){
+ background:var(--route-surface)!important;border-color:var(--route-line)!important;
+ color:var(--route-secondary)!important;
+}
+body.fp-route-minimal .fp-simple-settings>.fp-r-actions button.primary{
+ background:var(--route-control)!important;border-color:var(--route-control)!important;
+ color:var(--route-paper)!important;
+}
+
+/* Place card inherits the V4 location-card text hierarchy. */
+body.fp-route-minimal .fp-r-card-kicker{color:#846e41!important}
+body.fp-route-minimal .fp-simple-card-address{color:var(--route-muted)!important}
+body.fp-route-minimal .fp-simple-card-brief{color:var(--route-secondary)!important}
+body.fp-route-minimal .fp-r-card-footer{
+ background:var(--route-paper)!important;border-top-color:var(--route-line)!important;
+}
+body.fp-route-minimal .fp-r-card-footer button{
+ background:var(--route-surface)!important;color:var(--route-secondary)!important;
+ border-color:var(--route-line)!important;
+}
+body.fp-route-minimal .fp-r-card-footer button.primary{
+ background:var(--route-gold-wash)!important;color:var(--route-gold-ink)!important;
+ border-color:var(--route-gold-line)!important;
+}
+
+/* Quiet toast. No unrelated blue/orange/pink statuses and no changing dock geometry. */
+body.fp-route-minimal #fpRouteToast{
+ background:rgba(255,254,250,.97)!important;color:var(--route-secondary)!important;
+ border-color:var(--route-line)!important;box-shadow:var(--route-soft-shadow)!important;
+}
+body.fp-route-minimal :is(.fp-r-select,.fp-r-input,button):disabled{opacity:.45}
+@media(prefers-reduced-motion:reduce){
+ body.fp-route-minimal .fp-r-mode,
+ body.fp-route-minimal .fp-simple-optimize button{
+  transition:none!important;
+ }
+}
