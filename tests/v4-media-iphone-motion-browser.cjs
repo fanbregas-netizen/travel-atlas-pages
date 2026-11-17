@@ -9,7 +9,7 @@ const bin=['google-chrome','google-chrome-stable','chromium'].map(x=>{try{return
 if(!bin)throw Error('Chromium not found');
 const root=process.env.MEDIA_QA_ROOT||'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-media-system-review-20261117/';
 const output='v4-media-motion-evidence';fs.mkdirSync(output,{recursive:true});
-const pixel='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5pbiQAAAAASUVORK5CYII=';
+// Test with three different realistic 3–4 MP images rather than a 1px placeholder.
 async function gesture(cdp,coords){
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:coords[0][0],y:coords[0][1]}]});
  for(let i=1;i<coords.length;i++){
@@ -32,11 +32,26 @@ async function gesture(cdp,coords){
     assert.equal(response.status(),200);
     await page.waitForFunction(()=>!!window.__atlasPlaceStore?.save&&!!window.__atlasDemo?.openSaved&&!!window.FootprintMediaCore,null,{timeout:25000});
     const id='media-v2-gesture-'+width;
-    await page.evaluate(({id,pixel})=>window.__atlasPlaceStore.save({
+    const sources=await page.evaluate(()=>{
+      const dims=[[1460,2580],[2048,1536],[1536,2732]];
+      return dims.map(([w,h],idx)=>{
+        const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+        const ctx=canvas.getContext('2d'),g=ctx.createLinearGradient(0,0,w,h);
+        g.addColorStop(0,['#e4a25f','#578ab2','#2f6a69'][idx]);
+        g.addColorStop(1,['#243a51','#cfad80','#d6b298'][idx]);
+        ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+        for(let j=0;j<600;j++){
+          ctx.globalAlpha=.18;ctx.fillStyle='hsl('+((idx*73+j*17)%360)+' 50% 50%)';
+          ctx.fillRect((j*137)%w,(j*273)%h,26+(j%47),35+(j%67));
+        }
+        return canvas.toDataURL('image/jpeg',.86);
+      });
+    });
+    await page.evaluate(({id,sources})=>window.__atlasPlaceStore.save({
       id,lat:29.492,lng:121.905,title:'媒体动效验收地点',starred:true,stage:'visited',
-      photos:[{id:'p1',name:'第一张',src:pixel},{id:'p2',name:'第二张',src:pixel},{id:'p3',name:'第三张',src:pixel}],
+      photos:[{id:'p1',name:'第一张',src:sources[0]},{id:'p2',name:'第二张',src:sources[1]},{id:'p3',name:'第三张',src:sources[2]}],
       videos:[{id:'vid-1',name:'旅行视频',type:'video/mp4',bytes:new Uint8Array([0,0,0,24,102,116,121,112]).buffer}],guides:[],note:'原始 Brief'
-    }),{id,pixel});
+    }),{id,sources});
     await page.evaluate(async id=>{
       await window.__atlasSetBookmarkStarred(id,false);
       await window.__atlasSetBookmarkStarred(id,true);
@@ -63,6 +78,8 @@ async function gesture(cdp,coords){
        close:e.querySelector('.fp-viewer-close').getBoundingClientRect().toJSON()};
     });
     assert.equal(initial.index,'0');assert.equal(initial.slideCount,3);
+    await page.waitForFunction(()=>document.querySelector('#fpMediaViewer .fp-gallery-cell[data-item-index="0"] img')?.naturalWidth>=1000,null,{timeout:10000});
+    assert.equal(await page.locator('#fpMediaViewer .fp-gallery-cell img').count(),3,'Unexpected full-resolution image duplicates');
     assert.ok(initial.close.width>=43&&initial.close.height>=43,'44 px close missing');
     const cdp=await context.newCDPSession(page);
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:width-75,y:420}]});
@@ -88,11 +105,15 @@ async function gesture(cdp,coords){
     await new Promise(resolve=>setTimeout(resolve,70));
     const down=await page.evaluate(()=>{
       const v=document.querySelector('#fpMediaViewer');
-      return {state:v.dataset.gestureState,background:v.style.backgroundColor,
-       transform:v.querySelector('.fp-gallery-track').style.transform};
+      return {state:v.dataset.gestureState,backgroundOpacity:Number(v.querySelector('.fp-gallery-scrim')?.style.opacity),
+       imageTransform:v.querySelector('.fp-gallery-cell[data-item-index="2"] img')?.style.transform,
+       transform:v.querySelector('.fp-gallery-track').style.transform,
+       copies:v.querySelectorAll('.fp-gallery-ghost').length};
     });
     assert.equal(down.state,'down','downward image drag not active');
-    assert.ok(/rgba/.test(down.background),'backdrop not interactive');
+    assert.ok(down.backgroundOpacity<.93&&down.backgroundOpacity>.1,'Backdrop opacity did not follow drag');
+    assert.ok(down.imageTransform?.includes('scale('),'Current image was not individually scaled');
+    assert.equal(down.copies,0,'Drag created extra image copies');
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
     await page.waitForFunction(()=>!document.querySelector('#fpMediaViewer'),null,{timeout:9000});
     assert.equal(await page.locator('#fpPlaceCard').isVisible(),true,'Place card disappears after gallery close');
