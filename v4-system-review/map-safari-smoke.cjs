@@ -321,6 +321,9 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       'Route map must fill the unscaled full screen behind card: '+JSON.stringify(invariant));
     await page.locator('[data-rc="source-map"]').first().click({timeout:12000});
     await page.waitForFunction(()=>document.querySelector('#rc-map')?.classList.contains('rc-map-picking'),{timeout:15000});
+    // A real user cannot tap the map before the accepted C V5 sheet spring
+    // finishes its 530ms transition to peek. Reproduce the settled UI.
+    await page.waitForTimeout(620);
     await page.evaluate(()=>{
       const m=window.__atlasLivePlannerMap,c=m.getCenter();
       m.fire('click',{lngLat:c,point:m.project([c.lng,c.lat])});
@@ -328,10 +331,13 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     await page.waitForFunction(()=>window.__atlasRouteV5Live?.state?.selected?.length>=1,{timeout:15000});
     await page.waitForFunction(()=>document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),{timeout:12000});
     await page.waitForFunction(()=>document.querySelector('#rc-map-pins [data-place-id^="live-map-"].fp-route-tapped'),{timeout:10000});
-    // The icon springs in the tap frame; camera begins after the 100ms
-    // C V5 sheet-size transition, so never check the resting pose too early.
-    await page.waitForTimeout(190);
-    await page.waitForFunction(()=>!window.__atlasLivePlannerMap.isMoving(),{timeout:12000});
+    await page.waitForFunction(()=>!!window.__atlasRouteCameraTargetQA?.centerTo?.length,{timeout:12000});
+    await page.waitForFunction(()=>{
+      const m=window.__atlasLivePlannerMap,pin=document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),
+        area=window.__atlasRouteViewportQA?.();
+      return !!m&&!m.isMoving()&&!!pin&&!!area&&
+        Math.abs((parseFloat(pin.style.top)||0)*area.height/100-area.targetY)<5;
+    },{timeout:16000});
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     const routePoi=await page.evaluate(()=>{
       const map=window.__atlasLivePlannerMap,pin=document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),
@@ -351,7 +357,9 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
         frameSize:[frame.width,frame.height],
         canvasSize:[map.getContainer().clientWidth,map.getContainer().clientHeight],
         mapProjectedCenter:[map.project(map.getCenter()).x,map.project(map.getCenter()).y],
-        pinPercent:[parseFloat(pin?.style.left),parseFloat(pin?.style.top)],routePoiQA:window.__atlasRoutePoiQA?.(),routeGeoSyncQA:window.__atlasRouteGeoSyncQA||null,
+        pinPercent:[parseFloat(pin?.style.left),parseFloat(pin?.style.top)],
+        cameraTargetQA:window.__atlasRouteCameraTargetQA||null,
+        routePoiQA:window.__atlasRoutePoiQA?.(),routeGeoSyncQA:window.__atlasRouteGeoSyncQA||null,
         selectedNodeId:pin?.dataset.placeId,topMapEl:document.querySelector('#rc-map-pins')?.getBoundingClientRect()?.top
       };
     });
