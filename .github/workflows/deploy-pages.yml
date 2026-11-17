@@ -489,12 +489,12 @@ jobs:
           path: __map_v4_source
       - uses: actions/checkout@v4
         with:
-          ref: 79368360e5f2f1a258fe166f738ec6447431acdc
+          ref: 6d90d101958822fc72ebe2f60befb3a504311880
           path: __map_review_patch
       - name: Append durable independent V4 map Safari acceptance (no product merge)
         run: |
           test "$(git -C __map_v4_source rev-parse HEAD)" = 54c2b68347e3bfe2a7e7ed47ef63e12550e007b7
-          test "$(git -C __map_review_patch rev-parse HEAD)" = 79368360e5f2f1a258fe166f738ec6447431acdc
+          test "$(git -C __map_review_patch rev-parse HEAD)" = 6d90d101958822fc72ebe2f60befb3a504311880
           python3 - <<'PY'
           from pathlib import Path
           import hashlib,subprocess
