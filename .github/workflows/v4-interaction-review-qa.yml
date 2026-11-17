@@ -32,6 +32,10 @@ jobs:
         env:
           INTERACTION_REVIEW_BASE_URL: http://127.0.0.1:8765/v4-interaction-system-review-20261117/
         run: node v4-interaction-system-review-20261117/tests/card-motion-live.cjs
+      - name: Verify paired upper-search and lower-Dock motions across card families
+        env:
+          INTERACTION_REVIEW_BASE_URL: http://127.0.0.1:8765/v4-interaction-system-review-20261117/
+        run: node v4-interaction-system-review-20261117/tests/paired-dock-live.cjs
       - name: Save screenshots and motion measurements
         if: always()
         uses: actions/upload-artifact@v4
