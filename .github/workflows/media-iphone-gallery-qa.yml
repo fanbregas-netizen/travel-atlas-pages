@@ -1,0 +1,56 @@
+name: Media V4 iPhone Gallery Isolated Browser QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/media-iphone-gallery-qa.yml'
+      - 'v4-media-system-review-20261117/**'
+      - 'tests/v4-media-iphone-motion-browser.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  media-iphone:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser automation dependency
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Assemble exact V4 preview and media-only overlay
+        run: |
+          mkdir -p _site
+          cp -R v4-review-20261116 _site/v4-media-system-review-20261117
+          cp -R v4-media-system-review-20261117/. _site/v4-media-system-review-20261117/
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('_site/v4-media-system-review-20261117')
+          old='atlas-v4-review-20261116-'
+          new='atlas-v4-media-system-review-20261117-'
+          for html in root.rglob('*.html'):
+              data=html.read_text(encoding='utf-8')
+              data=data.replace(old,new).replace('./footprint-home.js?v=search-physical-19',
+                       './footprint-home.js?v=media-iphone-v2-20261117')
+              html.write_text(data,encoding='utf-8')
+          PY
+          node --check _site/v4-media-system-review-20261117/footprint-home.js
+          node --check tests/v4-media-iphone-motion-browser.cjs
+          node v4-media-system-review-20261117/media-regression.cjs
+      - name: Test real full V4 iPhone swipe / drag / shared-element close
+        env:
+          MEDIA_QA_ROOT: http://127.0.0.1:8765/v4-media-system-review-20261117/
+        run: |
+          python3 -m http.server 8765 --directory _site > /tmp/media-http.log 2>&1 &
+          sleep 2
+          curl -fsS http://127.0.0.1:8765/v4-media-system-review-20261117/footprint-home.js | grep -q 'iPhone-style continuous gallery V2'
+          node tests/v4-media-iphone-motion-browser.cjs
+      - name: Upload touch movement and return screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v4-media-iphone-motion-evidence
+          path: v4-media-motion-evidence/
+          if-no-files-found: ignore
