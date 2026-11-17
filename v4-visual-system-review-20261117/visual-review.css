@@ -202,14 +202,14 @@ html.visual-after body #drawer .drawer-head #closeDrawer{
 }
 html.visual-after body #drawer .drawer-head #closeDrawer::before{
  content:""!important;display:block!important;
- width:16px!important;height:16px!important;margin:auto!important;
+ width:30px!important;height:30px!important;margin:auto!important;
 }
 /* Card B: 潭子湾. FIX THE REAL DOUBLE GRIP, NOT JUST ITS COLOR.
    footprint-home.js appends a decorative sibling .sheet-grab.
    real-product-bridge.js independently prepends the only INTERACTIVE
    .atlas-card-grip into .fp-card-header and binds sheet gestures to it.
    Hide the decorative duplicate; KEEP the bound button and header. */
-html.visual-after body #fpPlaceCard > .sheet-grab{
+html.visual-after body #fpPlaceCard:has(.atlas-card-grip) > .sheet-grab{
  display:none!important;
 }
 html.visual-after body #fpPlaceCard .fp-card-header{
