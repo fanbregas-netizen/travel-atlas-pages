@@ -124,3 +124,54 @@ body.route-v5-live #rc-live-map-canvas .maplibregl-ctrl-attrib{
 @media(prefers-reduced-motion:reduce){
   body.route-v5-live #rc-map {transition:none!important}
 }
+
+
+/* v15: route map uses the identical hometown marker primitives.
+   Saved bookmarks are the ONE golden star from homepage; never a rounded
+   "add place" tile. Semantic POIs use the 31/20 V3 ink chip from homepage.
+   Blank-map picks use homepage's neutral selected-location pictogram. */
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-star{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+ width:48px;height:48px;display:grid;place-items:center;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-star svg{
+ width:40px;height:40px;display:block;
+ overflow:visible;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(35,52,53,.13));
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-star.selected svg{
+ filter:drop-shadow(0 4px 9px rgba(35,52,53,.2));
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-semantic .fp-route-home-token{
+ display:grid;place-items:center;width:31px;height:31px;
+ background:rgba(248,250,248,.94);border:1px solid rgba(187,204,202,.7);
+ border-radius:12px;box-shadow:0 3px 9px rgba(35,52,53,.17);
+ -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-semantic .fp-route-poi-art{
+ width:20px;height:20px;object-fit:contain;
+ padding:0;border:0;border-radius:0;box-shadow:none;background:none;
+ pointer-events:none;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-generic .fp-route-home-token,
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-semantic.fp-route-tapped .fp-route-home-token{
+ display:grid;place-items:center;width:42px;height:42px;
+ background:rgba(246,250,248,.96);border:1px solid #9bb5ae;
+ border-radius:15px;box-shadow:0 6px 16px rgba(36,56,60,.20);
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-generic .fp-route-poi-art,
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-semantic.fp-route-tapped .fp-route-poi-art{
+ width:26px;height:26px;object-fit:contain;
+ padding:0;border:0;box-shadow:none;background:none;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-semantic.selected .fp-route-home-token{
+ background:#e8f1ea;border-color:#aabfba;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-generic.selected .fp-route-home-token{
+ background:#e8f1ea;border-color:#aabfba;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-tapped{
+ z-index:16!important; /* never fall below unselected map POI labels */
+}
+@media (prefers-reduced-motion:reduce){
+ #rc-map-pins .rc-pin.fp-map-pick-arrive{animation:none!important}
+}
