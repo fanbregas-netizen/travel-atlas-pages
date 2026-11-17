@@ -12,6 +12,7 @@ function connect({sheet,controller,header,grip,scroll}){
  let height=0,vertical=0,heightVelocity=0,verticalVelocity=0,frame=0,lastTick=0;
  let springTargetHeight=0;
  let drag=null,touch=null,animating=false,settleTimer=null,dragPaintFrame=0;
+ let pendingReleaseVelocity=0;
  const queueDragPaint=()=>{if(!dragPaintFrame)dragPaintFrame=requestAnimationFrame(()=>{dragPaintFrame=0;paint()})};
  const flushDragPaint=()=>{if(dragPaintFrame){cancelAnimationFrame(dragPaintFrame);dragPaintFrame=0}paint()};
  const listeners=[];
@@ -100,7 +101,8 @@ function connect({sheet,controller,header,grip,scroll}){
   place=state.selectedPlaceId;level=next;
   if(changedPlace&&scroll)scroll.scrollTop=0;
   if(scroll)scroll.style.touchAction=next==='full'?'pan-y':'none';
-  target(detents()[next],0);
+  const release=pendingReleaseVelocity;pendingReleaseVelocity=0;
+  target(detents()[next],0,release);
  }
  function velocity(samples){
   if(samples.length<2)return 0;
@@ -142,8 +144,10 @@ function connect({sheet,controller,header,grip,scroll}){
   if(Math.abs(dy)<14&&Math.abs(v)<.35)idx=old;
   if(d.fromLevel==='peek'&&dy>60&&(height<b.peek-14||v>.58||dy>100)){controller.close();return}
   const next=LEVELS[idx];
-  if(next===controller.getState().sheet)target(b[next]);
-  else controller.snapTo(next);
+  // The spring takes over at the finger's current velocity, not from rest.
+  const release=clamp(-v*16.67,-30,30);
+  if(next===controller.getState().sheet)target(b[next],0,release);
+  else {pendingReleaseVelocity=release;controller.snapTo(next)}
  }
  let pointer=null;
  on(header,'pointerdown',e=>{
