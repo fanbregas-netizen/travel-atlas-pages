@@ -133,7 +133,7 @@ jobs:
           hub.mkdir()
           shutil.copyfile(scope_files/'index.html',hub/'index.html')
           assert '四系统独立验收' in (hub/'index.html').read_text()
-          print('Four V4 subsystem copies isolated: map, interaction, visual, media; original app bytes retained.')
+          print('V4 map-only review appended; pre-existing previews preserved.')
 
           after=hashes()
           assert all(after[p]==h for p,h in original.items())
@@ -161,12 +161,13 @@ jobs:
           grep -q '四系统独立验收' /tmp/v4-systems-index.html
           for scope in map interaction visual media; do
             curl -fSL --retry 8 --retry-delay 5 --retry-all-errors "https://fanbregas-netizen.github.io/travel-atlas-pages/v4-${scope}-system-review-20261117/" -o "/tmp/v4-${scope}-index.html"
-            grep -q "data-scope=\"$scope\"" "/tmp/v4-${scope}-index.html"
-            grep -q "atlas-v4-${scope}-system-review-20261117-" "/tmp/v4-${scope}-index.html"
-            curl -fSL --retry 8 --retry-delay 5 --retry-all-errors "https://fanbregas-netizen.github.io/travel-atlas-pages/v4-${scope}-system-review-20261117/scope-review.js" -o "/tmp/v4-${scope}-scope.js"
-            cmp "/tmp/v4-${scope}-scope.js" __prototype/v4-system-review/scope-review.js
+            test -s "/tmp/v4-${scope}-index.html"
           done
-          grep -q 'visual-parity.css?v=visual-only-1' /tmp/v4-visual-index.html
+          grep -q 'data-scope="map"' /tmp/v4-map-index.html
+          grep -q 'atlas-v4-map-system-review-20261117-' /tmp/v4-map-index.html
+          grep -q 'v4-map-runtime.js?v=map-safari-acceptance-1' /tmp/v4-map-index.html
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/scope-review.js' -o /tmp/v4-map-scope.js
+          cmp /tmp/v4-map-scope.js __prototype/v4-system-review/scope-review.js
           curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/v4-map-runtime.js' -o /tmp/v4-map-repaired.js
           node --check /tmp/v4-map-repaired.js
           grep -Fq 'fallbackScriptRequest=fallbackScriptRequest.catch(error=>' /tmp/v4-map-repaired.js
