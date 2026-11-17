@@ -167,7 +167,34 @@ const sample=async(page,n=18,step=27)=>{const result=[];for(let i=0;i<n;i++){res
  assert.equal(diagnostics.poiAfterRapid.poi.spring,'idle','interrupted POI spring did not release ownership');
  assert.equal(await page.locator('#destinationCard').evaluate(el=>el.inert),false,'POI card stayed inert after rapid selections');
  assert.ok(diagnostics.poiRapidFrames.every(q=>Number.isFinite(q.poi.actionOpacity)),'POI fading produced invalid opacity');
- await page.locator('#destinationClose').click({timeout:10000});
+ // The same real POI preview is vertically draggable (no second card).
+ // Use cancelable iPhone touch fallback in WebKit, pointer input in Chromium.
+ const poiBox=await page.locator('#destinationCard .destination-title').boundingBox();
+ assert.ok(poiBox,'POI drag target missing');
+ const px=poiBox.x+Math.min(38,poiBox.width/2),py=poiBox.y+poiBox.height/2;
+ const eventOnPoi=async(type,cy)=>page.evaluate(({type,cx,cy})=>{
+  const target=document.querySelector('#destinationCard .destination-title');
+  const touch={identifier:88,target,clientX:cx,clientY:cy,screenX:cx,screenY:cy,pageX:cx,pageY:cy};
+  const ended=type==='touchend',ev=new Event(type,{bubbles:true,cancelable:true});
+  Object.defineProperties(ev,{touches:{value:ended?[]:[touch]},
+   targetTouches:{value:ended?[]:[touch]},changedTouches:{value:[touch]}});
+  target.dispatchEvent(ev);
+ },{type,cx:px,cy});
+ if(which==='webkit')await eventOnPoi('touchstart',py);
+ else{await page.mouse.move(px,py);await page.mouse.down()}
+ for(let i=1;i<=8;i++){
+  const yy=py+112*i/8;
+  if(which==='webkit')await eventOnPoi('touchmove',yy);
+  else await page.mouse.move(px,yy);
+  await pause(18);
+ }
+ diagnostics.poiGestureDuring=await state(page);
+ assert.ok(parseFloat(diagnostics.poiGestureDuring.poi.translate?.split(' ')[1]||0)>30,
+  'POI did not follow the finger');
+ if(which==='webkit')await eventOnPoi('touchend',py+112);
+ else await page.mouse.up();
+ await page.waitForFunction(()=>!document.querySelector('#destinationCard').classList.contains('visible'),null,{timeout:8000});
+ diagnostics.poiGestureDismissed=await state(page);
  // Search history must really render and animate (an empty search deliberately
  // leaves the anchored dropdown hidden, so it is not a valid spring probe).
  await page.evaluate(()=>localStorage.setItem('fp-search-history-v1',
