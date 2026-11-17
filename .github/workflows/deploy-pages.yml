@@ -526,6 +526,11 @@ jobs:
           PY
       - name: Restore blue-gray map-only preview in EVERY Pages deployment
         run: |
+          # The preceding inherited build creates the OLD map-only preview.
+          # Replace ONLY that isolated directory with the approved blue-gray
+          # version before publishing. Root and other previews stay untouched.
+          test -f _site/v4-map-system-review-20261117/scope-review.js
+          rm -rf _site/v4-map-system-review-20261117
           python3 __v4_map_patches/v4-system-review/build-durable-map-preview.py \
             __v4_map_base/v4-review-20261116 \
             __v4_map_patches/v4-system-review \
