@@ -5,7 +5,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const cp=require('node:child_process');
 const {chromium}=require('playwright-core');
-const base='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-interaction-system-review-20261117/';
+const base=process.env.INTERACTION_REVIEW_BASE_URL||'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-interaction-system-review-20261117/';
 const executablePath=['google-chrome','google-chrome-stable','chromium'].map(n=>{try{return cp.execFileSync('which',[n],{encoding:'utf8'}).trim()}catch{return null}}).find(Boolean);
 if(!executablePath)throw Error('Chromium missing');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
