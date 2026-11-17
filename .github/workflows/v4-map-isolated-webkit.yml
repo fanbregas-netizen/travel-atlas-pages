@@ -85,7 +85,7 @@ jobs:
               if page=='index.html':
                   html=html.replace('poi-svg-motion-v4.js?v=cv5-18','poi-svg-motion-v4.js?v=poi-pop-5')
                   assert 'poi-pop-5' in html
-                  html=html.replace('</head>','<link rel="stylesheet" href="./map-home-bluegray-v18.css?v=bluegray-18">\n<script defer src="./map-home-bluegray-v18.js?v=bluegray-18"></script>\n</head>',1)
+                  html=html.replace('</head>','<link rel="stylesheet" href="./map-home-bluegray-v18.css?v=bluegray-19">\n<script defer src="./map-home-bluegray-v18.js?v=bluegray-19"></script>\n</head>',1)
               if page=='journey.html':
                   old='<script defer src="./src/interaction/route-cards-v5-live.js?v=fluid-3"></script>'
                   assert old in html
