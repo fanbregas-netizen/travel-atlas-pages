@@ -166,3 +166,18 @@ body.fp-route-review #fpRouteBadge{
 body.fp-route-review #fpRouteAnchors>button{
  z-index:1!important;
 }
+
+/* Final screenshot polish: feedback is a quiet transient label, not a dark alert.
+   The small demo tag no longer obscures a map point under the header. */
+body.fp-route-review #fpRouteBadge{
+ max-width:148px!important;padding:5px 9px!important;
+ font-size:10px!important;color:#788278!important;
+}
+body.fp-route-review #fpRouteToast{
+ top:calc(123px + env(safe-area-inset-top))!important;
+ background:rgba(255,254,250,.96)!important;
+ color:#566358!important;border:1px solid #e2ddd0!important;
+ box-shadow:0 5px 14px rgba(29,38,29,.11)!important;
+ font-size:11px!important;padding:7px 12px!important;
+ max-width:calc(100vw - 38px)!important;
+}
