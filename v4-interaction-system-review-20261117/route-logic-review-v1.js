@@ -99,7 +99,7 @@ function create(){
  tools.innerHTML=[
   ['pick','选地点'],['order','推荐顺序'],['mode','交通方式'],['setup','起终点']
  ].map(function(x){return '<button type="button" data-open="'+x[0]+'">'+toolIcons[x[0]]+'<span>'+x[1]+'</span></button>'}).join('');
- document.body.appendChild(tools);
+ (el('stopsDock')||document.body).appendChild(tools);
  var anchors=document.createElement('div');anchors.id='fpRouteAnchors';
  anchors.innerHTML='<svg id="fpRouteAnchorLines" aria-hidden="true"><path id="fpRouteStartLine"></path><path id="fpRouteEndLine"></path></svg>'+
  '<button type="button" id="fpRouteStartPin" aria-label="设置路线起点">起</button><button type="button" id="fpRouteEndPin" aria-label="设置路线终点">终</button>';
@@ -416,6 +416,7 @@ function onPointerUp(e){
  if(orig===to)return;
  if(state.locked.has(to)){toast('目标站点已锁定');return}
  var from=state.order.indexOf(orig),dest=state.order.indexOf(to);
+ if(state.order.slice(Math.min(from,dest),Math.max(from,dest)+1).some(function(id){return id!==orig&&state.locked.has(id)})){toast('锁定站点不能被拖动跨越');return}
  if(from<0||dest<0)return;
  state.undo=snapshot();state.order.splice(from,1);state.order.splice(dest,0,orig);
  state.proposal=null;syncRoute();renderPanel();toast('站点顺序已更新');
