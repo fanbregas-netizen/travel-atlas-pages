@@ -81,6 +81,46 @@ jobs:
               if rel in (pathlib.Path('index.html'),pathlib.Path('journey.html'),pathlib.Path('route-view.html')): continue
               assert hashlib.sha256(old.read_bytes()).digest()==hashlib.sha256((unified/rel).read_bytes()).digest()
 
+          # Four INDEPENDENT approvals: original full product x4, no integration.
+          scope_files=pathlib.Path('__prototype/v4-system-review')
+          assert all((scope_files/name).is_file() for name in ('scope-review.js','scope-review.css','index.html'))
+          scopes=('map','interaction','visual','media')
+          for scope in scopes:
+              target=root/('v4-'+scope+'-system-review-20261117')
+              assert not target.exists()
+              shutil.copytree(dest,target)
+              for asset in ('scope-review.js','scope-review.css'):
+                  shutil.copyfile(scope_files/asset,target/asset)
+              if scope=='visual':
+                  for asset in ('visual-parity.css','visual-compare.js'):
+                      shutil.copyfile('__prototype/v4-unified-real-review/'+asset,target/asset)
+              for page in ('index.html','journey.html','route-view.html'):
+                  htmlpath=target/page
+                  html=htmlpath.read_text(encoding='utf-8')
+                  original_ns='atlas-v4-review-20261116-'
+                  assert original_ns in html and '</head>' in html and '</body>' in html
+                  html=html.replace(original_ns,'atlas-v4-'+scope+'-system-review-20261117-')
+                  style='<link rel="stylesheet" href="./scope-review.css?v=scope-1">'
+                  script='<script src="./scope-review.js?v=scope-1" data-scope="'+scope+'"></script>'
+                  if scope=='visual':
+                      style='<link rel="stylesheet" href="./visual-parity.css?v=visual-only-1">\n'+style
+                      script='<script src="./visual-compare.js?v=visual-only-1"></script>\n'+script
+                  html=html.replace('</head>',style+'\n</head>',1)
+                  html=html.replace('</body>',script+'\n</body>',1)
+                  htmlpath.write_text(html,encoding='utf-8')
+              count=len([f for f in target.rglob('*') if f.is_file()])
+              assert count==(168 if scope=='visual' else 166),(scope,count)
+              for old_file in dest.rglob('*'):
+                  if not old_file.is_file(): continue
+                  rel=old_file.relative_to(dest)
+                  if rel in (pathlib.Path('index.html'),pathlib.Path('journey.html'),pathlib.Path('route-view.html')): continue
+                  assert hashlib.sha256(old_file.read_bytes()).digest()==hashlib.sha256((target/rel).read_bytes()).digest(),str(rel)
+          hub=root/'v4-system-review-20261117'
+          hub.mkdir()
+          shutil.copyfile(scope_files/'index.html',hub/'index.html')
+          assert '四系统独立验收' in (hub/'index.html').read_text()
+          print('Four V4 subsystem copies isolated: map, interaction, visual, media; original app bytes retained.')
+
           after=hashes()
           assert all(after[p]==h for p,h in original.items())
           print('All',len(original),'existing deployed files unchanged; appended 164 candidate files.')
@@ -102,3 +142,14 @@ jobs:
           curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-unified-real-review-20261117/visual-parity.css' -o /tmp/unified.css
           cmp /tmp/unified.css __prototype/v4-unified-real-review/visual-parity.css
           node --check __prototype/v4-unified-real-review/visual-compare.js
+          node --check __prototype/v4-system-review/scope-review.js
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-system-review-20261117/' -o /tmp/v4-systems-index.html
+          grep -q '四系统独立验收' /tmp/v4-systems-index.html
+          for scope in map interaction visual media; do
+            curl -fSL --retry 8 --retry-delay 5 --retry-all-errors "https://fanbregas-netizen.github.io/travel-atlas-pages/v4-${scope}-system-review-20261117/" -o "/tmp/v4-${scope}-index.html"
+            grep -q "data-scope=\"$scope\"" "/tmp/v4-${scope}-index.html"
+            grep -q "atlas-v4-${scope}-system-review-20261117-" "/tmp/v4-${scope}-index.html"
+            curl -fSL --retry 8 --retry-delay 5 --retry-all-errors "https://fanbregas-netizen.github.io/travel-atlas-pages/v4-${scope}-system-review-20261117/scope-review.js" -o "/tmp/v4-${scope}-scope.js"
+            cmp "/tmp/v4-${scope}-scope.js" __prototype/v4-system-review/scope-review.js
+          done
+          grep -q 'visual-parity.css?v=visual-only-1' /tmp/v4-visual-index.html
