@@ -13,7 +13,7 @@ const reduced=matchMedia('(prefers-reduced-motion:reduce)');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const detents=()=>{const h=window.visualViewport?.height||innerHeight||844;
 return {peek:Math.min(h*.43,360),half:Math.min(h*.72,630),full:Math.max(h*.72+40,h-40)}};
-let level='half',d=null,frame=0,dragFrame=0,pendingHeight=null,lastPainted=-1,lastResizeGoal=null;
+let level='half',d=null,frame=0,dragFrame=0,pendingHeight=null,lastPainted=-1,lastResizeGoal=null,closeCleanup=null;
 function scheduleDragPaint(h){pendingHeight=h;if(dragFrame)return;
  dragFrame=requestAnimationFrame(()=>{dragFrame=0;const next=pendingHeight;pendingHeight=null;if(next!==null)paint(next)});
 }
@@ -128,8 +128,17 @@ new MutationObserver(()=>{
  if(!el.classList.contains('visible')){
   if(frame)cancelAnimationFrame(frame);frame=0;
   if(dragFrame)cancelAnimationFrame(dragFrame);dragFrame=0;pendingHeight=null;lastPainted=-1;lastResizeGoal=null;d=null;level='half';
-  el.style.removeProperty('height');el.style.removeProperty('max-height');
+  // Keep the closing card's last rendered height through the CSS exit.
+  // Clearing it here changes percentage-translate distance mid-flight on Safari.
+  if(closeCleanup!==null)clearTimeout(closeCleanup);
+  closeCleanup=setTimeout(()=>{
+   closeCleanup=null;
+   if(!el.classList.contains('visible')){
+    el.style.removeProperty('height');el.style.removeProperty('max-height');
+   }
+  },400);
  }else{
+  if(closeCleanup!==null){clearTimeout(closeCleanup);closeCleanup=null}
   // Opening goes directly to the approved B05 half detent. Otherwise the
   // CSS default height and the JS spring's "half" state disagree until the
   // user first touches the card, making the first drag jump.
