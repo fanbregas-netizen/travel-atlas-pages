@@ -27,6 +27,16 @@ html.visual-after body :is(.destination-close,#closeEditor,.fp-search-close,.rou
  box-shadow:none!important;color:#728779!important;font-size:24px!important;font-weight:350!important;
  display:inline-grid!important;place-items:center!important
 }
+/* Preserve the ORIGINAL SVG masked X: this control already has a
+   ::before icon and its raw × must remain hidden. Revealing that raw glyph
+   creates the double-close defect visible in the user's Safari recording. */
+html.visual-after body #drawer #closeDrawer{
+ font-size:0!important;line-height:0!important;
+}
+html.visual-after body #drawer #closeDrawer::before{
+ content:""!important;display:block!important;flex:none!important;
+ width:16px!important;height:16px!important;margin:auto!important;
+}
 /* Collection: use saved place's title-to-secondary-text rhythm. */
 html.visual-after body #drawer{background:var(--vr-paper)!important}
 html.visual-after body #drawer .fp30-detail-head{
