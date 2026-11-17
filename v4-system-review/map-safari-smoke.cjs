@@ -142,6 +142,11 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       width,selectedScale:selected.transform,midScale:mid.scale,
       cameraZoomBefore:beforePoiCamera.zoom,cameraZoomAfter:afterPoiCamera.zoom,initialOffsetPx:initiallyOffCenter,finalCenterErrorPx:centered.pixelError,secondCenterErrorPx:secondCentered.distance
     }));
+    // A rapid third tap may trigger one more camera motion while the saved
+    // star overlay awaits its scheduled moveend repaint. Assert only after
+    // the native move and its overlay render have settled.
+    await page.waitForFunction(()=>!window.__atlasPOIBridge.vector()?.isMoving(),{timeout:12000});
+    await page.waitForFunction(()=>document.querySelectorAll('#atlasBookmarkOverlay [data-place-id="webkit-map-one-star"]').length===1,{timeout:16000});
     const layers=await page.evaluate(()=>{
      const visible=id=>{const el=document.getElementById(id);if(!el||el.hidden)return false;const s=getComputedStyle(el),r=el.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&r.width>0&&r.height>0;};
      const marks=[...document.querySelectorAll('#atlasBookmarkOverlay [data-place-id]')];
