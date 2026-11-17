@@ -39,6 +39,25 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     await page.waitForFunction(()=>!!document.querySelector('.fp-internal-poi-svg'),{timeout:17000});
     await page.evaluate(p=>window.__atlasPOIBridge.select(p),{...first,name:'公园切点测试',category:'park'});
     await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='公园切点测试',{timeout:17000});
+    // A POI already visible as a hand-drawn overlay must not create a
+    // SECOND selected symbol at the same map coordinate.
+    const duplicated=await page.evaluate(c=>{
+      const pane=document.getElementById('atlasPoiOverlay');
+      const v=document.createElement('button');
+      v.className='fp-poi';
+      v.dataset.poiId='ci-same-poi';
+      v.dataset.poiLat=String(c.lat);
+      v.dataset.poiLng=String(c.lng);
+      pane.append(v);
+      window.__atlasPOIBridge.select({name:'单颗图标测试',id:'ci-same-poi',category:'park',lat:c.lat,lng:c.lng});
+      const result={overlay:!!v.classList.contains('is-selected'),
+        extraSelectionMarkers:document.querySelectorAll('.atlas-vector-selection').length};
+      v.remove();
+      return result;
+    },base);
+    assert.equal(duplicated.overlay,true,'Selected existing POI should be animated in place');
+    assert.equal(duplicated.extraSelectionMarkers,0,'No duplicate selection icon on existing POI');
+    await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='单颗图标测试',{timeout:15000});
     const layers=await page.evaluate(()=>{
      const visible=id=>{const el=document.getElementById(id);if(!el||el.hidden)return false;const s=getComputedStyle(el),r=el.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&r.width>0&&r.height>0;};
      const marks=[...document.querySelectorAll('#atlasBookmarkOverlay [data-place-id]')];
@@ -68,6 +87,26 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.equal(picker.mapStyleUrl,'https://tiles.openfreemap.org/styles/bright');
     assert.equal(picker.hasOldBlackBuildingOverlay,false);
     assert.ok(picker.sourceCount>0,'Real vector basemap layers should load');
+    assert.ok(await page.evaluate(()=>!!window.AtlasFigureGround?.palette),'Route needs the exact home map paint palette');
+    await page.locator('[data-rc="source-map"]').first().click({timeout:12000});
+    await page.waitForFunction(()=>document.querySelector('#rc-map')?.classList.contains('rc-map-picking'),{timeout:15000});
+    await page.evaluate(()=>{
+      const m=window.__atlasLivePlannerMap,c=m.getCenter();
+      m.fire('click',{lngLat:c,point:m.project([c.lng,c.lat])});
+    });
+    await page.waitForFunction(()=>window.__atlasRouteV5Live?.state?.selected?.length>=1,{timeout:15000});
+    await page.waitForFunction(()=>document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),{timeout:12000});
+    await page.waitForTimeout(570);
+    const initialPin=await page.locator('#rc-map-pins [data-place-id^="live-map-"]').first().evaluate(el=>parseFloat(el.style.left));
+    await page.evaluate(()=>{
+      const m=window.__atlasLivePlannerMap,c=m.getCenter();
+      m.easeTo({center:[c.lng+0.005,c.lat],duration:800,essential:true});
+    });
+    await page.waitForTimeout(265);
+    const midPin=await page.locator('#rc-map-pins [data-place-id^="live-map-"]').first().evaluate(el=>parseFloat(el.style.left));
+    assert.ok(Math.abs(initialPin-midPin)>0.1,'Selected route pin must follow live map motion, not lag until moveend');
+    assert.equal(await page.locator('#rc-map-pins [data-place-id^="live-map-"]').count(),1,'One selected route marker only');
+    await page.waitForFunction(()=>!window.__atlasLivePlannerMap.isMoving(),{timeout:12000});
     console.log('PASS WebKit V4 shared route picker basemap '+JSON.stringify({width,...picker}));
    }finally{await context.close();}
   }
