@@ -538,7 +538,7 @@ const iphoneGallery=(()=>{
   s.track.replaceChildren(...s.cells);
   s.track.style.transform=transform(-s.width);
   updateLabel(s);
-  activate(s);
+  activate(s,false);
  }
  function animateTo(element,from,to,duration,easing,done){
   if(reduced()||!element?.animate||duration<=0){element.style.transform=to;done?.();return}
@@ -573,6 +573,15 @@ const iphoneGallery=(()=>{
   if(s.closing)return;
   s.closing=true;s.locked=true;s.viewer.dataset.gestureState='closing';
   if(s.gestureRAF){cancelAnimationFrame(s.gestureRAF);s.gestureRAF=0}
+  const activeMedia=mediaAt(s);
+  if(activeMedia?.tagName==='VIDEO'){
+   try{activeMedia.pause()}catch(_){}
+   chrome(s,0);
+   if(s.scrim.animate)try{s.scrim.animate([{opacity:Number(s.scrim.style.opacity||.93)},{opacity:0}],{duration:185,easing:'ease-out',fill:'forwards'})}catch(_){}
+   if(s.track.animate)try{s.track.animate([{opacity:1},{opacity:0}],{duration:185,easing:'ease-out',fill:'forwards'})}catch(_){}
+   setTimeout(()=>cleanup(s),195);
+   return;
+  }
   const media=mediaAt(s),from=media?.getBoundingClientRect();
   const target=original(s,s.index),to=target?.getBoundingClientRect();
   const duration=335;
@@ -615,7 +624,12 @@ const iphoneGallery=(()=>{
    const fade=s.scrim.animate([{opacity:0},{opacity:.93}],{duration:290,easing:'ease-out',fill:'both'});
    fade.finished.then(()=>{if(!s.closed)s.scrim.style.opacity='.93';fade.cancel()},()=>{});
   }else s.scrim.style.opacity='.93';
-  if(media?.animate){
+  if(media?.tagName==='VIDEO'){
+   // Safari video hardware layer must never share the photo thumbnail zoom.
+   // Start full-screen immediately; defer decoder start until the fade ends.
+   media.style.transform='none';media.style.opacity='1';
+   setTimeout(()=>{if(!s.closed&&!s.closing&&media.isConnected){const play=media.play();play?.catch?.(()=>{})}},240);
+  }else if(media?.animate){
    const valid=start&&to&&to.width>2&&to.height>2;
    const dx=valid?start.left+start.width/2-to.left-to.width/2:0;
    const dy=valid?start.top+start.height/2-to.top-to.height/2:0;
