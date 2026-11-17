@@ -22,8 +22,10 @@ jobs:
           ref: main
       - uses: actions/checkout@v4
         with:
-          ref: 54c2b68347e3bfe2a7e7ed47ef63e12550e007b
+          ref: refactor/v4-clean-ui-20261116
           path: __candidate
+      - name: Assert exact tested candidate commit
+        run: test "$(git -C __candidate rev-parse HEAD)" = 54c2b68347e3bfe2a7e7ed47ef63e12550e007b
       - name: Reproduce existing production artifact unchanged and append independent review
         run: |
           python3 - <<'PY'
