@@ -439,8 +439,9 @@ const iphoneGallery=(()=>{
   if(document.getElementById('fp-ios-gallery-v2'))return;
   const style=document.createElement('style');style.id='fp-ios-gallery-v2';
   style.textContent=[
-   '#fpMediaViewer.fp-ios-gallery{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;display:block!important;overflow:hidden!important;box-sizing:border-box!important;background-color:rgba(19,20,21,.93);color:#fff;touch-action:none!important;overscroll-behavior:contain;isolation:isolate}',
+   '#fpMediaViewer.fp-ios-gallery{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;display:block!important;overflow:hidden!important;box-sizing:border-box!important;background-color:transparent!important;color:#fff;touch-action:none!important;overscroll-behavior:contain;isolation:isolate}',
    '#fpMediaViewer.fp-ios-gallery::backdrop{background:transparent!important}',
+   '#fpMediaViewer .fp-gallery-scrim{position:fixed;inset:0;z-index:0;pointer-events:none;background:#131415;opacity:.93;will-change:opacity;transform:translateZ(0)}',
    '#fpMediaViewer .fp-gallery-stage{position:absolute;inset:0;z-index:1;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}',
    '#fpMediaViewer .fp-gallery-track{position:absolute;left:0;top:0;height:100%;display:flex;align-items:stretch;will-change:transform;transform-origin:center center;backface-visibility:hidden}',
    '#fpMediaViewer .fp-gallery-cell{height:100%;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;padding:calc(env(safe-area-inset-top,0px) + 48px) 10px calc(env(safe-area-inset-bottom,0px) + 56px)}',
@@ -472,7 +473,7 @@ const iphoneGallery=(()=>{
   if(!item)return cell;
   if(item.kind==='photo'){
    const img=h('img');img.src=item.src;img.alt='旅行照片 '+(i+1);img.draggable=false;
-   img.decoding='async';cell.append(img);
+   img.decoding='async';img.loading='eager';img.fetchPriority=i===s.index?'high':'low';cell.append(img);
   }else{
    const v=h('video');v.src=videoURL(s,i);v.playsInline=true;
    v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
@@ -520,27 +521,10 @@ const iphoneGallery=(()=>{
    a.finished.then(end,end);setTimeout(end,duration+100);
   }catch(_){end()}
  }
- function makeGhost(s,media,rectangle){
-  let ghost;
-  if(media?.tagName==='IMG'){
-   ghost=h('img','fp-gallery-ghost');ghost.src=media.currentSrc||media.src;
-  }else if(media?.tagName==='VIDEO'){
-   try{
-    const canvas=document.createElement('canvas');
-    canvas.width=Math.max(2,media.videoWidth||2);canvas.height=Math.max(2,media.videoHeight||2);
-    canvas.getContext('2d').drawImage(media,0,0,canvas.width,canvas.height);
-    ghost=canvas;ghost.className='fp-gallery-ghost';
-   }catch(_){
-    ghost=h('video','fp-gallery-ghost');ghost.src=media.currentSrc||media.src;ghost.muted=true;
-    ghost.playsInline=true;ghost.preload='metadata';
-   }
-  }else return null;
-  Object.assign(ghost.style,{left:rectangle.left+'px',top:rectangle.top+'px',width:rectangle.width+'px',height:rectangle.height+'px'});
-  return ghost;
- }
  function cleanup(s){
   if(!s||s.closed)return;
   s.closed=true;s.locked=true;
+  if(s.gestureRAF){cancelAnimationFrame(s.gestureRAF);s.gestureRAF=0}
   s.stage.removeEventListener('touchstart',s.onTouchStart);
   s.stage.removeEventListener('touchmove',s.onTouchMove);
   s.stage.removeEventListener('touchend',s.onTouchEnd);
@@ -553,74 +537,91 @@ const iphoneGallery=(()=>{
   if(current===s)current=null;
   for(const v of tileVideos)syncTilePlayback(v);
  }
+
  function close(immediate=false){
   const s=current;if(!s||s.closed)return;
   if(immediate||reduced()){cleanup(s);return}
   if(s.closing)return;
   s.closing=true;s.locked=true;s.viewer.dataset.gestureState='closing';
+  if(s.gestureRAF){cancelAnimationFrame(s.gestureRAF);s.gestureRAF=0}
   const media=mediaAt(s),from=media?.getBoundingClientRect();
   const target=original(s,s.index),to=target?.getBoundingClientRect();
-  const valid=from&&from.width>=2&&from.height>=2;
-  const ghost=valid?makeGhost(s,media,from):null;
-  const duration=390, startColor=s.viewer.style.backgroundColor||'rgba(19,20,21,.93)';
+  const duration=335;
   chrome(s,0);
-  if(ghost){
-   s.viewer.append(ghost);s.track.style.opacity='0';
-   const tx=to&&to.width>2&&to.height>2?to.left+to.width/2-from.left-from.width/2:0;
-   const ty=to&&to.width>2&&to.height>2?to.top+to.height/2-from.top-from.height/2:Math.min(170,s.width*.35);
-   const sx=to&&to.width>2?to.width/from.width:.78;
-   const sy=to&&to.height>2?to.height/from.height:.78;
-   const keyframes=[
-    {transform:transform(0),borderRadius:'0px',opacity:1},
-    {transform:'translate3d('+tx+'px,'+ty+'px,0) scale('+sx+','+sy+')',borderRadius:'14px',opacity:to?1:0}
-   ];
-   try{ghost.animate(keyframes,{duration,easing:ease,fill:'forwards'})}catch(_){}
-  }else{
-   try{s.track.animate([{opacity:1},{opacity:0}],{duration:260,fill:'forwards'})}catch(_){}
-  }
-  try{s.viewer.animate([{backgroundColor:startColor},{backgroundColor:'rgba(19,20,21,0)'}],
-    {duration:duration-25,easing:'ease-out',fill:'forwards'})}catch(_){}
-  setTimeout(()=>cleanup(s),duration+32);
+  if(media&&from&&from.width>2&&from.height>2){
+   // Reuse the already decoded, visible image or video. Never make a second
+   // <img>, canvas snapshot or duplicate full-resolution GPU texture.
+   if(media.tagName==='VIDEO'){try{media.pause()}catch(_){};media.controls=false}
+   media.style.transform='none';
+   media.classList.add('fp-gallery-ghost');
+   Object.assign(media.style,{
+    position:'fixed',left:from.left+'px',top:from.top+'px',
+    width:from.width+'px',height:from.height+'px',maxWidth:'none',maxHeight:'none',
+    minWidth:'0',minHeight:'0',margin:'0',opacity:'1',visibility:'visible'
+   });
+   s.viewer.append(media);s.track.style.visibility='hidden';
+   const found=to&&to.width>2&&to.height>2;
+   const tx=found?to.left+to.width/2-from.left-from.width/2:0;
+   const ty=found?to.top+to.height/2-from.top-from.height/2:Math.min(180,s.width*.38);
+   const sx=found?to.width/from.width:.75;
+   const sy=found?to.height/from.height:.75;
+   if(media.animate)try{media.animate([
+    {transform:'translate3d(0,0,0) scale(1)',borderRadius:'0px',opacity:1},
+    {transform:'translate3d('+tx+'px,'+ty+'px,0) scale('+sx+','+sy+')',borderRadius:'14px',opacity:found?1:0}
+   ],{duration,easing:ease,fill:'forwards'})}catch(_){}
+  }else if(s.track.animate)try{s.track.animate([{opacity:1},{opacity:0}],{duration:220,fill:'forwards'})}catch(_){}
+  if(s.scrim.animate)try{s.scrim.animate([{opacity:Number(s.scrim.style.opacity||.93)},{opacity:0}],
+   {duration:duration-30,easing:'ease-out',fill:'forwards'})}catch(_){}
+  setTimeout(()=>cleanup(s),duration+25);
  }
+
  function reveal(s,origin){
+  if(s.closed)return;
   const media=mediaAt(s),tile=origin?.isConnected?origin:null;
   const start=tile?.getBoundingClientRect(),to=media?.getBoundingClientRect();
-  const duration=375;
-  if(reduced()){s.viewer.style.backgroundColor='rgba(19,20,21,.93)';chrome(s,1);return}
-  s.viewer.style.backgroundColor='rgba(19,20,21,0)';
-  chrome(s,0);
-  try{s.viewer.animate([{backgroundColor:'rgba(19,20,21,0)'},{backgroundColor:'rgba(19,20,21,.93)'}],
-    {duration:320,easing:'ease-out',fill:'both'})}catch(_){}
-  setTimeout(()=>{if(!s.closed&&!s.closing)s.viewer.style.backgroundColor='rgba(19,20,21,.93)'},330);
-  if(start&&to&&to.width>2&&to.height>2){
-   const ghost=makeGhost(s,media,to);
-   if(ghost){
-    s.viewer.append(ghost);media.style.visibility='hidden';
-    const tx=start.left+start.width/2-to.left-to.width/2;
-    const ty=start.top+start.height/2-to.top-to.height/2;
-    const sx=start.width/to.width,sy=start.height/to.height;
-    try{
-     ghost.animate([
-      {transform:'translate3d('+tx+'px,'+ty+'px,0) scale('+sx+','+sy+')',borderRadius:'14px',opacity:.9},
-      {transform:transform(0),borderRadius:'0px',opacity:1}
-     ],{duration,easing:ease,fill:'forwards'});
-    }catch(_){}
-    setTimeout(()=>{ghost.remove();media.style.removeProperty('visibility')},duration+20);
-   }
-  }else{
-   try{s.track.animate([{opacity:.25},{opacity:1}],{duration:240,easing:ease})}catch(_){}
-  }
-  setTimeout(()=>{if(!s.closed&&!s.closing)chrome(s,1)},Math.min(duration,300));
+  const duration=340;
+  if(reduced()){s.scrim.style.opacity='.93';if(media)media.style.opacity='1';chrome(s,1);return}
+  s.scrim.style.opacity='0';chrome(s,0);
+  if(s.scrim.animate){
+   const fade=s.scrim.animate([{opacity:0},{opacity:.93}],{duration:290,easing:'ease-out',fill:'both'});
+   fade.finished.then(()=>{if(!s.closed)s.scrim.style.opacity='.93';fade.cancel()},()=>{});
+  }else s.scrim.style.opacity='.93';
+  if(media?.animate){
+   const valid=start&&to&&to.width>2&&to.height>2;
+   const dx=valid?start.left+start.width/2-to.left-to.width/2:0;
+   const dy=valid?start.top+start.height/2-to.top-to.height/2:0;
+   const sx=valid?start.width/to.width:1;
+   const sy=valid?start.height/to.height:1;
+   const opening=media.animate([
+    {transform:valid?'translate3d('+dx+'px,'+dy+'px,0) scale('+sx+','+sy+')':'none',
+     opacity:valid?.88:0,borderRadius:valid?'14px':'0px'},
+    {transform:'none',opacity:1,borderRadius:'0px'}
+   ],{duration,easing:ease,fill:'both'});
+   s.enterAnimation=opening;
+   media.style.opacity='1';
+   opening.finished.then(()=>{if(s.enterAnimation===opening){
+    media.style.transform='none';opening.cancel();s.enterAnimation=null;
+   }},()=>{});
+  }else if(media)media.style.opacity='1';
+  setTimeout(()=>{if(!s.closed&&!s.closing)chrome(s,1)},300);
  }
+
  function settle(s){
+  if(s.closed||s.closing)return;
   s.locked=true;
-  const from=s.track.style.transform,to=transform(-s.width);
-  const color=s.viewer.style.backgroundColor||'rgba(19,20,21,.93)';
-  animateTo(s.track,from,to,330,'cubic-bezier(.18,.86,.24,1)',()=>{
+  const down=s.drag?.mode==='down';
+  const target=down?mediaAt(s):s.track;
+  if(!target){s.locked=false;s.drag=null;return}
+  const from=target.style.transform||'none',to=down?'none':transform(-s.width);
+  const alpha=Number(s.scrim.style.opacity||.93);
+  animateTo(target,from,to,285,'cubic-bezier(.18,.86,.24,1)',()=>{
    if(s.closed)return;
-   s.viewer.style.backgroundColor='rgba(19,20,21,.93)';chrome(s,1);s.locked=false;s.drag=null;
+   s.scrim.style.opacity='.93';chrome(s,1);s.locked=false;s.drag=null;
+   s.viewer.dataset.gestureState='rest';
   });
-  if(!reduced())try{s.viewer.animate([{backgroundColor:color},{backgroundColor:'rgba(19,20,21,.93)'}],{duration:320,fill:'forwards'})}catch(_){}
+  if(down&&!reduced()&&s.scrim.animate)try{
+   s.scrim.animate([{opacity:alpha},{opacity:.93}],{duration:280,fill:'forwards'});
+  }catch(_){}
  }
  function navigate(s,dir){
   if(s.locked||s.closing||s.closed||!s.items[s.index+dir]){settle(s);return}
@@ -679,8 +680,8 @@ const iphoneGallery=(()=>{
     s.viewer.dataset.gestureState='horizontal';
    }else{
     const pulled=Math.max(0,dy),scale=clamp(1-pulled*.00066,.79,1);
-    s.track.style.transform=transform(-s.width,pulled,scale);
-    s.viewer.style.backgroundColor='rgba(19,20,21,'+clamp(.93-pulled*.0022,.12,.93).toFixed(3)+')';
+    const media=mediaAt(s);if(media)media.style.transform=transform(0,pulled,scale);
+    s.scrim.style.opacity=String(clamp(.93-pulled*.0022,.12,.93));
     chrome(s,clamp(1-pulled/165,0,1));
     s.viewer.dataset.gestureState='down';
    }
@@ -716,13 +717,15 @@ const iphoneGallery=(()=>{
   const closeButton=btn('×',()=>close(false),'fp-viewer-close');
   closeButton.setAttribute('aria-label','关闭全屏影像');
   const caption=h('div','fp-viewer-caption');
-  viewer.append(stage,closeButton,caption);
+  const scrim=h('div','fp-gallery-scrim');scrim.style.opacity='0';
+  viewer.append(scrim,stage,closeButton,caption);
   document.body.append(viewer);
   try{viewer.showModal()}catch(_){viewer.setAttribute('open','')}
   if(window.matchMedia?.('(pointer:coarse)')?.matches)try{viewer.focus({preventScroll:true})}catch(_){}
-  const s={viewer,stage,track,closeButton,caption,items,index,firstOrigin:originTile,card:placeCard,urls:new Map(),width:0,cells:null,drag:null,locked:false,closed:false,closing:false,suppressClickUntil:0};
+  const s={viewer,stage,track,scrim,closeButton,caption,items,index,firstOrigin:originTile,card:placeCard,urls:new Map(),width:0,cells:null,drag:null,locked:false,closed:false,closing:false,suppressClickUntil:0};
   current=s;
   populate(s);
+  if(!reduced()){const m=mediaAt(s);if(m)m.style.opacity='0'}
   bindTouches(s);
   s.onResize=()=>{if(!s.closed&&!s.locked)resetWidth(s)};
   window.addEventListener('resize',s.onResize,{passive:true});
