@@ -34,12 +34,34 @@ fs.mkdirSync('route-minimal-qa',{recursive:true});
    assert.equal(await page.locator('#stopsDock .rv-railrow:visible').count(),0,'duplicate location chips hidden');
    assert.equal(await page.locator('#fpRouteBadge:visible').count(),0,'demo badge hidden');
    assert.equal(await page.locator('#fpRoutePanelTabs:visible').count(),0,'four-way tabs removed');
+   const colors=await page.evaluate(()=>{
+     const color=(selector,prop='color')=>getComputedStyle(document.querySelector(selector))[prop];
+     return {
+       heading:color('#fpRouteSummary'),
+       dock:color('#stopsDock','backgroundColor'),
+       add:color('#fpRouteTools .fp-slim-add','backgroundColor'),
+       adjust:color('#fpRouteTools .fp-slim-edit','backgroundColor'),
+       adjustText:color('#fpRouteTools .fp-slim-edit'),
+       line:color('#routeSegs .seg-stroke','stroke'),
+       root:color('body'),
+       styles:!![...document.styleSheets].find(s=>s.href?.includes('route-color-parity-v3.css'))
+     };
+   });
+   assert.equal(colors.styles,true,'route palette stylesheet failed to load');
+   assert.equal(colors.heading,'rgb(39, 52, 47)','V4 headline ink mismatch: '+JSON.stringify(colors));
+   assert.equal(colors.add,'rgb(237, 241, 233)','V4 sage input mismatch: '+JSON.stringify(colors));
+   assert.equal(colors.adjust,'rgb(48, 75, 59)','V4 control green mismatch: '+JSON.stringify(colors));
+   assert.equal(colors.adjustText,'rgb(255, 254, 250)','V4 primary control contrast mismatch');
+   assert.ok(colors.line==='rgb(83, 102, 89)'||colors.line==='#536659','route line should be muted sage: '+colors.line);
+   fs.writeFileSync('route-minimal-qa/palette-'+width+'.json',JSON.stringify(colors,null,2));
    await page.screenshot({path:'route-minimal-qa/map-'+width+'.png'});
    await page.locator('#fpRouteTools .fp-slim-edit').click();
    await page.waitForFunction(()=>document.body.classList.contains('fp-route-panel-open'));
    await page.waitForTimeout(650);
    assert.equal(await page.locator('.fp-r-stop').count(),6);
    assert.equal(await page.locator('.fp-simple-optimize').count(),1);
+   assert.equal(await page.locator('.fp-simple-optimize button').evaluate(el=>getComputedStyle(el).backgroundColor),
+     'rgb(243, 237, 223)','recommendation should use reserved quiet gold');
    assert.equal(await page.locator('#fpRoutePanel [data-actions]').count(),6);
    assert.equal(await page.locator('#fpRoutePanel [data-move]').count(),0,'secondary actions hidden until asked');
    await page.screenshot({path:'route-minimal-qa/adjust-'+width+'.png'});
@@ -55,6 +77,8 @@ fs.mkdirSync('route-minimal-qa',{recursive:true});
    await page.locator('[data-tab="setup"]').first().click();
    await page.waitForFunction(()=>document.getElementById('fpRoutePanelTitle').textContent==='行程设置');
    assert.equal(await page.locator('.fp-r-mode').count(),4);
+   assert.equal(await page.locator('.fp-r-mode.active').evaluate(el=>getComputedStyle(el).backgroundColor),
+     'rgb(243, 237, 223)','selected transport must use matching gold wash');
    assert.equal(await page.locator('[data-leg]').count(),5);
    await page.locator('[data-mode="walk"]').click();
    state=await page.evaluate(()=>window.__fpRouteLogicUI.getState());
