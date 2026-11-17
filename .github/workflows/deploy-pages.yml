@@ -23,6 +23,12 @@ jobs:
           mkdir -p _site
           # Independent approved POI SVG animation review; root site remains byte-identical.
           cp -R v4-review-20261116 _site/v4-review-20261116
+          # Interaction-only independent V4 Safari acceptance; unchanged official root and approved motion.
+          cp -R v4-interaction-system-review-20261117 _site/v4-interaction-system-review-20261117
+          test -s _site/v4-interaction-system-review-20261117/index.html
+          test -s _site/v4-interaction-system-review-20261117/src/interaction/physical-sheet.js
+          test -s _site/v4-interaction-system-review-20261117/src/interaction/route-cards-v5-live.js
+          grep -q 'atlas-v4-interaction-20261117-' _site/v4-interaction-system-review-20261117/index.html
           test -s _site/v4-review-20261116/src/interaction/poi-svg-motion-v4.js
           grep -q 'V4.C.PagesParityMotion.20261116.19' _site/v4-review-20261116/index.html
           cp index.html route-view.html atlas-map-preview.html amap-import.html journey.html journey.css journey.js trip-picker.js trip-picker.css route-picking.css footprint-flow.js footprint-flow.css star-collage.js star-collage.css footprint-home.js footprint-home.css atlas-visit-media.js atlas-stage4-media.css atlas-stage5-archive.js atlas-stage5-backup-ui.js atlas-stage5-backup.css atlas-stage6-qa.js atlas-stage6-qa.css atlas-map-design.js atlas-route-buildings.js atlas-route-fallback.js atlas-road-routing.js atlas-stage3-itinerary.js atlas-stage3-itinerary.css atlas-phase1.js atlas-phase1.css atlas-mobile-poi.js atlas-orbit.css atlas-orbit.js atlas-stage5.js atlas-services.js sw.js manifest.webmanifest icon.svg _site/
