@@ -267,3 +267,14 @@ body.fp-route-minimal #fpRouteToast{top:calc(115px + env(safe-area-inset-top))!i
  body.fp-route-minimal .fp-r-row-more{width:19px}
  body.fp-route-minimal #fpRoutePanelBody{padding-left:13px!important;padding-right:13px!important}
 }
+
+/* QA rect correction: never combine a 50%-left anchor with inherited
+   transform/translate on the fixed route Dock. Pin it to the viewport edges. */
+body.fp-route-minimal #stopsDock{
+ left:0!important;right:0!important;transform:none!important;
+ width:100%!important;max-width:none!important;
+ translate:0 0;
+}
+body.fp-route-minimal #routeSegs .seg-mark{display:none!important}
+body.fp-route-minimal #routeSegs .seg-outline{stroke-width:5!important;opacity:.87!important}
+body.fp-route-minimal #routeSegs .seg-stroke{stroke:#566258!important;stroke-width:2.3!important;opacity:.88!important}
