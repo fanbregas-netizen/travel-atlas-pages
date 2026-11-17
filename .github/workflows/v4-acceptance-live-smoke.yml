@@ -1,0 +1,66 @@
+name: V4 independent Pages acceptance live browser smoke
+on:
+  push:
+    branches: [preview/v4-acceptance-20261117]
+    paths: ['.github/workflows/v4-acceptance-live-smoke.yml']
+permissions:
+  contents: read
+jobs:
+  public-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [webkit, chromium]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --ignore-scripts playwright@1.58.2
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Open actual published GitHub Pages product and exercise Safari-sized screens
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: |
+          node <<'NODE'
+          const { chromium, webkit }=require('playwright');
+          const browserName=process.env.BROWSER;
+          const U='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-acceptance-20261117/';
+          (async()=>{
+            const browser=await ({chromium,webkit})[browserName].launch({headless:true,args:browserName==='chromium'?['--no-sandbox']:[]});
+            try{
+              for(const width of [375,390,430]){
+                const ctx=await browser.newContext({viewport:{width,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,serviceWorkers:'block'});
+                const page=await ctx.newPage();const errors=[];
+                page.on('pageerror',e=>errors.push(e.message));
+                await page.goto(U,{waitUntil:'domcontentloaded',timeout:55000});
+                await page.locator('#dockStars').waitFor({timeout:30000});
+                await page.waitForFunction(()=>!!window.__atlasDemo?.select,{timeout:25000});
+                const layout=await page.evaluate(()=>({width:innerWidth,
+                  overflow:document.documentElement.scrollWidth-innerWidth,
+                  dock:!!document.getElementById('dockStars'),
+                  route:!!document.getElementById('dockRoute'),
+                  title:document.title}));
+                if(layout.overflow>7||!layout.dock||!layout.route)throw new Error('Homepage width/controls '+JSON.stringify(layout));
+                await page.locator('#dockStars').click({timeout:17000});
+                await page.waitForFunction(()=>document.getElementById('drawer')?.classList.contains('visible'),{timeout:16000});
+                await page.locator('#closeDrawer').click({timeout:15000});
+                await page.waitForFunction(()=>!document.getElementById('drawer')?.classList.contains('visible'),{timeout:15000});
+                const coords=await page.evaluate(()=>window.__atlasCameraQA?.()||{lat:31.23,lng:121.47});
+                await page.evaluate(c=>window.__atlasDemo.select('Pages公开端点验收',c.lat+.0001,c.lng+.0001),coords);
+                await page.waitForFunction(()=>document.querySelector('#destinationCard.visible #destinationTitle')?.textContent==='Pages公开端点验收',{timeout:15000});
+                await page.locator('#destinationClose').click({timeout:15000});
+                await page.locator('#dockRoute').click({timeout:17000});
+                await page.waitForURL(/\/journey\.html/,{timeout:16000});
+                await page.waitForFunction(()=>window.__atlasRouteV5Live?.ready,{timeout:25000});
+                const routeHeight=await page.locator('#rc-main').evaluate(el=>el.getBoundingClientRect().height);
+                if(routeHeight<250)throw new Error('Missing C V5 route card '+routeHeight);
+                if(errors.filter(e=>/TypeError|ReferenceError|SyntaxError/.test(e)).length)throw new Error('Runtime errors '+JSON.stringify(errors));
+                console.log('PASS PUBLISHED V4 '+browserName+' '+JSON.stringify({width,routeHeight,layout,url:page.url()}));
+                await ctx.close();
+              }
+            } finally {await browser.close()}
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
