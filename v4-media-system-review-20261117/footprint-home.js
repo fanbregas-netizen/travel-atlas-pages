@@ -32,17 +32,14 @@ function pendingDraftMode(id){
 }
 /* Stage23: play only visible videos while scrolling the real place card. */
 const tileVideos=new Set();let tileVisibilityObserver=null;
+// Media V5: thumbnails are preview-only; never start background video decoders.
 function syncTilePlayback(v){
  if(!tileVideos.has(v))return;
- const active=v.dataset.inViewport==='yes'&&!document.hidden&&!placeCard?.hidden&&!document.getElementById('fpMediaViewer');
- if(active)v.play().catch(()=>{});else try{v.pause()}catch(_){}
+ try{v.pause()}catch(_){}
 }
 function watchTileVideo(v){
- if(!('IntersectionObserver' in window)){v.dataset.inViewport='yes';syncTilePlayback(v);return}
- if(!tileVisibilityObserver)tileVisibilityObserver=new IntersectionObserver(entries=>{
-  for(const e of entries){e.target.dataset.inViewport=e.isIntersecting&&e.intersectionRatio>=.18?'yes':'no';syncTilePlayback(e.target)}
- },{threshold:[0,.18,.5]});
- tileVisibilityObserver.observe(v);
+ v.dataset.inViewport='no';
+ syncTilePlayback(v);
 }
 function stopTileVideos(){
  tileVisibilityObserver?.disconnect();tileVisibilityObserver=null;
@@ -304,7 +301,7 @@ const sc=h('div','fp-card-scroll');
  const cardMedia=h('section','fp-block');
  placeCard.dataset.hasMedia=media.length?'yes':'no';cardMedia.append(sectionHeading('02','照片与视频',btn('＋ 添加',()=>filePicker.click(),'fp-subaction')));
  const filePicker=h('input');filePicker.type='file';filePicker.accept='image/*,video/*';filePicker.multiple=true;filePicker.hidden=true;filePicker.addEventListener('change',()=>addMedia(id,[...filePicker.files]));cardMedia.append(filePicker);
- if(!media.length){const box=h('div','fp-media-empty');box.append(h('span','fp-empty-text','还没有照片或视频'));cardMedia.append(box)}else{const tiles=media.slice(0,5);const mosaic=h('div','fp-media-mosaic'+(tiles.length===1?' one':tiles.length===2?' two':''));tiles.forEach((m,i)=>{const tile=btn('',()=>openViewer(media,i,tile),m.kind==='video'?'fp-video-tile':'');tile.dataset.fpMediaIndex=String(i);if(m.kind==='photo'){const img=h('img');img.src=m.src;img.alt='旅行照片 '+(i+1);img.loading='lazy';tile.append(img)}else {const video=h('video');video.muted=true;video.defaultMuted=true;video.playsInline=true;video.setAttribute('playsinline','');video.setAttribute('webkit-playsinline','');video.loop=true;video.autoplay=false;video.preload='metadata';video.controls=false;video.setAttribute('aria-label','旅行视频动态预览');try{const blob=m.blob instanceof Blob?m.blob:new Blob([m.bytes],{type:m.type||'video/mp4'});const objectUrl=URL.createObjectURL(blob);video.dataset.sourceUrl=objectUrl;video.src=objectUrl;tileVideos.add(video);video.addEventListener('canplay',()=>{if(activePlaceId===id)syncTilePlayback(video)},{once:true});watchTileVideo(video)}catch(err){console.debug('视频预览不可用',err)}tile.append(video,h('span','fp-video-indicator','▶'))}if(i===tiles.length-1&&media.length>tiles.length)tile.append(h('span','fp-tile-more','+'+(media.length-tiles.length)));mosaic.append(tile)});cardMedia.append(mosaic);cardMedia.append(h('div','fp-photo-count',`${(p.photos||[]).length} 张照片 · ${(p.videos||[]).length} 条视频`))}
+ if(!media.length){const box=h('div','fp-media-empty');box.append(h('span','fp-empty-text','还没有照片或视频'));cardMedia.append(box)}else{const tiles=media.slice(0,5);const mosaic=h('div','fp-media-mosaic'+(tiles.length===1?' one':tiles.length===2?' two':''));tiles.forEach((m,i)=>{const tile=btn('',()=>openViewer(media,i,tile),m.kind==='video'?'fp-video-tile':'');tile.dataset.fpMediaIndex=String(i);if(m.kind==='photo'){const img=h('img');img.src=m.src;img.alt='旅行照片 '+(i+1);img.loading='lazy';tile.append(img)}else {const video=h('video');video.muted=true;video.defaultMuted=true;video.playsInline=true;video.setAttribute('playsinline','');video.setAttribute('webkit-playsinline','');video.loop=false;video.autoplay=false;video.preload='metadata';video.controls=false;video.setAttribute('aria-label','旅行视频动态预览');try{const blob=m.blob instanceof Blob?m.blob:new Blob([m.bytes],{type:m.type||'video/mp4'});const objectUrl=URL.createObjectURL(blob);video.dataset.sourceUrl=objectUrl;video.src=objectUrl;tileVideos.add(video);video.addEventListener('canplay',()=>{try{video.pause()}catch(_){}},{once:true});watchTileVideo(video)}catch(err){console.debug('视频预览不可用',err)}tile.append(video,h('span','fp-video-indicator','▶'))}if(i===tiles.length-1&&media.length>tiles.length)tile.append(h('span','fp-tile-more','+'+(media.length-tiles.length)));mosaic.append(tile)});cardMedia.append(mosaic);cardMedia.append(h('div','fp-photo-count',`${(p.photos||[]).length} 张照片 · ${(p.videos||[]).length} 条视频`))}
  const cardLinks=h('section','fp-block');
  cardLinks.append(sectionHeading('03','相关攻略',btn(editMode==='link'?'收起':editorDrafts.get(draftKey(id,'link'))?.dirty?'继续编辑':'＋ 链接',()=>{editMode=editMode==='link'?'':'link';renderPlace(id)},'fp-subaction fp-section-edit')));
  const links=linksOf(p);
@@ -447,6 +444,9 @@ const iphoneGallery=(()=>{
    '#fpMediaViewer .fp-gallery-cell{height:100%;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;padding:calc(env(safe-area-inset-top,0px) + 48px) 10px calc(env(safe-area-inset-bottom,0px) + 56px)}',
    '#fpMediaViewer .fp-gallery-cell>img,#fpMediaViewer .fp-gallery-cell>video{display:block;position:relative;width:auto!important;height:auto!important;max-width:min(96vw,900px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 116px)!important;object-fit:contain!important;border-radius:0;transform:translateZ(0);-webkit-user-drag:none;user-select:none}',
    '#fpMediaViewer .fp-gallery-cell>video{touch-action:auto!important;max-width:96vw!important;width:min(96vw,900px)!important;min-height:180px!important;aspect-ratio:auto 16/9}',
+   '#fpMediaViewer .fp-gallery-video-standby{position:relative;width:min(96vw,900px);height:min(53vw,50dvh);min-height:168px;max-height:54dvh;display:flex;align-items:center;justify-content:center;background:#222527;border-radius:9px;overflow:hidden;color:white}',
+   '#fpMediaViewer .fp-gallery-video-standby img{width:100%;height:100%;object-fit:contain}',
+   '#fpMediaViewer .fp-gallery-video-icon{position:absolute;display:grid;place-items:center;width:52px;height:52px;background:rgba(0,0,0,.48);border-radius:50%;font-size:20px}',
    '#fpMediaViewer .fp-viewer-close{position:absolute!important;z-index:11!important;top:calc(env(safe-area-inset-top,0px) + 12px)!important;right:16px!important;transition:opacity .18s ease!important}',
    '#fpMediaViewer .fp-viewer-caption{position:absolute!important;z-index:9!important;left:24px!important;right:24px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 14px)!important;text-align:center!important;pointer-events:none!important;font-size:12px!important;line-height:1.55!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:rgba(255,255,255,.88)!important;transition:opacity .18s ease!important}',
    '#fpMediaViewer.fp-viewer-immersive .fp-viewer-close,#fpMediaViewer.fp-viewer-immersive .fp-viewer-caption{opacity:0!important;pointer-events:none!important}',
@@ -462,25 +462,49 @@ const iphoneGallery=(()=>{
  }
  function videoURL(s,i){
   if(s.urls.has(i))return s.urls.get(i);
+  const item=s.items[i],blob=item.blob instanceof Blob?item.blob:
+   new Blob([item.bytes],{type:item.type||'video/mp4'});
+  const url=URL.createObjectURL(blob);
+  s.urls.set(i,url);
+  while(s.urls.size>2){
+   const old=s.urls.keys().next().value;
+   URL.revokeObjectURL(s.urls.get(old));s.urls.delete(old);
+  }
+  return url;
+ }
+ function videoPlaceholder(s,i){
+  const placeholder=h('div','fp-gallery-video-standby');
+  placeholder.setAttribute('aria-label','视频预览');
   const item=s.items[i];
-  const blob=item.blob instanceof Blob?item.blob:new Blob([item.bytes],{type:item.type||'video/mp4'});
-  const url=URL.createObjectURL(blob);s.urls.set(i,url);return url;
+  const poster=(typeof item?.posterSrc==='string'&&item.posterSrc.startsWith('data:image/'))?item.posterSrc:null;
+  if(poster){const img=h('img');img.src=poster;img.alt='视频封面';placeholder.append(img)}
+  const symbol=h('span','fp-gallery-video-icon','▶');
+  placeholder.append(symbol);
+  return placeholder;
+ }
+ function attachVideo(s,cell,i){
+  const item=s.items[i];if(!item||item.kind!=='video')return;
+  const v=h('video');v.playsInline=true;
+  v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
+  v.controls=true;v.preload='metadata';v.disablePictureInPicture=true;
+  v.src=videoURL(s,i);
+  cell.replaceChildren(v);v.muted=false;
+ }
+ function releaseVideo(s,cell){
+  const v=cell.querySelector('video');if(!v)return;
+  const i=+cell.dataset.itemIndex;
+  try{v.pause();v.removeAttribute('src');v.load()}catch(_){}
+  cell.replaceChildren(videoPlaceholder(s,i));
  }
  function makeSlide(s,i){
   const cell=h('div','fp-gallery-cell');cell.dataset.itemIndex=String(i);
   cell.style.width=s.width+'px';
-  const item=s.items[i];
-  if(!item)return cell;
+  const item=s.items[i];if(!item)return cell;
   if(item.kind==='photo'){
    const img=h('img');img.src=item.src;img.alt='旅行照片 '+(i+1);img.draggable=false;
    img.decoding='async';img.loading='eager';img.fetchPriority=i===s.index?'high':'low';cell.append(img);
-  }else{
-   const v=h('video');v.src=videoURL(s,i);v.playsInline=true;
-   v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
-   v.preload=i===s.index?'auto':'metadata';v.controls=i===s.index;
-   v.muted=i!==s.index;v.disablePictureInPicture=true;
-   cell.append(v);
-  }
+  }else if(i===s.index)attachVideo(s,cell,i);
+  else cell.append(videoPlaceholder(s,i));
   return cell;
  }
  function mediaAt(s){return s.cells?.[1]?.querySelector('img,video')||null}
@@ -490,11 +514,16 @@ const iphoneGallery=(()=>{
   s.viewer.__origin=original(s,s.index);
  }
  function activate(s,play=true){
+  // Only one video decoder may exist while the viewer is open.
   s.cells.forEach((cell,i)=>{
-   const v=cell.querySelector('video');if(!v)return;
-   v.controls=i===1;v.muted=i!==1;v.preload=i===1?'auto':'metadata';
-   if(i!==1){try{v.pause()}catch(_){}}
-   else if(play){const p=v.play();p?.catch?.(()=>{});}
+   const item=s.items[+cell.dataset.itemIndex];
+   if(item?.kind!=='video')return;
+   if(i!==1){releaseVideo(s,cell);return}
+   if(!cell.querySelector('video'))attachVideo(s,cell,+cell.dataset.itemIndex);
+   const v=cell.querySelector('video');
+   if(!v)return;
+   v.controls=true;
+   if(play){const promise=v.play();promise?.catch?.(()=>{})}
   });
  }
  function resetWidth(s){
@@ -627,16 +656,16 @@ const iphoneGallery=(()=>{
   if(s.locked||s.closing||s.closed||!s.items[s.index+dir]){settle(s);return}
   s.locked=true;s.viewer.dataset.gestureState='changing';
   const from=s.track.style.transform,to=transform(-s.width-dir*s.width);
-  const speed=clamp(335-Math.abs(s.drag?.vx||0)*85,215,360);
+  const speed=clamp(270-Math.abs(s.drag?.vx||0)*60,160,285);
   animateTo(s.track,from,to,speed,ease,()=>{
    if(s.closed)return;
    const previous=s.cells;
    s.index+=dir;
    if(dir>0){
-    const exiting=previous.shift();try{exiting.querySelector('video')?.pause()}catch(_){}
+    const exiting=previous.shift();releaseVideo(s,exiting);
     exiting.remove();previous.push(makeSlide(s,s.index+1));
    }else{
-    const exiting=previous.pop();try{exiting.querySelector('video')?.pause()}catch(_){}
+    const exiting=previous.pop();releaseVideo(s,exiting);
     exiting.remove();previous.unshift(makeSlide(s,s.index-1));
    }
    s.cells=previous;s.track.replaceChildren(...previous);
@@ -644,13 +673,34 @@ const iphoneGallery=(()=>{
    s.viewer.dataset.itemIndex=String(s.index);
    s.drag=null;s.locked=false;s.viewer.dataset.gestureState='rest';
    updateLabel(s);activate(s);chrome(s,1);
+   if(s.queuedDir){const queued=s.queuedDir;s.queuedDir=0;requestAnimationFrame(()=>{if(!s.closed)navigate(s,queued)})}
   });
  }
  function bindTouches(s){
+  function paint(){
+   s.gestureRAF=0;
+   const g=s.drag;if(!g||s.closed||s.closing||s.locked)return;
+   const dx=g.dx,dy=g.dy;
+   if(g.mode==='horizontal'){
+    let moved=dx;
+    if((dx>0&&s.index===0)||(dx<0&&s.index===s.items.length-1))
+     moved=Math.sign(dx)*Math.min(s.width*.28,Math.pow(Math.abs(dx),.83)*.68);
+    s.track.style.transform=transform(-s.width+moved);
+    s.viewer.dataset.gestureState='horizontal';
+   }else if(g.mode==='down'){
+    const pulled=Math.max(0,dy),scale=clamp(1-pulled*.00066,.79,1);
+    const media=mediaAt(s);if(media)media.style.transform=transform(0,pulled,scale);
+    s.scrim.style.opacity=String(clamp(.93-pulled*.0022,.12,.93));
+    chrome(s,clamp(1-pulled/165,0,1));
+    s.viewer.dataset.gestureState='down';
+   }
+  }
+  function flush(){
+   if(s.gestureRAF){cancelAnimationFrame(s.gestureRAF);s.gestureRAF=0}
+   paint();
+  }
   s.onTouchStart=e=>{
-   if(s.locked||s.closing||e.touches.length!==1||e.target.closest('button')){s.drag=null;return}
-   // iOS Photos behavior: video image area can swipe between items,
-   // but the native playback / seek controls at the bottom keep priority.
+   if(s.closing||e.touches.length!==1||e.target.closest('button')){s.drag=null;return}
    const touchedVideo=e.target.closest('video');
    if(touchedVideo){
     const rect=touchedVideo.getBoundingClientRect();
@@ -660,7 +710,7 @@ const iphoneGallery=(()=>{
    s.drag={startX:p.clientX,startY:p.clientY,t0:performance.now(),mode:null,dx:0,dy:0,vx:0,vy:0};
   };
   s.onTouchMove=e=>{
-   const g=s.drag;if(!g||e.touches.length!==1||s.locked)return;
+   const g=s.drag;if(!g||e.touches.length!==1)return;
    const p=e.touches[0],dx=p.clientX-g.startX,dy=p.clientY-g.startY;
    if(!g.mode&&Math.max(Math.abs(dx),Math.abs(dy))>7){
     if(dy>0&&Math.abs(dy)>Math.abs(dx)*1.05)g.mode='down';
@@ -672,23 +722,22 @@ const iphoneGallery=(()=>{
    g.dx=dx;g.dy=dy;
    const elapsed=Math.max(16,performance.now()-g.t0);
    g.vx=dx/elapsed;g.vy=dy/elapsed;
-   if(g.mode==='horizontal'){
-    let moved=dx;
-    if((dx>0&&s.index===0)||(dx<0&&s.index===s.items.length-1))
-     moved=Math.sign(dx)*Math.min(s.width*.28,Math.pow(Math.abs(dx),.83)*.68);
-    s.track.style.transform=transform(-s.width+moved);
-    s.viewer.dataset.gestureState='horizontal';
-   }else{
-    const pulled=Math.max(0,dy),scale=clamp(1-pulled*.00066,.79,1);
-    const media=mediaAt(s);if(media)media.style.transform=transform(0,pulled,scale);
-    s.scrim.style.opacity=String(clamp(.93-pulled*.0022,.12,.93));
-    chrome(s,clamp(1-pulled/165,0,1));
-    s.viewer.dataset.gestureState='down';
-   }
+   if(!s.locked&&!s.gestureRAF)s.gestureRAF=requestAnimationFrame(paint);
   };
   s.onTouchEnd=e=>{
    const g=s.drag;if(!g||e.changedTouches.length!==1||s.closed)return;
    const p=e.changedTouches[0],dx=p.clientX-g.startX,dy=p.clientY-g.startY;
+   if(s.locked&&s.viewer.dataset.gestureState==='changing'){
+    if(g.mode==='horizontal'){
+     const dir=dx<0?1:-1;
+     if(s.items[s.index+dir]&&Math.abs(dx)>55)s.queuedDir=dir;
+    }
+    s.drag=null;
+    s.suppressClickUntil=performance.now()+350;
+    return;
+   }
+   if(s.locked)return;
+   g.dx=dx;g.dy=dy;flush();
    if(g.mode==='down'){
     if(dy>105||(dy>36&&g.vy>.6))close(false);else settle(s);
    }else if(g.mode==='horizontal'){
@@ -696,9 +745,12 @@ const iphoneGallery=(()=>{
     if(s.items[s.index+dir]&&(Math.abs(dx)>Math.min(94,s.width*.21)||(Math.abs(dx)>25&&Math.abs(g.vx)>.52)))navigate(s,dir);
     else settle(s);
    }else{s.drag=null}
-   s.suppressClickUntil=performance.now()+400;
+   s.suppressClickUntil=performance.now()+350;
   };
-  s.onTouchCancel=()=>{if(s.drag?.mode)settle(s);else s.drag=null};
+  s.onTouchCancel=()=>{
+   if(s.gestureRAF){cancelAnimationFrame(s.gestureRAF);s.gestureRAF=0}
+   if(s.drag?.mode&&!s.locked)settle(s);else s.drag=null;
+  };
   s.stage.addEventListener('touchstart',s.onTouchStart,{passive:true});
   s.stage.addEventListener('touchmove',s.onTouchMove,{passive:false});
   s.stage.addEventListener('touchend',s.onTouchEnd,{passive:true});
@@ -711,7 +763,7 @@ const iphoneGallery=(()=>{
   const viewer=h('dialog','fp-ios-gallery');viewer.id='fpMediaViewer';
   viewer.tabIndex=-1;viewer.setAttribute('role','dialog');viewer.setAttribute('aria-modal','true');
   viewer.setAttribute('aria-label','查看旅行照片或视频');
-  viewer.dataset.mediaMotion='iphone-v2';viewer.dataset.gestureState='rest';viewer.dataset.itemIndex=String(index);
+  viewer.dataset.mediaMotion='iphone-v5';viewer.dataset.gestureState='rest';viewer.dataset.itemIndex=String(index);
   const stage=h('div','fp-gallery-stage'),track=h('div','fp-gallery-track');
   stage.append(track);
   const closeButton=btn('×',()=>close(false),'fp-viewer-close');
@@ -747,7 +799,7 @@ const iphoneGallery=(()=>{
   for(const v of tileVideos){try{v.pause()}catch(_){}}
   requestAnimationFrame(()=>requestAnimationFrame(()=>{if(current===s&&!s.closed)reveal(s,originTile)}));
  }
- return Object.freeze({open,close,getState:()=>current&&{itemIndex:current.index,gesture:current.viewer.dataset.gestureState,open:!current.closed}});
+ return Object.freeze({open,close,getState:()=>current&&{itemIndex:current.index,gesture:current.viewer.dataset.gestureState,open:!current.closed,activeVideos:current.viewer.querySelectorAll('video[src]').length,blobUrls:current.urls.size}});
 })();
 function closeViewer(immediate=false){iphoneGallery.close(immediate)}
 function openViewer(items,index,originTile=null){iphoneGallery.open(items,index,originTile)}
