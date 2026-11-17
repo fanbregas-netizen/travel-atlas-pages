@@ -23,6 +23,27 @@ jobs:
           mkdir -p _site
           # Independent approved POI SVG animation review; root site remains byte-identical.
           cp -R v4-review-20261116 _site/v4-review-20261116
+          # Media D independent review: exact full V4 runtime, one scoped media fix.
+          cp -R _site/v4-review-20261116 _site/v4-media-system-review-20261117
+          cp -R v4-media-system-review-20261117/. _site/v4-media-system-review-20261117/
+          python3 - <<'PYMEDIA'
+          from pathlib import Path
+          root=Path('_site/v4-media-system-review-20261117')
+          old='atlas-v4-review-20261116-'
+          new='atlas-v4-media-system-review-20261117-'
+          for html in root.rglob('*.html'):
+              data=html.read_text(encoding='utf-8')
+              if old in data: html.write_text(data.replace(old,new),encoding='utf-8')
+          sw=root/'sw.js'
+          data=sw.read_text(encoding='utf-8')
+          sw.write_text(data.replace('footprint-v4-review-20261116-v19c','footprint-v4-media-system-review-20261117-v1'),encoding='utf-8')
+          for name in ('index.html','journey.html','route-view.html'):
+              assert new in (root/name).read_text(encoding='utf-8'),name
+          PYMEDIA
+          test -s _site/v4-media-system-review-20261117/index.html
+          test -s _site/v4-media-system-review-20261117/media-qa.html
+          node --check _site/v4-media-system-review-20261117/src/media/media-core.js
+          node v4-media-system-review-20261117/media-regression.cjs
           # Interaction-only independent V4 Safari acceptance; unchanged official root and approved motion.
           cp -R v4-interaction-system-review-20261117 _site/v4-interaction-system-review-20261117
           test -s _site/v4-interaction-system-review-20261117/index.html

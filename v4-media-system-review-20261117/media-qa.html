@@ -1,0 +1,38 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex">
+<title>Footprint Map｜媒体数据自检</title>
+<style>:root{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;background:#faf9f5;color:#252822}*{box-sizing:border-box}body{max-width:650px;margin:auto;padding:calc(25px + env(safe-area-inset-top)) 20px 40px}h1{font-size:23px}p{font-size:14px;line-height:1.8;color:#666a63}a{color:#275b50}button{width:100%;border:0;border-radius:16px;background:#262b25;color:white;padding:15px;font-size:15px;margin:12px 0}button:disabled{opacity:.45}.item{border-bottom:1px solid #e9e7df;padding:12px 0;font-size:14px;line-height:1.6}.ok{color:#286a4b}.fail{color:#b53535}#status{font-weight:700}</style></head>
+<body><small>Footprint Map V4 · 媒体 D · 2026.11.17</small><h1>真实媒体数据自检</h1>
+<p>调用验收产品的同一份媒体存储模块，检查 Brief、攻略、照片、视频、刷新重读、备份及恢复。所有测试在临时独立数据库中完成，不触碰你的原有收藏。</p>
+<p><a href="./index.html">返回完整 V4 媒体验收产品</a></p><button id="run">运行 Safari 数据自检</button><div role="status" id="status">尚未运行</div><div id="log"></div>
+<p>影像展开和缩略图过渡的 iPhone 手势，请在完整产品里实际操作验收；本页不重新制作界面。</p>
+<script src="./src/media/media-core.js"></script><script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id), api=window.FootprintMediaCore;
+const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5W2boAAAAASUVORK5CYII=';
+const check=(ok,msg)=>{if(!ok)throw Error(msg||'结果不一致')};
+const idbFor=prefix=>({open:(n,v)=>indexedDB.open(prefix+n,v),deleteDatabase:n=>indexedDB.deleteDatabase(prefix+n)});
+async function seed(idb,place){const db=await new Promise((ok,bad)=>{const r=idb.open(api.DB_NAME,1);r.onupgradeneeded=()=>{r.result.createObjectStore('places',{keyPath:'id'});r.result.createObjectStore('meta',{keyPath:'key'})};r.onsuccess=()=>ok(r.result);r.onerror=()=>bad(r.error)});try{await new Promise((ok,bad)=>{const tx=db.transaction('places','readwrite');tx.objectStore('places').put(place);tx.oncomplete=ok;tx.onabort=()=>bad(tx.error);tx.onerror=()=>bad(tx.error)})}finally{db.close()}}
+function line(name,success,error){const d=document.createElement('div');d.className='item '+(success?'ok':'fail');d.textContent=(success?'✓ ':'× ')+name+(error?'：'+error:'');$('log').append(d)}
+async function run(){
+ check(api&&indexedDB,'IndexedDB 或存储模块不可用');
+ const p='media-v4-qa-'+Date.now()+'-'+Math.random()+'-', a=idbFor(p+'a-'),b=idbFor(p+'b-');
+ const repo=api.createRepository(a),other=api.createRepository(b);
+ const place={id:'qa-place',title:'测试地点',lat:29.492,lng:121.905,note:'',photos:[],videos:[],guides:[]};
+ let zip,pass=0,fail=0;
+ const test=async(name,fn)=>{try{await fn();pass++;line(name,true)}catch(e){fail++;line(name,false,e?.message||String(e))}};
+ try{
+ await test('创建隔离的真实 IndexedDB 地点',async()=>{await seed(a,place);check((await repo.list()).length===1)});
+ await test('Brief 保存、重开不丢失',async()=>{await repo.saveBrief(place.id,'海风与夕阳');check((await api.createRepository(a).read(place.id)).brief==='海风与夕阳')});
+ await test('攻略与正确地点关联',async()=>{await repo.saveGuide(place.id,{url:'https://example.org/guide',title:'海边攻略'});check((await repo.read(place.id)).guides.length===1)});
+ await test('照片视频原子保存',async()=>{await repo.addMedia(place.id,[{kind:'photo',id:'img-1',src:png},{kind:'video',id:'vid-1',type:'video/quicktime',name:'a.mov',bytes:new Uint8Array([1,2,3]).buffer}]);const d=await api.createRepository(a).read(place.id);check(d.photos.length===1&&d.videos.length===1&&new Uint8Array(d.videos[0].bytes)[2]===3)});
+ await test('完整 ZIP 备份包含各类媒体',async()=>{zip=await repo.backup();const d=(await api.readBackup(zip)).records[0];check(d.note==='海风与夕阳'&&d.guides.length===1&&d.photos.length===1&&d.videos.length===1)});
+ await test('另一独立数据库完整恢复',async()=>{await other.restore(zip,{conflict:'merge'});const d=await api.createRepository(b).read(place.id);check(d.note==='海风与夕阳'&&d.photos.length===1&&d.videos.length===1)});
+ await test('重复恢复不产生重复媒体',async()=>{await other.restore(zip,{conflict:'merge'});check((await other.read(place.id)).videos.length===1)});
+ await test('超过六条视频拒绝，原内容不变',async()=>{const more=Array.from({length:6},(_,i)=>({kind:'video',id:'new-'+i,name:'b.mov',bytes:new Uint8Array([i+4]).buffer}));let blocked=false;try{await other.addMedia(place.id,more)}catch(e){blocked=e?.code==='VIDEO_LIMIT'}check(blocked);check((await other.read(place.id)).videos.length===1)});
+ await test('损坏备份拒绝恢复',async()=>{const u=new Uint8Array(await zip.arrayBuffer()),k=new TextEncoder().encode('travel-footprints-v10');let at=-1;outer:for(let i=0;i<=u.length-k.length;i++){for(let j=0;j<k.length;j++)if(u[i+j]!==k[j])continue outer;at=i;break}check(at>=0);u[at]^=1;let blocked=false;try{await api.readBackup(u)}catch(e){blocked=e?.code==='BACKUP_CHECKSUM_FAILED'}check(blocked)});
+ }finally{for(const [db,n] of [[a,api.DB_NAME],[a,'travel-atlas-journeys-v1'],[b,api.DB_NAME],[b,'travel-atlas-journeys-v1']])try{await new Promise(resolve=>{const r=db.deleteDatabase(n);r.onsuccess=resolve;r.onerror=resolve;r.onblocked=resolve})}catch(e){}}
+ $('status').textContent=pass+' 项通过，'+fail+' 项未通过；临时数据已清理';
+}
+$('run').onclick=async()=>{$('run').disabled=true;$('log').replaceChildren();$('status').textContent='正在检查…';try{await run()}catch(e){$('status').textContent='检查中断：'+e.message;line('初始化',false,e.message)}finally{$('run').disabled=false}};
+})();
+</script></body></html>
