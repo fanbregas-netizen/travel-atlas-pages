@@ -647,7 +647,14 @@ const iphoneGallery=(()=>{
  }
  function bindTouches(s){
   s.onTouchStart=e=>{
-   if(s.locked||s.closing||e.touches.length!==1||e.target.closest('button,video')){s.drag=null;return}
+   if(s.locked||s.closing||e.touches.length!==1||e.target.closest('button')){s.drag=null;return}
+   // iOS Photos behavior: video image area can swipe between items,
+   // but the native playback / seek controls at the bottom keep priority.
+   const touchedVideo=e.target.closest('video');
+   if(touchedVideo){
+    const rect=touchedVideo.getBoundingClientRect();
+    if(e.touches[0].clientY>rect.bottom-74){s.drag=null;return}
+   }
    const p=e.touches[0];
    s.drag={startX:p.clientX,startY:p.clientY,t0:performance.now(),mode:null,dx:0,dy:0,vx:0,vy:0};
   };
