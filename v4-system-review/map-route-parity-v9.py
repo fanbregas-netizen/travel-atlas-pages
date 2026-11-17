@@ -159,6 +159,19 @@ if p.name=='route-cards-v5-live.js':
  window.addEventListener('pagehide',()=>routeSizeObserver?.disconnect(),{once:true});""",
  'live-route-map-resize-observer')
 
+
+ once(
+ """function liveRenderCamera(rebuild=true){
+ if(!liveMap||!allPlaces.length)return;
+ const frame=routeMap.getBoundingClientRect();""",
+ """function liveRenderCamera(rebuild=true){
+ if(!liveMap||!allPlaces.length)return;
+ // MapLibre projects in the canvas container's coordinate system. The
+ // C V5 sheet animates #rc-map height; computing percentages from its
+ // changing outer rect gave a persistent ~60px marker offset on Safari.
+ const frame=liveMap.getContainer().getBoundingClientRect();""",
+ 'route-marker-projection-uses-map-canvas-viewport')
+
 elif p.name=='route-view.html':
  once(
  "b.onclick=e=>{e.stopPropagation();activate(i,false)};",
