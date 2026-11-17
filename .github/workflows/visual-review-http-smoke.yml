@@ -50,6 +50,10 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
       - name: Open iPhone-size browser and capture real three-card screenshots
         run: node v4-visual-system-review-20261117/tests/visual-three-headers.cjs
+      - name: Install WebKit engine for Safari-family independent visual check
+        run: node node_modules/playwright-core/cli.js install --with-deps webkit
+      - name: Verify real public V9 in WebKit at iPhone dimensions
+        run: VISUAL_BROWSER=webkit node v4-visual-system-review-20261117/tests/visual-three-headers.cjs
       - name: Upload real public Chrome screenshots and metrics
         if: always()
         uses: actions/upload-artifact@v4
