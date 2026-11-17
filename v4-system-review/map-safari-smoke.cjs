@@ -90,6 +90,33 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     });
     assert.ok(mid.scale&&mid.scale.startsWith('matrix(')&&parseFloat(mid.scale.slice(7))>1.04,'The POI itself must visibly grow: '+JSON.stringify(mid));
     assert.equal(mid.moving,true,'Camera centering continues while POI grows');
+    // Each moving frame must use the SAME compositor translation for the
+    // POI and saved-star planes. A separate rAF per marker caused the
+    // visible jump / flicker seen in the iPhone Safari recording.
+    const surfaces=await page.evaluate(()=>{
+      const map=window.__atlasPOIBridge.vector();
+      const a=document.getElementById('atlasPoiOverlay'),
+            b=document.getElementById('atlasBookmarkOverlay');
+      const pos=a.style.translate.trim().split(/\s+/);
+      const marker=a.querySelector('.fp-poi[data-poi-lng][data-poi-lat]');
+      let drift=null;
+      if(marker&&pos.length===2){
+        const p=map.project([+marker.dataset.poiLng,+marker.dataset.poiLat]);
+        drift=Math.hypot(+parseFloat(marker.style.left)+parseFloat(pos[0])-p.x,
+          +parseFloat(marker.style.top)+parseFloat(pos[1])-p.y);
+      }
+      return {moving:map.isMoving(),poiPlane:a.style.translate,
+        starPlane:b.style.translate,poiOpacity:a.style.opacity,drift,
+        poiCount:a.querySelectorAll('.fp-poi').length};
+    });
+    assert.equal(surfaces.moving,true,'Inspect overlays during the active camera pan');
+    assert.ok(surfaces.poiPlane.includes('px'),'POI plane must move on compositor');
+    assert.equal(surfaces.poiPlane,surfaces.starPlane,
+      'POIs and saved stars must track ONE camera transform, not two asynchronous frames');
+    assert.equal(surfaces.poiOpacity,'1','Do not fade POIs during auto recenter');
+    if(surfaces.drift!=null)assert.ok(surfaces.drift<3,
+      'Rendered on-map SVG must stay geographically aligned: '+JSON.stringify(surfaces));
+
     await page.waitForFunction(()=>!window.__atlasPOIBridge.vector()?.isMoving(),{timeout:12000});
     const afterPoiCamera=await page.evaluate(()=>window.__atlasCameraQA());
     assert.ok(Math.abs(afterPoiCamera.zoom-beforePoiCamera.zoom)<0.005,'POI tap must not zoom the MAP');
@@ -100,6 +127,12 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     },first);
     assert.ok(centered.pixelError<2,
       'Tapped POI must land at TRUE center of the map viewport: '+JSON.stringify(centered));
+    const afterMotionSurfaces=await page.evaluate(()=>({
+      poi:document.getElementById('atlasPoiOverlay')?.style.translate,
+      star:document.getElementById('atlasBookmarkOverlay')?.style.translate
+    }));
+    assert.equal(afterMotionSurfaces.poi,'','POI overlay translation must atomically clear on moveend');
+    assert.equal(afterMotionSurfaces.star,'','Star overlay translation must atomically clear on moveend');
     assert.ok(Math.abs(beforePoiCamera.lat-afterPoiCamera.lat)>.002||
               Math.abs(beforePoiCamera.lng-afterPoiCamera.lng)>.003,
       'Map must visibly PAN to clicked POI, not remain stationary');
