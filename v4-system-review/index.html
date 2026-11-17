@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f4f5f0">
+<title>Footprint Map V4｜四系统独立验收</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#2d4036;background:#f5f7f2;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;padding:calc(26px + env(safe-area-inset-top)) 17px calc(44px + env(safe-area-inset-bottom))}
+main{max-width:730px;margin:0 auto}.eyebrow{margin:0 0 9px;color:#879987;font-size:12px;font-weight:650;letter-spacing:.03em}
+h1{font-size:29px;line-height:1.2;letter-spacing:-.045em;font-weight:760;margin:0 0 11px}h2{font-size:19px;letter-spacing:-.025em;font-weight:710;margin:0 0 8px}
+.intro{color:#67796d;font-size:14px;line-height:1.8;margin:0 0 20px}
+.freeze{border:1px solid #dce5d9;background:#fffefa;padding:14px 15px;border-radius:16px;color:#607465;font-size:12px;line-height:1.75;margin-bottom:19px}
+.grid{display:grid;gap:12px;grid-template-columns:1fr}
+.card{display:flex;flex-direction:column;background:#fffefa;border:1px solid #e1e7de;border-radius:21px;padding:17px 17px 15px;box-shadow:0 5px 23px #23392b0a;min-width:0}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 8px}
+.status{font-size:11px;padding:4px 9px;border:1px solid #e6e8de;border-radius:999px;color:#889387;white-space:nowrap;background:#f8f8f4}
+.card p{color:#758477;line-height:1.7;font-size:12px;margin:0 0 12px}
+.card a{margin-top:auto;text-decoration:none;display:flex;align-items:center;justify-content:space-between;min-height:45px;padding:11px 13px;border-radius:13px;background:#f0f4ed;color:#345541;font-size:13px;font-weight:700}
+.card a:active{background:#e4efdf}.card small{font-size:11px;color:#97a498}
+.rules{border-top:1px solid #e2e6de;margin:21px 0 0;padding:20px 0 0}
+.rules p{font-size:13px;color:#6f8172;line-height:1.75}
+.base{color:#748577;font-size:12px;line-height:1.7;margin-top:18px}
+.base a{color:#44674c;text-decoration:underline;text-underline-offset:2px}
+@media(min-width:620px){.grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body><main>
+<p class="eyebrow">Footprint Map V4 · 2026.11.17</p>
+<h1>四系统独立验收</h1>
+<p class="intro">以 11 月 17 日真实 V4 产品为共同基线。先分别确认地图、交互、视觉与媒体；只有四套检查通过后才开始跨系统汇总。</p>
+<div class="freeze">当前整合产品保持冻结。以下都是完整真实产品的独立验收副本，数据命名空间各自隔离。首次进入若无收藏地点，请在对应验收副本中创建测试点；不会影响原产品。验收清单只记录在当前设备，点击「复制本系统验收结果」后发回聊天。</div>
+<section class="grid" aria-label="四个独立系统">
+<article class="card"><div class="card-head"><h2>地图系统</h2><span class="status">待验收</span></div><p>地图加载与缩放、POI 连续切换、唯一黄色星标、地图选点、Safari 流畅度。</p><a href="../v4-map-system-review-20261117/">进入地图专项验收 <span>›</span></a></article>
+<article class="card"><div class="card-head"><h2>交互系统</h2><span class="status">待验收</span></div><p>POI 与收藏卡片三档拖动、橡皮筋回弹、Dock、搜索，以及已确认的 C V5 路线。</p><a href="../v4-interaction-system-review-20261117/">进入交互专项验收 <span>›</span></a></article>
+<article class="card"><div class="card-head"><h2>视觉系统</h2><span class="status">待验收</span></div><p>以现款收藏地点卡片为基准，逐一对比眉头、文字、间距、对齐、子页和中文规范；支持现款／统一后切换。</p><a href="../v4-visual-system-review-20261117/">进入视觉专项验收 <span>›</span></a></article>
+<article class="card"><div class="card-head"><h2>媒体系统</h2><span class="status">待验收</span></div><p>Brief、照片、视频、攻略、媒体与地点关联，以及刷新后的备份恢复。</p><a href="../v4-media-system-review-20261117/">进入媒体专项验收 <span>›</span></a></article>
+</section>
+<section class="rules"><h2>汇总规则</h2><p>每个入口只确认对应系统；不因为一个系统通过而认定其余系统已通过。视觉更改仅存在于视觉验收副本。交互引擎、地图、媒体存储与原 C V5 路线没有擅自更换。四份验收结果全部通过后，再进行一次跨系统回归，并制作新的独立整合验收入口。</p></section>
+<p class="base">共同基线：<a href="../v4-acceptance-20261117/">11 月 17 日原始整合验收版</a>（保留不变）</p>
+</main></body></html>
