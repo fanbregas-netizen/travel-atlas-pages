@@ -346,7 +346,19 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
         /poi|amenity|tourism|attraction|shop|leisure|restaurant|cafe|museum|hotel|hospital/i.test(
           l.id+' '+(l['source-layer']||''))).every(l=>
             m.getPaintProperty(l.id,'icon-opacity')===0);
-    },null,{timeout:15000});
+    },null,{timeout:5000}).catch(async()=>{
+      const state=await page.evaluate(()=>{
+        const m=window.__atlasLivePlannerMap,style=m?.getStyle?.();
+        return {stage:window.__atlasRouteFocusQA?.(),mapLoaded:m?.loaded?.(),
+          poi:(style?.layers||[]).filter(l=>l.type==='symbol'&&
+            /poi|amenity|tourism|attraction|shop|leisure|restaurant|cafe|museum|hotel|hospital/i.test(
+              l.id+' '+(l['source-layer']||'')))
+            .map(l=>({id:l.id,source:l['source-layer'],
+              layout:m.getLayoutProperty(l.id,'visibility'),
+              icon:m.getPaintProperty(l.id,'icon-opacity')}))};
+      });
+      throw Error('Native colored POI never suppressed: '+JSON.stringify(state));
+    });
     const visualProof=await page.evaluate(()=>{
       const map=document.getElementById('rc-map'),
         badge=document.querySelector('.fp-system-switch'),
