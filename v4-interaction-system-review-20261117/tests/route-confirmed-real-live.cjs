@@ -37,15 +37,20 @@ async function seed(page){
  try{
   for(const width of [375,390]){
    const context=await browser.newContext({viewport:{width,height:844},deviceScaleFactor:2,hasTouch:true,isMobile:true,serviceWorkers:'block'});
-   const page=await context.newPage();page.setDefaultTimeout(35000);
+   const page=await context.newPage();page.setDefaultTimeout(14000);
+   page.on('console',m=>{if(m.type()==='error')console.log('BROWSER CONSOLE ERROR:',m.text().slice(0,320))});
+   console.log('QA STEP',width,'seed');
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
    await seed(page);
+   console.log('QA STEP',width,'load journey');
    await page.goto(base+'journey-real-confirmed-20261118.html',{waitUntil:'domcontentloaded',timeout:60000});
    await page.waitForFunction(()=>window.__atlasJourneyRoute?.getState&&document.querySelectorAll('#places .place').length===4);
+   console.log('QA STEP',width,'journey ready / show places');
    await page.evaluate(()=>window.__atlasJourneyVisual?.setStep('places'));
    for(const title of ['沿海 A','沿海 C','沿海 B','沿海 D']){
     await page.locator('#places .place').filter({hasText:title}).click();
    }
+   console.log('QA STEP',width,'places selected');
    assert.equal((await page.evaluate(()=>window.__atlasJourneyRoute.getState())).selected.length,4);
    // This CI fixture puts all four actual test-DB points on D1; dates/times
    // are never changed by the recommended order itself.
@@ -55,6 +60,7 @@ async function seed(page){
      const day=row.querySelector('.day-picker');day.value='1';day.dispatchEvent(new Event('change',{bubbles:true}));
     },id);
    }
+   console.log('QA STEP',width,'change settings');
    await page.evaluate(()=>window.__atlasJourneyVisual.setStep('settings'));
    await page.locator('#originPlaceId').selectOption('qa-r-a');
    await page.locator('#destinationPlaceId').selectOption('qa-r-d');
@@ -65,9 +71,11 @@ async function seed(page){
    assert.equal(savedBefore.transportMode,'bike');
    assert.equal(savedBefore.originPlaceId,'qa-r-a');
    assert.equal(savedBefore.destinationPlaceId,'qa-r-d');
+   console.log('QA STEP',width,'settings ready');
    await page.screenshot({path:out+'/settings-'+width+'.png'});
    await page.evaluate(()=>window.__atlasJourneyVisual.setStep('order'));
    const before=await page.evaluate(()=>window.__atlasJourneyRoute.getState().selected.map(s=>s.id));
+   console.log('QA STEP',width,'recommend');
    await page.locator('#autoArrange').click();
    assert.equal(await page.locator('#routeSuggestion:visible').count(),1);
    assert.deepEqual(await page.evaluate(()=>window.__atlasJourneyRoute.getState().selected.map(s=>s.id)),before,'recommendation must not mutate before approval');
@@ -79,15 +87,18 @@ async function seed(page){
    assert.deepEqual(await page.evaluate(()=>window.__atlasJourneyRoute.getState().selected.map(s=>s.id)),before);
    await page.screenshot({path:out+'/order-'+width+'.png'});
    // Save uses the same production MediaCore route repository as Footprint.
+   console.log('QA STEP',width,'save route');
    await page.locator('#savePlan').click();
    await page.waitForFunction(()=>!!window.__atlasJourneyRoute.getState().id);
    const saved=await page.evaluate(()=>window.__atlasJourneyRoute.getState());
    assert.ok(saved.id);
+   console.log('QA STEP',width,'open route map');
    await page.locator('#generate').click();
    await page.waitForURL(/\/route-view-real-confirmed-20261118\.html\?saved=/,{timeout:30000});
    await page.waitForFunction(()=>!!document.getElementById('editRouteLink')&&!document.getElementById('editRouteLink').hidden,{timeout:20000});
    assert.equal(await page.locator('#editRouteLink:visible').count(),1);
    await page.screenshot({path:out+'/map-'+width+'.png'});
+   console.log('QA STEP',width,'edit saved route');
    await page.locator('#editRouteLink').click();
    await page.waitForURL(/\/journey-real-confirmed-20261118\.html\?edit=/,{timeout:20000});
    await page.waitForFunction(()=>window.__atlasJourneyRoute?.getState().selected.length===4,{timeout:30000});
