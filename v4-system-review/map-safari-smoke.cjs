@@ -117,9 +117,15 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       const m=window.__atlasLivePlannerMap,c=m.getCenter();
       m.easeTo({center:[c.lng+0.005,c.lat],duration:800,essential:true});
     });
-    await page.waitForTimeout(265);
+    // A busy software WebKit renderer may not paint at exactly 265 ms;
+    // verify a measurable position shift during the live camera transition.
+    await page.waitForFunction(initial=>{
+      const m=window.__atlasLivePlannerMap,pin=document.querySelector('#rc-map-pins [data-place-id^="live-map-"]');
+      const now=pin?parseFloat(pin.style.left):NaN;
+      return m?.isMoving?.()&&Number.isFinite(now)&&Math.abs(now-initial)>0.1;
+    },initialPin,{timeout:9000});
     const midPin=await page.locator('#rc-map-pins [data-place-id^="live-map-"]').first().evaluate(el=>parseFloat(el.style.left));
-    assert.ok(Math.abs(initialPin-midPin)>0.1,'Selected route pin must follow live map motion, not lag until moveend');
+    assert.ok(Math.abs(initialPin-midPin)>0.1,'Selected route pin must follow camera while it is moving; initial='+initialPin+', mid='+midPin);
     assert.equal(await page.locator('#rc-map-pins [data-place-id^="live-map-"]').count(),1,'One selected route marker only');
     await page.waitForFunction(()=>!window.__atlasLivePlannerMap.isMoving(),{timeout:12000});
     console.log('PASS WebKit V4 shared route picker basemap '+JSON.stringify({width,...picker}));
