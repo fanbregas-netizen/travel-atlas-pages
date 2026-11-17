@@ -161,6 +161,14 @@ elif path.name=='v4-map-runtime.js':
   """    vectorSelectionMarker=new window.maplibregl.Marker({element:pin,anchor:'center'}).setLngLat([+place.lng,+place.lat]).addTo(vectorMap);
     if(window.AtlasPOIMotion?.categoryId(place.category,place.name))""",
   """    vectorSelectionMarker=new window.maplibregl.Marker({element:pin,anchor:'center'}).setLngLat([+place.lng,+place.lat]).addTo(vectorMap);
+    // Raise this SAME georeferenced marker above other POIs and stars.
+    // MapLibre still updates its transform; no copy or floating duplicate.
+    let topPane=$('atlasSelectedPoiTop');
+    if(!topPane){
+      topPane=document.createElement('div');topPane.id='atlasSelectedPoiTop';
+      topPane.setAttribute('aria-hidden','true');document.body.appendChild(topPane);
+    }
+    topPane.appendChild(pin);
     window.AtlasPOIMotion?.popSelected?.(token);
     if(window.AtlasPOIMotion?.categoryId(place.category,place.name))""",
   'enlarge-native-map-poi')
