@@ -110,34 +110,34 @@ once(
  'route-focused-state-and-camera')
 
 once(
- "  main.style.height=px+'px';",
- """  main.style.height=px+'px';
+ " main.style.height=px+'px';",
+ """ main.style.height=px+'px';
   // The sheet moves OVER the independent full-screen map, so re-frame the
   // full route in its exposed area without changing WebGL canvas size.
   scheduleVisibleRouteFit();""",
  'sheet-drag-fits-entire-route')
 
 once(
- "  lastRenderedStage=stage;",
- """  lastRenderedStage=stage;
+ " lastRenderedStage=stage;",
+ """ lastRenderedStage=stage;
   syncRoutePoiVisibility();
   scheduleVisibleRouteFit(true);""",
  'stage-changes-quiet-pois-and-refit')
 
 once(
- "  routeMap.classList.toggle('rc-map-picking',!!liveMapPickMode);",
- """  routeMap.classList.toggle('rc-map-picking',!!liveMapPickMode);
+ " routeMap.classList.toggle('rc-map-picking',!!liveMapPickMode);",
+ """ routeMap.classList.toggle('rc-map-picking',!!liveMapPickMode);
   syncRoutePoiVisibility();
   if(!liveMapPickMode)scheduleVisibleRouteFit(true);""",
  'poi-selection-mode-only')
 
 once(
- """   fit();
-  });""",
- """   fit();
-   syncRoutePoiVisibility();
-   scheduleVisibleRouteFit(true);
-  });""",
+ """  fit();
+ });""",
+ """  fit();
+  syncRoutePoiVisibility();
+  scheduleVisibleRouteFit(true);
+ });""",
  'map-loaded-default-pois-hidden-route-visible')
 
 p.write_text(s,encoding="utf-8")
