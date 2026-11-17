@@ -137,8 +137,11 @@ if p.name=='route-cards-v5-live.js':
   const frame=liveMap.getContainer(),point=liveMap.project([+place.lng,+place.lat]);
   if(!frame.clientWidth||!frame.clientHeight)return;
   const x=point.x/frame.clientWidth*100,y=point.y/frame.clientHeight*100;
+  const was=pin.style.top;
   if(Math.abs((parseFloat(pin.style.left)||0)-x)>.03)pin.style.left=x+'%';
   if(Math.abs((parseFloat(pin.style.top)||0)-y)>.03)pin.style.top=y+'%';
+  window.__atlasRouteGeoSyncQA={placeId:liveTopPlaceId,pinId:pin.dataset.placeId,
+   before:was,after:pin.style.top,wanted:y,frameHeight:frame.clientHeight};
  }
  let routeGeoFollowRun=0;
  function followSelectedUntilSettled(){
