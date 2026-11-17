@@ -5,6 +5,9 @@ on:
     paths:
       - 'v4-interaction-system-review-20261117/tests/route-confirmed-smoke.cjs'
       - 'v4-interaction-system-review-20261117/src/route/route-order-engine.js'
+      - 'v4-interaction-system-review-20261117/src/route/journey-confirmed-ui.js'
+      - 'v4-interaction-system-review-20261117/src/route/journey-confirmed-ui.css'
+      - 'v4-interaction-system-review-20261117/journey-real-confirmed-20261118.js'
       - '.github/workflows/v4-route-startup-smoke.yml'
   workflow_dispatch:
 permissions:
@@ -18,7 +21,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - run: |
+          npm install --no-save --ignore-scripts playwright-core@1.58.2
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
       - run: |
           python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/route-smoke-http.log 2>&1 &
           sleep 1
