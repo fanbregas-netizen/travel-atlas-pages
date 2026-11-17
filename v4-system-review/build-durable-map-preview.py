@@ -39,11 +39,11 @@ for page in ("index.html","journey.html","route-view.html"):
     for version in ("c4","route-precision-1","4-unified"):
         html=html.replace("shared-v4-map.js?v="+version,"shared-v4-map.js?v=map-parity-2")
     if page=="index.html":
-        html=html.replace("v4-map-runtime.js?v=real-handoff-19","v4-map-runtime.js?v=map-safari-acceptance-3")
-        html=html.replace("v4-map-runtime.js?v=parity-11","v4-map-runtime.js?v=map-safari-preload-3")
+        html=html.replace("v4-map-runtime.js?v=real-handoff-19","v4-map-runtime.js?v=map-safari-acceptance-4")
+        html=html.replace("v4-map-runtime.js?v=parity-11","v4-map-runtime.js?v=map-safari-preload-4")
         html=html.replace("poi-svg-motion-v4.js?v=cv5-18","poi-svg-motion-v4.js?v=poi-pop-4")
         assert "poi-pop-4" in html
-        assert "map-safari-acceptance-3" in html
+        assert "map-safari-acceptance-4" in html
         assert "The selected icon already animates in place" in html
     if page=="journey.html":
         old_script='<script defer src="./src/interaction/route-cards-v5-live.js?v=fluid-3"></script>'
