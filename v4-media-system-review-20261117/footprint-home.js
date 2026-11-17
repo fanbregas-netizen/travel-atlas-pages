@@ -571,8 +571,8 @@ const iphoneGallery=(()=>{
   if(s.gestureRAF){cancelAnimationFrame(s.gestureRAF);s.gestureRAF=0}
   s.stage.removeEventListener('touchstart',s.onTouchStart,true);
   s.stage.removeEventListener('touchmove',s.onTouchMove,true);
-  s.stage.removeEventListener('touchend',s.onTouchEnd,true);
-  s.stage.removeEventListener('touchcancel',s.onTouchCancel,true);
+  window.removeEventListener('touchend',s.onTouchEnd,true);
+  window.removeEventListener('touchcancel',s.onTouchCancel,true);
   window.removeEventListener('resize',s.onResize);
   if(s.videoActivationTimer){clearTimeout(s.videoActivationTimer);s.videoActivationTimer=null}
   s.cells?.forEach(cell=>{
@@ -774,16 +774,24 @@ const iphoneGallery=(()=>{
   s.onTouchEnd=e=>{
    const g=s.drag;if(!g||e.changedTouches.length!==1||s.closed)return;
    const p=e.changedTouches[0],dx=p.clientX-g.startX,dy=p.clientY-g.startY;
-   if(s.locked&&s.viewer.dataset.gestureState==='changing'){
+   if(s.locked){
     if(g.mode==='horizontal'){
      const dir=dx<0?1:-1;
-     if(s.items[s.index+dir]&&Math.abs(dx)>55)s.queuedDir=dir;
+     if(s.items[s.index+dir]&&Math.abs(dx)>55){
+      s.queuedDir=dir;
+      if(s.viewer.dataset.gestureState!=='changing'){
+       // A rubber-band settle may also hold the animation lock.
+       setTimeout(()=>{
+        if(s.closed||s.closing||s.locked||!s.queuedDir)return;
+        const queued=s.queuedDir;s.queuedDir=0;navigate(s,queued);
+       },340);
+      }
+     }
     }
     s.drag=null;
     s.suppressClickUntil=performance.now()+350;
     return;
    }
-   if(s.locked)return;
    g.dx=dx;g.dy=dy;flush();
    if(g.mode==='down'){
     if(dy>105||(dy>36&&g.vy>.6))close(false);else settle(s);
@@ -800,8 +808,8 @@ const iphoneGallery=(()=>{
   };
   s.stage.addEventListener('touchstart',s.onTouchStart,{passive:true,capture:true});
   s.stage.addEventListener('touchmove',s.onTouchMove,{passive:false,capture:true});
-  s.stage.addEventListener('touchend',s.onTouchEnd,{passive:true,capture:true});
-  s.stage.addEventListener('touchcancel',s.onTouchCancel,{passive:true,capture:true});
+  window.addEventListener('touchend',s.onTouchEnd,{passive:true,capture:true});
+  window.addEventListener('touchcancel',s.onTouchCancel,{passive:true,capture:true});
  }
  function open(items,index,originTile){
   close(true);
