@@ -554,6 +554,7 @@ jobs:
             test -s "/tmp/media-check-$(basename "$path")"
           done
           grep -q 'nextVideos.length>6' /tmp/media-check-media-core.js
+          grep -q 'const media=mediaAt(s),duration=350' /tmp/media-check-footprint-home.js
           echo 'Media D isolated full V4 Safari product is publicly accessible with correct media storage guard.'
 
       - name: Verify systematic V4 acceptance preview HTTP and runtime
