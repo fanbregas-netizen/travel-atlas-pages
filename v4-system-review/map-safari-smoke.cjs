@@ -343,7 +343,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       const m=window.__atlasLivePlannerMap;
       if(!m?.getStyle?.()?.layers)return false;
       return m.getStyle().layers.filter(l=>l.type==='symbol'&&
-        /poi|amenity|tourism|attraction|shop|leisure|restaurant|cafe|museum|hotel|hospital/i.test(
+        /(^|[-_:])(poi|amenity|tourism|attraction|shop|leisure|restaurant|cafe|museum|hotel|hospital)([-_:]|$)/i.test(
           l.id+' '+(l['source-layer']||''))).every(l=>
             m.getPaintProperty(l.id,'icon-opacity')===0);
     },null,{timeout:5000}).catch(async()=>{
@@ -351,7 +351,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
         const m=window.__atlasLivePlannerMap,style=m?.getStyle?.();
         return {stage:window.__atlasRouteFocusQA?.(),mapLoaded:m?.loaded?.(),
           poi:(style?.layers||[]).filter(l=>l.type==='symbol'&&
-            /poi|amenity|tourism|attraction|shop|leisure|restaurant|cafe|museum|hotel|hospital/i.test(
+            /(^|[-_:])(poi|amenity|tourism|attraction|shop|leisure|restaurant|cafe|museum|hotel|hospital)([-_:]|$)/i.test(
               l.id+' '+(l['source-layer']||'')))
             .map(l=>({id:l.id,source:l['source-layer'],
               layout:m.getLayoutProperty(l.id,'visibility'),
@@ -370,7 +370,7 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
         poicard:!!overlay,layerHeight:map.getBoundingClientRect().height,
         canvasHeight:m.getContainer().getBoundingClientRect().height,
         coloredNativePOI:m.getStyle().layers.filter(l=>l.type==='symbol'&&
-          /poi|amenity|tourism|attraction|shop|leisure|restaurant|cafe|museum|hotel|hospital/i.test(
+          /(^|[-_:])(poi|amenity|tourism|attraction|shop|leisure|restaurant|cafe|museum|hotel|hospital)([-_:]|$)/i.test(
             l.id+' '+(l['source-layer']||''))&&m.getPaintProperty(l.id,'icon-opacity')!==0).map(l=>l.id)};
     });
     assert.ok(visualProof.active&&visualProof.correctMapSkin&&visualProof.badgeGone&&
