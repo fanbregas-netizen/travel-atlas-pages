@@ -23,6 +23,10 @@ jobs:
           mkdir -p _site
           # Independent approved POI SVG animation review; root site remains byte-identical.
           cp -R v4-review-20261116 _site/v4-review-20261116
+          # Visual C isolated real-product A/B comparison; no changes to official root or other systems.
+          cp -R v4-visual-system-review-20261117 _site/v4-visual-system-review-20261117
+          test -s _site/v4-visual-system-review-20261117/index.html
+          test -s _site/v4-visual-system-review-20261117/compare.html
           # Media D independent review: exact full V4 runtime, one scoped media fix.
           cp -R _site/v4-review-20261116 _site/v4-media-system-review-20261117
           cp -R v4-media-system-review-20261117/. _site/v4-media-system-review-20261117/
