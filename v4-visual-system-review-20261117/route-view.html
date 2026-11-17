@@ -625,6 +625,9 @@ root.innerHTML='<div class="vr-toggle" role="group" aria-label="切换同一真�
  '<p>直接操作原版产品；切换样式不重置当前卡片、拖动位置与内容。进入其他页面仍可继续切换。</p>'+
  '<div class="vr-links"><a data-nav="index.html" href="'+path+'index.html">地图首页</a><button type="button" data-act="fav">我的收藏</button><button type="button" data-act="search">搜索</button><a data-nav="journey.html" href="'+path+'journey.html">C V5 路线</a></div>'+
  '</div>';
+/* Hide scene actions that do not exist in this actual product surface. */
+if(!document.getElementById('dockStars'))root.querySelector('[data-act="fav"]')?.remove();
+if(!(document.getElementById('fpTopSearch')||document.getElementById('searchInput')))root.querySelector('[data-act="search"]')?.remove();
 function navigate(file){location.assign(path+file+'?visual='+encodeURIComponent(mode));}
 root.addEventListener('click',ev=>{
  const btn=ev.target.closest('button,a');if(!btn)return;
