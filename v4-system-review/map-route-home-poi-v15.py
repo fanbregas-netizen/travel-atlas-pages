@@ -60,12 +60,12 @@ art="""  // Draw one of the EXACT homepage marker families. All geographic
 """
 s=s[:start]+art+s[end:]
 once(
- "class=\"rc-pin rc-choice-pin ${{selected?'selected':''} ${{String(spot.id)===liveTopPlaceId?'fp-route-tapped':''}\"",
- "class=\"rc-pin rc-choice-pin ${{selected?'selected':''} ${{String(spot.id)===liveTopPlaceId?'fp-route-tapped':''} fp-route-home-${{routeHomeKind(spot)}\"",
+ "class=\"rc-pin rc-choice-pin ${selected?'selected':''} ${String(spot.id)===liveTopPlaceId?'fp-route-tapped':''}\"",
+ "class=\"rc-pin rc-choice-pin ${selected?'selected':''} ${String(spot.id)===liveTopPlaceId?'fp-route-tapped':''} fp-route-home-${routeHomeKind(spot)}\"",
  'route mark uses home icon kind')
 once(
- '><img class="fp-route-poi-art" src="${{routeIcon(spot)}" alt="" aria-hidden="true"></button>',
- '>${{routeArtwork(spot)}</button>',
+ '><img class="fp-route-poi-art" src="${routeIcon(spot)}" alt="" aria-hidden="true"></button>',
+ '>${routeArtwork(spot)}</button>',
  'reuse home saved-star SVG, semantic glyph or generic selection')
 once(
  "  id:'live'+i,storeId:String(p.id),starred:p.starred!==false,routeOnly:!!p.routeOnly,",
