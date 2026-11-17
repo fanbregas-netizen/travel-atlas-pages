@@ -19,7 +19,7 @@ function stop(el){
  // The old card must not retain an inert/pointer-blocked state if the user
  // closes it or rapidly selects another map POI mid-flight.
  el.inert=false;
- for(const selector of ['.destination-title','.destination-category']){
+ for(const selector of ['.destination-title','.destination-category','.destination-actions']){
   el.querySelector(selector)?.style.removeProperty('opacity');
  }
  el.dataset.fpElasticState='idle';
@@ -28,6 +28,12 @@ function revealCard(el,{renew=false,commit}={}){
  if(!el)return;
  const motor=window.FootprintRubberSpring;
  const previous=motion.get(el);
+ // A rapid second POI tap can interrupt the first spring half-way through.
+ // Sample the *current rendered pose* before cancelling: otherwise a new
+ // 0->1 motor snaps the card and its labels back to their initial frame.
+ const carryY=previous&&renew?(parseFloat(el.style.translate.split(/\\s+/).pop())||0):0;
+ const carryScale=previous&&renew?(parseFloat(el.style.scale.split(/\\s+/).pop())||1):1;
+ const carryOpacity=previous&&renew?(parseFloat(el.querySelector('.destination-title')?.style.opacity)||1):1;
  if(previous){previous.cancel();motion.delete(el)}
  if(reduced()||typeof motor?.animate!=='function'){
   commit?.();stop(el);return;
@@ -48,21 +54,26 @@ function revealCard(el,{renew=false,commit}={}){
    // jumping map projection or direct in-place text swap.
    const dip=Math.sin(Math.PI*p);
    if(p>=.5&&!committed){committed=true;commit?.()}
-   const alpha=Math.max(0,1-dip*1.12);
-   for(const selector of ['.destination-title','.destination-category']){
+   // Blend an interrupted animation's last visual pose into this new
+   // handoff during its opening frames. A single motor remains in control.
+   const carry=Math.pow(Math.max(0,1-p/.24),2);
+   const alpha=clamp(1-dip*1.12+(carryOpacity-1)*carry,0,1);
+   for(const selector of ['.destination-title','.destination-category','.destination-actions']){
     const node=el.querySelector(selector);
     if(node)node.style.setProperty('opacity',alpha.toFixed(3));
    }
    const rebound=Math.max(0,t-1);
-   el.style.setProperty('translate','0 '+(dip*43-rebound*48).toFixed(2)+'px','important');
-   el.style.setProperty('scale','1 '+(1-.055*dip+rebound*.07).toFixed(5),'important');
+   el.style.setProperty('translate','0 '+(dip*43-rebound*48+carryY*carry).toFixed(2)+'px','important');
+   // One scalar scales the whole card uniformly (two values previously
+   // squeezed only the Y axis).
+   el.style.setProperty('scale',(1-.055*dip+rebound*.07+(carryScale-1)*carry).toFixed(5),'important');
   }else{
    if(!committed){committed=true;commit?.()}
    const overshoot=1-t;
    if(overshoot<-.008)el.dataset.fpElasticOvershoot='1';
    const dy=overshoot*84;
    el.style.setProperty('translate','0 '+dy.toFixed(2)+'px','important');
-   el.style.setProperty('scale','1 '+(1-.085*overshoot).toFixed(5),'important');
+   el.style.setProperty('scale',(1-.085*overshoot).toFixed(5),'important');
   }
  };
  m=motor.animate({from:0,to:1,epsilon:.0015,maxMs:790,onFrame:apply,
