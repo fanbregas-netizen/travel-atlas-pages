@@ -557,7 +557,13 @@ jobs:
           done
           curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}index.html" -o /tmp/map-durable-index
           grep -q 'atlas-v4-map-system-review-20261117-' /tmp/map-durable-index
-          grep -q 'map-safari-acceptance-6' /tmp/map-durable-index
+          # The route and home build now use the cache-busted, validated
+          # blue-gray V4 map. Do not reject it using an old script version.
+          grep -q 'map-safari-acceptance-8' /tmp/map-durable-index
+          grep -q 'map-home-bluegray-v18.js?v=bluegray-19' /tmp/map-durable-index
+          curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}map-home-bluegray-v18.js" -o /tmp/map-durable-bluegray.js
+          node --check /tmp/map-durable-bluegray.js
+          grep -q 'bluegray-v18' /tmp/map-durable-bluegray.js
           grep -Fq 'poi-svg-motion-v4.js?v=poi-pop-5' /tmp/map-durable-index
           grep -Fq 'poi-svg-motion-v4.js?v=poi-pop-5' /tmp/map-durable-index
           curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}src/interaction/poi-svg-motion-v4.js" -o /tmp/map-durable-poi-pop.js
