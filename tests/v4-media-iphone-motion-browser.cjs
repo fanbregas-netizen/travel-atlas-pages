@@ -90,7 +90,7 @@ async function gesture(cdp,coords){
     }
     // B01 approved: visible small-screen videos animate, silently and in a loop.
     const tiles=page.locator('#fpPlaceCard .fp-media-mosaic video');
-    assert.equal(await tiles.count(),3,'Three live small-screen videos expected');
+    assert.equal(await tiles.count(),2,'The five-cell mosaic must show two animated videos and +1 overflow');
     await tiles.first().scrollIntoViewIfNeeded();
     await page.waitForFunction(()=>{
       const vs=[...document.querySelectorAll('#fpPlaceCard .fp-media-mosaic video')];
