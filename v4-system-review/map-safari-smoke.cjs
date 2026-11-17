@@ -363,7 +363,12 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
       return {
         pinCount:document.querySelectorAll('#rc-map-pins [data-place-id^="live-map-"]').length,
         foreground:pin?.classList.contains('fp-route-tapped'),zIndex:Number(getComputedStyle(pin).zIndex),
-        hasHanddrawnIcon:!!img&&/\/icons\/(?:16_add_place|21_mountain|22_sea|23_forest|24_town|26_lake|43_food|44_stay|45_museum|46_park|47_coffee|48_transit)\.svg$/.test(img.getAttribute('src')||''),
+        homeGlyph:!!img&&!!pin?.classList.contains('fp-route-home-generic')&&
+          /^data:image\/svg\+xml;base64,/.test(img.getAttribute('src')||''),
+        usesPlusGlyph:!!img&&/16_add_place\.svg/.test(img.getAttribute('src')||''),
+        homeCategoryMapReady:typeof window.AtlasPOIIcons?.categoryFor==='function',
+        semanticHospital:window.AtlasPOIIcons?.categoryFor?.('hospital','上海市嘉定区南翔医院')==='hospital',
+        semanticIconSrc:window.AtlasPOIIcons?.fileFor?.('hospital','医院'),
         centerErrorPx:Math.hypot(x-frame.width/2,y-(visible?.targetY??frame.height/2)),
         visibleAboveSheet:y<(visible?.sheetTop??frame.height)-16,
         mapUncoveredBottom:visible?.visibleBottom,
@@ -381,7 +386,12 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
     assert.equal(routePoi.pinCount,1,'Route map point created duplicate pins');
     assert.equal(routePoi.foreground,true,'Route POI lost selected foreground after motion');
     assert.ok(routePoi.zIndex>=16,'Selected route POI not in top map layer');
-    assert.equal(routePoi.hasHanddrawnIcon,true,'Route POI did not reuse V3 handdrawn art');
+    assert.equal(routePoi.homeGlyph,true,'Unclassified route map tap did not reuse the approved homepage selected-location glyph');
+    assert.equal(routePoi.usesPlusGlyph,false,'Route map still displays the old generic plus-location tile');
+    assert.equal(routePoi.homeCategoryMapReady,true,'Route page did not reuse the exact homepage 22-category POI classifier');
+    assert.equal(routePoi.semanticHospital,true,'Homepage semantic category mapping was not preserved');
+    assert.ok(/51_hospital\.svg$/.test(routePoi.semanticIconSrc||''),
+      'Home POI semantic asset mismatch: '+JSON.stringify(routePoi));
     assert.ok(routePoi.centerErrorPx<12,'Selected route POI not centered in exposed map above card: '+JSON.stringify(routePoi));
     assert.equal(routePoi.visibleAboveSheet,true,
       'C V5 card covers the selected map point: '+JSON.stringify(routePoi));
