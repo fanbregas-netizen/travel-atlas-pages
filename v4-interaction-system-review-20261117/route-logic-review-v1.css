@@ -107,3 +107,35 @@ body.fp-route-fallback #pinLayer{z-index:5}
 #fpRouteAnchors>button#fpRouteEndPin{background:#b89043}
 #fpRouteAnchors>button[hidden]{display:none!important}
 body.fp-route-place-open #fpRouteAnchors>button{pointer-events:none}
+
+/* One Dock only: the review controls share the actual route viewer's #stopsDock,
+   rather than generating a second floating row over the map. */
+body.fp-route-review #stopsDock{
+ display:flex!important;flex-direction:column;gap:4px;
+ bottom:0!important;left:0!important;right:0!important;
+ width:min(540px,100%)!important;max-width:540px!important;
+ margin-left:auto!important;margin-right:auto!important;
+ border-radius:24px 24px 0 0!important;
+ background:rgba(255,254,250,.975)!important;
+ border:1px solid #ece7dc!important;border-bottom:0!important;
+ padding:8px 12px calc(9px + env(safe-area-inset-bottom))!important;
+ box-shadow:0 -11px 44px rgba(27,35,30,.13)!important;
+}
+body.fp-route-review #stopsDock #fpRouteTools{
+ position:relative!important;inset:auto!important;left:auto!important;
+ right:auto!important;bottom:auto!important;
+ transform:none!important;translate:none!important;
+ margin:2px 0 0!important;width:100%!important;max-width:none!important;
+ box-shadow:none!important;border:0!important;border-radius:13px!important;
+ padding:2px!important;background:transparent!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+}
+body.fp-route-review #stopsDock .rv-railrow{
+ display:flex!important;align-items:center;min-height:40px;order:-1;
+ margin:0!important;padding:0!important;width:100%;
+}
+body.fp-route-review #stopsDock #fpRouteTools button{min-height:44px!important}
+body.fp-route-panel-open #fpRouteTools,body.fp-route-place-open #fpRouteTools{
+ translate:none!important;
+}
