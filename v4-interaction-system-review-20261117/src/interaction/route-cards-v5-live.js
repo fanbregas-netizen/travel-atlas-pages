@@ -1204,7 +1204,13 @@ async function liveBoot(){
  }
  state.active=true;document.body.classList.add('rc-v3-on');shell.classList.add('rc-active');
  state.stage=state.stops.length>=2?'order':'select';
- renderStage();snap(state.stage==='order'?'half':'half');liveMapAction();
+ // A bounded 105px entry from the lower detent prevents a full-viewport overshoot.
+ // Keep the approved C V5 motor for both entry and subsequent swipe releases.
+ renderStage();
+ const initialDetent=snapPx('half');
+ paintHeight(Math.max(snapPx('peek'),initialDetent-105));
+ sheetVelocity=0;
+ snap('half');liveMapAction();
  // The map is a real geographic layer under the EXACT C V5 card.
  // It is nonblocking and does not own the sheet, stars, or route persistence.
  liveMountMap().catch(e=>{console.warn('路线地图加载',e);toast('地图暂时不可用，路线编辑仍可使用')});
