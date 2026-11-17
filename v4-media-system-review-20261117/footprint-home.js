@@ -563,7 +563,11 @@ const iphoneGallery=(()=>{
   s.stage.removeEventListener('touchend',s.onTouchEnd);
   s.stage.removeEventListener('touchcancel',s.onTouchCancel);
   window.removeEventListener('resize',s.onResize);
-  s.cells?.forEach(cell=>{try{cell.querySelector('video')?.pause()}catch(_){}});
+  if(s.videoActivationTimer){clearTimeout(s.videoActivationTimer);s.videoActivationTimer=null}
+  s.cells?.forEach(cell=>{
+   const v=cell.querySelector('video');if(!v)return;
+   try{v.pause();v.removeAttribute('src');v.load()}catch(_){}
+  });
   try{if(s.viewer.open)s.viewer.close()}catch(_){}
   s.viewer.remove();
   for(const url of s.urls.values())URL.revokeObjectURL(url);
@@ -690,8 +694,19 @@ const iphoneGallery=(()=>{
    s.track.style.transform=transform(-s.width);
    s.viewer.dataset.itemIndex=String(s.index);
    s.drag=null;s.locked=false;s.viewer.dataset.gestureState='rest';
-   updateLabel(s);activate(s);chrome(s,1);
-   if(s.queuedDir){const queued=s.queuedDir;s.queuedDir=0;requestAnimationFrame(()=>{if(!s.closed)navigate(s,queued)})}
+   updateLabel(s);chrome(s,1);
+   if(s.queuedDir){
+    const queued=s.queuedDir;s.queuedDir=0;
+    // A rapid flick should not create/decode the intermediate video.
+    requestAnimationFrame(()=>{if(!s.closed)navigate(s,queued)});
+   }else if(s.items[s.index]?.kind==='video'){
+    const activationIndex=s.index;
+    // Defer creating/starting the video decoder until after the slide has painted.
+    s.videoActivationTimer=setTimeout(()=>{
+     s.videoActivationTimer=null;
+     if(!s.closed&&!s.closing&&s.index===activationIndex)activate(s);
+    },65);
+   }else activate(s);
   });
  }
  function bindTouches(s){
