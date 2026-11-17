@@ -14,7 +14,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
+      name: v4-safari-acceptance
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +22,7 @@ jobs:
           ref: main
       - uses: actions/checkout@v4
         with:
-          ref: f2e36d7dd8b0a9577e8e3bcd47d6c73079bcc37b
+          ref: 54c2b68347e3bfe2a7e7ed47ef63e12550e007b
           path: __candidate
       - name: Reproduce existing production artifact unchanged and append independent review
         run: |
