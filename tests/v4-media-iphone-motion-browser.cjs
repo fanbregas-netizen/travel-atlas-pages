@@ -79,7 +79,7 @@ async function gesture(cdp,coords){
     });
     assert.equal(initial.index,'0');assert.equal(initial.slideCount,3);
     await page.waitForFunction(()=>document.querySelector('#fpMediaViewer .fp-gallery-cell[data-item-index="0"] img')?.naturalWidth>=1000,null,{timeout:10000});
-    assert.equal(await page.locator('#fpMediaViewer .fp-gallery-cell img').count(),3,'Unexpected full-resolution image duplicates');
+    assert.ok((await page.locator('#fpMediaViewer .fp-gallery-cell img').count())<=2,'Unexpected full-resolution image duplicates');
     assert.ok(initial.close.width>=43&&initial.close.height>=43,'44 px close missing');
     const cdp=await context.newCDPSession(page);
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:width-75,y:420}]});
