@@ -153,6 +153,15 @@ if p.name=='route-cards-v5-live.js':
  }
  liveMap.on('render',keepSelectedRouteGeoAligned);
  liveMap.on('idle',keepSelectedRouteGeoAligned);
+ // C V5 mapRender() can rewrite a route button AFTER the WebGL frame or
+ // while sheet height changes. Observe only the existing POI layer and
+ // immediately restore this same selected marker's geographic coordinates.
+ const routePinPlane=routeMap.querySelector('#rc-map-pins');
+ if(routePinPlane&&typeof MutationObserver==='function'){
+  const pinWatch=new MutationObserver(()=>keepSelectedRouteGeoAligned());
+  pinWatch.observe(routePinPlane,{subtree:true,childList:true,attributes:true,attributeFilter:['style','class']});
+  window.addEventListener('pagehide',()=>pinWatch.disconnect(),{once:true});
+ }
  // Tap a previously saved marker with the same Apple-like POI raise/center.
  // The existing C V5 button listener still owns selection and route state.
  routeMap.querySelector('#rc-map-pins')?.addEventListener('click',e=>{
