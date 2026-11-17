@@ -27,7 +27,7 @@ fs.mkdirSync('route-minimal-qa',{recursive:true});
      const line=document.querySelector('#routeSegs .seg-stroke');
      return {viewport,dock:{x:dock.x,width:dock.width,right:dock.right},tools:{x:tools.x,right:tools.right},summary:{x:summary.x,width:summary.width},pathLength:line?.getAttribute('d')?.length||0};
    });
-   assert.ok(layout.dock.x>=-3&&layout.dock.right<=layout.viewport+3&&layout.dock.width>=layout.viewport-4,'Dock is clipped/offscreen: '+JSON.stringify(layout));
+   assert.ok(layout.dock.x>=5&&layout.dock.x<=14&&layout.dock.right<=layout.viewport-5&&layout.dock.right>=layout.viewport-14&&layout.dock.width>=layout.viewport-25,'Dock is clipped/offscreen: '+JSON.stringify(layout));
    assert.ok(layout.summary.x>=0&&layout.summary.width>=25,'Route summary hidden: '+JSON.stringify(layout));
    assert.ok(layout.pathLength>10,'Main route guide must render immediately on map: '+JSON.stringify(layout));
    assert.equal(await page.locator('#fpRouteTools button:visible').count(),3,'compact Dock = summary, add, adjust');
