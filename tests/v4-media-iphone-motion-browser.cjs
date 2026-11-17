@@ -37,8 +37,23 @@ async function gesture(cdp,coords){
       photos:[{id:'p1',name:'第一张',src:pixel},{id:'p2',name:'第二张',src:pixel},{id:'p3',name:'第三张',src:pixel}],
       videos:[],guides:[],note:'原始 Brief'
     }),{id,pixel});
-    await page.evaluate(id=>window.__atlasDemo.openSaved(id),id);
-    await page.waitForSelector('#fpPlaceCard:not([hidden]) .fp-media-mosaic button',{timeout:16000});
+    await page.evaluate(async id=>{
+      await window.__atlasSetBookmarkStarred(id,false);
+      await window.__atlasSetBookmarkStarred(id,true);
+      window.__atlasDemo.openSaved(id);
+    },id);
+    try{await page.waitForSelector('#fpPlaceCard:not([hidden]) .fp-media-mosaic button',{timeout:16000})}
+    catch(error){
+      const snapshot=await page.evaluate(()=>({
+        saved:window.__atlasDemo?.getSaved?.(),
+        card:document.querySelector('#fpPlaceCard')?.outerHTML.slice(0,1200),
+        bodyClass:document.body.className,
+        feedback:document.querySelector('#fpCardFeedback')?.textContent
+      }));
+      console.error('Media card bootstrap diagnostic',JSON.stringify(snapshot));
+      await page.screenshot({path:output+'/bootstrap-error-'+width+'.png'});
+      throw error;
+    }
     await page.locator('#fpPlaceCard .fp-media-mosaic button').first().click();
     await page.waitForSelector('#fpMediaViewer[data-media-motion="iphone-v2"] .fp-gallery-track',{timeout:12000});
     const initial=await page.evaluate(()=>{
