@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fffefa"><title>Footprint Map V4 · 真实产品视觉前后对照</title>
+<style>
+:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#2b4033}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f2}
+header{padding:calc(16px + env(safe-area-inset-top)) 15px 12px;background:#fffefa;border-bottom:1px solid #e2e9e1;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:11px}
+h1{font-size:18px;letter-spacing:-.02em;margin:0}header p{font-size:12px;color:#7a8b7c;margin:5px 0 0;line-height:1.5}
+nav{display:flex;flex-wrap:wrap;gap:7px}a,button,select{font:inherit;font-weight:650;font-size:12px;border-radius:12px;border:1px solid #dce6db;background:#fff;padding:11px 12px;color:#3a513f;text-decoration:none;cursor:pointer}
+a.active,button.primary{background:#f1d98f;color:#513d1f;border-color:#e7d091}
+.instructions{font-size:12px;color:#64786a;padding:12px 15px 0;text-align:center}
+.scroller{display:flex;gap:15px;justify-content:center;align-items:flex-start;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:14px 15px calc(24px + env(safe-area-inset-bottom))}
+.panel{flex:0 0 393px;max-width:calc(100vw - 30px);scroll-snap-align:center}
+.panel h2{font-size:13px;font-weight:700;letter-spacing:0;display:flex;align-items:center;justify-content:space-between;margin:0 0 8px}
+.panel h2 span{font-weight:450;color:#7a8b7c;font-size:11px}
+.device{position:relative;width:100%;height:min(760px,calc(100dvh - 165px));min-height:500px;background:#fff;border:1px solid #dce4d9;border-radius:24px;box-shadow:0 9px 30px #283f2b22;overflow:hidden}
+iframe{width:100%;height:100%;border:0;background:#f4f5f1}
+.device .placeholder{position:absolute;inset:0;display:grid;place-items:center;padding:30px;color:#819287;font-size:12px;text-align:center;line-height:1.7}
+footer{text-align:center;font-size:11px;color:#819287;padding:0 12px 15px;line-height:1.7}
+@media(min-width:850px){.panel{width:min(393px,45vw);flex-basis:min(393px,45vw)}.device{height:min(780px,calc(100dvh - 145px))}}
+</style></head>
+<body><header><div><h1>Footprint Map V4｜视觉交互对照</h1><p>真实 V4 .19 产品实例 · 现款收藏地点卡片为视觉标准</p></div>
+<nav><select id="scene" aria-label="选择要对照的真实产品页面"><option value="index.html">地图／收藏／搜索／地点／媒体</option><option value="journey.html">唯一 C V5 路线规划</option><option value="route-view.html">路线详情页面</option></select><button id="load" class="primary" type="button">启动并排对照</button><a href="./index.html?visual=after" id="openFull">全屏操作</a></nav></header>
+<p class="instructions">两侧均是真实产品，非截图或重新绘制。iPhone 横向滑动查看两侧；如出现卡顿，使用「全屏操作」切换改前／改后。</p>
+<main class="scroller" aria-label="可交互的改前改后真实产品对照"><section class="panel"><h2>改前 · 现款原样 <span>独立操作</span></h2><div class="device"><div class="placeholder" id="p1">点击上方「启动并排对照」加载原版产品</div><iframe id="before" title="改前实际产品" loading="lazy" allow="geolocation"></iframe></div></section>
+<section class="panel"><h2>改后 · 视觉统一 <span>同一套交互逻辑</span></h2><div class="device"><div class="placeholder" id="p2">视觉层只统一眉头、字级、留白、按钮和卡片层级</div><iframe id="after" title="改后实际产品" loading="lazy" allow="geolocation"></iframe></div></section></main>
+<footer>仅视觉验收｜未合并整合产品｜未修改 C V5 路线、地图引擎或数据模型。</footer>
+<script>
+const select=document.getElementById('scene'), load=document.getElementById('load'), openFull=document.getElementById('openFull');
+function choose(){
+const file=select.value;
+openFull.href='./'+file+'?visual=after';
+const left=document.getElementById('before'),right=document.getElementById('after');
+for(const [frame,kind] of [[left,'before'],[right,'after']]){frame.src='./'+file+'?visual='+kind+'&compare=1';}
+document.getElementById('p1').remove();document.getElementById('p2').remove();
+load.textContent='重载两侧';
+}
+load.addEventListener('click',choose);
+select.addEventListener('change',()=>{openFull.href='./'+select.value+'?visual=after'});
+</script></body></html>
