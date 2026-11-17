@@ -202,7 +202,7 @@ html.visual-after body #drawer .drawer-head #closeDrawer{
 }
 html.visual-after body #drawer .drawer-head #closeDrawer::before{
  content:""!important;display:block!important;
- width:30px!important;height:30px!important;margin:auto!important;
+ width:21px!important;height:21px!important;margin:auto!important;
 }
 /* Card B: 潭子湾. FIX THE REAL DOUBLE GRIP, NOT JUST ITS COLOR.
    footprint-home.js appends a decorative sibling .sheet-grab.
@@ -214,20 +214,24 @@ html.visual-after body #fpPlaceCard:has(.atlas-card-grip) > .sheet-grab{
 }
 html.visual-after body #fpPlaceCard .fp-card-header{
  position:relative!important;
+ box-sizing:border-box!important;
+ height:142px!important;min-height:142px!important;max-height:142px!important;
  padding:33px 18px 12px!important;
  grid-template-rows:44px 44px!important;
+ grid-auto-rows:0!important;
  row-gap:9px!important;
+ align-content:start!important;
  background:var(--vh-paper)!important;
  border-bottom:1px solid var(--vh-line)!important;
 }
 html.visual-after body #fpPlaceCard .fp-card-header > .atlas-card-grip{
  position:absolute!important;z-index:2!important;
- top:5px!important;left:0!important;right:0!important;
+ top:5px!important;left:calc(50% - 22px)!important;right:auto!important;
  grid-column:auto!important;grid-row:auto!important;
  display:grid!important;place-items:center!important;
  width:44px!important;height:21px!important;
  min-width:44px!important;min-height:21px!important;
- margin:0 auto!important;padding:0!important;
+ margin:0!important;padding:0!important;
  border:0!important;border-radius:0!important;
  background:transparent!important;box-shadow:none!important;
  cursor:grab!important;
@@ -240,6 +244,16 @@ html.visual-after body #fpPlaceCard .fp-card-header > .atlas-card-grip::before{
 html.visual-after body #fpPlaceCard .fp-card-header .fp-card-name{
  align-self:center!important;
  margin:0!important;padding:0!important;
+}
+/* Keep optional address metadata out of the 2-row header grid. */
+html.visual-after body #fpPlaceCard .fp-card-header .fp-card-location{display:none!important}
+html.visual-after body #fpPlaceCard .fp-card-header .fp-place-stage{
+ grid-column:1!important;grid-row:2!important;
+ align-self:center!important;justify-self:start!important;
+}
+html.visual-after body #fpPlaceCard .fp-card-header .fp-card-head-actions{
+ grid-column:2/-1!important;grid-row:2!important;
+ align-self:center!important;justify-self:end!important;
 }
 html.visual-after body #fpPlaceCard .fp-card-header > .fp-card-close{
  grid-column:3!important;grid-row:1!important;
