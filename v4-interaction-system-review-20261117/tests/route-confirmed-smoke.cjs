@@ -36,9 +36,32 @@ const chrome=['google-chrome','chromium'].map(n=>{try{return cp.execFileSync('wh
   await page.waitForFunction(()=>!!window.__atlasJourneyRoute?.getState&&document.querySelectorAll('#places .place').length===4,null,{timeout:10000});
   const st=await page.evaluate(()=>({selected:window.__atlasJourneyRoute.getState().selected.length,sections:document.querySelectorAll('.builder>section.block').length,visual:!!window.__atlasJourneyVisual,rows:document.querySelectorAll('#places .place').length,tool:!!window.FootprintRouteEngine,media:!!window.FootprintMediaCore}));
   console.log('SMOKE READY',JSON.stringify(st));assert.equal(st.rows,4);assert.equal(st.visual,true);
-  console.log('SMOKE 4 activate place list');
+  console.log('SMOKE 4 verify first-open iPhone sheet layout');
+  await page.waitForTimeout(950);
+  const geometry=await page.evaluate(()=>{
+    const rect=selector=>{const r=document.querySelector(selector)?.getBoundingClientRect();
+     return r?{top:+r.top.toFixed(1),bottom:+r.bottom.toFixed(1),height:+r.height.toFixed(1),left:+r.left.toFixed(1),right:+r.right.toFixed(1)}:null};
+    return {step:window.__atlasJourneyVisual?.step,root:rect('.builder'),bar:rect('.journey-sheet-toolbar'),
+      grip:rect('.journey-sheet-grip'),nav:rect('.journey-step-nav'),tab:rect('.journey-step-nav button'),
+      layout:rect('#journey'),saveDisabled:document.getElementById('savePlan')?.disabled,
+      orderHidden:getComputedStyle(document.querySelector('[data-route-step="order"]')).display==='none',
+      placesVisible:getComputedStyle(document.querySelector('[data-route-step="places"]')).display!=='none',
+      available:document.querySelectorAll('#places .place').length};
+  });
+  console.log('SMOKE GEOMETRY',JSON.stringify(geometry));
+  assert.equal(geometry.step,'places','empty route must open location selection');
+  assert.equal(geometry.placesVisible,true);
+  assert.equal(geometry.orderHidden,true);
+  assert.equal(geometry.saveDisabled,true,'cannot save zero-stop route');
+  assert.ok(geometry.bar.top>=geometry.root.top-3,'card header must not clip above top edge');
+  assert.ok(geometry.grip.top>=geometry.root.top-3,'centered grip cannot be clipped');
+  assert.ok(geometry.nav.top>=geometry.root.top+15,'step navigation must be visible inside card');
+  assert.ok(geometry.nav.bottom<=geometry.root.bottom-5,'step navigation must not be below sheet viewport');
+  assert.ok(geometry.layout.height<200,'empty journey background must not be a giant blank map');
+  fs.mkdirSync('route-smoke-evidence',{recursive:true});
+  await page.screenshot({path:'route-smoke-evidence/empty-route-390.png'});
   await page.evaluate(()=>window.__atlasJourneyVisual?.setStep('places'));
-  await page.waitForTimeout(450);
+  await page.waitForTimeout(180);
   console.log('SMOKE 5 add four real points');
   for(const title of ['沿海 A','沿海 C','沿海 B','沿海 D']){
     console.log('SMOKE click',title);
