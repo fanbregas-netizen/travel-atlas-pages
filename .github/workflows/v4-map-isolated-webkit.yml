@@ -95,3 +95,11 @@ jobs:
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 --directory review >/tmp/map-only-http.log 2>&1 &
           node __prototype/v4-system-review/map-safari-smoke.cjs
+      - name: Archive actual WebKit iPhone animation frames for visual review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: map-safari-motion-frames
+          path: map-evidence/
+          if-no-files-found: ignore
+          retention-days: 7
