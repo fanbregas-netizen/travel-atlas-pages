@@ -96,7 +96,7 @@ once(
 # Remove obsolete resize() calls from tap/start/moveend; MapLibre's native
 # ResizeObserver still covers real window orientation/viewport changes.
 once(
- """   if(focusSerial!==liveTapFocusSerial||!liveMap)return;
+ """  if(focusSerial!==liveTapFocusSerial||!liveMap)return;
    liveMap.resize();""",
  """   if(focusSerial!==liveTapFocusSerial||!liveMap)return;""",
  'no-map-resize-on-tap')
