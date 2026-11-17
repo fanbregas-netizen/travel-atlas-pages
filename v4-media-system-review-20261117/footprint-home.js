@@ -573,6 +573,8 @@ const iphoneGallery=(()=>{
   s.stage.removeEventListener('touchmove',s.onTouchMove,true);
   window.removeEventListener('touchend',s.onTouchEnd,true);
   window.removeEventListener('touchcancel',s.onTouchCancel,true);
+  window.removeEventListener('pointerup',s.onPointerUp,true);
+  window.removeEventListener('pointercancel',s.onPointerCancel,true);
   window.removeEventListener('resize',s.onResize);
   if(s.videoActivationTimer){clearTimeout(s.videoActivationTimer);s.videoActivationTimer=null}
   s.cells?.forEach(cell=>{
@@ -810,6 +812,14 @@ const iphoneGallery=(()=>{
   s.stage.addEventListener('touchmove',s.onTouchMove,{passive:false,capture:true});
   window.addEventListener('touchend',s.onTouchEnd,{passive:true,capture:true});
   window.addEventListener('touchcancel',s.onTouchCancel,{passive:true,capture:true});
+  // iOS WebKit may terminate a native video gesture with pointerup but no touchend.
+  s.onPointerUp=e=>{
+   if(e.pointerType!=='touch'||!s.drag)return;
+   s.onTouchEnd({changedTouches:[{clientX:e.clientX,clientY:e.clientY}]});
+  };
+  s.onPointerCancel=e=>{if(e.pointerType==='touch'&&s.drag)s.onTouchCancel()};
+  window.addEventListener('pointerup',s.onPointerUp,{passive:true,capture:true});
+  window.addEventListener('pointercancel',s.onPointerCancel,{passive:true,capture:true});
  }
  function open(items,index,originTile){
   close(true);
