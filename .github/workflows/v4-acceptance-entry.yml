@@ -24,6 +24,10 @@ jobs:
         with:
           ref: refactor/v4-clean-ui-20261116
           path: __candidate
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/v4-acceptance-20261117
+          path: __prototype
       - name: Assert exact tested candidate commit
         run: test "$(git -C __candidate rev-parse HEAD)" = 54c2b68347e3bfe2a7e7ed47ef63e12550e007b7
       - name: Reproduce existing production artifact unchanged and append independent review
@@ -47,6 +51,11 @@ jobs:
           assert not dest.exists()
           shutil.copytree('__candidate/v4-review-20261116',dest)
           assert len(list(p for p in dest.rglob('*') if p.is_file()))==164
+          demo=root/'v4-card-master-review'
+          assert not demo.exists()
+          demo.mkdir()
+          shutil.copyfile('__prototype/v4-card-master-review/index.html',demo/'index.html')
+          assert (demo/'index.html').stat().st_size>1000000
           after=hashes()
           assert all(after[p]==h for p,h in original.items())
           print('All',len(original),'existing deployed files unchanged; appended 164 candidate files.')
@@ -60,3 +69,5 @@ jobs:
         run: |
           curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-acceptance-20261117/' -o /tmp/entry.html
           cmp /tmp/entry.html __candidate/v4-review-20261116/index.html
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-card-master-review/' -o /tmp/card-demo.html
+          cmp /tmp/card-demo.html __prototype/v4-card-master-review/index.html
