@@ -25,38 +25,38 @@ once(
 
 # A large rendered-feature hit rectangle must not pick the first unrelated label.
 # Prefer a real direct hit, then the nearest geometrically verified point.
-start='''       const pool=feats.filter(f=>/poi|place|station|shop|amenity|tourism|historic|museum|hotel|restaurant|cafe|railway|mountain_peak|attraction|park|garden/.test((f.layer?.id||'').toLowerCase()+' '+(f.sourceLayer||'')+' '+(f.properties?.class||'')+' '+(f.properties?.subclass||''))&&readPoiName(f.properties||{}));
-       if(!pool.length)continue;
-       poi=pool.map(f=>{
-         let d=Infinity;
-         try{
-           if(f.geometry?.type==='Point'&&Array.isArray(f.geometry.coordinates)){
-             const px=vectorMap.project(f.geometry.coordinates);
-             d=Math.hypot(px.x-e.point.x,px.y-e.point.y);
-           }
-         }catch(_){}
-         return{f,d};
-       }).sort((a,b)=>a.d-b.d)[0].f;
-       break;'''
-end='''       const eligible=f=>/poi|place|station|shop|amenity|tourism|historic|museum|hotel|restaurant|cafe|railway|mountain_peak|attraction|park|garden/.test((f.layer?.id||'').toLowerCase()+' '+(f.sourceLayer||'')+' '+(f.properties?.class||'')+' '+(f.properties?.subclass||''))&&readPoiName(f.properties||{});
-       const pool=feats.filter(eligible);
-       if(!pool.length)continue;
-       let direct=[];
-       try{direct=vectorMap.queryRenderedFeatures(e.point).filter(eligible)}catch(_){}
-       const candidates=(direct.length?direct:pool).map(f=>{
-         let d=Infinity;
-         try{
-           if(f.geometry?.type==='Point'&&Array.isArray(f.geometry.coordinates)){
-             const px=vectorMap.project(f.geometry.coordinates);
-             d=Math.hypot(px.x-e.point.x,px.y-e.point.y);
-           }
-         }catch(_){}
-         return{f,d};
-       }).filter(item=>Number.isFinite(item.d)).sort((a,b)=>a.d-b.d);
-       if(candidates.length&&candidates[0].d<=pad+10){poi=candidates[0].f;break}
-       // Polygon labels are accepted only when the finger actually intersects
-       // the painted feature, not an arbitrary 38px neighboring rectangle.
-       if(direct.length){poi=direct[0];break}'''
+start='''      const pool=feats.filter(f=>/poi|place|station|shop|amenity|tourism|historic|museum|hotel|restaurant|cafe|railway|mountain_peak|attraction|park|garden/.test((f.layer?.id||'').toLowerCase()+' '+(f.sourceLayer||'')+' '+(f.properties?.class||'')+' '+(f.properties?.subclass||''))&&readPoiName(f.properties||{}));
+      if(!pool.length)continue;
+      poi=pool.map(f=>{
+        let d=Infinity;
+        try{
+          if(f.geometry?.type==='Point'&&Array.isArray(f.geometry.coordinates)){
+            const px=vectorMap.project(f.geometry.coordinates);
+            d=Math.hypot(px.x-e.point.x,px.y-e.point.y);
+          }
+        }catch(_){}
+        return{f,d};
+      }).sort((a,b)=>a.d-b.d)[0].f;
+      break;'''
+end='''      const eligible=f=>/poi|place|station|shop|amenity|tourism|historic|museum|hotel|restaurant|cafe|railway|mountain_peak|attraction|park|garden/.test((f.layer?.id||'').toLowerCase()+' '+(f.sourceLayer||'')+' '+(f.properties?.class||'')+' '+(f.properties?.subclass||''))&&readPoiName(f.properties||{});
+      const pool=feats.filter(eligible);
+      if(!pool.length)continue;
+      let direct=[];
+      try{direct=vectorMap.queryRenderedFeatures(e.point).filter(eligible)}catch(_){}
+      const candidates=(direct.length?direct:pool).map(f=>{
+        let d=Infinity;
+        try{
+          if(f.geometry?.type==='Point'&&Array.isArray(f.geometry.coordinates)){
+            const px=vectorMap.project(f.geometry.coordinates);
+            d=Math.hypot(px.x-e.point.x,px.y-e.point.y);
+          }
+        }catch(_){}
+        return{f,d};
+      }).filter(item=>Number.isFinite(item.d)).sort((a,b)=>a.d-b.d);
+      if(candidates.length&&candidates[0].d<=pad+10){poi=candidates[0].f;break}
+      // Polygon labels are accepted only when the finger actually intersects
+      // the painted feature, not an arbitrary 38px neighboring rectangle.
+      if(direct.length){poi=direct[0];break}'''
 once(start,end,'poi-accurate-hit')
 
 # No synchronous duplicate bookmark repaints in mapmove + moveend + zoomend.
