@@ -1,0 +1,51 @@
+name: Footprint V4 real route integration iPhone acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v4-interaction-system-review-20261117/journey-real-confirmed-20261118*'
+      - 'v4-interaction-system-review-20261117/route-view-real-confirmed-20261118.html'
+      - 'v4-interaction-system-review-20261117/src/route/route-order-engine.js'
+      - 'v4-interaction-system-review-20261117/src/route/journey-confirmed-ui.*'
+      - 'v4-interaction-system-review-20261117/src/route/route-map-confirmed.css'
+      - 'v4-interaction-system-review-20261117/src/route/route-detail-sheet-confirmed.js'
+      - 'v4-interaction-system-review-20261117/tests/route-confirmed-real-live.cjs'
+      - '.github/workflows/v4-route-real-review-20261118.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  route-real-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify real scripts parse
+        run: |
+          node --check v4-interaction-system-review-20261117/journey-real-confirmed-20261118.js
+          node --check v4-interaction-system-review-20261117/src/route/route-order-engine.js
+          node --check v4-interaction-system-review-20261117/src/route/journey-confirmed-ui.js
+      - name: Install browser tools and Chinese font
+        run: |
+          npm install --no-save --ignore-scripts playwright-core@1.58.2
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+      - name: Start isolated real Pages preview
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/v4-real-route-qa.log 2>&1 &
+          sleep 2
+          curl -fsS http://127.0.0.1:8765/v4-interaction-system-review-20261117/journey-real-confirmed-20261118.html >/dev/null
+      - name: Exercise actual IDB route and three-snap map at iPhone widths
+        env:
+          ROUTE_REAL_BASE: http://127.0.0.1:8765/v4-interaction-system-review-20261117/
+        run: node v4-interaction-system-review-20261117/tests/route-confirmed-real-live.cjs
+      - name: Upload browser screenshots and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: route-real-iphone-evidence
+          path: route-real-evidence/
+          if-no-files-found: ignore
