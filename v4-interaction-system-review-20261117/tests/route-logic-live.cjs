@@ -24,6 +24,7 @@ fs.mkdirSync('interaction-motion-evidence',{recursive:true});
   let st=await page.evaluate(()=>window.__fpRouteLogicUI.getState());
   assert.equal(st.order.length,6);
   const firstId=st.order[0];
+  await page.waitForTimeout(1300); // let genuine map tiles paint before visual QA
   await page.screenshot({path:'interaction-motion-evidence/route-logic-initial.png'});
   await page.locator('#fpRouteTools [data-open="order"]').click();
   await page.locator('#fpRoutePanel [data-action="recommend"]').click();
