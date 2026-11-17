@@ -536,8 +536,12 @@ function paintAnchors(){
  var p=first?map.project([+first.lng,+first.lat]):a,q=last?map.project([+last.lng,+last.lat]):b;
  var valid=function(pt){return pt&&Number.isFinite(pt.x)&&Number.isFinite(pt.y)};
  if(![a,b,p,q].every(valid))return;
- var aVisible=a.x>35&&a.x<w-35&&a.y>145&&a.y<h-175;
- var bVisible=b.x>35&&b.x<w-35&&b.y>145&&b.y<h-175;
+ var overlapsStar=function(pt){return state.order.some(function(id){
+  var v=find(id);if(!v)return false;var q=map.project([+v.lng,+v.lat]);
+  return Math.hypot(pt.x-q.x,pt.y-q.y)<40;
+ })};
+ var aVisible=a.x>35&&a.x<w-35&&a.y>145&&a.y<h-175&&!overlapsStar(a);
+ var bVisible=b.x>35&&b.x<w-35&&b.y>145&&b.y<h-175&&!overlapsStar(b);
  el('fpRouteStartLine').setAttribute('d',aVisible?'M '+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L '+p.x.toFixed(1)+' '+p.y.toFixed(1):'');
  el('fpRouteEndLine').setAttribute('d',bVisible?'M '+q.x.toFixed(1)+' '+q.y.toFixed(1)+' L '+b.x.toFixed(1)+' '+b.y.toFixed(1):'');
  positionPin('fpRouteStartPin',a,aVisible);
