@@ -7,7 +7,7 @@ const fs=require('node:fs');
 const {chromium}=require('playwright-core');
 const bin=['google-chrome','google-chrome-stable','chromium'].map(x=>{try{return cp.execFileSync('which',[x],{encoding:'utf8'}).trim()}catch{return null}}).find(Boolean);
 if(!bin)throw Error('Chromium not found');
-const root='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-media-system-review-20261117/';
+const root=process.env.MEDIA_QA_ROOT||'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-media-system-review-20261117/';
 const output='v4-media-motion-evidence';fs.mkdirSync(output,{recursive:true});
 const pixel='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5pbiQAAAAASUVORK5CYII=';
 async function gesture(cdp,coords){
