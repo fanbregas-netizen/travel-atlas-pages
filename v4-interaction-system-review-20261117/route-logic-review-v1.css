@@ -1,0 +1,100 @@
+
+/* Footprint Map V4 · 路线规划逻辑独立验收。视觉基于现有 route-view.html，非正式产品。 */
+:root{--fp-r-paper:#fffefa;--fp-r-ink:#27312e;--fp-r-quiet:#85877f;--fp-r-stroke:#e9e6dc;--fp-r-gold:#ecc966;--fp-r-ease:cubic-bezier(.22,1,.36,1)}
+html,body{overscroll-behavior:none}
+body.fp-route-review{--fp-gold:#ecc966}
+#fpRouteBadge{position:fixed;z-index:1920;top:calc(70px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);white-space:nowrap;pointer-events:none;background:rgba(255,254,250,.92);border:1px solid rgba(221,216,203,.85);border-radius:999px;padding:6px 11px;color:#757971;font-size:10px;font-weight:650;box-shadow:0 5px 15px #1112;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#fpRouteTools{position:fixed;z-index:2130;left:50%;bottom:calc(102px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(370px,calc(100vw - 24px));padding:6px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;gap:4px;background:rgba(255,254,250,.97);border:1px solid #eae5da;border-radius:20px;box-shadow:0 8px 29px rgba(34,39,30,.14);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);transition:opacity .24s var(--fp-r-ease),translate .37s var(--fp-r-ease);will-change:translate}
+#fpRouteTools button{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;min-height:48px;border:0;border-radius:14px;background:transparent;color:#4c524c;font-size:11px;font-weight:650;padding:4px 1px}
+#fpRouteTools button:active{background:#f7f0db;transform:scale(.97)}
+#fpRouteTools svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.8}
+#stopsDock{z-index:2110!important;transition:opacity .25s ease,translate .38s var(--fp-r-ease)!important;will-change:translate}
+#routeEditV5{font-size:12px!important;background:var(--fp-r-paper)!important;color:var(--fp-r-ink)!important;border:1px solid var(--fp-r-stroke)!important}
+#fpRoutePanel{position:fixed;z-index:3700;left:50%;bottom:0;width:min(540px,100%);height:min(77dvh,760px);max-height:calc(100dvh - env(safe-area-inset-top) - 36px);border-radius:26px 26px 0 0;overflow:hidden;display:flex;flex-direction:column;background:var(--fp-r-paper);box-shadow:0 -15px 58px #1114;border:1px solid #e8e4db;border-bottom:0;transform:translate(-50%,calc(100% + 30px));opacity:0;visibility:hidden;pointer-events:none;transition:transform .4s var(--fp-r-ease),opacity .22s ease,visibility 0s linear .4s}
+body.fp-route-panel-open #fpRoutePanel{transform:translate(-50%,0);opacity:1;visibility:visible;pointer-events:auto;transition:transform .42s var(--fp-r-ease),opacity .22s ease,visibility 0s}
+#fpRoutePanel .fp-r-grab{height:5px;width:41px;background:#d2d0c7;border-radius:99px;margin:9px auto 5px;flex:none}
+.fp-r-panel-head{display:flex;align-items:center;justify-content:space-between;padding:2px 17px 6px;flex:none}
+.fp-r-panel-head strong{font-size:19px;letter-spacing:-.035em;color:var(--fp-r-ink)}
+.fp-r-close{border:0;background:transparent;width:44px;height:44px;color:#77786e;font-size:24px;line-height:1}
+#fpRoutePanelTabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;margin:0 16px 10px;padding:4px;background:#f4f2ec;border-radius:14px;flex:none}
+#fpRoutePanelTabs button{min-width:0;border:0;background:transparent;border-radius:10px;padding:11px 2px;color:#7c7f76;font-size:11px;font-weight:650;white-space:nowrap}
+#fpRoutePanelTabs button.active{background:#fffefa;box-shadow:0 1px 6px #18181813;color:var(--fp-r-ink)}
+#fpRoutePanelBody{min-height:0;flex:1;overflow-y:auto;padding:1px 17px calc(32px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.fp-r-section{padding:8px 0 15px;border-bottom:1px solid var(--fp-r-stroke)}
+.fp-r-section:last-child{border-bottom:0}
+.fp-r-section h3{margin:0 0 9px;font-size:14px;font-weight:750;color:#303831;letter-spacing:-.02em}
+.fp-r-note,.fp-r-hint{font-size:11px;color:#85867d;line-height:1.55;margin:7px 0}
+.fp-r-hint{font-size:12px}
+.fp-r-mini{font-size:10px;color:#96988f}
+.fp-r-strong{font-weight:760;color:#384438}
+.fp-r-pill{display:inline-flex;align-items:center;gap:4px;background:#f5f0df;border-radius:99px;padding:5px 9px;color:#755c31;font-size:10px;font-weight:650}
+.fp-r-actions{display:flex;gap:8px;margin:12px 0 2px}
+.fp-r-actions button{flex:1;min-height:45px;border:1px solid #e6dfcf;border-radius:13px;background:#f9f6ee;color:#53594f;font-size:12px;font-weight:700;padding:10px}
+.fp-r-actions button.primary{background:#edce73;border-color:#daba62;color:#312c21}
+.fp-r-actions button:disabled{opacity:.5}
+.fp-r-metric{display:grid;grid-template-columns:1fr 26px 1fr;align-items:center;gap:7px}
+.fp-r-metric>div{padding:10px;border-radius:14px;background:#f6f4ee}
+.fp-r-metric small{display:block;font-size:10px;color:#88877e;margin-bottom:4px}
+.fp-r-metric b{font-size:16px;color:#343b34;font-variant-numeric:tabular-nums}
+.fp-r-metric .fp-r-arrow{text-align:center;color:#b49a5c;font-size:18px}
+.fp-r-ordered-preview{font-size:11px;line-height:1.65;color:#6d726a;background:#f8f6ef;padding:9px 11px;border-radius:12px;margin:9px 0 2px}
+.fp-r-stop{display:flex;align-items:center;gap:7px;min-height:65px;border-bottom:1px solid #f0eee9;padding:6px 0;position:relative}
+.fp-r-stop:last-child{border-bottom:0}
+.fp-r-stop.fp-r-target{background:#f8f1de}
+.fp-r-drag{flex:none;width:25px;height:38px;border:0;background:transparent;font-size:21px;color:#a8a49a;touch-action:none;user-select:none;-webkit-user-select:none}
+.fp-r-num{flex:none;width:24px;height:24px;border-radius:9px;display:grid;place-items:center;background:#f4ecd4;font-weight:800;color:#8b6d2f;font-size:11px}
+.fp-r-stop-main{flex:1;min-width:0}
+.fp-r-stop-main strong{font-size:12px;font-weight:750;color:#2e3932;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-r-stop-main small{font-size:10px;color:#96978d;display:block;margin-top:2px}
+.fp-r-icon-btn{border:0;background:#f6f3e9;color:#75766d;border-radius:10px;width:29px;height:33px;flex:none;display:grid;place-items:center;font-size:17px;padding:0}
+.fp-r-icon-btn.locked{background:#f1dfac;color:#695125}
+.fp-r-select,.fp-r-input{display:block;width:100%;height:44px;background:#faf9f4;border:1px solid #e2dfd4;border-radius:12px;font-size:14px;padding:8px 11px;color:#333b35;outline:0;-webkit-appearance:none;appearance:none}
+.fp-r-input:focus,.fp-r-select:focus{border-color:#d9b45b}
+.fp-r-fields{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.fp-r-field{display:block;margin:8px 0}
+.fp-r-field span{display:block;font-size:11px;font-weight:700;color:#7a7b72;margin-bottom:6px}
+.fp-r-listing{display:flex;align-items:center;gap:10px;padding:12px 5px;border-bottom:1px solid #efede6;min-height:62px}
+.fp-r-listing img{width:29px;height:29px;opacity:.85}
+.fp-r-listing .fp-r-stop-main{flex:1}
+.fp-r-listing button{border:1px solid #e4ddcb;background:#fffdf7;color:#584d32;font-size:11px;font-weight:750;padding:8px 11px;min-width:54px;border-radius:10px}
+.fp-r-listing button.selected{background:#f1d98e}
+.fp-r-modes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.fp-r-mode{min-width:0;min-height:69px;border:1px solid #e7e3da;border-radius:14px;background:#faf9f5;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;font-size:11px;color:#666961;font-weight:650}
+.fp-r-mode svg{width:24px;height:24px}
+.fp-r-mode.active{background:#f5e9c4;border-color:#dcc17d;color:#473922}
+.fp-r-leg{padding:9px 0;border-bottom:1px solid #edeae2;display:flex;align-items:center;gap:8px}
+.fp-r-leg .fp-r-stop-main strong{font-size:11px}
+.fp-r-leg select{width:88px;min-width:88px;height:35px;padding:5px 7px;border:1px solid #e4e0d6;border-radius:10px;background:#faf9f5;color:#4d574e;font-size:11px}
+.fp-r-backdrop{position:fixed;inset:0;z-index:3650;background:rgba(26,30,25,.16);opacity:0;pointer-events:none;transition:opacity .28s ease}
+body.fp-route-panel-open .fp-r-backdrop{opacity:1;pointer-events:auto}
+#fpRouteCardBackdrop{position:fixed;inset:0;z-index:3890;background:rgba(22,27,25,.13);opacity:0;pointer-events:none;transition:opacity .27s ease}
+body.fp-route-place-open #fpRouteCardBackdrop{opacity:1;pointer-events:auto}
+#fpRouteCard{position:fixed;z-index:3990;left:50%;bottom:0;transform:translate(-50%,calc(100% + 24px));visibility:hidden;pointer-events:none;width:min(550px,100%);height:236px;max-height:calc(100dvh - 35px);padding:0 0 env(safe-area-inset-bottom);background:var(--fp-r-paper);border-radius:25px 25px 0 0;box-shadow:0 -16px 60px rgba(28,34,30,.22);border:1px solid #eee9df;border-bottom:0;display:flex;flex-direction:column;overflow:hidden;transition:transform .42s var(--fp-r-ease),visibility 0s linear .42s;will-change:transform,height}
+body.fp-route-place-open #fpRouteCard{transform:translate(-50%,0);visibility:visible;pointer-events:auto;transition:transform .42s var(--fp-r-ease),visibility 0s}
+.fp-r-card-header{flex:none;min-height:112px;position:relative;padding:8px 20px 11px;touch-action:none}
+.fp-r-card-handle{width:42px;height:5px;border-radius:99px;background:#d5d3c9;margin:1px auto 13px}
+.fp-r-card-kicker{font-size:11px;color:#ab8c50;font-weight:750;margin-bottom:5px}
+.fp-r-card-name{font-size:21px;color:#2a302b;font-weight:750;letter-spacing:-.04em;line-height:1.25;margin:0;padding-right:40px}
+.fp-r-card-close{position:absolute;right:14px;top:20px;width:38px;height:38px;border:0;background:transparent;font-size:26px;font-weight:300;color:#777b73}
+.fp-r-card-content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:3px 20px 20px;color:#555d55}
+.fp-r-card-content h4{font-size:12px;color:#a18a5b;margin:12px 0 6px;font-weight:780}
+.fp-r-card-content p{font-size:13px;line-height:1.65;margin:4px 0 9px}
+.fp-r-card-empty{border:1px dashed #dcd6cb;border-radius:13px;background:#f7f5ef;padding:14px;color:#929289;font-size:12px}
+.fp-r-card-footer{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:10px 16px calc(10px + env(safe-area-inset-bottom)*.22);border-top:1px solid #ece9df;background:#fffefa}
+.fp-r-card-footer button{min-height:40px;border-radius:12px;border:1px solid #e6dfd3;background:#f8f5ee;color:#5a564b;font-weight:650;font-size:11px}
+.fp-r-card-footer button.primary{background:#f2d989;color:#4b3c21;border-color:#dfbf6c}
+body.fp-route-place-open #fpRouteTools,body.fp-route-place-open #stopsDock{opacity:0;translate:0 120px;pointer-events:none!important}
+body.fp-route-panel-open #fpRouteTools,body.fp-route-panel-open #stopsDock{opacity:0;translate:0 110px;pointer-events:none!important}
+body.fp-route-place-open #fpRouteBadge,body.fp-route-panel-open #fpRouteBadge{opacity:0}
+body.fp-route-review .rv-callout{display:none!important}
+body.fp-route-review #stopBubble{display:none!important}
+body.fp-route-review .route-pin.active{z-index:550!important}
+body.fp-route-review .route-pin.active .rv-star{transform:scale(1.22)!important;filter:drop-shadow(0 3px 9px #ddb8578f)}
+#fpRouteToast{position:fixed;z-index:5500;top:calc(128px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-8px);opacity:0;pointer-events:none;background:#2f3b35;color:white;border-radius:999px;padding:9px 16px;font-size:11px;max-width:calc(100vw - 30px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .25s ease,transform .25s ease;box-shadow:0 6px 19px #1018}
+#fpRouteToast.show{opacity:1;transform:translate(-50%,0)}
+#fpRouteOffline{position:fixed;inset:0;z-index:1;overflow:hidden;pointer-events:none;background:#e8eee8}
+#fpRouteOffline svg{width:100%;height:100%;display:block}
+#fpRouteOffline .caption{position:absolute;right:12px;top:calc(124px + env(safe-area-inset-top));font-size:10px;color:#84928b;background:#fffc;padding:5px 7px;border-radius:7px}
+body.fp-route-fallback #pinLayer{z-index:5}
+@media(max-width:375px){#fpRouteTools{width:calc(100vw - 18px)}#fpRouteTools button{font-size:10px}.fp-r-stop{gap:4px}.fp-r-icon-btn{width:26px}.fp-r-panel-head strong{font-size:18px}}
+@media(prefers-reduced-motion:reduce){#fpRoutePanel,#fpRouteCard,#fpRouteTools,#stopsDock,#fpRouteCardBackdrop,.fp-r-backdrop{transition-duration:.01ms!important}}
