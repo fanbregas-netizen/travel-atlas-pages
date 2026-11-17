@@ -319,7 +319,7 @@ html.visual-after body.route-v5-live #rc-main #rc-grab .rc-upper .rc-dismiss{
    black #161616 stroke, round caps/joins). CSS-only visual substitution:
    leaves the existing edit, file-picker, and guide-link button events intact.
    Before mode stays the original text-button design. */
-html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+3)
+html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+4)
  .fp-subheading > button.fp-subaction{
   box-sizing:border-box!important;
   display:grid!important;place-items:center!important;
@@ -338,7 +338,7 @@ html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+3)
   pointer-events:auto!important;
   cursor:pointer!important;
 }
-html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+3)
+html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+4)
  .fp-subheading > button.fp-subaction::before{
   content:""!important;display:block!important;
   width:23px!important;height:23px!important;
@@ -359,8 +359,12 @@ html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(3)
  .fp-subheading > button.fp-subaction::before{
   background-image:url('/travel-atlas-pages/v4-review-20261116/icons/29_open_link.svg')!important;
 }
+html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(4)
+ .fp-subheading > button.fp-subaction::before{
+  background-image:url('/travel-atlas-pages/v4-review-20261116/icons/10_nearby.svg')!important;
+}
 /* Preserve the approved 44px accessible hit target; focus still visible. */
-html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+3)
+html.visual-after body #fpPlaceCard .fp-card-scroll > .fp-block:nth-child(-n+4)
  .fp-subheading > button.fp-subaction:focus-visible{
   outline:2px solid #59765f!important;outline-offset:2px!important;
 }
