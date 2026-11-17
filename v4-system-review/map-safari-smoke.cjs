@@ -339,7 +339,20 @@ const URL=process.env.MAP_REVIEW_URL||'https://fanbregas-netizen.github.io/trave
         area=window.__atlasRouteViewportQA?.();
       return !!m&&!m.isMoving()&&!!pin&&!!area&&
         Math.abs((parseFloat(pin.style.top)||0)*area.height/100-area.targetY)<5;
-    },{timeout:16000});
+    },null,{timeout:16000}).catch(async()=>{
+      throw Error('Route tapped location failed visible-map center: '+JSON.stringify(
+        await page.evaluate(()=>{
+          const m=window.__atlasLivePlannerMap,p=document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),
+            a=window.__atlasRouteViewportQA?.();
+          return {mapCenter:m?.getCenter()?.toArray(),moving:m?.isMoving?.(),
+            pinPercent:p?.style.top,pinId:p?.dataset.placeId,view:a,
+            selected:window.__atlasRouteV5Live?.state?.selected,
+            camera:window.__atlasRouteCameraTargetQA,
+            focus:window.__atlasRouteFocusQA?.(),
+            geo:window.__atlasRouteGeoSyncQA};
+        })
+      ));
+    });
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     const routePoi=await page.evaluate(()=>{
       const map=window.__atlasLivePlannerMap,pin=document.querySelector('#rc-map-pins [data-place-id^="live-map-"]'),
