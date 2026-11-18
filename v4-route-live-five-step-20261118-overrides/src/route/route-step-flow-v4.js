@@ -124,7 +124,7 @@ function startSheet(){
 }
 function getDetents(){
  const h=window.visualViewport?.height||innerHeight||844;
- const peek=state.step==='preview'&&!state.placeCard?clamp(Math.min(224,h*.28),194,228):clamp(Math.min(189,h*.24),152,206);
+ const peek=state.step==='preview'&&!state.placeCard?clamp(Math.min(224,h*.28),194,228):state.step==='pick'&&state.pickMode==='map'&&!state.placeCard?clamp(h*.36,258,305):clamp(Math.min(189,h*.24),152,206);
  const maxMapReserve=Math.max(170,Math.min(245,h*.30));
  const full=Math.max(peek+80,h-maxMapReserve);
  const maxHalf=Math.min(full-36,h*.53,470);
