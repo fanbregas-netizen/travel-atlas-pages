@@ -1,0 +1,49 @@
+name: Footprint V5 approved real-product iPhone acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v5-route-real-product-20261118-overrides/**'
+      - '.github/workflows/v5-route-real-product-qa.yml'
+      - 'tests/v5-route-real-product-20261118.test.cjs'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  real-v5:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Assemble latest real V4 baseline with V5 approved route modules
+        run: |
+          set -euo pipefail
+          cp -R v4-route-six-step-refined-20261118 v5-route-real-product-20261118
+          cp -R v4-route-live-five-step-20261118-overrides/src/route/. v5-route-real-product-20261118/src/route/
+          cp v5-route-real-product-20261118-overrides/index.html v5-route-real-product-20261118/index.html
+          cp v5-route-real-product-20261118-overrides/route-view.html v5-route-real-product-20261118/route-view.html
+          cp v5-route-real-product-20261118-overrides/journey-v5.html v5-route-real-product-20261118/journey-v5.html
+          cp v5-route-real-product-20261118-overrides/src/route/route-v5-runtime.js v5-route-real-product-20261118/src/route/route-v5-runtime.js
+          node --check v5-route-real-product-20261118/src/route/route-v5-runtime.js
+          node --check v5-route-real-product-20261118/src/route/route-live-network-v1.js
+          test -s v5-route-real-product-20261118/src/media/media-core.js
+      - name: Install iPhone browser engines
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps chromium webkit
+      - name: Start real product static preview
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/v5-real-qa.log 2>&1 &
+          sleep 2
+          curl -fsS http://127.0.0.1:8765/v5-route-real-product-20261118/journey-v5.html -o /dev/null
+      - name: End-to-end real favorites to route persistence, Chromium and WebKit
+        run: |
+          BROWSER=chromium WIDTH=375 node tests/v5-route-real-product-20261118.test.cjs
+          BROWSER=webkit WIDTH=390 node tests/v5-route-real-product-20261118.test.cjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: footprint-v5-real-product-iphone-evidence
+          path: v5-route-real-product-evidence/
+          if-no-files-found: ignore
