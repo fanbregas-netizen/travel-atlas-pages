@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>足迹地图｜查看路线</title>
+<script>
+(()=>{'use strict';
+ const query=new URLSearchParams(location.search),target=new URL('./journey.html',location.href);
+ const id=query.get('saved')||query.get('edit')||query.get('id');
+ if(id&&/^[\w-]{1,140}$/.test(id)){target.searchParams.set(query.has('edit')?'edit':'saved',id);if(!query.has('edit'))target.searchParams.set('view','1')}
+ location.replace(target.href);
+})();
+</script></head><body style="font:16px -apple-system,system-ui,sans-serif;color:#3b5646;background:#fbfaf7;padding:24px">正在打开路线规划…<a href="./journey.html">打开路线</a></body></html>
