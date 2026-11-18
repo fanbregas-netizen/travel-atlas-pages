@@ -6,6 +6,7 @@ on:
       - '.github/workflows/v4-live-route-overlay-pages.yml'
       - 'v4-route-live-five-step-20261118-overrides/**'
       - 'v5-route-interaction-demo-20261118/**'
+      - 'v5-route-real-product-20261118-overrides/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -39,6 +40,19 @@ jobs:
           mkdir -p _site
           tar -xf _verified_pages_artifact/artifact.tar -C _site
           test -s _site/index.html
+          # Full real V4 product copied to an isolated V5 approval directory, never to the public root.
+          cp -R _site/v4-route-live-five-step-20261118 _site/v5-route-real-product-20261118
+          cp v5-route-real-product-20261118-overrides/index.html _site/v5-route-real-product-20261118/index.html
+          cp v5-route-real-product-20261118-overrides/route-view.html _site/v5-route-real-product-20261118/route-view.html
+          cp v5-route-real-product-20261118-overrides/journey-v5.html _site/v5-route-real-product-20261118/journey-v5.html
+          cp v5-route-real-product-20261118-overrides/src/route/route-v5-runtime.js _site/v5-route-real-product-20261118/src/route/route-v5-runtime.js
+          node --check _site/v5-route-real-product-20261118/src/route/route-v5-runtime.js
+          test -s _site/v5-route-real-product-20261118/src/media/media-core.js
+          test -s _site/v5-route-real-product-20261118/src/map/shared-v4-map.js
+          test -s _site/v5-route-real-product-20261118/src/route/route-live-network-v1.js
+          grep -q '__footprintV5Demo' _site/v5-route-real-product-20261118/journey-v5.html
+          grep -q 'journey-v5.html' _site/v5-route-real-product-20261118/index.html
+          sed -i 's/footprint-v4-live-five-step-20261118-v1/footprint-v5-real-product-20261118-v1/g' _site/v5-route-real-product-20261118/sw.js || true
           # Standalone V5 interaction demo only: leave product root and V4 previews unchanged.
           mkdir -p _site/v5-route-interaction-demo-20261118
           cp v5-route-interaction-demo-20261118/index.html _site/v5-route-interaction-demo-20261118/index.html
@@ -63,6 +77,12 @@ jobs:
       - name: Publish verified site plus updated isolated route preview
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify real V5 product entry is reachable over HTTPS
+        run: |
+          curl -fsSL --retry 18 --retry-delay 4 --retry-all-errors --max-time 15 "https://fanbregas-netizen.github.io/travel-atlas-pages/v5-route-real-product-20261118/journey-v5.html" -o /tmp/v5-real-product.html
+          grep -q 'route-v5-runtime.js' /tmp/v5-real-product.html
+          curl -fsSL --retry 12 --retry-delay 3 --retry-all-errors "https://fanbregas-netizen.github.io/travel-atlas-pages/v5-route-real-product-20261118/index.html" -o /tmp/v5-real-home.html
+          grep -q 'journey-v5.html' /tmp/v5-real-home.html
       - name: Confirm V5 standalone iPhone demo is reachable over HTTPS
         run: |
           curl --fail --location --retry 18 --retry-delay 4 --retry-all-errors --max-time 15 \
