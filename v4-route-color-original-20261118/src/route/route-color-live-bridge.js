@@ -60,7 +60,8 @@ async function bootstrap(){
  let raw=[],routes=[];
  try{raw=await openPlaces()}catch(e){console.warn('[Footprint Route] 读取收藏失败',e)}
  try{routes=await repo?.listRoutes()||[]}catch(e){console.warn('[Footprint Route] 读取已保存路线失败',e)}
- const places=raw.filter(p=>p.starred!==false&&!p.demo&&coords(p)).map(p=>({
+ const linkedRouteStops=new Set(routes.flatMap(routeStopIds));
+ const places=raw.filter(p=>(p.starred!==false||p.routeOnly===true||linkedRouteStops.has(String(p.id)))&&!p.demo&&coords(p)).map(p=>({
   id:String(p.id),title:String(p.title||p.name||'未命名地点'),name:String(p.name||p.title||''),
   address:String(p.address||p.city||p.subtitle||''),
   lat:Number(p.lat),lng:Number(p.lng),
