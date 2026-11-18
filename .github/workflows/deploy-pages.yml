@@ -42,8 +42,8 @@ jobs:
           test -s _site/v4-approved-route-20261118/journey.html
           test -s _site/v4-approved-route-20261118/route-view.html
           test -s _site/v4-approved-route-20261118/src/interaction/route-cards-v5-live.js
-          test -s _site/v4-approved-route-20261118/src/route/route-approved-steps-v5.js
-          test -s _site/v4-approved-route-20261118/src/route/route-approved-steps-v5.css
+          test -s _site/v4-approved-route-20261118/src/route/journey-confirmed-ui.js
+          test -s _site/v4-approved-route-20261118/src/route/journey-confirmed-ui.css
           # Independent approved POI SVG animation review; root site remains byte-identical.
           cp -R v4-review-20261116 _site/v4-review-20261116
           # Visual C isolated real-product A/B comparison; no changes to official root or other systems.
@@ -562,7 +562,7 @@ jobs:
         run: |
           set -euo pipefail
           BASE='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-approved-route-20261118'
-          for FILE in index.html journey.html route-view.html src/interaction/route-cards-v5-live.js src/route/route-approved-steps-v5.js; do
+          for FILE in index.html journey.html journey.js route-view.html src/route/journey-confirmed-ui.js src/route/journey-confirmed-ui.css; do
             OK=0
             for i in $(seq 1 25); do
               if curl --fail --location --silent --show-error --max-time 15 "${BASE}/${FILE}?published=${GITHUB_SHA}" -o /tmp/v4-approved-route-http-check; then
