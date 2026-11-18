@@ -39,10 +39,25 @@ for name in ('index.html','journey.html'):
  assert text.count(old_ns)==1,(name,'namespace')
  text=text.replace(old_ns,new_ns)
  p.write_text(text,encoding='utf-8')
-assert len([p for p in dest.rglob('*') if p.is_file()])==len([p for p in base.rglob('*') if p.is_file()])+2
+# Strictly deprecate only four old V4 route-demo assets. All eight HTML
+# entry points and all JS/CSS assets in the published V5 were scanned for
+# references first; no active module or stylesheet uses these names.
+unused=('route-color-parity-v3.css','route-logic-review-v1.css',
+ 'route-minimal-review-v2.css','src/interaction/route-cards-v5-live.js')
+for rel in unused:
+    filename=rel.split('/')[-1].encode('utf-8')
+    users=[str(f.relative_to(dest)) for f in dest.rglob('*')
+       if f.is_file() and f.suffix in ('.html','.css','.js')
+       and f.relative_to(dest).as_posix()!=rel and filename in f.read_bytes()]
+    assert not users,f'{rel} is still referenced: {users}'
+    (dest/rel).unlink(missing_ok=True)
+assert len([p for p in dest.rglob('*') if p.is_file()])==len([p for p in base.rglob('*') if p.is_file()])+1
 for p in base.rglob('*'):
  if not p.is_file():continue
  rel=str(p.relative_to(base))
+ if rel in unused:
+  assert not (dest/rel).exists(),f'Legacy route asset survived: {rel}'
+  continue
  assert (dest/rel).is_file(),rel
  if rel not in expected:assert p.read_bytes()==(dest/rel).read_bytes(),f'Unexpected regression: {rel}'
 for rel,h in before.items():
@@ -84,6 +99,7 @@ for rel,expected_sha in canonical['files'].items():
     elif rel not in ('index.html','journey.html') and blob(f)!=expected_sha:
         stale.append({'path':rel,'status':'blob-mismatch','expected':expected_sha,'actual':blob(f)})
 print('PRIVATE_PRODUCT_AUDIT '+json.dumps(stale,ensure_ascii=False))
+assert not stale,f'Stale or missing production files: {stale}'
 (dest/'product-asset-audit.json').write_text(json.dumps({
  'private_commit':canonical['private_commit'],
  'total_files':len(canonical['files']),

@@ -1,6 +1,6 @@
 {
-  "private_commit": "2cbd5479ecff9e68987231a4bade997b7947ef04",
-  "product_tree": "181fdc0a64a90fb4d10894726ef29286e3769640",
+  "private_commit": "bf94636f26ad09b52a81e0d3e987709e8d5048ea",
+  "product_tree": "4c0bd27f1b021f231a7c9a2d78ce14ece9007a83",
   "files": {
     "amap-import.html": "2be4b960b6426def530a95e87130044a27b33315",
     "atlas-constellation-core.js": "eedc39656bf1ff0be8beb9549174c34ef201fee0",
@@ -89,9 +89,6 @@
     "map-home-bluegray-v18.css": "14dbc7d739587ced2fa865e36bfa674cab56ebf1",
     "map-home-bluegray-v18.js": "aa9f382d4efc5f582af0e1cab1d01b8dab393fad",
     "map-visual-parity.css": "5723c2c64f24111047fad9adb439049afe53dd1c",
-    "route-color-parity-v3.css": "b1cce5752fb9fee9e99769513f078e4faa341e95",
-    "route-logic-review-v1.css": "feb027389039495f96f2661af650885165c43cc4",
-    "route-minimal-review-v2.css": "f79dd83cd8e6f24f09304ea8039371674134afa1",
     "route-view.html": "fc1839f7e2112efb90663a7ce4fcac536c6d7342",
     "src/interaction/anchored-history-spring-v18.js": "95ab40910f548959e050ff702c2dd96e16ecea27",
     "src/interaction/demo/v5/index.html": "a667500de6f93828bbfd5cac0765af0c5e188823",
@@ -107,7 +104,6 @@
     "src/interaction/poi-svg-motion-v4.js": "658e644942329e01deaf5aef1dbd832c4f82effe",
     "src/interaction/real-product-bridge.css": "371edc4c38fda3f0cc7bcf3fef6c6d25d82d9d51",
     "src/interaction/real-product-bridge.js": "e5bf2ceabb62427f604f22f82bed4de5772d5fbb",
-    "src/interaction/route-cards-v5-live.js": "8814cc5ae10d6e071898172c980853753110d83f",
     "src/interaction/search-poi-fluidity-v13.css": "bdfc0c2e13e966f7f2bd49f90114f00201ab461a",
     "src/interaction/shared-v5-spring-v18.js": "3fba87161a8859d87eecd2a14e61eaa054a92697",
     "src/interaction/sheet-controller.js": "8462e692c60680b9a227940a3c60fd5453a53e49",
@@ -118,11 +114,11 @@
     "src/interaction/v5-unified-spring.js": "a1e6ac2577df27da5502a04707c010ee2975a54f",
     "src/map/map-adapter.js": "a592f76a260dfda2f5000bd79b73b7b8fa9ad0ee",
     "src/map/registry.js": "216bee6ac148122c5006aa602eec88f2a852e50b",
-    "src/map/shared-v4-map.js": "1c66623b14a1452c6d15359ae848a0c9782f97ef",
+    "src/map/shared-v4-map.js": "9da06b7683bc26bf02a52517b2da7dba0c85055a",
     "src/media/guide-link-parser-v15.js": "d649b7ac9b7646f1e9fb4364c51cb6528ed72f76",
     "src/media/media-core.js": "5c09db934c44f20c5d89da4f448cd5e4d4e22b08",
     "src/route/route-live-network-v1.js": "a6f7be0cf87dceb6d41b5a9b22be9c87b9e0c01c",
-    "src/route/route-v5-runtime.js": "92bffc4e7886abe93d3a6a0945a6b9fd1b993193",
+    "src/route/route-v5-runtime.js": "c29318a2890f64bd0706d9899b88765b48cea7b1",
     "src/visual/accepted-four-screen-v18.css": "e632208787025d0d1b16daf28aa8fc28ef243424",
     "src/visual/c-approved-language-20261115.css": "79c7c737a672904fbebc06e3557026cc88ebce6c",
     "src/visual/card-viewer-integrity-v16.css": "220aeff4e57bee5c054ae764e69ad8881eb79020",
@@ -140,7 +136,7 @@
     "src/visual/v4-approved-final-surfaces.css": "847c2c8c3b0c45b51056e1ee57066e515cd0884d",
     "src/visual/v4-product-cohesion.css": "62b3cd9f269a8d9a2b7eea2cc0d67c25ead8f8c8",
     "src/visual/v4-visual-acceptance-pass.css": "4d3fb4ac066b912ce3055ee46da05635681bfe1d",
-    "src/visual/v5-map-quality-pass.css": "cd6e71216ab14840d2b132bfbcf2fb59299d1bb1",
+    "src/visual/v5-map-quality-pass.css": "c993ba6476ee6627b9d459491b50c6e786ab7417",
     "src/visual/visual-system-v15.css": "b82016072f63ac3889b1756e921457042714f5d5",
     "stage1-29-poi.js": "f07359fb6aabc37e5bd687908eed2c3503c35d71",
     "stage1-29-ui.css": "d6e37bdaaa961c1b6fb883dca7907c16f5a20095",
@@ -167,7 +163,7 @@
     "sw.js": "1e5a39a61c29937c3cd007c33d71feb83a7f33d2",
     "trip-picker.css": "7fbf28282126ea45e067384d2e533079842ed9c8",
     "trip-picker.js": "29265f75c4166a218ccf0d9c2eefedb2fb633828",
-    "v4-map-runtime.js": "f6d2b8b9210dd57267fa545a232f63b67f8828fb",
+    "v4-map-runtime.js": "1816276d19ce6c534a1b91caeb38c97e25252370",
     "version.json": "911b3242dcbe11226ad0afac216456f88328f19e"
   }
 }
