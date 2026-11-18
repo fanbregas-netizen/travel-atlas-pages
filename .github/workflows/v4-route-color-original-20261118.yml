@@ -1,0 +1,47 @@
+name: Footprint V4 exact approved color route real-product QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v4-route-color-original-20261118/**'
+      - 'tests/v4-route-color-original-20261118.test.cjs'
+      - '.github/workflows/v4-route-color-original-20261118.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  approved-original:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify approved color and layout CSS are byte-identical
+        run: |
+          test "$(git hash-object v4-route-color-original-20261118/route-color-parity-v3.css)" = b1cce5752fb9fee9e99769513f078e4faa341e95
+          test "$(git hash-object v4-route-color-original-20261118/route-minimal-review-v2.css)" = f79dd83cd8e6f24f09304ea8039371674134afa1
+          test "$(git hash-object v4-route-color-original-20261118/route-logic-review-v1.css)" = feb027389039495f96f2661af650885165c43cc4
+          node --check v4-route-color-original-20261118/src/route/route-color-approved-v3-live.js
+          node --check v4-route-color-original-20261118/src/route/route-color-live-bridge.js
+          node --check tests/v4-route-color-original-20261118.test.cjs
+      - name: Install touch browsers
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps chromium webkit
+      - name: Serve complete isolated V4 product
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/approved-color-route.log 2>&1 &
+          sleep 2
+          curl -fsSL http://127.0.0.1:8765/v4-route-color-original-20261118/journey.html >/dev/null
+      - name: Test exact visual and real route persistence on iPhone viewports
+        run: |
+          BROWSER=chromium node tests/v4-route-color-original-20261118.test.cjs
+          BROWSER=webkit node tests/v4-route-color-original-20261118.test.cjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: footprint-approved-v4-color-route-qa
+          path: route-v4-color-evidence/
+          if-no-files-found: ignore
