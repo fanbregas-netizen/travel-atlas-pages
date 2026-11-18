@@ -3,13 +3,13 @@ name: Publish isolated V4 acceptance entry
 on:
   push:
     branches: [preview/v4-acceptance-20261117]
-    paths: ['.github/workflows/v4-acceptance-entry.yml','v4-system-review/map-runtime-repairs.py','v4-system-review/map-shared-style-repairs.py','v4-system-review/map-poi-smooth.py','v4-system-review/map-poi-icon-pop.py','v4-system-review/map-pan-performance.py','v4-system-review/map-camera-coherence.py','v4-system-review/build-durable-map-preview.py','v4-system-review/map-route-smooth.py','v4-system-review/map-route-parity-v9.py','v4-system-review/map-route-stable-viewport-v11.py','v4-system-review/map-route-focus-v13.py','v4-system-review/map-route-home-poi-v15.py','v4-system-review/map-route-native-poi-v16.py','v4-system-review/map-visual-parity.css','v4-system-review/map-home-bluegray-v18.js','v4-system-review/map-home-bluegray-v18.css']
+    paths: ['.github/workflows/v4-acceptance-entry.yml','v4-system-review/map-runtime-repairs.py','v4-system-review/map-shared-style-repairs.py','v4-system-review/map-poi-smooth.py','v4-system-review/map-poi-icon-pop.py','v4-system-review/map-pan-performance.py','v4-system-review/map-camera-coherence.py','v4-system-review/build-durable-map-preview.py','v4-system-review/map-route-smooth.py','v4-system-review/map-route-parity-v9.py','v4-system-review/map-route-stable-viewport-v11.py','v4-system-review/map-route-focus-v13.py','v4-system-review/map-route-home-poi-v15.py','v4-system-review/map-route-native-poi-v16.py','v4-system-review/map-visual-parity.css','v4-system-review/map-home-bluegray-v18.js','v4-system-review/map-home-bluegray-v18.css','v4-system-review/media-v9-final-footprint-home.js']
 permissions:
   contents: read
   pages: write
   id-token: write
 concurrency:
-  group: pages
+  group: pages-media-v9-joint-acceptance
   cancel-in-progress: false
 jobs:
   deploy:
@@ -217,10 +217,75 @@ jobs:
               assert base_file.read_bytes()==(map_candidate/rel).read_bytes(),rel
           print('Map A integrated exactly into full V4: 7 original files and 3 assets, old production untouched.')
 
+          # The single complete V4 + Map A bluegray19 + Media V9 product.
+          combined=root/'v4-map-a-media-v9-20261118'
+          assert not combined.exists()
+          shutil.copytree(map_candidate,combined)
+          approved_media=pathlib.Path('__prototype/v4-system-review/media-v9-final-footprint-home.js')
+          data=approved_media.read_bytes()
+          blob=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+          assert blob=='c387d12180ee8c1201925cf55d21170ae6f7e1c6',blob
+          shutil.copyfile(approved_media,combined/'footprint-home.js')
+          for page in ('index.html','journey.html','route-view.html'):
+              item=combined/page
+              html=item.read_text(encoding='utf-8')
+              previous='atlas-v4-map-a-integration-20261118-'
+              assert previous in html
+              html=html.replace(previous,'atlas-v4-map-a-media-v9-20261118-')
+              assert 'scope-review.' not in html
+              item.write_text(html,encoding='utf-8')
+          assert len([p for p in combined.rglob('*') if p.is_file()])==167
+          for file in map_candidate.rglob('*'):
+              if not file.is_file():continue
+              rel=str(file.relative_to(map_candidate))
+              if rel in ('index.html','journey.html','route-view.html','footprint-home.js'):continue
+              assert file.read_bytes()==(combined/rel).read_bytes(),rel
+          for file in dest.rglob('*'):
+              if not file.is_file():continue
+              rel=str(file.relative_to(dest))
+              if rel in ('index.html','journey.html','route-view.html',
+                  'footprint-home.js','v4-map-runtime.js','src/map/shared-v4-map.js',
+                  'src/interaction/route-cards-v5-live.js',
+                  'src/interaction/poi-svg-motion-v4.js'):continue
+              assert file.read_bytes()==(combined/rel).read_bytes(),rel
+          media_text=(combined/'footprint-home.js').read_text(encoding='utf-8')
+          assert media_text.count('const iphoneGallery=')==1
+          assert 'duration=350' in media_text
+          assert 'function tileShouldPlay(v)' in media_text
+          assert 'function closeViewer(immediate=false){iphoneGallery.close(immediate)}' in media_text
+          print('PASS: complete V4 + A map + V9 media; all other systems byte-identical.')
+
           after=hashes()
           assert all(after[p]==h for p,h in original.items())
           print('All',len(original),'existing deployed files unchanged; appended 164 candidate files.')
           PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check combined media/map scripts
+        run: |
+          node --check _site/v4-map-a-media-v9-20261118/footprint-home.js
+          node --check _site/v4-map-a-media-v9-20261118/v4-map-runtime.js
+          node --check _site/v4-map-a-media-v9-20261118/src/interaction/route-cards-v5-live.js
+          node --check _site/v4-map-a-media-v9-20261118/map-home-bluegray-v18.js
+      - name: Install WebKit browser
+        run: |
+          npm install --no-save --ignore-scripts playwright-core@1.58.2
+          npx --yes playwright@1.58.2 install --with-deps webkit
+      - name: Test actual combined V4 fullscreen media gestures across 375, 390 and 430px
+        env:
+          MEDIA_QA_ROOT: http://127.0.0.1:8765/v4-map-a-media-v9-20261118/
+        run: |
+          python3 -m http.server 8765 --directory _site > /tmp/v4-v9-webkit.log 2>&1 &
+          sleep 2
+          node tests/v4-media-webkit-motion-browser.cjs
+      - name: Save integrated WebKit iPhone media evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v4-map-a-media-v9-webkit-evidence
+          path: v4-media-webkit-evidence/
+          if-no-files-found: ignore
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
@@ -274,6 +339,16 @@ jobs:
           curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/src/interaction/poi-svg-motion-v4.js' -o /tmp/v4-map-poi-pop.js
           node --check /tmp/v4-map-poi-pop.js
           grep -Fq 'function popSelected(token)' /tmp/v4-map-poi-pop.js
+          curl -fSL --retry 9 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-a-media-v9-20261118/' -o /tmp/v4-media-integrated-home.html
+          grep -q 'bluegray-19' /tmp/v4-media-integrated-home.html
+          grep -q 'atlas-v4-map-a-media-v9-20261118-' /tmp/v4-media-integrated-home.html
+          ! grep -q 'scope-review.' /tmp/v4-media-integrated-home.html
+          curl -fSL --retry 9 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-a-media-v9-20261118/footprint-home.js' -o /tmp/v4-media-integrated.js
+          cmp /tmp/v4-media-integrated.js __prototype/v4-system-review/media-v9-final-footprint-home.js
+          curl -fSL --retry 9 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-a-media-v9-20261118/journey.html' -o /tmp/v4-media-integrated-journey.html
+          grep -q 'atlas-route-home-poi-renderer' /tmp/v4-media-integrated-journey.html
+          curl -fSL --retry 9 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-a-media-v9-20261118/route-view.html' -o /tmp/v4-media-integrated-route.html
+          test -s /tmp/v4-media-integrated-route.html
           curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-a-integration-20261118/' -o /tmp/map-a-integrated-home.html
           grep -q 'bluegray-19' /tmp/map-a-integrated-home.html
           grep -q 'atlas-v4-map-a-integration-20261118-' /tmp/map-a-integrated-home.html
