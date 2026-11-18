@@ -70,6 +70,17 @@ jobs:
             __prototype/v5-v12-integrated-20261118/real-webkit.cjs \
             > tests/v5-quality-shared-place-webkit.cjs
           cp __prototype/v5-quality-review-20261119/quality-map-webkit.cjs tests/v5-quality-map-webkit.cjs
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/v5-quality-shared-place-webkit.cjs')
+          s=p.read_text()
+          old='assert.equal(rect.w,before.w);assert.equal(rect.h,before.h);'
+          assert s.count(old)==1
+          # Map dimensions remain stable to a physical CSS pixel; WebKit viewport
+          # can yield subpixel 843.984375 vs 844 between font/layout frames.
+          s=s.replace(old,"assert.ok(Math.abs(rect.w-before.w)<1,'map width changed beyond 1px');assert.ok(Math.abs(rect.h-before.h)<1,'map height changed beyond 1px');")
+          p.write_text(s)
+          PY
           node --check tests/v5-quality-shared-place-webkit.cjs
       - name: WebKit verify real first-frame color, same map, POI and selected pin
         run: |

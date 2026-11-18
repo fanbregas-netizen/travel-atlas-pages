@@ -17,6 +17,7 @@ expected={
 'map-home-bluegray-v18.js':'aa9f382d4efc5f582af0e1cab1d01b8dab393fad',
 'src/route/route-v5-runtime.js':'92bffc4e7886abe93d3a6a0945a6b9fd1b993193',
 'src/interaction/poi-svg-motion-v4.js':'658e644942329e01deaf5aef1dbd832c4f82effe',
+'map-visual-parity.css':'5723c2c64f24111047fad9adb439049afe53dd1c',
 'src/visual/v12-route-place.js':'9f12f78da6928751dfa957a1337a11921ad85234',
 'src/visual/v5-map-quality-pass.css':'cd6e71216ab14840d2b132bfbcf2fb59299d1bb1',
 'sw.js':'1e5a39a61c29937c3cd007c33d71feb83a7f33d2'
@@ -37,7 +38,7 @@ for name in ('index.html','journey.html'):
  assert text.count(old_ns)==1,(name,'namespace')
  text=text.replace(old_ns,new_ns)
  p.write_text(text,encoding='utf-8')
-assert len([p for p in dest.rglob('*') if p.is_file()])==len([p for p in base.rglob('*') if p.is_file()])+1
+assert len([p for p in dest.rglob('*') if p.is_file()])==len([p for p in base.rglob('*') if p.is_file()])+2
 for p in base.rglob('*'):
  if not p.is_file():continue
  rel=str(p.relative_to(base))
