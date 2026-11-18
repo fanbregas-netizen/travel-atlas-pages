@@ -72,7 +72,7 @@ const fixture=[
   assert.equal(await page.locator('#fpRouteSheetContent .fp-route-place-row img').count(),0);
   await action('nextpick');
   assert.equal((await state()).step,'order');
-  await page.waitForTimeout(650);
+  await page.waitForTimeout(1120); // allow iOS WebKit map camera to settle after selection
   const half=await page.locator('#fpRouteFlowSheet').evaluate(n=>({y:n.getBoundingClientRect().top,h:n.offsetHeight}));
   assert.ok(half.y>=180,'Half-height sheet must preserve map: '+JSON.stringify(half));
   await shot('03-order');

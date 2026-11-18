@@ -307,8 +307,11 @@ function setStep(step){
  render();
  sheet.classList.remove('fp-route-animating');void sheet.offsetWidth;sheet.classList.add('fp-route-animating');
  snap(step==='entry'||step==='preview'||step==='done'?'peek':'half');
+ // Never cancel the pending selected-route fit when moving from picking to ordering.
+ // That used to leave an offscreen line until Save, although the map itself loaded.
  clearTimeout(fitTimer);
- if(step==='preview'||step==='done')fitTimer=setTimeout(()=>fitRoute(),200);
+ if(['order','preview','done'].includes(step)&&state.order.length)
+  fitTimer=setTimeout(()=>fitRoute(),300);
 }
 function togglePlace(id){id=String(id);if(!point(id))return;canUndo('地点已调整');const n=state.order.indexOf(id);
  if(n>=0){state.order.splice(n,1);delete state.days[id];if(state.from==='place:'+id)state.from='same';if(state.to==='place:'+id)state.to='same'}
@@ -464,7 +467,12 @@ function initMapProjection(){
   const map=window.__atlasRV?.currentMap;
   if(map&&typeof map.project==='function'&&!mapInstalled){
    mapInstalled=true;map.on?.('move',scheduleFavorites);map.on?.('zoom',scheduleFavorites);
-   if(state.order.length>1)fitRoute(); /* No automatic all-favorites camera jump on initial load. */
+   // Reframe after map data has loaded; calling fitBounds before MapLibre is ready
+   // does not reliably adjust its first camera in iOS WebKit.
+   if(state.order.length>1){
+    const reframe=()=>{if(state.order.length>1)fitRoute()};
+    if(map.loaded?.())reframe();else map.once?.('load',reframe);
+   }
    drawFavorites();return
   }
   if(++cycles<130)setTimeout(ready,350)
