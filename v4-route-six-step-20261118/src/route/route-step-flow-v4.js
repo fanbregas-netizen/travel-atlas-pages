@@ -99,13 +99,13 @@ function startSheet(){
  requestAnimationFrame(()=>{syncRoute();initMapProjection()});
 }
 function getDetents(){const h=window.visualViewport?.height||innerHeight||844;
- const max=Math.max(220,Math.min(h-66,sheet?.offsetHeight||h-66));
+ const max=Math.max(220,h-66);
  const peek=Math.min(max,Math.max(156,Math.min(206,h*.245)));
  const half=Math.min(max,Math.max(peek+60,Math.min(h*.575,545)));
  return {peek,half,full:max};
 }
-function applyHeight(){if(!sheet)return;const max=sheet.offsetHeight||getDetents().full;
- sheet.style.setProperty('--fp-flow-y',Math.max(0,max-currentHeight).toFixed(1)+'px');
+function applyHeight(){if(!sheet)return;
+ sheet.style.setProperty('--fp-flow-visible',Math.max(140,currentHeight).toFixed(1)+'px');
 }
 function stopFrame(){if(frame){cancelAnimationFrame(frame);frame=0}}
 function snap(level){const limits=getDetents();goalHeight=limits[level]||limits.half;

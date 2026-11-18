@@ -49,15 +49,15 @@ body.fp-step-route button:focus-visible,body.fp-step-route input:focus-visible,b
 #fpRouteFavLayer .fp-route-extra-star img{width:26px;height:26px;object-fit:contain}
 #fpRouteFlowSheet{
  position:fixed;z-index:55;left:0;right:0;bottom:0;margin:0 auto;
- height:calc(100dvh - env(safe-area-inset-top) - 66px);
+ height:var(--fp-flow-visible,190px);
  max-height:calc(100dvh - env(safe-area-inset-top) - 66px);
  width:min(100%,540px);
  display:flex;flex-direction:column;overflow:hidden;
  background:var(--rs-paper);border:1px solid #e0e5db;border-bottom:0;
  border-radius:27px 27px 0 0;
  box-shadow:0 -9px 38px rgba(26,43,35,.14),0 -2px 9px #1a2b2309;
- transform:translate3d(0,var(--fp-flow-y,500px),0);
- will-change:transform;backface-visibility:hidden;contain:layout style;
+ transform:translate3d(0,0,0);
+ will-change:height;backface-visibility:hidden;contain:layout style;
 }
 #fpRouteSheetHead{
  flex:0 0 auto;min-height:74px;padding:9px 20px 10px;touch-action:none;
@@ -182,3 +182,6 @@ body.fp-step-route button:focus-visible,body.fp-step-route input:focus-visible,b
 @media(prefers-reduced-motion:reduce){
  #fpRouteFlowSheet,#fpRouteFlowSheet *{animation:none!important;transition:none!important}
 }
+
+/* Sheet geometry: keep CTA at viewport bottom in every detent. Never translate the entire tall card. */
+#fpRouteFavLayer .fp-route-extra-star[hidden]{display:none!important}
