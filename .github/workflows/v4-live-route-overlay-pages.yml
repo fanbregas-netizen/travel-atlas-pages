@@ -1,0 +1,59 @@
+name: Publish isolated V4 route preview over last verified Pages site
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v4-live-route-overlay-pages.yml'
+      - 'v4-route-live-five-step-20261118-overrides/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy-route-preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Recover last verified COMPLETE Pages artifact (do not replace official root)
+        uses: actions/download-artifact@v4
+        with:
+          repository: fanbregas-netizen/travel-atlas-pages
+          run-id: 44262201161
+          name: github-pages
+          github-token: ${{ github.token }}
+          path: _verified_pages_artifact
+      - name: Overlay only the route preview directory
+        run: |
+          set -euo pipefail
+          test -s _verified_pages_artifact/artifact.tar
+          mkdir -p _site
+          tar -xf _verified_pages_artifact/artifact.tar -C _site
+          test -s _site/index.html
+          test -s _site/v4-route-live-five-step-20261118/index.html
+          test -s _site/v4-route-live-five-step-20261118/journey.html
+          sha256sum _site/index.html > /tmp/route-preview-root-sha-before
+          cp v4-route-live-five-step-20261118-overrides/journey.html _site/v4-route-live-five-step-20261118/journey.html
+          cp -R v4-route-live-five-step-20261118-overrides/src/route/. _site/v4-route-live-five-step-20261118/src/route/
+          node --check _site/v4-route-live-five-step-20261118/src/route/route-step-flow-v4.js
+          node --check _site/v4-route-live-five-step-20261118/src/route/route-color-live-bridge.js
+          node --check _site/v4-route-live-five-step-20261118/src/route/route-live-network-v1.js
+          sha256sum _site/index.html > /tmp/route-preview-root-sha-after
+          diff /tmp/route-preview-root-sha-before /tmp/route-preview-root-sha-after
+          test -f _site/v4-route-live-five-step-20261118/sw.js
+          echo "Only isolated V4 route preview assets changed; verified homepage retained byte-for-byte."
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publish verified site plus updated isolated route preview
+        id: deployment
+        uses: actions/deploy-pages@v4
