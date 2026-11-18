@@ -11,7 +11,7 @@ const urlSafe=value=>{try{const u=new URL(value);return /^(https?:)$/.test(u.pro
 const idOf=el=>el?.closest('[data-pin]')?.getAttribute('data-pin')||'';
 const titleOf=el=>el?.getAttribute('aria-label')||'路线地点';
 const findPin=id=>[...pins.querySelectorAll('[data-pin]')].find(el=>idOf(el)===id)||null;
-const isDetail=()=>sheetTitle.textContent.trim()==='地点详情';
+const isDetail=()=>{const t=sheetTitle.textContent.trim();return t==='地点详情'||!!(activeId&&sheetTitle.dataset.v12PlaceId===activeId&&t===currentTitle)};
 let activeId='',currentTitle='',bypass=false,token=0,renderQueued=false,bubbleId='',pinWatcher=null;
 const popup=make('button','');popup.id='v12-place-bubble';popup.hidden=true;popup.type='button';popup.setAttribute('aria-label','打开路线地点详情');
 popup.append(make('img'),make('span','v12-bubble-text'),make('span','v12-bubble-more','查看 ›'));
@@ -99,10 +99,14 @@ async function renderPlace(id){
   if(n!==token||activeId!==id||!isDetail())return;
   record=p||{id,title:currentTitle,stage:'plan',note:'',photos:[],videos:[],guides:[]};
   mode='';
+  const resolvedTitle=String(record.title||record.name||currentTitle);
+  currentTitle=resolvedTitle;sheetTitle.dataset.v12PlaceId=id;sheetTitle.textContent=resolvedTitle;
+  const order=window.__footprintV5Demo?.state?.()?.order||[];
+  const position=order.indexOf(id),label=record.stage==='visited'?'已到访':'想去';
+  const count=$('sheet-count');if(count)count.textContent=label+(position>=0?' · 第 '+(position+1)+' 站':' · 路线地点');
   const wrap=make('div','v12-route-sections');wrap.dataset.placeId=id;
   const summ=make('div','v12-summary');
-  summ.append(make('h2','',record.title||record.name||currentTitle),
-              make('div','v12-meta',(record.stage==='visited'?'已到访':'想去')+' · 路线地点 · 与主页收藏共享内容'));
+  summ.append(make('div','v12-meta','与主页收藏地点共享 Brief、影像和相关资料'));
   wrap.append(summ);
   const brief=section('01',record.stage==='visited'?'旅行手记':'为什么想去','edit-brief','编辑');
   brief.append(make('p','v12-body',String(record.note||record.brief||'').trim()||'暂无记录'));
@@ -148,7 +152,7 @@ sheetBody.addEventListener('click',async e=>{
   const existing=section.querySelector('.v12-editor');if(existing)existing.remove();
   section.append(value);a.focus();return;
  }
- if(action==='cancel'){section.querySelector('.v12-editor')?.remove();mode='';return}
+ if(action==='cancel'){section.querySelector('.v12-editor')?.remove();mode='';window.__footprintV5Demo?.snap?.('half');return}
  if(action==='save-brief'||action==='save-link'){
   const editor=section.querySelector('.v12-editor');if(!editor)return;
   const inputs=editor.querySelectorAll('textarea,input'),raw=inputs[0]?.value||'';
@@ -162,6 +166,7 @@ sheetBody.addEventListener('click',async e=>{
     await repo.saveGuide(activeId,{url:href,title:inputs[1]?.value?.trim()||'查看原始内容',createdAt:new Date().toISOString()});
    }
    sheetBody.querySelector('.v12-route-sections')?.remove();await renderPlace(activeId);
+   window.__footprintV5Demo?.snap?.('half');
    document.dispatchEvent(new Event('atlas:source-updated'));
   }catch(error){const tip=editor.querySelector('.v12-error')||make('p','v12-hint v12-error');tip.textContent='保存失败：'+(error?.message||'请重试');editor.append(tip)}
   finally{busy=false;btn.disabled=false}return;

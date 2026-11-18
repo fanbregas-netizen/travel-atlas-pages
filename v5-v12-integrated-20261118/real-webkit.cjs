@@ -36,6 +36,7 @@ const photo='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJA
    await page.waitForFunction(id=>document.querySelector('.v12-route-sections[data-place-id="'+id+'"]'),a,{timeout:25000});
    const card=page.locator('.v12-route-sections');
    assert.equal(await card.locator('.fp-block').count(),4);
+   assert.equal(await page.locator('#sheet-title').textContent(),'V12 海边','the sheet title must be the actual place, not a duplicate generic heading');
    const titles=await card.locator('.fp-section-label').allTextContents();
    assert.deepEqual(titles,['为什么想去','照片与视频','相关资料','附近地点']);
    assert.ok((await card.textContent()).includes('海风与沿岸建筑'));
@@ -52,6 +53,7 @@ const photo='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJA
    await editor.locator('textarea').fill('V12 路线同步保存的真实 Brief');
    await editor.locator('[data-v12-action=save-brief]').click();
    await page.waitForFunction(text=>document.querySelector('.v12-route-sections')?.textContent?.includes(text),'V12 路线同步保存的真实 Brief',{timeout:15000});
+   await page.waitForFunction(()=>document.getElementById('sheet')?.getBoundingClientRect().top>180,null,{timeout:15000});
    const got=await page.evaluate(async id=>FootprintMediaCore.createRepository(indexedDB).read(id),a);
    assert.equal(got.note,'V12 路线同步保存的真实 Brief');
    await card.locator('[data-v12-action=edit-link]').click();
@@ -70,6 +72,7 @@ const photo='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJA
    await page.locator('#v12-place-bubble').dispatchEvent('click');
    await page.waitForFunction(id=>document.querySelector('.v12-route-sections')?.dataset.placeId===id,b,{timeout:14000});
    assert.ok((await page.locator('.v12-route-sections').textContent()).includes('旧街屋檐'));
+   assert.equal(await page.locator('#sheet-title').textContent(),'V12 古镇');
    assert.ok(!(await page.locator('.v12-route-sections').textContent()).includes('新资料'));
    assert.deepEqual(errors.filter(e=>/ReferenceError|SyntaxError|TypeError/.test(e)),[]);
    await context.close();

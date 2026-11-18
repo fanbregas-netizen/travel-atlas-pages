@@ -20,7 +20,7 @@ def blob(p):
  return hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
 visual={
 'v12-v5-parity.css':'52b9612fe5844449def9955b50703a901c09a2c9',
-'v12-route-place.js':'0d34f65636fe23fdfc17a03d8ac9f98e18c60b31',
+'v12-route-place.js':'1cede2ee1207a960440ed49de59c5b8404b3f0e6',
 }
 for file,expected in visual.items():assert blob(source/file)==expected,file
 shutil.copytree(existing,output)

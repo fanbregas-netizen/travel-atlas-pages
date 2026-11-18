@@ -119,6 +119,6 @@ jobs:
           grep -q 'route-v5-runtime.js' /tmp/v12-v5-real-route.html
           curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/visual/v12-route-place.js" -o /tmp/v12-real-adapter.js
           node --check /tmp/v12-real-adapter.js
-          test "$(git hash-object /tmp/v12-real-adapter.js)" = 0d34f65636fe23fdfc17a03d8ac9f98e18c60b31
+          test "$(git hash-object /tmp/v12-real-adapter.js)" = 1cede2ee1207a960440ed49de59c5b8404b3f0e6
           curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/footprint-home.js" -o /tmp/v12-real-media.js
           cmp /tmp/v12-real-media.js __prototype/v4-system-review/media-v9-final-footprint-home.js
