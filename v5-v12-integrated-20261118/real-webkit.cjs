@@ -33,7 +33,7 @@ const photo='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJA
    await page.waitForFunction(()=>document.getElementById('v12-place-bubble')?.dataset.placeId===document.querySelector('#pins [data-pin]')?.dataset.pin || !document.getElementById('v12-place-bubble')?.hidden,null,{timeout:11000});
    assert.equal(await page.locator('#v12-place-bubble').getAttribute('data-place-id'),a);
    await page.locator('#v12-place-bubble').dispatchEvent('click');
-   await page.waitForFunction(()=>document.querySelector('.v12-route-sections[data-place-id="'+arguments[0]+'"]'),a,{timeout:25000});
+   await page.waitForFunction(id=>document.querySelector('.v12-route-sections[data-place-id="'+id+'"]'),a,{timeout:25000});
    const card=page.locator('.v12-route-sections');
    assert.equal(await card.locator('.fp-block').count(),4);
    const titles=await card.locator('.fp-section-label').allTextContents();
