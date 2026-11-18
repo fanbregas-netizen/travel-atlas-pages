@@ -18,7 +18,7 @@ const fixture=[
  fs.mkdirSync('route-live-five-step-evidence',{recursive:true});
  const screenshot=tag=>page.screenshot({path:'route-live-five-step-evidence/'+browserName+'-'+width+'-'+tag+'.png'});
  const state=()=>page.evaluate(()=>window.__fpSixStepRoute?.state);
- const act=name=>page.locator('#fpRouteFlowSheet [data-action="'+name+'"]').click();
+ const act=name=>page.locator('#fpRouteSheetFoot .fp-route-main-btn[data-action="'+name+'"]').click();
  try{
   await page.goto(base+'icon.svg');
   await page.evaluate(async places=>{
