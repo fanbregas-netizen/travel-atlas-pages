@@ -8,16 +8,20 @@ on:
       - 'v5-route-interaction-demo-20261118/**'
       - 'v5-route-real-product-20261118-overrides/**'
   workflow_dispatch:
+  workflow_run:
+    workflows: ['Publish Travel Atlas V4 to GitHub Pages']
+    types: [completed]
 permissions:
   contents: read
   actions: read
   pages: write
   id-token: write
 concurrency:
-  group: pages-route-overlay
+  group: pages
   cancel-in-progress: false
 jobs:
   deploy-route-preview:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment:
@@ -29,7 +33,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           repository: fanbregas-netizen/travel-atlas-pages
-          run-id: 44262201161
+          run-id: ${{ github.event.workflow_run.id || 44262201161 }}
           name: github-pages
           github-token: ${{ github.token }}
           path: _verified_pages_artifact
@@ -41,7 +45,9 @@ jobs:
           tar -xf _verified_pages_artifact/artifact.tar -C _site
           test -s _site/index.html
           # Full real V4 product copied to an isolated V5 approval directory, never to the public root.
-          cp -R _site/v4-route-live-five-step-20261118 _site/v5-route-real-product-20261118
+          if test ! -d _site/v5-route-real-product-20261118; then
+            cp -R _site/v4-route-live-five-step-20261118 _site/v5-route-real-product-20261118
+          fi
           cp v5-route-real-product-20261118-overrides/index.html _site/v5-route-real-product-20261118/index.html
           cp v5-route-real-product-20261118-overrides/route-view.html _site/v5-route-real-product-20261118/route-view.html
           cp v5-route-real-product-20261118-overrides/journey-v5.html _site/v5-route-real-product-20261118/journey-v5.html
@@ -70,7 +76,7 @@ jobs:
           sha256sum _site/index.html > /tmp/route-preview-root-sha-after
           diff /tmp/route-preview-root-sha-before /tmp/route-preview-root-sha-after
           test -f _site/v4-route-live-five-step-20261118/sw.js
-          echo "Only isolated V4 route preview assets changed; verified homepage retained byte-for-byte."
+          echo "Only isolated V5 route preview assets changed; published homepage retained byte-for-byte."
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
