@@ -27,7 +27,8 @@ const base='http://127.0.0.1:8765/v4-route-six-step-20261118/';
   console.log('ENTRY');assert.equal(await stage(),'entry');
   await pg.locator('[data-action="start"]').click();
   console.log('PICK');assert.equal(await stage(),'pick');
-  for(const id of ['fast-p1','fast-p2','fast-p3'])await pg.locator('[data-action="toggle"][data-id="'+id+'"]').click();
+  console.log('BEFORE PICK',JSON.stringify(await pg.evaluate(()=>({places:window.__fpRoutePreviewData?.map(x=>x.id),state:window.__fpSixStepRoute?.state,buttons:[...document.querySelectorAll('#fpRouteFlowSheet [data-action=toggle]')].map(x=>x.dataset.id)}))));
+  for(const id of ['fast-p1','fast-p2','fast-p3']){await pg.locator('[data-action="toggle"][data-id="'+id+'"]').click();console.log('PICK RESULT',id,JSON.stringify(await pg.evaluate(()=>window.__fpSixStepRoute.state)));}
   assert.equal((await pg.evaluate(()=>window.__fpSixStepRoute.state.order)).length,3);
   await pg.locator('[data-action="nextpick"]').click();assert.equal(await stage(),'order');
   console.log('ORDER');await pg.locator('[data-action="day"][data-id="fast-p2"]').click();
