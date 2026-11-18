@@ -361,7 +361,7 @@ function onPanelClick(e){
  if(n.dataset.tab){state.tab=n.dataset.tab;renderPanel();el('fpRoutePanelBody').scrollTop=0;return}
  if(n.hasAttribute('data-close-panel')){closePanel();return}
  if(n.dataset.pick){choosePoint(n.dataset.pick);return}
- if(n.dataset.lock){var id=n.dataset.lock;if(state.locked.has(id))state.locked.delete(id);else state.locked.add(id);renderPanel();return}
+ if(n.dataset.lock){var id=n.dataset.lock;if(state.locked.has(id))state.locked.delete(id);else state.locked.add(id);renderPanel();if(window.__fpRouteLive)window.__fpRouteLiveBridge?.changed?.(window.__fpRouteLogicUI?.getState?.());return}
  if(n.dataset.move){moveStop(n.dataset.move,Number(n.dataset.dir));return}
  if(n.dataset.mode){state.mode=n.dataset.mode;state.proposal=null;window.__fpRoutePreviewMode=state.mode;
   document.dispatchEvent(new CustomEvent('atlas:route-stops-changed'));renderPanel();updateSummary();toast(window.__fpRouteLive?'已更新主要交通方式':'已切换主要交通方式（交互演示）');
