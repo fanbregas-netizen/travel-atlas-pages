@@ -36,7 +36,7 @@ function showBubble(pin){
  const token=pin.querySelector('.fp-route-poi-token');
  const wasConnected=!!token?.isConnected;
  if(token)window.AtlasPOIMotion?.popSelected?.(token);
- window.__fpRoutePoiMotionHealth=()=>({connected:wasConnected,popApplied:!!token?.style?.transform||!!token?.dataset?.poiPopMotion,present:!!window.AtlasPOIMotion,selectedStillMounted:!!token?.isConnected});
+ window.__fpRoutePoiMotionHealth=()=>({connected:wasConnected,popApplied:!!token?.style?.transform||!!token?.dataset?.poiPopMotion,present:!!window.AtlasPOIMotion,method:typeof window.AtlasPOIMotion?.popSelected,version:window.AtlasPOIMotion?.version||'',selectedStillMounted:!!token?.isConnected});
  window.FootprintRouteV5Real?.focusPin?.(bubbleId);
  pinWatcher=new MutationObserver(()=>requestAnimationFrame(placeBubble));
  pinWatcher.observe(pins,{subtree:true,attributes:true,attributeFilter:['style','hidden'],childList:true});
