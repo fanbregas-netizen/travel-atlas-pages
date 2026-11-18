@@ -285,7 +285,7 @@ function renderFoot(){
  const actions={entry:['start','开始规划'],pick:['nextpick','下一步'],order:['nextorder','下一步'],settings:['nextsettings','下一步'],recommend:['save','完成并保存'],done:['view','查看行程'],preview:['edit','编辑路线']};
  const [act,label]=pointView?['togglepoint',state.order.includes(state.placeCard)?'从路线移除':'加入路线']:(actions[state.step]||actions.entry);
  const disabled=((act==='nextpick'||act==='nextorder'||act==='save')&&!count())||state.saving;
- return (state.undoVisible?'<div class="fp-route-undo"><span>'+esc(state.undoLabel)+'</span><button type="button" data-action="undo">'+iSvg('undo')+' 撤回</button></div>':'')+
+ return (state.undoVisible?'<div class="fp-route-undo"><span>'+esc(state.undoLabel)+' · 点右上角 ↶ 撤回</span></div>':'')+
   (state.saveError?'<p class="fp-route-save-error" role="alert">'+esc(state.saveError)+'</p>':'')+
   footRow+'<button class="fp-route-main-btn" type="button" data-action="'+act+'" '+(disabled?'disabled':'')+'>'+
   (state.saving?'正在保存…':label)+' '+iSvg(act==='view'?'route':'next')+'</button>';
