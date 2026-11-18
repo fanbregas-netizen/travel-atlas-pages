@@ -196,8 +196,8 @@ async function save(state){
  if(state.order.length<2)throw Error('请先选择至少两个访问地点');
  if(!repo)throw Error('路线存储未就绪');
  const old=savedRecord||{},id=old.id||window.crypto?.randomUUID?.()||'trip-'+Date.now();
- const linked=new Set([...state.order,state.origin?.id,state.dest?.id].filter(Boolean));const newPoints=state.places.filter(p=>p.routeOnly&&linked.has(p.id));
- await saveNewPoints(newPoints);
+ const linked=new Set([...state.order,state.origin?.id,state.dest?.id].filter(Boolean));
+ const newPoints=state.places.filter(p=>p.pending&&p.routeOnly&&linked.has(p.id)).map(p=>({id:p.id,title:p.name,name:p.name,address:p.subtitle||'',lat:+p.lat,lng:+p.lng,routeOnly:true,starred:false,createdAt:new Date().toISOString()}));
  const prev=old.stops||[],timeFor=id=>prev.find(s=>String(s.placeId||s.id)===id)?.time||'';
  const stops=state.order.map((placeId,i)=>({id:placeId,placeId,order:i+1,day:state.days[placeId]||1,time:timeFor(placeId)}));
  const op=state.origin?.type==='point'?state.origin.id:'',dp=state.dest?.type==='point'?state.dest.id:'';
@@ -209,7 +209,9 @@ async function save(state){
   visualVersion:'V5-approved-20261118',createdAt:old.createdAt||new Date().toISOString(),
   updatedAt:new Date().toISOString(),version:2
  };
- await repo.saveRoute(record);savedRecord=record;state.savedRouteId=id;
+ await repo.saveRoute(record,{places:newPoints});
+ const persisted=new Set(newPoints.map(p=>p.id));state.places.forEach(p=>{if(persisted.has(p.id))p.pending=false});
+ savedRecord=record;state.savedRouteId=id;
  history.replaceState(null,'','./journey-v5.html?saved='+encodeURIComponent(id)+'&view=1');
  document.dispatchEvent(new CustomEvent('footprint:route-saved',{detail:{id,placeIds:record.placeIds}}));
  return id

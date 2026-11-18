@@ -71,7 +71,8 @@ async function run(){
     return rows.find(x=>x.id===routeId);
   },id);
   assert.equal(saved.title,'三站真实路线验收');
-  assert.equal(saved.placeIds.length,3);
+  assert.equal(saved.stops.length,3);
+  assert.deepEqual(saved.stops.map(s=>s.placeId),places.map(p=>p.id));
   assert.equal(saved.routeTo,'loop');
   await screenshot('05-saved');
   const external=await page.evaluate(()=>window.FootprintRouteV5Real.navigation('apple',{order:['v5-accept-shanghai','v5-accept-park'],places:[{id:'v5-accept-shanghai',lat:31.3218,lng:121.395},{id:'v5-accept-park',lat:31.2236,lng:121.4188}],travel:'car'}));

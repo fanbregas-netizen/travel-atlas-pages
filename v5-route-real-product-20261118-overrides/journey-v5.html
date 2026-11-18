@@ -314,7 +314,7 @@ function addMapPlace(x,y){
  const c=window.FootprintRouteV5Real?.unproject(x,y);if(!c)return toast('地图尚未加载，请检查网络',false);
  const n=state.places.filter(p=>p.routeOnly).length+1,id='route-v5-'+(crypto.randomUUID?.()||Date.now().toString(36));
  storeSnapshot('添加地图地点');
- state.places.push({id,name:'地图地点 '+n,subtitle:'地图选点 · 可稍后命名',lat:c.lat,lng:c.lng,routeOnly:true});
+ state.places.push({id,name:'地图地点 '+n,subtitle:'地图选点 · 可稍后命名',lat:c.lat,lng:c.lng,routeOnly:true,pending:true});
  state.order.push(id);state.days[id]=Math.min(daysCount(),Math.ceil(state.order.length/2));state.highlight=id;render(true);
  toast('已添加地图地点 '+n+' · 可继续选点');
 }
@@ -376,7 +376,7 @@ function onBlankMap(x,y){
  if(state.endpointMap){
   const id='route-endpoint-'+(crypto.randomUUID?.()||Date.now().toString(36));
   storeSnapshot('地图设置起终点');
-  state.places.push({id,name:'地图指定位置',subtitle:'起终点 · 地图位置',lat:c.lat,lng:c.lng,routeOnly:true});
+  state.places.push({id,name:'地图指定位置',subtitle:'起终点 · 地图位置',lat:c.lat,lng:c.lng,routeOnly:true,pending:true});
   state[state.endpointMap]={type:'point',id};state.endpointMap=null;render();springTo('full');toast('已使用地图指定位置');return
  }
  if(state.step==='pick'&&state.pickMode==='map')return addMapPlace(x,y);
