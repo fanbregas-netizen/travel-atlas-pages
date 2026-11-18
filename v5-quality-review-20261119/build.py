@@ -71,6 +71,22 @@ for file in ('v4-map-runtime.js','footprint-home.js','map-home-bluegray-v18.js',
  'src/route/route-v5-runtime.js','src/visual/v12-route-place.js',
  'src/interaction/v4-approved-collection-sheet-v2.js','src/interaction/paired-dock-motion-v2.js'):
  subprocess.run(['node','--check',str(dest/file)],check=True)
+# Audit *every* real private product asset, not only files in this overlay.
+# The old public V5 build may contain an older Map A script despite passing
+# unrelated gallery/route tests; identify every missing/stale asset by Git SHA.
+canonical=json.loads(Path('__prototype/v5-quality-review-20261119/private-product-blobs.json').read_text())
+stale=[]
+for rel,expected_sha in canonical['files'].items():
+    f=dest/rel
+    if not f.is_file(): stale.append({'path':rel,'status':'missing'})
+    elif rel not in ('index.html','journey.html') and blob(f)!=expected_sha:
+        stale.append({'path':rel,'status':'blob-mismatch','expected':expected_sha,'actual':blob(f)})
+print('PRIVATE_PRODUCT_AUDIT '+json.dumps(stale,ensure_ascii=False))
+(dest/'product-asset-audit.json').write_text(json.dumps({
+ 'private_commit':canonical['private_commit'],
+ 'total_files':len(canonical['files']),
+ 'mismatches':stale,'excluded_preview_namespaces':['index.html','journey.html']
+},ensure_ascii=False,indent=2)+'\n')
 manifest={'kind':'Private PR #52 strict product overlay',
 'private_branch':'integration/v5-quality-unification-20261119',
 'changed_source_blobs':expected,'storage_namespace':new_ns,'original_site_unmodified':True,
