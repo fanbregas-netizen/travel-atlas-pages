@@ -1,0 +1,15 @@
+/* Stage 1.34.4 | Focused visual repair: preserve the existing silhouettes and icons. */
+#atlasOrbit .orbit-svg{overflow:visible!important;filter:drop-shadow(0 12px 23px rgba(32,37,32,.19)) drop-shadow(0 2px 3px rgba(39,43,36,.12))!important}
+#atlasOrbit .orbit-svg path{fill:#fffefa!important;stroke:#ffffff!important;stroke-width:3.4!important;stroke-linejoin:round!important;filter:drop-shadow(0 1px 1.3px rgba(48,54,45,.42))}
+#atlasOrbit .orbit-backdrop{background:rgba(26,33,29,.085)!important;backdrop-filter:blur(1.1px)!important;-webkit-backdrop-filter:blur(1.1px)!important}
+#atlasOrbit .orbit-kicker{font-weight:720!important;color:#232c28!important;letter-spacing:-.018em!important}
+#atlasOrbit .orbit-bubble .orbit-content{isolation:isolate}
+#atlasOrbit .orbit-bubble .orbit-ref-sub{color:#68756e!important}
+#atlasOrbit .orbit-premium-media{border-radius:10px!important;background:linear-gradient(130deg,#dfe9e1,#eff3ee 58%,#e4e8dd)!important;border-color:#dbe3da!important}
+#atlasOrbit .orbit-premium-media.has-photo{background:#e5e8e2!important}
+#atlasOrbit .orbit-premium-placeholder{font-size:10.5px!important;color:#566c5d!important}
+#atlasOrbit .orbit-center{background:rgba(255,252,235,.98)!important;border:1.5px solid #fff!important;box-shadow:0 5px 18px rgba(26,32,22,.22),0 0 0 1px #c8b47899!important}
+#atlasOrbit .orbit-center svg{filter:drop-shadow(0 2px 2px rgba(54,44,13,.18))}
+#atlasOrbit[data-orbit-mode="four"] .orbit-bubble{filter:none!important}
+#atlasOrbit .orbit-bubble:focus-visible{outline:2px solid #b99943!important;outline-offset:6px}
+@media(prefers-reduced-motion:reduce){#atlasOrbit .orbit-svg{filter:none!important}}
