@@ -79,7 +79,7 @@ const places=[
    const r=indexedDB.open(name,1);r.onerror=()=>reject(r.error);
    r.onsuccess=()=>{const db=r.result,t=db.transaction('places','readonly'),q=t.objectStore('places').get('flow-p1');
     q.onsuccess=()=>{resolve(q.result.note);db.close()};q.onerror=()=>reject(q.error)}
-  }),idb);
+  }),'private-travel-footprints-v1'); // name is prefixed once by the page isolation adapter
   assert.equal(note,'原收藏 A Brief');
   await page.goto(base+'journey.html?saved='+encodeURIComponent(record.id),{waitUntil:'domcontentloaded',timeout:60000});
   await page.waitForFunction(()=>window.__fpSixStepRoute?.state?.step==='done',{timeout:25000});
