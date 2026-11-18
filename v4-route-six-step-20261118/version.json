@@ -1,0 +1,7 @@
+{
+  "version": "V4.C.PagesParityMotion.20261116.19",
+  "base": "V4.Stage1.20261110.34.7",
+  "date": "2026-11-16",
+  "interaction": "swipe-card",
+  "review": "Verified in real headless iPhone Chrome: 22/22 POI categories, sea's three internal SVG morphs, real scale animation, yellow-star morph, media, route pages and top search. Build .18: implement explicitly approved standalone four-screen iPhone layout (detail, collection, route, viewer) with NO home search field visible above an opened card. Compact two-row detail identity, consistent section rhythm, and one media add entry. Reuse the exact approved C V5 0.105/.75 spring motor for anchored search history and the inner POI SVG scale-return, preserving all category-specific SMIL waves/rotations and stable geographic anchors. Retain original B05 sheet physics, backups, routes and all media. Build .19 correction from real 17s Safari recording: remove forced +1.55zoom/780ms tile reload during POI taps and unnecessary 240/250ms show delays; drive actual destination card reveal and POI-to-POI changes on same C V5 physical spring using individual translate and scale. Stop the old fpCardIn keyframe from overriding saved-card physical controller. Make real search history visibly drop and rebound with C V5 instead of barely perceptible scaling. Preserve category-specific SVG, original 3-detent sheet, all routes and media. Original Pages root untouched; native Safari final acceptance pending."
+}

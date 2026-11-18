@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" aria-label="Old Town">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M9 24 L31 13 L55 25 M16 27 L16 50 M48 27 L48 50 M11 51 L53 51"/>
+  <path d="M23 30 L23 44 M31 30 L31 44 M39 30 L39 44" stroke-width="2.2"/>
+  <path d="M6 23 Q31 18 58 24" stroke-width="1.6"/>
+ </g>
+</svg>

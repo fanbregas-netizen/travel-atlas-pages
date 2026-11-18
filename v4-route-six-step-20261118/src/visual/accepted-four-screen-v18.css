@@ -1,0 +1,260 @@
+/* Footprint Map V4.18 · user-approved FOUR SCREEN acceptance layout.
+ * Reference: Footprint_Map_V4_视觉交互验收演示.html (approved without the
+ * search bar above a card). NO new sheet, header, controller or search input. */
+:root{--fp18-paper:#fffefa;--fp18-ink:#2b4033;--fp18-line:#e2e9e1;--fp18-soft:#f0f4ef;--fp18-mute:#87998b;}
+/* Search is an HOME feature. It must not float above an opened card. */
+body.fp-place-open #fpTopSearch,
+body:has(#fpPlaceCard:not([hidden])) #fpTopSearch,
+body:has(#drawer.visible) #fpTopSearch,
+body:has(#rc-shell.rc-active) #fpTopSearch,
+body.route-v5-live:has(#rc-main) #fpTopSearch{
+ visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+}
+/* The existing physical sheet owns height and touch; only its accepted
+   TITLE + CLOSE / STAGE + TWO ICONS composition is revised here. */
+/* There is one real .atlas-card-grip inside the existing header.
+   Reserve its top band BEFORE the title row, no duplicate decorative bar. */
+body #fpPlaceCard .fp-card-header .atlas-card-grip{
+ position:absolute!important;top:0!important;left:50%!important;
+ transform:translateX(-50%)!important;
+ min-height:44px!important;width:92px!important;
+ z-index:4!important;
+ background:transparent!important;border:0!important;
+}
+body #fpPlaceCard .fp-card-header .atlas-card-grip::before{
+ content:""!important;position:absolute!important;
+ top:14px!important;left:50%!important;transform:translateX(-50%)!important;
+ width:44px!important;height:5px!important;border-radius:999px!important;
+ background:#c7d0c7!important;
+}
+body #fpPlaceCard .fp-card-header{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) 96px 44px!important;
+ /* Longer Chinese place names need a natural first row, not a clipping box. */
+ grid-template-rows:minmax(44px,auto) 44px!important;
+ gap:9px 8px!important;
+ padding:29px 18px 14px!important;
+ align-items:center!important;
+ background:var(--fp18-paper)!important;
+ border-bottom:1px solid var(--fp18-line)!important;
+}
+body #fpPlaceCard .fp-card-title-wrap{display:contents!important}
+body #fpPlaceCard .fp-card-header .fp-card-name{
+ grid-column:1/3!important;grid-row:1!important;
+ align-self:center!important;
+ margin:0!important;padding:0!important;
+ font-size:24px!important;line-height:1.18!important;
+ font-weight:720!important;letter-spacing:-.045em!important;
+ color:var(--fp18-ink)!important;overflow-wrap:anywhere!important;
+ max-height:none!important;overflow:visible!important;
+}
+body #fpPlaceCard .fp-card-header .fp-card-location{display:none!important}
+body #fpPlaceCard .fp-card-header > .fp-card-close{
+ grid-column:3!important;grid-row:1!important;
+ align-self:center!important;justify-self:end!important;
+ width:44px!important;height:44px!important;
+ min-width:44px!important;min-height:44px!important;
+ margin:0!important;padding:0!important;
+ border:0!important;border-radius:12px!important;
+ background:transparent!important;box-shadow:none!important;
+ color:#728779!important;font-weight:350!important;font-size:24px!important;
+}
+body #fpPlaceCard .fp-card-header .fp-place-stage{
+ grid-column:1!important;grid-row:2!important;
+ align-self:center!important;justify-self:start!important;
+ min-height:34px!important;height:34px!important;
+ margin:0!important;padding:5px 12px!important;
+ border:1px solid #e9ddbe!important;border-radius:999px!important;
+ background:#f7f3e9!important;color:#8c7744!important;
+ font-size:12px!important;font-weight:650!important;white-space:nowrap!important;
+}
+body #fpPlaceCard .fp-card-head-actions{
+ grid-column:2/-1!important;grid-row:2!important;
+ align-self:center!important;justify-self:end!important;
+ width:auto!important;display:flex!important;align-items:center!important;
+ gap:8px!important;padding:0!important;margin:0!important;
+}
+body #fpPlaceCard .fp-card-head-actions > button,
+body #fpPlaceCard .fp-card-head-actions > .fp-place-navigation,
+body #fpPlaceCard .fp-card-head-actions > .fp-star-toggle{
+ flex:0 0 44px!important;
+ width:44px!important;height:44px!important;
+ min-width:44px!important;max-width:44px!important;
+ min-height:44px!important;max-height:44px!important;
+ margin:0!important;padding:8px!important;
+ border:1px solid #dee6dc!important;border-radius:13px!important;
+ background:#f2f5f0!important;box-shadow:none!important;
+ display:grid!important;place-items:center!important;
+}
+body #fpPlaceCard .fp-card-head-actions > .fp-star-toggle[data-starred="true"]{
+ background:#f8f4e9!important;border-color:#e9ddbe!important;
+}
+body #fpPlaceCard .fp-card-head-actions > button img{
+ width:23px!important;height:23px!important;object-fit:contain!important;
+}
+body #fpPlaceCard .fp-card-scroll{
+ padding:14px 17px 20px!important;
+ background:var(--fp18-paper)!important;
+ /* Keep Brief, Media and Guides accessible inside the approved B05
+    half-height and full-height detents; never truncate the scroll owner. */
+ min-height:0!important;flex:1 1 auto!important;
+ overflow-y:auto!important;overscroll-behavior:contain!important;
+}
+body #fpPlaceCard .fp-card-header{
+ flex:0 0 auto!important;
+}
+body #fpPlaceCard .fp-block{
+ padding:14px 14px 15px!important;margin:0 0 11px!important;
+ border:1px solid var(--fp18-line)!important;border-radius:19px!important;
+ background:var(--fp18-paper)!important;box-shadow:none!important;
+}
+body #fpPlaceCard .fp-block .fp-subheading{
+ display:flex!important;align-items:center!important;
+ gap:9px!important;min-height:34px!important;
+ margin:0 0 10px!important;
+}
+body #fpPlaceCard .fp-block .fp-subheading .fp-section-index{
+ flex:0 0 32px!important;width:32px!important;height:32px!important;
+ min-width:32px!important;border-radius:10px!important;
+ background:#f1f4ef!important;color:#90a095!important;
+ font-size:12px!important;font-weight:720!important;
+ display:grid!important;place-items:center!important;
+}
+body #fpPlaceCard .fp-block .fp-subheading .fp-section-label{
+ font-size:16px!important;line-height:1.25!important;
+ font-weight:710!important;letter-spacing:-.035em!important;
+ color:var(--fp18-ink)!important;
+}
+body #fpPlaceCard .fp-block .fp-subheading > button.fp-subaction{
+ min-height:33px!important;height:33px!important;
+ padding:0 11px!important;margin:0!important;
+ border:1px solid #dfe7dd!important;border-radius:11px!important;
+ background:#eff4ee!important;color:#58725f!important;
+ font-size:12px!important;font-weight:660!important;
+ opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+}
+body #fpPlaceCard .fp-brief-text{
+ padding:0!important;margin:11px 1px 0!important;
+ font-size:13px!important;line-height:1.75!important;
+ color:#59695d!important;
+}
+body #fpPlaceCard .fp-media-empty{
+ min-height:0!important;height:auto!important;
+ margin:0!important;padding:12px 1px 0!important;
+ display:block!important;border:0!important;
+ background:transparent!important;box-shadow:none!important;
+}
+body #fpPlaceCard .fp-media-empty .fp-empty-text{
+ color:#98a59b!important;font-size:12px!important;line-height:1.6!important;
+}
+body #fpPlaceCard .fp-guide-empty{
+ margin:10px 1px 0!important;
+ color:#98a59b!important;font-size:12px!important;line-height:1.6!important;
+}
+body #fpPlaceCard .fp-photo-count{
+ font-size:12px!important;color:var(--fp18-mute)!important;
+ margin-top:9px!important;
+}
+/* Collection: same quiet 23px title, 44px x, 59px thumbnail, 82px row;
+   DO NOT touch B05 sheet height, snap physics, overflow or touch ownership. */
+body #drawer.fp30-detail .drawer-head{
+ padding:4px 18px 11px!important;
+ grid-template-rows:24px 44px!important;
+ row-gap:2px!important;
+ border-bottom:1px solid var(--fp18-line)!important;
+ background:var(--fp18-paper)!important;
+}
+body #drawer.fp30-detail .drawer-head .sheet-grab::before{
+ width:44px!important;height:5px!important;
+ background:#c7d0c7!important;
+}
+body #drawer.fp30-detail .drawer-head h2,
+body #drawer.fp30-detail .drawer-head .drawer-cn{
+ font-size:23px!important;font-weight:720!important;
+ line-height:1.18!important;letter-spacing:-.045em!important;
+ color:var(--fp18-ink)!important;
+}
+body #drawer.fp30-detail #spotList{
+ padding:13px 16px 20px!important;margin:0!important;
+}
+body #drawer.fp30-detail #spotList .spotrow{
+ min-height:82px!important;height:auto!important;
+ padding:10px!important;margin:0 0 9px!important;
+ gap:11px!important;border-radius:16px!important;
+ border:1px solid var(--fp18-line)!important;
+ background:var(--fp18-paper)!important;box-shadow:none!important;
+}
+body #drawer.fp30-detail #spotList .spotrow > img,
+body #drawer.fp30-detail #spotList .spotrow > .spotempty{
+ width:59px!important;height:59px!important;
+ min-width:59px!important;min-height:59px!important;
+ border-radius:13px!important;object-fit:cover!important;
+ flex:0 0 59px!important;
+}
+body #drawer.fp30-detail #spotList .spotrow strong{
+ font-size:15px!important;font-weight:710!important;line-height:1.3!important;
+ color:var(--fp18-ink)!important;
+}
+body #drawer.fp30-detail #spotList .spotrow small{
+ font-size:12px!important;line-height:1.35!important;
+ color:var(--fp18-mute)!important;
+}
+body #drawer.fp30-detail #spotList .spotrow .arrow{opacity:.65!important;}
+/* The approved single C V5 route removes the second route choice.
+   The collection already opens directly to places; neither a one-tab
+   switcher nor another "收藏地点" heading belongs below "我的收藏". */
+body.fp-single-route-owner #drawer.fp30-detail #fpvCollectionTabs,
+body.fp-single-route-owner #drawer.fp30-detail #fpvCollectionTabs[hidden],
+body.fp-single-route-owner #drawer.fp30-detail #fp30DetailHead[hidden]{
+ display:none!important;
+}
+body.fp-single-route-owner #drawer.fp30-detail .drawer-head{
+ padding-bottom:8px!important;
+}
+body.fp-single-route-owner #drawer.fp30-detail #spotList{
+ padding-top:7px!important;
+}
+/* Approved route sheet composition, keeping C V5 stop selection and Dock
+   behavior untouched. No additional search bar above the sheet. */
+body.route-v5-live #rc-main #rc-grab{
+ background:var(--fp18-paper)!important;
+ border-bottom:1px solid var(--fp18-line)!important;
+ padding:7px 18px 12px!important;
+}
+body.route-v5-live #rc-main #rc-grab .rc-upper #rc-title{
+ font-size:23px!important;font-weight:720!important;letter-spacing:-.045em!important;
+}
+body.route-v5-live #rc-main #rc-grab .rc-upper #rc-subtitle{
+ font-size:12px!important;color:var(--fp18-mute)!important;
+}
+body.route-v5-live #rc-main #rc-grab .rc-upper button.rc-dismiss{
+ background:transparent!important;border:0!important;
+ width:44px!important;height:44px!important;
+}
+/* No shadow animation or extra popup: search RESULTS alone use the same
+   spring motor as the card. Suppress the obsolete CSS animation layers. */
+body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]:not([hidden]),
+body.fp-search-open #fpSearchSheet[data-search-layout="anchored"] .fp-search-body{
+ animation:none!important;
+}
+body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]{
+ transform-origin:top center!important;
+}
+/* POI: the map/geographic token must not rotate or scale independently.
+   Only its internal SVG gets frame-time compensated spring motion. */
+#atlasPoiOverlay .fp-poi.is-tapped .fp-poi-token,
+#atlasPoiOverlay .fp-poi.is-selected .fp-poi-token{
+ animation:none!important;transform:none!important;
+}
+#atlasPoiOverlay .fp-internal-poi-envelope{
+ transform-origin:50% 50%!important;
+}
+@media(max-width:375px){
+ body #fpPlaceCard .fp-card-header{padding-inline:15px!important;column-gap:6px!important;}
+ body #fpPlaceCard .fp-card-scroll{padding-inline:15px!important;}
+ body #drawer.fp30-detail #spotList{padding-inline:14px!important;}
+}
+@media(prefers-reduced-motion:reduce){
+ body #fpSearchSheet[data-search-layout="anchored"]{scale:1!important;translate:none!important;}
+ #atlasPoiOverlay .fp-internal-poi-envelope{scale:1!important;}
+}
