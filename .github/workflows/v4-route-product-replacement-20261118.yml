@@ -20,7 +20,12 @@ jobs:
           node-version: '22'
       - name: Parse real product scripts
         run: |
-          node --check v4-approved-route-20261118/src/interaction/route-cards-v5-live.js
+          test "$(git hash-object v4-approved-route-20261118/journey.css)" = 84a45cb2732b57fb3a6f89a993a13dbbab0ec659
+          test "$(git hash-object v4-approved-route-20261118/src/route/journey-mobile-sheet.css)" = b05158c0bf6c210b9ce3f998c387fc5c17686f60
+          test "$(git hash-object v4-approved-route-20261118/src/route/journey-confirmed-ui.css)" = 8a455a2faf352418af938ba60a67e1723621b657
+          test "$(git hash-object v4-approved-route-20261118/src/route/journey-confirmed-ui.js)" = 67c7ad07dad4c1ddcd02008422f4c025f597ca0f
+          node --check v4-approved-route-20261118/journey.js
+          node --check v4-approved-route-20261118/src/route/journey-confirmed-ui.js
           node --check v4-approved-route-20261118/src/route/route-order-engine.js
           node --check v4-approved-route-20261118/src/media/media-core.js
           node --check tests/v4-route-product-replacement-20261118.test.cjs
@@ -34,7 +39,9 @@ jobs:
           sleep 2
           curl -fsSL http://127.0.0.1:8765/v4-approved-route-20261118/index.html >/dev/null
       - name: Compare real C V5 behavior in Chromium and WebKit at iPhone dimensions
-        run: node tests/v4-route-product-replacement-20261118.test.cjs
+        run: |
+          BROWSER=chromium node tests/v4-route-product-replacement-20261118.test.cjs
+          BROWSER=webkit node tests/v4-route-product-replacement-20261118.test.cjs
       - name: Upload test failure screenshot
         if: always()
         uses: actions/upload-artifact@v4
