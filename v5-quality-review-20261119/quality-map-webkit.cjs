@@ -24,7 +24,7 @@ async function inspectMap(page,kind){
    provider:window.__atlasMapHealth?.().provider||'route',mapCount:document.querySelectorAll('.maplibregl-canvas').length,
    opacity:canvas?getComputedStyle(canvas).opacity:'missing',canvasPresent:!!canvas,
    colors:paints,palette:window.__atlasBlueGrayMap.palette.background,
-   version:window.maplibregl?.version,rect:parent?{w:parent.width,h:parent.height}:null,
+   version:window.maplibregl?.version,engineSrc:[...document.scripts].map(x=>x.src).find(x=>/maplibre-gl@5\.12\.0\/dist\/maplibre-gl\.js/.test(x))||'',rect:parent?{w:parent.width,h:parent.height}:null,
    bodyClass:document.body?.className,htmlClass:document.documentElement?.className,canvasStyle:canvas?.getAttribute('style'),canvasClass:canvas?.className,
    remoteReady:document.body.classList.contains('atlas-remote-ready'),
    onScreen:!!(canvas&&canvas.getBoundingClientRect().width>0&&canvas.getBoundingClientRect().height>0),
@@ -40,7 +40,7 @@ async function inspectMap(page,kind){
  assert.ok(values.canvasPresent,kind+' has no active WebGL canvas');
  assert.ok(+values.opacity>.9,kind+' canvas was never revealed');
  assert.ok(values.rect&&values.rect.w>300&&values.rect.h>350,kind+' canvas collapsed');
- assert.equal(values.version,'5.12.0','home/route MapLibre mismatch');
+ assert.ok(values.engineSrc.includes('maplibre-gl@5.12.0'),kind+' did not load the shared MapLibre 5.12.0 engine');
  assert.equal(values.mapCount,1,kind+' duplicate WebGL canvases');
  const visibleWithoutTheme=values.history.filter(x=>x.active&&x.visible&&x.theme!=='bluegray-v18');
  assert.equal(visibleWithoutTheme.length,0,kind+' showed bright unthemed canvas during startup: '+JSON.stringify(visibleWithoutTheme.slice(0,4)));
