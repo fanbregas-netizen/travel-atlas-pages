@@ -268,17 +268,21 @@ jobs:
           node --check _site/v4-map-a-media-v9-20261118/v4-map-runtime.js
           node --check _site/v4-map-a-media-v9-20261118/src/interaction/route-cards-v5-live.js
           node --check _site/v4-map-a-media-v9-20261118/map-home-bluegray-v18.js
-      - name: Install WebKit browser
+      - name: Acquire official Ubuntu 24.04 Playwright WebKit browser container
         run: |
-          npm install --no-save --ignore-scripts playwright-core@1.58.2
-          npx --yes playwright@1.58.2 install --with-deps webkit
+          docker --version
+          docker pull mcr.microsoft.com/playwright:v1.58.2-noble
       - name: Test actual combined V4 fullscreen media gestures across 375, 390 and 430px
         env:
           MEDIA_QA_ROOT: http://127.0.0.1:8765/v4-map-a-media-v9-20261118/
         run: |
           python3 -m http.server 8765 --directory _site > /tmp/v4-v9-webkit.log 2>&1 &
           sleep 2
-          node tests/v4-media-webkit-motion-browser.cjs
+          docker run --rm --network host \
+            -v "$PWD":/workspace -w /workspace \
+            -e MEDIA_QA_ROOT="$MEDIA_QA_ROOT" \
+            mcr.microsoft.com/playwright:v1.58.2-noble \
+            bash -lc "npm install --no-save --ignore-scripts playwright-core@1.58.2 && node tests/v4-media-webkit-motion-browser.cjs"
       - name: Save integrated WebKit iPhone media evidence
         if: always()
         uses: actions/upload-artifact@v4
