@@ -175,6 +175,48 @@ jobs:
           assert '四系统独立验收' in (hub/'index.html').read_text()
           print('V4 map-only review appended; pre-existing previews preserved.')
 
+          # Stable map-A integration candidate: true V4 product + generated A
+          # files, not an unverified reimplementation or review-only page.
+          map_candidate=root/'v4-map-a-integration-20261118'
+          assert not map_candidate.exists(), 'Never overwrite an existing review'
+          shutil.copytree(dest,map_candidate)
+          export_root=pathlib.Path('__prototype/v4-map-a-bluegray19-export')
+          source_changes=('index.html','journey.html','route-view.html',
+              'v4-map-runtime.js','src/map/shared-v4-map.js',
+              'src/interaction/route-cards-v5-live.js',
+              'src/interaction/poi-svg-motion-v4.js')
+          new_map_assets=('map-home-bluegray-v18.js','map-home-bluegray-v18.css',
+                          'map-visual-parity.css')
+          manifest=json.loads((export_root/'MANIFEST.json').read_text())
+          assert set(source_changes)==set(manifest['allowed_changed_files'])
+          assert set(new_map_assets)==set(manifest['added_assets'])
+          for rel in source_changes+new_map_assets:
+              dst=map_candidate/rel
+              dst.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copyfile(export_root/rel,dst)
+          for page in ('index.html','journey.html','route-view.html'):
+              htmlpath=map_candidate/page
+              html=htmlpath.read_text(encoding='utf-8')
+              old_namespace='atlas-v4-map-system-review-20261117-'
+              assert old_namespace in html
+              html=html.replace(old_namespace,'atlas-v4-map-a-integration-20261118-')
+              old_review_style='<link rel="stylesheet" href="./scope-review.css?v=scope-1">'
+              old_review_script='<script src="./scope-review.js?v=scope-1" data-scope="map"></script>'
+              assert html.count(old_review_style)==1, page
+              assert html.count(old_review_script)==1, page
+              html=html.replace(old_review_style,'').replace(old_review_script,'')
+              html=html.replace('map-visual-parity.css?v=map-only-12',
+                                'map-visual-parity.css?v=map-a-19')
+              assert 'scope-review.' not in html and old_namespace not in html
+              htmlpath.write_text(html,encoding='utf-8')
+          assert len([p for p in map_candidate.rglob('*') if p.is_file()])==167
+          for base_file in dest.rglob('*'):
+              if not base_file.is_file(): continue
+              rel=str(base_file.relative_to(dest))
+              if rel in source_changes: continue
+              assert base_file.read_bytes()==(map_candidate/rel).read_bytes(),rel
+          print('Map A integrated exactly into full V4: 7 original files and 3 assets, old production untouched.')
+
           after=hashes()
           assert all(after[p]==h for p,h in original.items())
           print('All',len(original),'existing deployed files unchanged; appended 164 candidate files.')
@@ -232,3 +274,17 @@ jobs:
           curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/src/interaction/poi-svg-motion-v4.js' -o /tmp/v4-map-poi-pop.js
           node --check /tmp/v4-map-poi-pop.js
           grep -Fq 'function popSelected(token)' /tmp/v4-map-poi-pop.js
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-a-integration-20261118/' -o /tmp/map-a-integrated-home.html
+          grep -q 'bluegray-19' /tmp/map-a-integrated-home.html
+          grep -q 'atlas-v4-map-a-integration-20261118-' /tmp/map-a-integrated-home.html
+          ! grep -q 'scope-review.' /tmp/map-a-integrated-home.html
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-a-integration-20261118/journey.html' -o /tmp/map-a-integrated-journey.html
+          grep -q 'atlas-route-home-poi-renderer' /tmp/map-a-integrated-journey.html
+          ! grep -q 'scope-review.' /tmp/map-a-integrated-journey.html
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-a-integration-20261118/route-view.html' -o /tmp/map-a-integrated-route-view.html
+          ! grep -q 'scope-review.' /tmp/map-a-integrated-route-view.html
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-a-integration-20261118/v4-map-runtime.js' -o /tmp/map-a-integrated-runtime.js
+          node --check /tmp/map-a-integrated-runtime.js
+          curl -fSL --retry 8 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-a-integration-20261118/map-home-bluegray-v18.js' -o /tmp/map-a-integrated-bluegray.js
+          node --check /tmp/map-a-integrated-bluegray.js
+
