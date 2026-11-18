@@ -1,0 +1,39 @@
+name: Footprint V5 real-product quick browser acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/v5-route-fast-qa.cjs'
+      - '.github/workflows/v5-route-fast-qa.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  real-v5:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Assemble isolated full product
+        run: |
+          cp -R v4-route-six-step-refined-20261118 v5-route-real-product-20261118
+          cp -R v4-route-live-five-step-20261118-overrides/src/route/. v5-route-real-product-20261118/src/route/
+          cp -R v5-route-real-product-20261118-overrides/src/. v5-route-real-product-20261118/src/
+          cp v5-route-real-product-20261118-overrides/index.html v5-route-real-product-20261118/index.html
+          cp v5-route-real-product-20261118-overrides/route-view.html v5-route-real-product-20261118/route-view.html
+          cp v5-route-real-product-20261118-overrides/journey-v5.html v5-route-real-product-20261118/journey-v5.html
+      - name: Install small Chrome test client
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Start local preview
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/v5fast.log 2>&1 &
+          sleep 2
+      - name: Real route browser flow
+        run: node tests/v5-route-fast-qa.cjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-real-fast-qa-evidence
+          path: v5-fast-evidence/
+          if-no-files-found: ignore
