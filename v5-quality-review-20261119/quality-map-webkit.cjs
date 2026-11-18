@@ -24,11 +24,15 @@ async function inspectMap(page,kind){
    opacity:canvas?getComputedStyle(canvas).opacity:'missing',canvasPresent:!!canvas,
    colors:paints,palette:window.__atlasBlueGrayMap.palette.background,
    version:window.maplibregl?.version,rect:parent?{w:parent.width,h:parent.height}:null,
+   bodyClass:document.body?.className,htmlClass:document.documentElement?.className,canvasStyle:canvas?.getAttribute('style'),canvasClass:canvas?.className,
+   remoteReady:document.body.classList.contains('atlas-remote-ready'),
+   onScreen:!!(canvas&&canvas.getBoundingClientRect().width>0&&canvas.getBoundingClientRect().height>0),
    routeMarkers:document.querySelectorAll('#pins .fp-route-map-star').length,
    savedMarkerIcons:[...document.querySelectorAll('#pins .fp-route-saved-pin img')].map(x=>x.getAttribute('src')),
    history:window.__fpThemeTimeline||[]
   };
  },kind);
+ console.log('QUALITY_INSPECT '+kind+' '+JSON.stringify({...values,history:values.history.slice(-18)}));
  assert.equal(values.theme,'bluegray-v18',kind+' was not colored by accepted A');
  assert.equal(values.palette,'#485D6B',kind+' painter palette mismatch');
  assert.ok(values.applied>0,kind+' missing repaint');
