@@ -90,7 +90,7 @@ async function testWidth(width){
   await page.waitForFunction(()=>Boolean(window.__fpRouteLogicUI?.getState&&window.__fpRouteLiveInitial?.id),null,{timeout:22000});
   const reopened=await page.evaluate(()=>window.__fpRouteLogicUI.getState());
   assert.equal(reopened.mode,'bike');
-  assert.deepEqual(reopened.order,before.record.placeIds);
+  assert.deepEqual(reopened.order,before.record.stops.map(x=>String(x.placeId)));
   assert.ok(Object.values(reopened.legs).includes('walk'));
   // Saving a route must not touch the original favorite/Brief.
   const brief=await page.evaluate(async()=>new Promise((resolve,reject)=>{
