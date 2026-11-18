@@ -129,6 +129,9 @@ function getDetents(){
  return {peek,half,full};
 }
 function applyHeight(){if(!sheet)return;
+ const h=window.visualViewport?.height||innerHeight||844;
+ const peek=Math.max(152,Math.min(189,h*.24));
+ sheet.classList.toggle('fp-route-at-peek',currentHeight<=peek+11);
  sheet.style.setProperty('--fp-flow-visible',Math.max(140,currentHeight).toFixed(1)+'px');
 }
 function stopFrame(){if(frame){cancelAnimationFrame(frame);frame=0}}

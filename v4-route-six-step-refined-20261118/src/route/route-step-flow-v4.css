@@ -229,3 +229,10 @@ body.fp-step-route #fpRouteFavLayer .fp-route-extra-star{z-index:2}
 #fpRouteFlowSheet.fp-route-animating #fpRouteSheetContent{animation:fp-route-content-in .23s ease both}
 @keyframes fp-route-content-in{from{opacity:.52;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){#fpRouteFlowSheet.fp-route-animating #fpRouteSheetContent{animation:none}}
+
+/* 录屏验收：预览态必须保证底部主操作按钮始终位于 iPhone 可点击区域。 */
+#fpRouteFlowSheet{box-sizing:border-box}
+#fpRouteFlowSheet.fp-route-at-peek #fpRouteSheetContent{visibility:hidden;padding:0}
+#fpRouteFlowSheet.fp-route-at-peek #fpRouteSheetFoot .fp-route-foot-row,
+#fpRouteFlowSheet.fp-route-at-peek #fpRouteSheetFoot .fp-route-undo{display:none!important}
+#fpRouteFlowSheet.fp-route-at-peek #fpRouteSheetFoot{gap:0}
