@@ -35,6 +35,15 @@ jobs:
       - name: Prepare public static site
         run: |
           mkdir -p _site
+          # Entire accepted C V5 real-product route replacement; published as an isolated folder only.
+          # This was previously missing from _site even though GitHub Pages reported success.
+          cp -R v4-approved-route-20261118 _site/v4-approved-route-20261118
+          test -s _site/v4-approved-route-20261118/index.html
+          test -s _site/v4-approved-route-20261118/journey.html
+          test -s _site/v4-approved-route-20261118/route-view.html
+          test -s _site/v4-approved-route-20261118/src/interaction/route-cards-v5-live.js
+          test -s _site/v4-approved-route-20261118/src/route/route-approved-steps-v5.js
+          test -s _site/v4-approved-route-20261118/src/route/route-approved-steps-v5.css
           # Independent approved POI SVG animation review; root site remains byte-identical.
           cp -R v4-review-20261116 _site/v4-review-20261116
           # Visual C isolated real-product A/B comparison; no changes to official root or other systems.
@@ -548,6 +557,21 @@ jobs:
         run: sleep 18
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify newly deployed approved route full-product public HTTP 200
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-approved-route-20261118'
+          for FILE in index.html journey.html route-view.html src/interaction/route-cards-v5-live.js src/route/route-approved-steps-v5.js; do
+            OK=0
+            for i in $(seq 1 25); do
+              if curl --fail --location --silent --show-error --max-time 15 "${BASE}/${FILE}?published=${GITHUB_SHA}" -o /tmp/v4-approved-route-http-check; then
+                if test -s /tmp/v4-approved-route-http-check; then OK=1; break; fi
+              fi
+              sleep 6
+            done
+            test "${OK}" = 1 || { echo "Missing Pages asset: ${FILE}"; exit 1; }
+          done
       - name: Verify durable independent map Safari preview returns live HTTP 200
         run: |
           BASE='https://fanbregas-netizen.github.io/travel-atlas-pages/v4-map-system-review-20261117/'
