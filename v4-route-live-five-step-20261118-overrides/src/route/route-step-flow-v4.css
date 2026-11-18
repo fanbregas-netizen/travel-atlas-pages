@@ -287,3 +287,15 @@ body.fp-step-route #fpRouteFlowSheet.fp-route-at-peek #fpRouteSheetContent{paddi
 #fpRouteSheetContent .fp-route-map-label + .fp-route-mini-heading{margin-top:15px}
 body.fp-step-route.fp-day-filter #routeLines{opacity:0!important}
 body.fp-step-route #fpRouteFlowSheet.fp-route-at-peek .fp-route-fixed-summary{gap:3px}
+
+
+/* Old preview rule hid ALL content at peek, breaking map/list switch and day tabs.
+   These two modes have deliberately taller compact cards and must retain live controls. */
+body.fp-step-route.fp-route-map-picking #fpRouteFlowSheet.fp-route-at-peek #fpRouteSheetContent,
+body.fp-step-route.fp-route-viewing #fpRouteFlowSheet.fp-route-at-peek #fpRouteSheetContent{
+ visibility:visible!important;
+ padding:9px 18px 8px!important;
+ overflow-y:auto;
+}
+body.fp-step-route.fp-route-map-picking #fpRouteFlowSheet.fp-route-at-peek .fp-route-pick-modes,
+body.fp-step-route.fp-route-viewing #fpRouteFlowSheet.fp-route-at-peek .fp-route-day-tabs{visibility:visible!important}

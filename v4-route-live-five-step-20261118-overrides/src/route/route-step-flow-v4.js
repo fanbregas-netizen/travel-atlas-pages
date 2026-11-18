@@ -330,7 +330,7 @@ function renderFoot(){
   (state.saving?'正在保存…':label)+' '+iSvg(act==='view'?'route':'next')+'</button>';
 }
 function render(preserveScroll=false){
- const scroll=content?.scrollTop||0;document.body.classList.toggle('fp-day-filter',state.step==='preview'&&state.dayView>0);headerText();
+ const scroll=content?.scrollTop||0;document.body.classList.toggle('fp-day-filter',state.step==='preview'&&state.dayView>0);document.body.classList.toggle('fp-route-map-picking',state.step==='pick'&&state.pickMode==='map'&&!state.placeCard);document.body.classList.toggle('fp-route-viewing',state.step==='preview'&&!state.placeCard);headerText();
  content.innerHTML=renderBody();foot.innerHTML=renderFoot();
  const undoButton=$('#fpRouteUndoHead');
  if(undoButton)undoButton.hidden=!state.undo.length||state.step==='preview'||state.step==='done';
