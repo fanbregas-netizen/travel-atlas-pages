@@ -67,6 +67,15 @@ jobs:
           cp v5-unified-full-product-20261118-overrides/src/media/media-core.js _site/v5-unified-full-product-20261118/src/media/media-core.js
           cp v5-unified-full-product-20261118-overrides/src/route/route-v5-runtime.js _site/v5-unified-full-product-20261118/src/route/route-v5-runtime.js
           cp v5-unified-full-product-20261118-overrides/src/route/route-live-network-v1.js _site/v5-unified-full-product-20261118/src/route/route-live-network-v1.js
+          # Restore the original user-approved 2026-11-17 B05 Safari spring + paired search/home Docks.
+          cp v5-unified-full-product-20261118-overrides/src/interaction/v4-approved-collection-sheet-v2.js _site/v5-unified-full-product-20261118/src/interaction/v4-approved-collection-sheet-v2.js
+          cp v5-unified-full-product-20261118-overrides/src/interaction/paired-dock-motion-v2.js _site/v5-unified-full-product-20261118/src/interaction/paired-dock-motion-v2.js
+          rm -f _site/v5-unified-full-product-20261118/src/interaction/v4-approved-collection-sheet.js
+          node --check _site/v5-unified-full-product-20261118/src/interaction/v4-approved-collection-sheet-v2.js
+          node --check _site/v5-unified-full-product-20261118/src/interaction/paired-dock-motion-v2.js
+          grep -q 'paired-dock-motion-v2.js' _site/v5-unified-full-product-20261118/index.html
+          grep -q 'v4-approved-collection-sheet-v2.js' _site/v5-unified-full-product-20261118/index.html
+          test ! -e _site/v5-unified-full-product-20261118/src/interaction/v4-approved-collection-sheet.js
           rm -f _site/v5-unified-full-product-20261118/journey-v5.html
           rm -f _site/v5-unified-full-product-20261118/journey.js _site/v5-unified-full-product-20261118/journey.css
           rm -f _site/v5-unified-full-product-20261118/route-picking.css _site/v5-unified-full-product-20261118/route-minimal-review-v2.css _site/v5-unified-full-product-20261118/route-color-parity-v3.css _site/v5-unified-full-product-20261118/route-logic-review-v1.css

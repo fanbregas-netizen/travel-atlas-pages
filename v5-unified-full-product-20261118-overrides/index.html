@@ -644,7 +644,7 @@ window.AtlasFigureGround={palette,apply,version:'v4-figure-ground-20261103.18'};
 <script src="./src/interaction/physical-sheet.js?v=fluid-1"></script>
 <script src="./src/interaction/real-product-bridge.js?v=focus-8"></script>
 <script src="./src/interaction/v4-approved-dock-feedback.js"></script>
-<script src="./src/interaction/v4-approved-collection-sheet.js?v=fluid-17"></script>
+<script src="./src/interaction/v4-approved-collection-sheet-v2.js?v=safari-exit-20261117"></script>
 <script src="./stage1-polish.js"></script>
 <script src="./stage1-finish.js"></script>
 <!-- Stage1.29: the POI overlay uses the current map's projection; no legacy Overpass ghost layer. -->
@@ -1077,6 +1077,8 @@ scan();new MutationObserver(entries=>{for(const entry of entries)for(const n of 
 <script src="./src/map/registry.js"></script>
 <script src="./src/map/map-adapter.js"></script>
 <script defer src="./src/interaction/one-route-entry.js"></script>
+<!-- 已确认 Safari 收藏卡片 / 双 Dock 物理反馈，不重建收藏内容或路线流程 -->
+<script defer src="./src/interaction/paired-dock-motion-v2.js?v=paired-20261117"></script>
 
 </body>
 </html>

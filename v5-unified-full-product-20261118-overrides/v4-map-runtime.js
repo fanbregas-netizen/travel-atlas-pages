@@ -1372,12 +1372,11 @@
     requestAnimationFrame(()=>layoutMemoryAtlas(p));
   }
   function closeDrawer(){
-    const finish=()=>{
-      $('drawer').classList.remove('visible');
-      $('cover').classList.remove('visible');
-    };
-    if(window.__atlasCollectionSheet?.requestClose?.(finish))return;
-    finish();
+    // The accepted collection v2 controller owns the physical exit.
+    // Only after it finishes may the native drawer and cover be dismissed.
+    if(window.__atlasCollectionSheet?.requestClose?.())return;
+    $('drawer').classList.remove('visible');
+    $('cover').classList.remove('visible');
   }
   /* build .20 · 对标高德/苹果 sheet 手势：捏住眉头或列表拉到顶后继续下拉，整片随手势下滑，松手超过阈值即关闭 */
   // The accepted B05 v4-approved-collection-sheet controller exclusively owns
