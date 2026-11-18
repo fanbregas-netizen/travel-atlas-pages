@@ -101,7 +101,7 @@ async function registerThemeTimeline(page){
    await page.locator('#pins [data-pin="'+a+'"]').dispatchEvent('click');
    await page.waitForFunction(id=>document.getElementById('v12-place-bubble')?.dataset.placeId===id,a,{timeout:18000});
    const initialMotion=await page.locator('#pins [data-pin="'+a+'"] .fp-route-poi-token').evaluate(e=>({style:e.getAttribute('style'),motion:e.dataset.poiPopMotion,api:!!window.AtlasPOIMotion,visible:document.visibilityState}));
-   console.log('ROUTE_POI_INITIAL '+JSON.stringify(initialMotion));
+   console.log('ROUTE_POI_INITIAL '+JSON.stringify(initialMotion)+' health='+JSON.stringify(await page.evaluate(()=>window.__fpRoutePoiMotionHealth?.())));
    await page.waitForTimeout(470);
    const finalCamera=await page.evaluate(()=>window.FootprintRouteV5Real.map.getCenter().toArray());
    const rect=await page.locator('#atlasMap').evaluate(e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height}});

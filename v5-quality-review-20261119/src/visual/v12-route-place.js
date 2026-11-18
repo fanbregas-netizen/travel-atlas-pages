@@ -34,7 +34,9 @@ function showBubble(pin){
  popup.setAttribute('aria-label','查看'+currentTitle+'的详情');
  popup.hidden=false;placeBubble();
  const token=pin.querySelector('.fp-route-poi-token');
+ const wasConnected=!!token?.isConnected;
  if(token)window.AtlasPOIMotion?.popSelected?.(token);
+ window.__fpRoutePoiMotionHealth=()=>({connected:wasConnected,popApplied:!!token?.style?.transform||!!token?.dataset?.poiPopMotion,present:!!window.AtlasPOIMotion,selectedStillMounted:!!token?.isConnected});
  window.FootprintRouteV5Real?.focusPin?.(bubbleId);
  pinWatcher=new MutationObserver(()=>requestAnimationFrame(placeBubble));
  pinWatcher.observe(pins,{subtree:true,attributes:true,attributeFilter:['style','hidden'],childList:true});

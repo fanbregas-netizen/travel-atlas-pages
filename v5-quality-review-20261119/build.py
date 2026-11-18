@@ -16,7 +16,7 @@ expected={
 'v4-map-runtime.js':'f6d2b8b9210dd57267fa545a232f63b67f8828fb',
 'map-home-bluegray-v18.js':'aa9f382d4efc5f582af0e1cab1d01b8dab393fad',
 'src/route/route-v5-runtime.js':'92bffc4e7886abe93d3a6a0945a6b9fd1b993193',
-'src/visual/v12-route-place.js':'3e6d0ba01c246838d8574d07d07b7ef3e6943df7',
+'src/visual/v12-route-place.js':'8630936a1dc282cfb93b61a74cc3f3cfacab50f2',
 'src/visual/v5-map-quality-pass.css':'cd6e71216ab14840d2b132bfbcf2fb59299d1bb1',
 'sw.js':'1e5a39a61c29937c3cd007c33d71feb83a7f33d2'
 }
