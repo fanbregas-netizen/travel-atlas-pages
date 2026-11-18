@@ -25,8 +25,6 @@ function fmt(date){const s=(date||'').split('-');return s.length===3?Number(s[1]
 function diffDays(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000)+1}
 function datedDayLabel(day){const d=new Date(state.start+'T12:00:00');d.setDate(d.getDate()+Math.max(0,day-1));return '第'+day+'天 · '+fmt(localDate(d))}
 const storeKey='__footprint_v4_batch_c_review_20261111_v1';
-// Shared by the reviewed nested V5 controller AND the real route persistence adapter.
-const routeEngine=window.FootprintRouteEngine;
 let checks={};
 try{checks=JSON.parse(localStorage.getItem(storeKey)||'{}')||{}}catch(_){}
 checks.C01='ok';
@@ -36,7 +34,7 @@ const state={
  active:false,stage:'select',source:'saved',selected:[],
  stops:[],start:datePlus(1),end:datePlus(3),
  originMode:'auto',destinationMode:'auto',origin:'',destination:'',
- routeName:'我的旅行',transportMode:'car',legModes:{},saved:false,activeStop:0,newStop:null,undo:null,
+ routeName:'我的旅行',saved:false,activeStop:0,newStop:null,undo:null,
  mini:null,miniMode:null,miniSource:'saved',calendarStep:'start',
  calendarMonth:new Date(),errorKind:'offline',errorRecovered:false
 };
@@ -619,35 +617,10 @@ window.__batchC={version:'V5-confirmed-date-and-auto-days',show:showReview,open:
     if(!x.length)return '';
     return `<div class="rc-cross-alert"><b>路线出现 ${x.length} 处示意连线交叉</b><p>当前顺序可能绕路。建议调整站点，但不会自动修改你原本的顺序。</p><button data-rc="route-suggest">查看更顺的建议顺序 →</button></div>`;
   }
-
-/* Approved C V5: optional route settings use its existing mini sheet. */
-const routeModes=[['car','驾车'],['walk','步行'],['bike','骑行'],['transit','公共交通']];
-const routeModeName=mode=>routeModes.find(x=>x[0]===mode)?.[1]||'驾车';
-const routeLegKey=i=>{
- const a=state.stops[i-1],b=state.stops[i];
- return a&&b?JSON.stringify([String(a.storeId||a.id),String(b.storeId||b.id)]):'';
-};
-function transportMarkup(){
- const mode=state.transportMode;
- const tabs='<div class="rc-tabs rc-transport-tabs">'+routeModes.map(([id,name])=>
-   '<button type="button" data-rc="transport-'+id+'" class="'+(mode===id?'is-active':'')+'" aria-pressed="'+(mode===id)+'">'+name+'</button>').join('')+'</div>';
- const rows=state.stops.slice(1).map((spot,j)=>{
-   const i=j+1,key=routeLegKey(i),choice=state.legModes[key]||mode;
-   return '<label class="rc-transport-leg"><span>'+safe(state.stops[j].name)+' → '+safe(spot.name)+'</span><select data-leg-index="'+i+'" aria-label="第'+i+'段交通方式">'+
-    routeModes.map(([v,name])=>'<option value="'+v+'" '+(choice===v?'selected':'')+'>'+name+'</option>').join('')+'</select></label>';
- }).join('');
- return tabs+'<details class="rc-transport-legs"><summary>逐路段设置</summary>'+(rows||'<p class="rc-note">选择至少两处地点后可逐段设置。</p>')+'</details>'+
- '<p class="rc-fineprint">仅保存出行偏好；步行、骑行和公交的真实道路、时间和换乘仍需由导航确认。</p>';
-}
-function renderTransportMini(){
- miniBase('交通方式','与路线一起保存，具体路段可单独调整',transportMarkup(),button('完成','mini-close','rc-primary'));
-}
   const oldPreview=previewMarkup;
-  previewMarkup=function(){return previewAlert()+oldPreview()+
-    '<div class="rc-route-quick-actions"><button type="button" data-rc="mini-transport">交通 · '+routeModeName(state.transportMode)+' · 设置</button></div>'};
+  previewMarkup=function(){return previewAlert()+oldPreview()};
   const oldOrder=orderMarkup;
-  orderMarkup=function(){return previewAlert()+oldOrder()+
-    '<div class="rc-route-quick-actions"><button type="button" data-rc="route-suggest">优化顺序</button><button type="button" data-rc="mini-transport">交通 · '+routeModeName(state.transportMode)+'</button></div>'};
+  orderMarkup=function(){return previewAlert()+oldOrder()};
   const oldMap=mapRender;
   mapRender=function(){
     // Stable place identity, not the position a stop happens to occupy in the list.
@@ -750,20 +723,8 @@ function renderTransportMini(){
       state.dateUndo=null;state.dateFeedback=null;
       closeMini();renderStage();toast(p.name+' 已安排到第 '+day+' 天');return;
     }
-    if(cmd==='mini-transport'){openMini('transport');return}
-    if(cmd.startsWith('transport-')){
-      const next=cmd.slice('transport-'.length);
-      if(!routeModes.some(x=>x[0]===next))return;
-      state.transportMode=next;
-      state.legModes=routeEngine?.sanitizeLegModes(state.legModes,state.stops.map(x=>({id:x.storeId||x.id})),next)||{};
-      state.saved=false;renderStage();renderTransportMini();return;
-    }
     if(cmd==='route-suggest'){
-      const proposal=routeEngine?.recommend({
-        stops:state.stops,places:state.stops,
-        originPlaceId:state.stops[0]?.id||'',destinationPlaceId:state.stops.at(-1)?.id||''
-      });
-      const candidate=proposal?.order||suggestedOrder(state.stops);
+      const candidate=suggestedOrder(state.stops);
       const after=intersections(candidate).length;
       if(candidate.map(x=>x.id).join('|')===state.stops.map(x=>x.id).join('|')){
         toast('没有找到满足固定起终点的更好顺序');
@@ -881,17 +842,7 @@ function renderTransportMini(){
   // Calendar is a two-tap range with a persistent visible selection and rubber-band dismissal.
   let dateDraft=null;
   const formerOpenMini=openMini;
-  miniBody.addEventListener('change',e=>{
-    const node=e.target.closest?.('select[data-leg-index]');
-    if(!node)return;
-    const i=Number(node.dataset.legIndex),key=routeLegKey(i),next=node.value;
-    if(!key||!routeModes.some(x=>x[0]===next))return;
-    if(next===state.transportMode)delete state.legModes[key];
-    else state.legModes[key]=next;
-    state.saved=false;renderStage();
-  });
   openMini=function(kind){
-    if(kind==='transport'){formerOpenMini(kind);renderTransportMini();return;}
     if(kind==='date'){
       dateDraft={start:state.start,end:state.end,phase:'start'};
       formerOpenMini('date');
@@ -1203,9 +1154,7 @@ async function saveLiveRoute(){
   selected,
   stops:selected.map(p=>({placeId:p.id,day:p.day,time:p.time})),
   createdAt:liveCreatedAt||now,updatedAt:now,
-  version:2,source:'footprint-map-approved-C-V5',mapStyle:'black-white-plan',
-  transportMode:state.transportMode,
-  legModes:routeEngine?.sanitizeLegModes(state.legModes,selected,state.transportMode)||{}
+  version:2,source:'footprint-map-approved-C-V5',mapStyle:'black-white-plan'
  };
  try{
   const pendingPlaces=livePendingRouteStops();
@@ -1258,12 +1207,10 @@ async function liveBoot(){
     state.start=doc.startDate||state.start;state.end=doc.endDate||state.end;
     state.origin=doc.origin||'';state.destination=doc.destination||'';
     state.originMode=state.origin?'manual':'auto';
-    state.transportMode=routeEngine?.normalizeMode(doc.transportMode)||'car';
     state.destinationMode=state.destination?'manual':'auto';
     const ss=doc.stops?.length?doc.stops.map((x,i)=>({id:x.placeId,day:x.day,time:x.time,order:i+1})):
      doc.selected?.length?doc.selected.map((x,i)=>({...x,order:x.order||i+1})).sort((a,b)=>a.order-b.order):
      (doc.placeIds||[]).map((id,i)=>({id,day:1,order:i+1}));
-    state.legModes=routeEngine?.sanitizeLegModes(doc.legModes,ss.map(x=>({id:x.id})),state.transportMode)||{};
     liveMissingRouteIds=ss.filter(x=>!idLookup.has(String(x.id))).map(x=>String(x.id));
     state.stops=ss.map(x=>{const p=idLookup.get(String(x.id));return p?{...p,day:Math.max(1,Number(x.day)||1),time:x.time||''}:null}).filter(Boolean);
     state.selected=state.stops.map(p=>p.id);
@@ -1309,7 +1256,6 @@ window.__atlasRouteV5Live={
   ready:this.ready,stage:state.stage,selected:state.selected.map(x=>realId(allPlaces.find(p=>p.id===x))),
   order:state.stops.map(p=>({id:realId(p),day:p.day})),
   start:state.start,end:state.end,savedId:liveSavedId,
-  transportMode:state.transportMode,legModes:{...state.legModes},
   missingRouteIds:liveMissingRouteIds.slice(),
   mapReady:!!liveMap
  }},
