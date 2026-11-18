@@ -35,6 +35,10 @@ jobs:
       - name: Prepare public static site
         run: |
           mkdir -p _site
+          # Publish standalone V5 route interaction demo, without touching the product root.
+          mkdir -p _site/v5-route-interaction-demo-20261118
+          cp v5-route-interaction-demo-20261118/index.html _site/v5-route-interaction-demo-20261118/index.html
+          test -s _site/v5-route-interaction-demo-20261118/index.html
           # Full original V4 product + only the approved five-step route files.
           # Keep production root and every previous preview untouched.
           cp -R v4-route-six-step-refined-20261118 _site/v4-route-live-five-step-20261118
