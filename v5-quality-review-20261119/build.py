@@ -58,7 +58,7 @@ assert 'maplibre-gl@4.7.1' not in journey+route
 assert 'maplibre-gl@5.12.0' in journey+route
 assert '<svg class="city-map"' not in journey
 assert 'const recolor=()=>{if(current===map)apply(map)};' in palette
-assert 'atlasPoiOverlay' in map and 'Hiding them during panning' in map
+assert 'atlasPoiOverlay' in map and 'Do not erase every POI while the map pans' in map
 assert 'fp-route-saved-pin' in route and 'focusPin' in route
 assert 'duration=350' in (dest/'footprint-home.js').read_text(encoding='utf-8')
 assert (dest/'src/interaction/v4-approved-collection-sheet-v2.js').is_file()
