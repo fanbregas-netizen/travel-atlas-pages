@@ -8,7 +8,7 @@ if(!window.__fpRouteLive||window.__fpSixStepRoute)return;
 const $=s=>document.querySelector(s);
 const placeList=window.__fpRoutePreviewData||[];
 const initial=window.__fpRouteLiveInitial||{};
-const sourceById=new Map(placeList.map(p=>[String(p.id),p]));
+let sourceById=new Map(); // populated only after the async IndexedDB bridge finishes
 const iSvg=(name)=>{const shapes={
  back:'<path d="M14 5 7 12l7 7"/>',
  layers:'<path d="m12 2 9 5-9 5-9-5 9-5Zm-9 10 9 5 9-5m-18 5 9 5 9-5"/>',
@@ -80,6 +80,18 @@ function syncRoute(){
 function endpointName(v){if(v==='same')return '不指定';return point(String(v).replace(/^place:/,''))?.title||'未指定'}
 function daysGroups(){const groups=new Map();for(const id of state.order){const day=state.days[id]||1;if(!groups.has(day))groups.set(day,[]);groups.get(day).push(point(id)?.title||'地点')}return [...groups].sort((a,b)=>a[0]-b[0])}
 function startSheet(){
+ // Bridge bootstraps asynchronously. Read route records AFTER it resolves,
+ // otherwise an eagerly constructed point index stays empty forever.
+ sourceById=new Map(placeList.map(p=>[String(p.id),p]));
+ const seed=window.__fpRouteLiveInitial||{};
+ Object.assign(state,{
+  step:seed.id?'done':'entry',
+  order:seed.id?[...new Set(seed.order||[])]:[],
+  days:{...(seed.days||{})},from:seed.from||'same',to:seed.to||'same',
+  start:seed.start||'',end:seed.end||'',mode:seed.mode||'car',
+  legs:{...(seed.legs||{})},locked:[...(seed.locked||[])],
+  savedId:seed.id||null
+ });
  document.body.classList.add('fp-step-route');document.body.classList.toggle('fp-route-empty',!state.order.length);
  topbar=document.createElement('header');topbar.id='fpRouteFlowTop';
  topbar.innerHTML='<button class="fp-rt-icon" data-top="back" aria-label="返回地图">'+iSvg('back')+'</button>'+
