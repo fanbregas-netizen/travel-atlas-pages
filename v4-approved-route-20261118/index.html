@@ -153,16 +153,16 @@ if(storage){const get=storage.getItem,set=storage.setItem,del=storage.removeItem
 <script>
 /* build .17 · dock 接线：地图=收起一切回主视图；收藏=查看/选择收藏点与路线；路线=侧弹地图选点/收藏点选点 */
 (()=>{const g=id=>document.getElementById(id);const pop=g('dockRoutePop'),route=g('dockRoute');
-const setPop=on=>{if(!pop)return;pop.hidden=!on;route?.setAttribute('aria-expanded',String(on));route?.classList.toggle('active',!!on)};
-route?.addEventListener('click',e=>{e.preventDefault();setPop(pop.hidden)});
+/* Retired: original route-picker popup can never own a Dock tap. The accepted
+   route planner is the one-route-entry.js destination. This does not alter Dock markup. */
+const setPop=()=>{if(!pop)return;pop.hidden=true;route?.removeAttribute('aria-expanded');route?.removeAttribute('aria-controls')};
 g('dockStars')?.addEventListener('click',()=>{setPop(false);g('btnStars')?.click()});
 g('dockMap')?.addEventListener('click',()=>{setPop(false);window.__atlasTripPicker?.cancel?.();window.__fpCloseSearch?.();const rs=g('atlasRoutesSheet');if(rs?.classList.contains('open'))rs.querySelector('.rs-close')?.click();g('navMap')?.click();
   // Coalesce overview's expensive map fit to one frame after closing sheets.
   if(window.__atlasOverviewFrame)cancelAnimationFrame(window.__atlasOverviewFrame);
   window.__atlasOverviewFrame=requestAnimationFrame(()=>{window.__atlasOverviewFrame=0;window.__atlasFitAll?.()});
 });
-g('dockPickMap')?.addEventListener('click',()=>{setPop(false);window.__atlasTripPicker?.enterMapMode?.()});
-g('dockPickFav')?.addEventListener('click',()=>{setPop(false);window.__atlasTripPicker?.pickFromFavs?.()});
+/* Previous route pick/map controllers are retired; accepted planner owns both choices. */
 document.addEventListener('pointerdown',e=>{if(pop&&!pop.hidden&&!e.target.closest('#dockRoutePop,#dockRoute'))setPop(false)},true);
 window.__atlasDock={closePop:()=>setPop(false)};
 })();

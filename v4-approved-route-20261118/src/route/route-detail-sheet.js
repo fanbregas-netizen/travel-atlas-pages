@@ -19,8 +19,12 @@ function syncFromView(){
 }
 function paint(next){
  if(!detail)return;
+ const wasOpen=detail.classList.contains('open');
  const opened=next.sheet!=='closed';
  detail.classList.toggle('open',opened);
+ // Closing the route detail returns to the route map rather than leaving
+ // a second small callout visible under the already-closed sheet.
+ if(wasOpen&&!opened){const old=bubble();if(old&&!old.hidden)old.hidden=true;}
  detail.dataset.atlasSnap=next.sheet;
  detail.setAttribute('aria-hidden',String(!opened));
  if(grip){

@@ -101,6 +101,15 @@ async function seed(page){
    await page.waitForFunction(()=>!!window.__atlasJourneyRoute.getState().id);
    const saved=await page.evaluate(()=>window.__atlasJourneyRoute.getState());
    assert.ok(saved.id);
+   const realDb=await page.evaluate(async()=>new Promise((resolve,reject)=>{
+     const r=indexedDB.open('atlas-v4-review-20261116-private-travel-footprints-v1',1);
+     r.onsuccess=()=>{const db=r.result,q=db.transaction('places','readonly').objectStore('places').get('qa-r-a');
+       q.onsuccess=()=>{resolve({note:q.result.note,count:q.result.photos?.length||0});db.close()};
+       q.onerror=()=>reject(q.error)};
+     r.onerror=()=>reject(r.error);
+   }));
+   assert.equal(realDb.note,'保留A的原始 Brief','saving route must not alter place notes');
+   assert.equal(realDb.count,0);
    console.log('QA STEP',width,'open route map');
    await page.locator('#generate').click();
    await page.waitForURL(/\/route-view\.html\?saved=/,{timeout:30000});
@@ -117,15 +126,7 @@ async function seed(page){
    assert.equal(restored.originPlaceId,'qa-r-a');
    assert.equal(restored.destinationPlaceId,'qa-r-d');
    assert.deepEqual(restored.selected.map(s=>s.id),before);
-   const realDb=await page.evaluate(async()=>new Promise((resolve,reject)=>{
-     const r=indexedDB.open('atlas-v4-review-20261116-private-travel-footprints-v1',1);
-     r.onsuccess=()=>{const db=r.result,q=db.transaction('places','readonly').objectStore('places').get('qa-r-a');
-       q.onsuccess=()=>{resolve({note:q.result.note,count:q.result.photos?.length||0});db.close()};
-       q.onerror=()=>reject(q.error)};
-     r.onerror=()=>reject(r.error);
-   }));
-   assert.equal(realDb.note,'保留A的原始 Brief','saving route must not alter place notes');
-   assert.equal(realDb.count,0);
+
    assert.equal(errors.length,0,'browser page errors: '+errors.join('; '));
    console.log('PASS '+kind+' '+width+'px real IndexedDB route: select, anchor, preview recommendation, undo, 4 modes, per-leg mode, save, map, edit, Brief unchanged');
    await context.close();
