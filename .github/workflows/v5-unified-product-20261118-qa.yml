@@ -1,0 +1,49 @@
+name: V5 unified full product acceptance - one route only
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v5-unified-full-product-20261118-overrides/**'
+      - '.github/workflows/v5-unified-product-20261118-qa.yml'
+      - 'tests/v5-unified-product-20261118.test.cjs'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Assemble real V5 full product
+        run: |
+          set -euo pipefail
+          cp -R v4-route-six-step-refined-20261118 v5-unified-full-product-20261118
+          cp -R v4-route-live-five-step-20261118-overrides/src/route/. v5-unified-full-product-20261118/src/route/
+          for f in index.html journey.html route-view.html sw.js version.json v4-map-runtime.js map-home-bluegray-v18.js map-home-bluegray-v18.css; do
+            cp "v5-unified-full-product-20261118-overrides/$f" "v5-unified-full-product-20261118/$f"
+          done
+          cp v5-unified-full-product-20261118-overrides/src/map/shared-v4-map.js v5-unified-full-product-20261118/src/map/shared-v4-map.js
+          cp v5-unified-full-product-20261118-overrides/src/media/media-core.js v5-unified-full-product-20261118/src/media/media-core.js
+          cp v5-unified-full-product-20261118-overrides/src/route/route-v5-runtime.js v5-unified-full-product-20261118/src/route/route-v5-runtime.js
+          cp v5-unified-full-product-20261118-overrides/src/route/route-live-network-v1.js v5-unified-full-product-20261118/src/route/route-live-network-v1.js
+          rm -f v5-unified-full-product-20261118/journey-v5.html v5-unified-full-product-20261118/journey.js v5-unified-full-product-20261118/journey.css v5-unified-full-product-20261118/route-picking.css
+          find v5-unified-full-product-20261118/src/route -maxdepth 1 -type f ! -name 'route-v5-runtime.js' ! -name 'route-live-network-v1.js' -delete
+          node --check v5-unified-full-product-20261118/src/route/route-v5-runtime.js
+      - name: Install lightweight Chrome automation
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Start actual full product
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/v5-unified-qa.log 2>&1 &
+          sleep 2
+      - name: Real browser regression at two iPhone viewport sizes
+        run: |
+          WIDTH=375 node tests/v5-unified-product-20261118.test.cjs
+          WIDTH=390 node tests/v5-unified-product-20261118.test.cjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-unified-iphone-real-route-evidence
+          path: v5-unified-evidence/
+          if-no-files-found: ignore

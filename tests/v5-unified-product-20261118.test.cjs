@@ -1,0 +1,47 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),cp=require('node:child_process');
+const {chromium}=require('playwright-core');
+const chrome=['google-chrome','google-chrome-stable','chromium'].map(n=>{try{return cp.execFileSync('which',[n],{encoding:'utf8'}).trim()}catch{return null}}).find(Boolean);
+if(!chrome)throw Error('Chrome not installed');
+(async()=>{
+const browser=await chromium.launch({executablePath:chrome,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+try{
+const ctx=await browser.newContext({viewport:{width:Number(process.env.WIDTH)||390,height:844},hasTouch:true,isMobile:true,serviceWorkers:'block'}),page=await ctx.newPage(),errors=[];
+page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);
+const base='http://127.0.0.1:8765/v5-unified-full-product-20261118/';
+await page.goto(base+'index.html',{waitUntil:'domcontentloaded'});
+assert.equal(await page.locator('#dockRoutePop').count(),0,'old route mode popover must be removed');
+await page.locator('#dockRoute').click({timeout:15000});
+await page.waitForURL(/\/journey\.html(?:\?|$)/,{timeout:15000});
+const oldJourney=await page.request.get(base+'journey.js');
+assert.equal(oldJourney.status(),404,'legacy journey.js still published');
+const oldFlow=await page.request.get(base+'src/route/route-step-flow-v4.js');
+assert.equal(oldFlow.status(),404,'old route-step-flow-v4.js still published');
+await page.waitForFunction(()=>window.__footprintV5ProductReady===true,null,{timeout:40000});
+await page.evaluate(async()=>new Promise((ok,bad)=>{const r=indexedDB.open('private-travel-footprints-v1',1);r.onupgradeneeded=()=>{let d=r.result;if(!d.objectStoreNames.contains('places'))d.createObjectStore('places',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'})};r.onsuccess=()=>{const d=r.result,t=d.transaction('places','readwrite');[{id:'v5qa1',title:'西湖',lat:30.25,lng:120.15,starred:true},{id:'v5qa2',title:'灵隐寺',lat:30.24,lng:120.10,starred:true}].forEach(p=>t.objectStore('places').put(p));t.oncomplete=()=>{d.close();ok()};t.onerror=()=>bad(t.error)};r.onerror=()=>bad(r.error)}));
+await page.reload({waitUntil:'domcontentloaded'});
+await page.waitForFunction(()=>window.__footprintV5ProductReady===true,null,{timeout:40000});
+assert.equal(await page.locator('#place-list .place-row').count(),2);
+await page.locator('[data-action=toggle][data-id=v5qa1]').click();
+await page.locator('[data-action=toggle][data-id=v5qa2]').click();
+await page.locator('[data-action=next-pick]').click();
+assert.equal(await page.locator('#sheet-title').textContent(),'行程设置');
+await page.locator('#trip-name').fill('V5 QA 真路线');
+await page.locator('[data-action=next-settings]').click();
+assert.equal(await page.locator('#order-list .order-row').count(),2);
+await page.locator('[data-action=save]').click();
+await page.locator('[data-modal-action=confirm-save]').click();
+await page.waitForFunction(()=>window.__footprintV5Demo?.state().saved===true,null,{timeout:15000});
+const id=await page.evaluate(()=>new URL(location.href).searchParams.get('saved'));
+assert.ok(id);
+const found=await page.evaluate(async id=>(await FootprintMediaCore.createRepository(indexedDB).listRoutes()).find(x=>x.id===id),id);
+assert.equal(found.title,'V5 QA 真路线');assert.equal(found.stops.length,2);
+await page.goto(base+'route-view.html?saved='+id,{waitUntil:'domcontentloaded'});
+await page.waitForFunction(()=>window.__footprintV5ProductReady===true,null,{timeout:40000});
+assert.deepEqual(await page.evaluate(()=>window.__footprintV5Demo.state().order),['v5qa1','v5qa2']);
+assert.deepEqual(errors,[]);
+fs.mkdirSync('v5-unified-evidence',{recursive:true});await page.screenshot({path:'v5-unified-evidence/'+(Number(process.env.WIDTH)||390)+'-reopened.png'});
+console.log('PASS V5 unified full product: Dock→one canonical route; old planner files 404; real favorites→save→reopened route');
+await ctx.close();
+}finally{await browser.close()}
+})().catch(e=>{console.error(e.stack||e);process.exit(1)});
