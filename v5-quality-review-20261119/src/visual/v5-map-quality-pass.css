@@ -1,7 +1,7 @@
 /* Footprint Map V5 — four-system quality pass.
  * Only scoped layout/map material/POI icon rules; NO new controller,
  * second map, Gallery, IndexedDB model, card spring or map transform. */
-html:not([data-fp-map-theme="bluegray-v18"]) body.vector-active #atlasVectorMap .maplibregl-canvas,
+html:not([data-fp-map-theme="bluegray-v18"]) #atlasVectorMap .maplibregl-canvas,
 body.vector-active:not(.atlas-remote-ready) #atlasVectorMap .maplibregl-canvas,
 html:not([data-fp-map-theme="bluegray-v18"]) #atlasMap .maplibregl-canvas{opacity:0!important}
 #atlasVectorMap .maplibregl-canvas,#atlasMap .maplibregl-canvas{
