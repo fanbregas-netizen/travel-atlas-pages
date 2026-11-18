@@ -35,6 +35,9 @@ jobs:
       - name: Prepare public static site
         run: |
           mkdir -p _site
+          # Exact six-screen user reference: interactive iPhone prototype, isolated from production root.
+          cp -R v4-route-six-screen-reference-20261118 _site/v4-route-six-screen-reference-20261118
+          test -s _site/v4-route-six-screen-reference-20261118/index.html
           # Second Safari-video review: repaired V4 guided route in isolated product folder.
           cp -R v4-route-six-step-refined-20261118 _site/v4-route-six-step-refined-20261118
           test -s _site/v4-route-six-step-refined-20261118/index.html
