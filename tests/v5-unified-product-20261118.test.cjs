@@ -26,7 +26,8 @@ for(let i=0;i<3;i++){
   backdrop:{display:getComputedStyle(document.getElementById('cover')).display,
     opacity:Number(getComputedStyle(document.getElementById('cover')).opacity)}
  }));
- assert.match(stateOpen.card.engine,/Safari exit v2/);
+ assert.equal(stateOpen.card.engine,'C V5');
+ assert.equal(stateOpen.card.release,'Safari exit v2');
  assert.equal(stateOpen.backdrop.display,'block','map cover display:none causes blink');
  assert.ok(stateOpen.backdrop.opacity>.15,'map backdrop did not fade in');
  assert.equal(stateOpen.dock.top,'hidden','top search dock should slide out');
