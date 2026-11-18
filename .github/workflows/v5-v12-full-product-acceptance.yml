@@ -1,0 +1,124 @@
+name: V12 actual V5 four-system visual and route placeId acceptance
+on:
+  push:
+    branches: [preview/v4-acceptance-20261117]
+    paths:
+      - '.github/workflows/v5-v12-full-product-acceptance.yml'
+      - 'v5-v12-integrated-20261118/**'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages-v12-full-product-visual
+  cancel-in-progress: false
+jobs:
+  v12-real-product:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: v4-safari-acceptance
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/v4-acceptance-20261117
+          path: __prototype
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reproduce existing full Pages artifact with production root unchanged
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          s=Path('.github/workflows/deploy-pages.yml').read_text()
+          marker='      - name: Prepare public static site\n        run: |\n'
+          assert marker in s
+          block=s.split(marker,1)[1].split('\n      - ',1)[0]
+          lines=[]
+          for line in block.splitlines():
+              if line.startswith('          '):lines.append(line[10:])
+              elif not line.strip():lines.append('')
+              else:break
+          subprocess.run(['bash','-e','-c','\n'.join(lines)],check=True)
+          PY
+          test -s _site/index.html
+          test -s _site/v5-unified-full-product-20261118/index.html
+      - name: Compose last accepted V5 full product plus B V2 Media V9
+        run: |
+          python3 __prototype/v5-combined-review-20261118/build.py
+          test -s _site/v5-bv2-media-v9-full-product-20261118/index.html
+      - name: Apply exact V12 color, editor, and route placeId adapter only
+        run: |
+          python3 __prototype/v5-v12-integrated-20261118/apply.py
+          test -s _site/v5-v12-unified-full-product-20261118/v12-manifest.json
+          node --check __prototype/v5-v12-integrated-20261118/real-webkit.cjs
+      - name: Install supported Safari WebKit and Chromium browser image
+        run: |
+          docker --version
+          docker pull mcr.microsoft.com/playwright:v1.58.2-noble
+      - name: Prepare existing accepted V5 / B V2 / C V5 tests against new directory
+        run: |
+          python3 __prototype/v5-combined-review-20261118/prepare-qa.py
+          sed -i 's/v5-bv2-media-v9-full-product-20261118/v5-v12-unified-full-product-20261118/g' tests/v5-collection-v2-webkit-combined.test.cjs tests/v5-unified-product-combined.test.cjs
+          cp __prototype/v5-v12-integrated-20261118/real-webkit.cjs tests/v12-real-full-product-webkit.cjs
+          node --check tests/v12-real-full-product-webkit.cjs
+      - name: WebKit real V5 V12 editor, route bubble and four-section placeId tests
+        run: |
+          python3 -m http.server 8765 --directory _site > /tmp/v12-real-product.log 2>&1 &
+          sleep 2
+          docker run --rm --network host -v "$PWD":/workspace -w /workspace \
+            mcr.microsoft.com/playwright:v1.58.2-noble \
+            bash -lc "npm install --no-save --ignore-scripts playwright@1.58.2 playwright-core@1.58.2 && node tests/v12-real-full-product-webkit.cjs"
+      - name: WebKit original collection and paired Dock V2, widths 375px and 390px
+        run: |
+          docker run --rm --network host -v "$PWD":/workspace -w /workspace \
+            mcr.microsoft.com/playwright:v1.58.2-noble \
+            bash -lc "WIDTH=375 node tests/v5-collection-v2-webkit-combined.test.cjs && WIDTH=390 node tests/v5-collection-v2-webkit-combined.test.cjs"
+      - name: WebKit media V9 3 widths and 5 full-gallery gesture cycles each
+        env:
+          MEDIA_QA_ROOT: http://127.0.0.1:8765/v5-v12-unified-full-product-20261118/
+        run: |
+          docker run --rm --network host -v "$PWD":/workspace -w /workspace \
+            -e MEDIA_QA_ROOT="$MEDIA_QA_ROOT" \
+            mcr.microsoft.com/playwright:v1.58.2-noble \
+            bash -lc "node tests/v4-media-webkit-motion-browser.cjs"
+      - name: Chromium V5 real save, route re-open and V2 card 375px 390px
+        run: |
+          docker run --rm --network host -v "$PWD":/workspace -w /workspace \
+            mcr.microsoft.com/playwright:v1.58.2-noble \
+            bash -lc "WIDTH=375 node tests/v5-unified-product-combined.test.cjs && WIDTH=390 node tests/v5-unified-product-combined.test.cjs"
+      - name: Upload complete V12 V5 visual and interaction evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v12-v5-full-product-webkit-chromium
+          path: |
+            v12-full-product-webkit-evidence/
+            webkit-collection-v2-evidence/
+            v4-media-webkit-evidence/
+            v5-unified-evidence/
+          if-no-files-found: ignore
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4
+        id: deploy
+      - name: Verify genuine isolated V12 V5 Safari URL and unmodified core files
+        run: |
+          URL='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-v12-unified-full-product-20261118'
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/" -o /tmp/v12-v5-real-home.html
+          grep -q 'v12-v5-parity.css' /tmp/v12-v5-real-home.html
+          grep -q 'v4-approved-collection-sheet-v2.js' /tmp/v12-v5-real-home.html
+          grep -q 'paired-dock-motion-v2.js' /tmp/v12-v5-real-home.html
+          grep -q 'media-v9-bv2-20261118' /tmp/v12-v5-real-home.html
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/journey.html" -o /tmp/v12-v5-real-route.html
+          grep -q 'v12-route-place.js' /tmp/v12-v5-real-route.html
+          grep -q 'route-v5-runtime.js' /tmp/v12-v5-real-route.html
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/visual/v12-route-place.js" -o /tmp/v12-real-adapter.js
+          node --check /tmp/v12-real-adapter.js
+          test "$(git hash-object /tmp/v12-real-adapter.js)" = 0d34f65636fe23fdfc17a03d8ac9f98e18c60b31
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/footprint-home.js" -o /tmp/v12-real-media.js
+          cmp /tmp/v12-real-media.js __prototype/v4-system-review/media-v9-final-footprint-home.js
