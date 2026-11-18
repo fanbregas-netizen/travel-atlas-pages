@@ -28,6 +28,12 @@ jobs:
           cp v5-unified-full-product-20261118-overrides/src/media/media-core.js v5-unified-full-product-20261118/src/media/media-core.js
           cp v5-unified-full-product-20261118-overrides/src/route/route-v5-runtime.js v5-unified-full-product-20261118/src/route/route-v5-runtime.js
           cp v5-unified-full-product-20261118-overrides/src/route/route-live-network-v1.js v5-unified-full-product-20261118/src/route/route-live-network-v1.js
+
+          cp v5-unified-full-product-20261118-overrides/src/interaction/v4-approved-collection-sheet-v2.js v5-unified-full-product-20261118/src/interaction/v4-approved-collection-sheet-v2.js
+          cp v5-unified-full-product-20261118-overrides/src/interaction/paired-dock-motion-v2.js v5-unified-full-product-20261118/src/interaction/paired-dock-motion-v2.js
+          rm -f v5-unified-full-product-20261118/src/interaction/v4-approved-collection-sheet.js
+          node --check v5-unified-full-product-20261118/src/interaction/v4-approved-collection-sheet-v2.js
+          node --check v5-unified-full-product-20261118/src/interaction/paired-dock-motion-v2.js
           rm -f v5-unified-full-product-20261118/journey-v5.html v5-unified-full-product-20261118/journey.js v5-unified-full-product-20261118/journey.css v5-unified-full-product-20261118/route-picking.css
           find v5-unified-full-product-20261118/src/route -maxdepth 1 -type f ! -name 'route-v5-runtime.js' ! -name 'route-live-network-v1.js' -delete
           node --check v5-unified-full-product-20261118/src/route/route-v5-runtime.js

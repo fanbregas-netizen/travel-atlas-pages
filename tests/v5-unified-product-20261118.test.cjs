@@ -11,6 +11,44 @@ page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);
 const base='http://127.0.0.1:8765/v5-unified-full-product-20261118/';
 await page.goto(base+'index.html',{waitUntil:'domcontentloaded'});
 assert.equal(await page.locator('#dockRoutePop').count(),0,'old route mode popover must be removed');
+
+await page.waitForFunction(()=>Boolean(window.__atlasCollectionSheet?.getState)&&window.__atlasCardDockMotion?.version==='paired-v2',null,{timeout:25000});
+const legacy=await page.request.get(base+'src/interaction/v4-approved-collection-sheet.js');
+assert.equal(legacy.status(),404,'obsolete B05 physical controller is still published');
+for(let i=0;i<3;i++){
+ await page.locator('#dockStars').click();
+ await page.waitForFunction(()=>document.getElementById('drawer')?.classList.contains('visible'),null,{timeout:14000});
+ await page.waitForFunction(()=>window.__atlasCardDockMotion?.getState().bottom==='hidden',null,{timeout:14000});
+ await page.waitForTimeout(350);
+ const stateOpen=await page.evaluate(()=>({
+  card:window.__atlasCollectionSheet?.getState(),
+  dock:window.__atlasCardDockMotion?.getState(),
+  backdrop:{display:getComputedStyle(document.getElementById('cover')).display,
+    opacity:Number(getComputedStyle(document.getElementById('cover')).opacity)}
+ }));
+ assert.match(stateOpen.card.engine,/Safari exit v2/);
+ assert.equal(stateOpen.backdrop.display,'block','map cover display:none causes blink');
+ assert.ok(stateOpen.backdrop.opacity>.15,'map backdrop did not fade in');
+ assert.equal(stateOpen.dock.top,'hidden','top search dock should slide out');
+ if(i===1)await page.locator('#cover').dispatchEvent('click');
+ else await page.locator('#closeDrawer').click();
+ await page.waitForFunction(()=>!document.getElementById('drawer')?.classList.contains('visible'),null,{timeout:12000});
+ await page.waitForFunction(()=>window.__atlasCardDockMotion?.getState().bottom==='visible',null,{timeout:12000});
+ await page.waitForTimeout(480);
+ const restored=await page.evaluate(()=>({
+  isOpen:document.getElementById('drawer').classList.contains('visible'),
+  opacity:Number(getComputedStyle(document.getElementById('cover')).opacity),
+  top:window.__atlasCardDockMotion.getState().top,
+  bottom:window.__atlasCardDockMotion.getState().bottom
+ }));
+ assert.equal(restored.isOpen,false);
+ assert.ok(restored.opacity<.04,'closing map cover did not fade out');
+ assert.equal(restored.top,'visible','top Dock did not return');
+ assert.equal(restored.bottom,'visible','bottom Dock did not return');
+}
+fs.mkdirSync('v5-unified-evidence',{recursive:true});
+await page.screenshot({path:'v5-unified-evidence/'+(Number(process.env.WIDTH)||390)+'-collection-v2-restored.png'});
+
 await page.locator('#dockRoute').click({timeout:15000});
 await page.waitForURL(/\/journey\.html(?:\?|$)/,{timeout:15000});
 const oldJourney=await page.request.get(base+'journey.js');
@@ -41,7 +79,7 @@ await page.waitForFunction(()=>window.__footprintV5ProductReady===true,null,{tim
 assert.deepEqual(await page.evaluate(()=>window.__footprintV5Demo.state().order),['v5qa1','v5qa2']);
 assert.deepEqual(errors,[]);
 fs.mkdirSync('v5-unified-evidence',{recursive:true});await page.screenshot({path:'v5-unified-evidence/'+(Number(process.env.WIDTH)||390)+'-reopened.png'});
-console.log('PASS V5 unified full product: Dock→one canonical route; old planner files 404; real favorites→save→reopened route');
+console.log('PASS V5 unified full product: accepted collection V2 3x open-close, map cover and double Docks + canonical V5 route save/reopen');
 await ctx.close();
 }finally{await browser.close()}
 })().catch(e=>{console.error(e.stack||e);process.exit(1)});
