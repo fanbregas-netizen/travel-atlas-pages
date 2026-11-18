@@ -142,9 +142,12 @@ jobs:
           grep -q 'route-v5-runtime.js' /tmp/qa-route.html
           ! grep -q 'class="city-map"' /tmp/qa-route.html
           curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/visual/v5-map-quality-pass.css" -o /tmp/qa-visual.css
-          test "$(git hash-object /tmp/qa-visual.css)" = cd6e71216ab14840d2b132bfbcf2fb59299d1bb1
+          test "$(git hash-object /tmp/qa-visual.css)" = c993ba6476ee6627b9d459491b50c6e786ab7417
           curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/route/route-v5-runtime.js" -o /tmp/qa-route.js
-          test "$(git hash-object /tmp/qa-route.js)" = 92bffc4e7886abe93d3a6a0945a6b9fd1b993193
+          test "$(git hash-object /tmp/qa-route.js)" = c29318a2890f64bd0706d9899b88765b48cea7b1
           node --check /tmp/qa-route.js
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/map/shared-v4-map.js" -o /tmp/qa-map-shared.js
+          test "$(git hash-object /tmp/qa-map-shared.js)" = 9da06b7683bc26bf02a52517b2da7dba0c85055a
+          node --check /tmp/qa-map-shared.js
           curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/map-home-bluegray-v18.js" -o /tmp/qa-palette.js
           test "$(git hash-object /tmp/qa-palette.js)" = aa9f382d4efc5f582af0e1cab1d01b8dab393fad

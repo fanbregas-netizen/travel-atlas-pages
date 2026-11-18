@@ -24,6 +24,7 @@ async function inspectMap(page,kind){
    provider:window.__atlasMapHealth?.().provider||'route',mapCount:document.querySelectorAll('.maplibregl-canvas').length,
    opacity:canvas?getComputedStyle(canvas).opacity:'missing',canvasPresent:!!canvas,
    colors:paints,palette:window.__atlasBlueGrayMap.palette.background,
+   localizedLabelCount:layers.filter(l=>l.type==='symbol'&&Array.isArray(l.layout?.['text-field'])&&l.layout['text-field'][0]==='coalesce'&&l.layout['text-field'][1]?.[1]==='name:zh').length,
    version:window.maplibregl?.version,engineSrc:[...document.scripts].map(x=>x.src).find(x=>/maplibre-gl@5\.12\.0\/dist\/maplibre-gl\.js/.test(x))||'',rect:parent?{w:parent.width,h:parent.height}:null,
    bodyClass:document.body?.className,htmlClass:document.documentElement?.className,canvasStyle:canvas?.getAttribute('style'),canvasClass:canvas?.className,
    remoteReady:document.body.classList.contains('atlas-remote-ready'),
@@ -45,6 +46,7 @@ async function inspectMap(page,kind){
  const visibleWithoutTheme=values.history.filter(x=>x.active&&x.visible&&x.theme!=='bluegray-v18');
  assert.equal(visibleWithoutTheme.length,0,kind+' showed bright unthemed canvas during startup: '+JSON.stringify(visibleWithoutTheme.slice(0,4)));
  assert.ok(values.colors.some(x=>x==='#485D6B'),kind+' never painted a blue-gray background layer: '+JSON.stringify(values.colors.slice(0,8)));
+ assert.ok(values.localizedLabelCount>0,kind+' did not apply Chinese-first names to real symbol layers');
  return values;
 }
 async function registerThemeTimeline(page){

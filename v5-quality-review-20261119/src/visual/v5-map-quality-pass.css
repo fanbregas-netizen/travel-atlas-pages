@@ -76,3 +76,7 @@ body.vector-active #atlasPoiOverlay{opacity:1!important;visibility:visible}
 @media(prefers-reduced-motion:reduce){
  #atlasVectorMap .maplibregl-canvas,#atlasMap .maplibregl-canvas{transition:none}
 }
+
+/* The top route controls should mask underlying Chinese place labels, not let
+ * a second apparent text layer bleed through the semi-opaque button. */
+#stage #topbar .circle,#stage #topbar .top-pill{background:#fffefa!important;backdrop-filter:none!important}

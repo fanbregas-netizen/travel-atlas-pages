@@ -197,8 +197,8 @@ async function init(hooks){
   // Share the actual Map A paint owner; attach before the first style loads.
   window.__atlasBlueGrayMap?.attach?.(map);
   try{map.touchZoomRotate?.disableRotation();map.keyboard?.disableRotation()}catch{}
-  map.on('load',()=>{ensureLayers();updateMapLayers();if(firstFit){firstFit=false;fit()}});
-  map.on('style.load',()=>{if(map.isStyleLoaded?.())updateMapLayers()});
+  map.on('load',()=>{window.FootprintSharedMap?.localizeLabels?.(map);ensureLayers();updateMapLayers();if(firstFit){firstFit=false;fit()}});
+  map.on('style.load',()=>{if(map.isStyleLoaded?.()){window.FootprintSharedMap?.localizeLabels?.(map);updateMapLayers()}});
   map.on('move',scheduleProjection);map.on('resize',scheduleProjection);
   map.on('click',e=>{if(e.originalEvent?.defaultPrevented)return;
    try{if(map.getLayer('fp-v5-road-hit')&&map.queryRenderedFeatures(e.point,{layers:['fp-v5-road-hit']}).length)return}catch{}

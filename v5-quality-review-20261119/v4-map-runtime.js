@@ -1696,12 +1696,11 @@
         }
         else if(/road|street|transport/.test(key))vectorMap.setLayerZoomRange(layer.id,14,24);
         else if(/place|city|town|village/.test(key))vectorMap.setLayerZoomRange(layer.id,Math.max(layer.minzoom||0,4),18);
-        const tf=layer.layout?.['text-field'];
-        /* build .18 · 标签单语言化:bright 样式默认 name:latin+name:nonlatin 双行,叠出 Chongming/崇明区 双语重影;
-           统一改为 中文优先、本地文字兜底 的单行字段。 */
-        if(tf){const s=JSON.stringify(tf);if(/name/i.test(s))try{vectorMap.setLayoutProperty(layer.id,'text-field',['coalesce',['get','name:zh'],['get','name:nonlatin'],['get','name:latin'],['get','name']])}catch(_){}}
+        // POI zoom policy stays local; label-language policy is shared with V5 route.
       }catch(_){}
     }
+    // Shared Chinese-first label projection, exactly once per style load.
+    window.FootprintSharedMap?.localizeLabels?.(vectorMap);
     // Figure-ground is strictly overhead 2D: do not add 3D extrusion layers.
     if(useBlueGray)try{window.__atlasBlueGrayMap.applyTo(vectorMap)}catch(err){console.warn('蓝灰地图配色未就绪',err)}
     updateVectorCamera(true);

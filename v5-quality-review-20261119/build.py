@@ -13,13 +13,14 @@ before={str(x.relative_to(root)):hashlib.sha256(x.read_bytes()).hexdigest() for 
 expected={
 'index.html':'72ac3a9627911041727eab3ce4e7df3e580168dc',
 'journey.html':'d4dba2e8a227cc3d4cfa82cd16e41ef1728226bb',
-'v4-map-runtime.js':'f6d2b8b9210dd57267fa545a232f63b67f8828fb',
+'v4-map-runtime.js':'1816276d19ce6c534a1b91caeb38c97e25252370',
 'map-home-bluegray-v18.js':'aa9f382d4efc5f582af0e1cab1d01b8dab393fad',
-'src/route/route-v5-runtime.js':'92bffc4e7886abe93d3a6a0945a6b9fd1b993193',
+'src/route/route-v5-runtime.js':'c29318a2890f64bd0706d9899b88765b48cea7b1',
 'src/interaction/poi-svg-motion-v4.js':'658e644942329e01deaf5aef1dbd832c4f82effe',
+'src/map/shared-v4-map.js':'9da06b7683bc26bf02a52517b2da7dba0c85055a',
 'map-visual-parity.css':'5723c2c64f24111047fad9adb439049afe53dd1c',
 'src/visual/v12-route-place.js':'9f12f78da6928751dfa957a1337a11921ad85234',
-'src/visual/v5-map-quality-pass.css':'cd6e71216ab14840d2b132bfbcf2fb59299d1bb1',
+'src/visual/v5-map-quality-pass.css':'c993ba6476ee6627b9d459491b50c6e786ab7417',
 'sw.js':'1e5a39a61c29937c3cd007c33d71feb83a7f33d2'
 }
 def blob(p):
