@@ -1,0 +1,16 @@
+/* Existing V4 paper/ink typographic scale; date confirmation is real journey input, not a demo. */
+#startDate[readonly],#endDate[readonly]{cursor:pointer;caret-color:transparent}
+#atlasJourneyDateDialog{border:0;padding:0;width:min(430px,calc(100vw - 26px));max-height:calc(100dvh - 32px);border-radius:24px;background:#fffefa;color:#27342f;box-shadow:0 12px 44px rgba(26,43,35,.18);font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif}
+#atlasJourneyDateDialog::backdrop{background:rgba(29,39,33,.24);backdrop-filter:blur(3px)}
+#atlasJourneyDateDialog .atlas-date-panel{padding:16px 20px 22px;display:grid;gap:14px}
+#atlasJourneyDateDialog .atlas-date-handle{width:42px;height:5px;border-radius:999px;background:#c6cbc4;margin:0 auto 3px}
+#atlasJourneyDateDialog h2{margin:0;font-size:21px;font-weight:700;line-height:1.25;letter-spacing:-.03em}
+#atlasJourneyDateDialog p{margin:0;color:#6a776f;font-size:13px;line-height:1.6}
+#atlasJourneyDateDialog label{display:grid;gap:6px;font-size:12px;color:#4b5b50;font-weight:600}
+#atlasJourneyDateDialog input{font-family:inherit;font-size:16px;width:100%;max-width:100%;box-sizing:border-box;height:48px;border:1px solid #e5e7df;background:#faf9f5;border-radius:13px;padding:0 12px;color:#27342f}
+#atlasDateError{color:#aa4738;font-size:12px;line-height:1.5;min-height:0}
+#atlasJourneyDateDialog footer{display:flex;gap:10px}
+#atlasJourneyDateDialog button{flex:1;min-height:46px;border:0;border-radius:13px;font-family:inherit;font-size:15px;font-weight:650;background:#e9ece7;color:#35483b;cursor:pointer}
+#atlasJourneyDateDialog #atlasDateApply{background:#dbc077;color:#312819}
+@media(max-width:375px){#atlasJourneyDateDialog .atlas-date-panel{padding:13px 16px 18px}}
+@media(prefers-reduced-motion:reduce){#atlasJourneyDateDialog::backdrop{backdrop-filter:none}}

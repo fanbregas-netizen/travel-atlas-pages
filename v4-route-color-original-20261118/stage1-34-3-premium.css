@@ -1,0 +1,96 @@
+/* Stage1.34.3 · iPhone premium refinement. Preserve V4 geometry, vector star and saved data. */
+:root{
+ --p343-paper:#f9f8f4;--p343-surface:#fffefb;--p343-ink:#27312f;
+ --p343-secondary:#68716d;--p343-mute:#909893;--p343-stroke:rgba(255,255,255,.98);
+ --p343-line:#e5e6e0;--p343-sun:#e5b64b;
+ --p343-ease:cubic-bezier(.22,.88,.28,1);
+ --p343-shadow:0 16px 38px rgba(29,42,36,.14),0 2px 8px rgba(29,42,36,.05);
+}
+html,body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+button,a,input,textarea,select{font-family:inherit;-webkit-tap-highlight-color:transparent}
+/* Intentional 4/2/1 constellation: no component stretching or new bubble geometry. */
+#atlasOrbit .orbit-bubble[hidden]{display:none!important}
+#atlasOrbit .orbit-svg{filter:drop-shadow(0 14px 26px rgba(34,46,39,.20)) drop-shadow(0 2px 5px rgba(34,46,39,.08))!important;overflow:visible!important}
+#atlasOrbit .orbit-svg path{fill:rgba(254,253,250,.985)!important;stroke:rgba(255,255,255,.99)!important;stroke-width:2.6!important;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+#atlasOrbit .orbit-backdrop{background:rgba(36,46,41,.055)!important;backdrop-filter:blur(.7px)!important;-webkit-backdrop-filter:blur(.7px)!important}
+#atlasOrbit .orbit-bubble{border:0!important;filter:none!important;contain:layout style;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#atlasOrbit .orbit-bubble:focus-visible{outline:2px solid #b9984f;outline-offset:8px;border-radius:13px}
+#atlasOrbit .orbit-content{color:var(--p343-ink)!important;gap:5px!important;overflow:hidden!important}
+#atlasOrbit .orbit-kicker{font-size:clamp(10.5px,2.85vw,12px)!important;font-weight:700!important;letter-spacing:-.012em!important;color:#2d3532!important;line-height:1.22!important;gap:5px!important;white-space:nowrap!important}
+#atlasOrbit .orbit-kicker-icon{width:15px!important;height:15px!important;filter:grayscale(1);opacity:.78!important}
+#atlasOrbit .orbit-ref-sub,#atlasOrbit .orbit-small{font-size:11px!important;line-height:1.46!important;color:#74817a!important;letter-spacing:-.01em!important}
+#atlasOrbit .orbit-ref-brief-text{font-size:11px!important;line-height:1.55!important;-webkit-line-clamp:2!important;flex:1!important}
+#atlasOrbit .orbit-bubble .orbit-action.orbit-ref-small-action{font-size:10.5px!important;font-weight:650!important;color:#606f67!important;min-height:20px!important;height:20px!important;line-height:20px!important;gap:4px!important;white-space:nowrap!important;overflow:visible!important}
+#atlasOrbit .orbit-ref-small-action .orbit-ref-action-icon{width:13px!important;height:13px!important;filter:grayscale(1);opacity:.78}
+#atlasOrbit .orbit-bubble.tl .orbit-content{padding:10px 11px 8px!important;gap:5px!important}
+#atlasOrbit .orbit-bubble.tr .orbit-content{padding:10px 12px 9px!important;gap:5px!important}
+#atlasOrbit .orbit-bubble.bl .orbit-content,#atlasOrbit .orbit-bubble.br .orbit-content{padding:10px 11px 8px!important;gap:5px!important}
+#atlasOrbit .orbit-premium-media{position:relative;display:flex;align-items:center;justify-content:center;flex:1 1 auto;min-height:40px;max-height:80px;overflow:hidden;width:100%;border:1px solid rgba(222,224,214,.64);border-radius:10px;background:linear-gradient(130deg,#eceee8,#f7f6f0 58%,#e6e9e1);color:#52645d;cursor:pointer;padding:0;isolation:isolate}
+#atlasOrbit .orbit-premium-media.is-empty:before{content:"";position:absolute;inset:-55% 20%;transform:rotate(-26deg);background:linear-gradient(90deg,transparent,#fffefb85,transparent);pointer-events:none}
+#atlasOrbit .orbit-premium-media .orbit-ref-action-icon{width:24px!important;height:24px!important;opacity:.62;filter:grayscale(1);z-index:1}
+#atlasOrbit .orbit-premium-placeholder{font-size:10px;line-height:1.2;font-weight:600;color:#77877c;margin-left:6px;z-index:1;white-space:nowrap}
+#atlasOrbit .orbit-premium-cover{display:block;width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+#atlasOrbit .orbit-premium-media.has-photo:after{content:"";position:absolute;inset:50% 0 0;background:linear-gradient(transparent,rgba(18,25,21,.22));pointer-events:none}
+#atlasOrbit .orbit-premium-plus{position:absolute;right:5px;bottom:5px;z-index:2;display:grid;place-items:center;width:19px;height:19px;border-radius:50%;font-size:14px;line-height:1;font-weight:500;background:#fffefaef;color:#48554b;border:1px solid #ffffffe0;box-shadow:0 1px 5px #17231e16}
+#atlasOrbit .orbit-premium-media:active{transform:scale(.98)}
+#atlasOrbit .orbit-premium-media-foot{display:flex;justify-content:space-between;align-items:center;gap:5px;min-height:16px;font-size:9.5px;line-height:1.1;color:#8b958d;white-space:nowrap}
+#atlasOrbit .orbit-premium-media-edit{border:0;border-radius:0;background:transparent;color:#4b6259;padding:3px 0;font-size:10px;font-weight:650;min-width:35px;text-align:right}
+#atlasOrbit .orbit-bubble.tr .orbit-kicker{flex:none}
+#atlasOrbit .orbit-bubble.bl .orbit-ref-guide-link{display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere;white-space:normal!important;line-height:1.4}
+#atlasOrbit .orbit-bubble.br.is-near-expanded .orbit-ref-small-action{margin-top:0!important}
+#atlasOrbit .orbit-near-item{border-color:#e4e7e1!important}
+#atlasOrbit .orbit-center{transition:filter .24s var(--p343-ease)!important;filter:drop-shadow(0 3px 6px rgba(44,44,23,.16))!important}
+#atlasOrbit .orbit-center:active{filter:drop-shadow(0 2px 3px #30241935)!important}
+#atlasOrbit .orbit-combo-preview{background:linear-gradient(135deg,#e8ede8,#f5f4ed)!important}
+#atlasOrbit .orbit-bubble.combo .orbit-content{gap:8px!important}
+#atlasOrbit .orbit-bubble.combo .orbit-combo-title{font-size:15px;letter-spacing:-.03em}
+#atlasOrbit .orbit-combo-shortcuts button{background:#f0f2ec!important;border:1px solid #e5e8e0!important;color:#42564f!important}
+@media(max-width:355px){
+ #atlasOrbit .orbit-content{gap:3px!important}
+ #atlasOrbit .orbit-premium-placeholder{font-size:9px}
+ #atlasOrbit .orbit-premium-media .orbit-ref-action-icon{width:20px!important;height:20px!important}
+ #atlasOrbit .orbit-premium-media-foot{font-size:9px}
+ #atlasOrbit .orbit-kicker{font-size:10.5px!important}
+ #atlasOrbit .orbit-ref-brief-text{font-size:10px!important}
+}
+/* Calm map controls and a visually weightless dock. */
+#appDock{background:rgba(255,254,250,.95)!important;border:1px solid rgba(255,255,255,.92)!important;box-shadow:0 12px 36px rgba(27,41,37,.13),0 1px 3px rgba(27,41,37,.06)!important;backdrop-filter:blur(22px) saturate(1.05);-webkit-backdrop-filter:blur(22px) saturate(1.05)}
+#appDock .dock-btn{border-radius:15px!important;transition:transform .22s var(--p343-ease),background .22s var(--p343-ease)!important}
+#appDock .dock-btn:is(.active,[aria-pressed="true"],.fp25-current){background:rgba(225,233,228,.72)!important;box-shadow:none!important}
+#appDock .dock-btn img{width:24px!important;height:24px!important}
+#appDock .dock-btn span{font-size:11px!important;letter-spacing:-.01em!important;color:#36413f!important}
+#appDock .dock-btn:active{transform:scale(.94)!important}
+.map-controls .circlebtn{background:rgba(255,254,250,.94)!important;border:1px solid rgba(255,255,255,.9)!important;box-shadow:0 6px 16px rgba(25,35,30,.10)!important;color:#31403e!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.map-controls .circlebtn:active{transform:scale(.94);background:#f3f1e8!important}
+#mapConnectionNote{border-radius:14px!important;font-size:12px!important;box-shadow:0 8px 30px #25302920!important}
+/* Sheets and content: hierarchy before decoration. */
+.drawer,.memory-atlas,#atlasRoutesSheet{background:#faf9f6!important;color:#2e3935!important}
+.drawer .drawer-head,.memory-atlas .atlas-memory-head{background:#faf9f6!important}
+.drawer .drawer-head h2{font-weight:730!important;letter-spacing:-.035em!important}
+.spotrow,#atlasRoutesSheet .rs-row{background:#fffefa!important;border:1px solid #e8e9e3!important;border-radius:18px!important;box-shadow:0 3px 15px rgba(40,51,42,.04)!important}
+.spotrow{margin:7px 0!important;padding:11px!important;gap:11px!important}
+.spotrow strong{font-weight:685!important;letter-spacing:-.025em!important;color:#2e3935!important}
+.spotrow small{color:#88918b!important;line-height:1.65!important}
+.spotrow:active{background:#f6f3ea!important;transform:scale(.992)}
+#atlasRoutesSheet .rs-head strong{font-weight:720;letter-spacing:-.035em}
+#fpSearchSheet .fp-search-suggestion,#searchResults .search-result{border-radius:13px!important}
+#searchResults .search-result:active{background:#eff2ec!important}
+.editor h2,.edit-head h2{font-weight:725!important;letter-spacing:-.035em!important}
+.editor .input,.editor .area,.editor input,.editor textarea{font-size:16px!important}
+/* iPhone route builder: reduce visual noise, group daily itinerary. */
+.journey-page .builder,.journey-page .block{color:#2d3935}
+.journey-page .choice{background:#fffefa!important;border:1px solid #e4e8e1!important;border-radius:18px!important;box-shadow:0 4px 18px #25392e0a!important}
+.journey-page .choice.is-dragging{background:#fff9e9!important;border-color:#dfc178!important;box-shadow:0 16px 36px #3b3a2426!important;transform:scale(1.015);z-index:4}
+.journey-page .choice .choice-drag{background:#f3f4ef!important;border:1px solid #e6e9e2!important;border-radius:13px!important;color:#56685f!important}
+.journey-page .choice-controls button{border-radius:12px}
+.journey-page .route-review{background:#f8f9f5;border:1px solid #e4e8e0;border-radius:17px}
+/* Route map: quiet shells, clear selected stop, no competing nested toolbar. */
+.route-page .atlas-brand,.atlas-brand{background:rgba(255,254,250,.94)!important;border:1px solid rgba(255,255,255,.98)!important;box-shadow:0 6px 22px #26373014!important}
+.atlas-stops{background:rgba(255,254,250,.95)!important;border:1px solid rgba(255,255,255,.94)!important;box-shadow:0 14px 38px #283a351f!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.stop-chip{border:1px solid #e9ebe5!important;border-radius:14px!important;background:#fffefa!important}
+.stop-chip.active{background:#f8eed2!important;border-color:#e4c776!important}
+.stop-bubble{background:#fffefa!important;border:1px solid #fff!important;box-shadow:0 18px 45px rgba(30,40,34,.23)!important}
+.stop-bubble h2{font-weight:725;letter-spacing:-.04em}
+@media(prefers-reduced-motion:reduce){
+ #atlasOrbit .orbit-premium-media,#atlasOrbit .orbit-bubble,#appDock .dock-btn{animation:none!important;transition:none!important}
+}
