@@ -1,0 +1,64 @@
+/* Footprint Map V5 — four-system quality pass.
+ * Only scoped layout/map material/POI icon rules; NO new controller,
+ * second map, Gallery, IndexedDB model, card spring or map transform. */
+html:not([data-fp-map-theme="bluegray-v18"]) body.vector-active #atlasVectorMap .maplibregl-canvas,
+body.vector-active:not(.atlas-remote-ready) #atlasVectorMap .maplibregl-canvas,
+html:not([data-fp-map-theme="bluegray-v18"]) #atlasMap .maplibregl-canvas{opacity:0!important}
+#atlasVectorMap .maplibregl-canvas,#atlasMap .maplibregl-canvas{
+ transition:opacity .16s ease;backface-visibility:hidden
+}
+#atlasMap{background:#485d6b!important}
+#atlasMap .maplibregl-canvas-container,#atlasMap .maplibregl-canvas{background-color:#485d6b}
+/* The original stage1.29 renderer owns POI projection through an rAF on move. */
+body.vector-active #atlasPoiOverlay{opacity:1!important;visibility:visible}
+#stage #atlasMap{
+ position:absolute!important;inset:0!important;
+ width:100%!important;height:100%!important;transform:none!important
+}
+#stage #map,#stage #map-world{pointer-events:none!important}
+#stage #pins{pointer-events:none!important}
+#stage #pins .pin{pointer-events:auto!important}
+/* The star itself is the only route POI marker. Order attaches to that star. */
+#stage #pins .pin.fp-route-map-star{
+ width:48px!important;min-width:48px!important;height:48px!important;
+ border:0!important;background:transparent!important;
+ box-shadow:none!important;padding:0!important;border-radius:0!important;
+ transform:translate(-50%,-50%)!important;filter:none!important;scale:1;
+ display:grid!important;place-items:center!important;
+}
+#stage #pins .pin.fp-route-map-star .fp-route-poi-token{
+ display:grid;place-items:center;width:44px;height:44px;transform-origin:center center;will-change:auto
+}
+#stage #pins .pin.fp-route-map-star .fp-route-star-art{
+ width:38px;height:38px;display:block;object-fit:contain;filter:drop-shadow(0 2px 4px #34414925)
+}
+#stage #pins .pin.fp-route-map-star .fp-route-stop-order{
+ position:absolute;right:1px;bottom:1px;
+ min-width:17px;height:17px;display:grid;place-items:center;border-radius:50%;
+ font:750 10px/1 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+ background:#fffefa;color:#304c3a;border:1px solid #92ae9e;
+ box-shadow:0 1px 4px #233c3626
+}
+#stage #pins .pin.fp-route-map-star.focus,
+#stage #pins .pin.fp-route-map-star:focus-visible{z-index:21!important;outline:none!important}
+#stage #pins .pin.fp-route-map-star:focus-visible .fp-route-poi-token{
+ outline:2px solid #81a393;border-radius:12px
+}
+#stage #pins .pin.fp-route-map-star .day-tag,
+#stage #pins .pin.fp-route-map-star .number{display:none!important}
+/* V12 approved saved-place card geometry, also used on route sub-pages. */
+#stage .circle,#stage #sheet-close,#stage #modal-close{
+ width:44px;min-width:44px;height:44px;min-height:44px;border-radius:12px
+}
+#stage #sheet-handle{width:44px;height:5px;border-radius:999px}
+#stage #sheet-title{font-size:24px;line-height:1.18;font-weight:720;letter-spacing:-.045em}
+#stage #sheet-footer .button-primary,#stage #sheet-footer .button-outline{
+ min-height:44px;border-radius:13px;box-shadow:none
+}
+#stage #modal .modal-head{min-height:44px}
+#stage .calendar-grid .day,#stage .day-filter button{min-height:44px}
+#stage .option-row,#stage .endpoint-row{min-height:53px}
+#stage .drag-handle{min-width:44px;min-height:44px}
+@media(prefers-reduced-motion:reduce){
+ #atlasVectorMap .maplibregl-canvas,#atlasMap .maplibregl-canvas{transition:none}
+}
