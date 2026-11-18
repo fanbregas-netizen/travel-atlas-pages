@@ -1,0 +1,71 @@
+name: Export exact bluegray19 map runtime files for private V4 integration
+on:
+  push:
+    branches: [preview/v4-acceptance-20261117]
+    paths: [.github/workflows/export-map-a-bluegray19.yml]
+permissions:
+  contents: write
+jobs:
+  export-map-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/v4-acceptance-20261117
+          persist-credentials: true
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/v4-clean-ui-20261116
+          path: __candidate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assert exact original V4 candidate
+        run: test "$(git -C __candidate rev-parse HEAD)" = 54c2b68347e3bfe2a7e7ed47ef63e12550e007b7
+      - name: Run approved Map A patched-product builder
+        run: |
+          python3 v4-system-review/build-durable-map-preview.py __candidate/v4-review-20261116 v4-system-review __out/v4-map-system-review-20261117
+          grep -q bluegray-19 __out/v4-map-system-review-20261117/index.html
+          grep -Fq 'atlas-route-home-poi-renderer' __out/v4-map-system-review-20261117/journey.html
+      - name: Export ONLY the modified seven source files and three approved map assets
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import shutil,hashlib,json
+          base=Path('__candidate/v4-review-20261116')
+          built=Path('__out/v4-map-system-review-20261117')
+          export=Path('v4-map-a-bluegray19-export')
+          allow=('index.html','journey.html','route-view.html','v4-map-runtime.js',
+                 'src/map/shared-v4-map.js','src/interaction/route-cards-v5-live.js',
+                 'src/interaction/poi-svg-motion-v4.js')
+          adds=('map-home-bluegray-v18.js','map-home-bluegray-v18.css','map-visual-parity.css')
+          changes=[]
+          for f in base.rglob('*'):
+              if not f.is_file():continue
+              rel=str(f.relative_to(base))
+              if f.read_bytes()!=(built/rel).read_bytes():changes.append(rel)
+          assert set(changes)==set(allow),changes
+          for rel in allow+adds:
+              d=export/rel
+              d.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copyfile(built/rel,d)
+          (export/'MANIFEST.json').write_text(json.dumps({
+             'source_commit':'49cd4e4d039f66e16078dd1f8777068147427958',
+             'base_commit':'54c2b68347e3bfe2a7e7ed47ef63e12550e007b7',
+             'allowed_changed_files':list(allow),
+             'added_assets':list(adds),
+             'build_hashes_sha256':{r:hashlib.sha256((export/r).read_bytes()).hexdigest() for r in allow+adds},
+          },indent=2),encoding='utf-8')
+          print('PASS: exact 7 map-affected product source files and 3 extra assets, no other subsystem')
+          PY
+          node --check v4-map-a-bluegray19-export/v4-map-runtime.js
+          node --check v4-map-a-bluegray19-export/src/interaction/route-cards-v5-live.js
+          node --check v4-map-a-bluegray19-export/map-home-bluegray-v18.js
+      - name: Commit map-only export on isolated preview branch, never Pages main
+        run: |
+          git add v4-map-a-bluegray19-export/
+          git config user.name 'footprint-map-export-bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git diff --cached --quiet && exit 0
+          git commit -m '[Map A] Export validated bluegray19 generated product files for isolated integration'
+          git push origin HEAD:preview/v4-acceptance-20261117
