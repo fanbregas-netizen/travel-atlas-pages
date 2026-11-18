@@ -69,6 +69,7 @@ async function testWidth(width){
   await page.locator('#fpRoutePanelBody [data-mode="bike"]').click();
   state=await page.evaluate(()=>window.__fpRouteLogicUI.getState());
   assert.equal(state.mode,'bike');
+  await page.locator('#fpRoutePanelBody details.fp-simple-details summary').click();
   await page.locator('#fpRoutePanelBody select[data-leg]').first().selectOption('walk');
   await page.waitForFunction(()=>!!window.__fpRouteLiveBridge?.savedId,null,{timeout:12000});
   await page.waitForTimeout(450);
