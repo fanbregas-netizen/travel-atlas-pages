@@ -17,7 +17,7 @@ permissions:
   pages: write
   id-token: write
 concurrency:
-  group: pages
+  group: pages-route-overlay
   cancel-in-progress: false
 jobs:
   deploy-route-preview:
