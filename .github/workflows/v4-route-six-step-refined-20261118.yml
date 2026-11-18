@@ -1,0 +1,47 @@
+name: Footprint V4 two Safari recordings corrected route acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v4-route-six-step-refined-20261118/**'
+      - 'tests/v4-route-six-step-refined-20261118.test.cjs'
+      - '.github/workflows/v4-route-six-step-refined-20261118.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  mobile-safari-and-chromium:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate copied real product and repaired route scripts
+        run: |
+          set -e
+          test -s v4-route-six-step-refined-20261118/index.html
+          test -s v4-route-six-step-refined-20261118/journey.html
+          test -s v4-route-six-step-refined-20261118/route-view.html
+          node --check v4-route-six-step-refined-20261118/src/route/route-step-flow-v4.js
+          node --check v4-route-six-step-refined-20261118/src/route/route-color-live-bridge.js
+          node --check tests/v4-route-six-step-refined-20261118.test.cjs
+      - name: Install Chromium and WebKit touch engines
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps chromium webkit
+      - name: Serve isolated full V4 product
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/route-refined-20261118.log 2>&1 &
+          sleep 2
+          curl --fail --silent http://127.0.0.1:8765/v4-route-six-step-refined-20261118/journey.html >/dev/null
+      - name: Run two-recording acceptance for iPhone viewports
+        run: |
+          BROWSER=chromium WIDTH=375 node tests/v4-route-six-step-refined-20261118.test.cjs
+          BROWSER=webkit WIDTH=390 node tests/v4-route-six-step-refined-20261118.test.cjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: footprint-v4-route-refined-safari-evidence
+          path: route-six-step-refined-evidence/
+          if-no-files-found: ignore
