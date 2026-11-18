@@ -73,7 +73,8 @@ const places=[
   assert.ok(record&&record.id);
   assert.equal(record.stops.length,4);
   assert.equal(record.transportMode,'bike');
-  assert.deepEqual(record.placeIds,done.order);
+  // MediaCore intentionally normalizes route records to stops and drops the input-only placeIds.
+  assert.deepEqual(record.stops.map(x=>x.placeId),done.order);
   const note=await page.evaluate(async(name)=>new Promise((resolve,reject)=>{
    const r=indexedDB.open(name,1);r.onerror=()=>reject(r.error);
    r.onsuccess=()=>{const db=r.result,t=db.transaction('places','readonly'),q=t.objectStore('places').get('flow-p1');
