@@ -34,7 +34,7 @@ async function loadRealData(){
  const [places,routes]=await Promise.all([getPlaces(),repo.listRoutes()]);
  const query=new URLSearchParams(location.search),routeId=query.get('saved')||query.get('edit');
  savedRecord=routeId?routes.find(r=>String(r.id)===routeId)||null:null;
- const savedIds=new Set(routes.flatMap(idsFromRoute));
+ const savedIds=new Set(routes.flatMap(idsFromRoute));for(const r of routes){if(r.originPlaceId)savedIds.add(String(r.originPlaceId));if(r.destinationPlaceId)savedIds.add(String(r.destinationPlaceId));}
  const s=api.state;
  s.places=places.filter(p=>valid(p)&&!p.demo&&(p.starred!==false||p.routeOnly===true||savedIds.has(String(p.id)))).slice(0,500).map(p=>({
   id:String(p.id),name:toName(p),subtitle:String(p.address||p.city||p.subtitle||'收藏地点'),
@@ -189,13 +189,14 @@ async function init(hooks){
   });
   ready=true;api.render();
  }catch(e){console.error('[V5] 地图未加载',e);const n=document.createElement('div');n.className='v5-map-error';n.textContent='地图暂时无法连接，请检查网络后重试；已有收藏与路线不会丢失。';$('stage').appendChild(n)}
+ document.addEventListener('fp:route-network-update',()=>{if(api?.state.step==='order')api.render(true)});
  window.__footprintV5ProductReady=true;document.dispatchEvent(new Event('footprint:v5-ready'));
 }
 async function save(state){
  if(state.order.length<2)throw Error('请先选择至少两个访问地点');
  if(!repo)throw Error('路线存储未就绪');
  const old=savedRecord||{},id=old.id||window.crypto?.randomUUID?.()||'trip-'+Date.now();
- const newPoints=state.places.filter(p=>p.routeOnly&&state.order.includes(p.id));
+ const linked=new Set([...state.order,state.origin?.id,state.dest?.id].filter(Boolean));const newPoints=state.places.filter(p=>p.routeOnly&&linked.has(p.id));
  await saveNewPoints(newPoints);
  const prev=old.stops||[],timeFor=id=>prev.find(s=>String(s.placeId||s.id)===id)?.time||'';
  const stops=state.order.map((placeId,i)=>({id:placeId,placeId,order:i+1,day:state.days[placeId]||1,time:timeFor(placeId)}));
