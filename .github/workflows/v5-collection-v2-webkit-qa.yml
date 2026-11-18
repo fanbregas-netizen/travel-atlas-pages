@@ -1,0 +1,52 @@
+name: Footprint V5 accepted Safari collection v2 WebKit regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/v5-collection-v2-webkit.test.cjs'
+      - '.github/workflows/v5-collection-v2-webkit-qa.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  webkit-collection:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Assemble entire V5 product and approved B05 Safari interaction
+        run: |
+          set -euo pipefail
+          cp -R v4-route-six-step-refined-20261118 v5-unified-full-product-20261118
+          cp -R v4-route-live-five-step-20261118-overrides/src/route/. v5-unified-full-product-20261118/src/route/
+          for f in index.html journey.html route-view.html sw.js version.json v4-map-runtime.js map-home-bluegray-v18.js map-home-bluegray-v18.css; do
+            cp "v5-unified-full-product-20261118-overrides/$f" "v5-unified-full-product-20261118/$f"
+          done
+          for f in src/map/shared-v4-map.js src/media/media-core.js src/route/route-v5-runtime.js src/route/route-live-network-v1.js src/interaction/v4-approved-collection-sheet-v2.js src/interaction/paired-dock-motion-v2.js; do
+            cp "v5-unified-full-product-20261118-overrides/$f" "v5-unified-full-product-20261118/$f"
+          done
+          rm -f v5-unified-full-product-20261118/src/interaction/v4-approved-collection-sheet.js
+          rm -f v5-unified-full-product-20261118/journey-v5.html v5-unified-full-product-20261118/journey.js
+          find v5-unified-full-product-20261118/src/route -maxdepth 1 -type f ! -name 'route-v5-runtime.js' ! -name 'route-live-network-v1.js' -delete
+          node --check v5-unified-full-product-20261118/src/interaction/v4-approved-collection-sheet-v2.js
+          node --check v5-unified-full-product-20261118/src/interaction/paired-dock-motion-v2.js
+      - name: Install Playwright WebKit engine
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps webkit
+      - name: Start local complete-product preview
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/footprint-v5-safari.log 2>&1 &
+          sleep 2
+      - name: Simulate iPhone-sized WebKit interaction on two widths
+        run: |
+          mkdir -p webkit-collection-v2-evidence
+          WIDTH=375 node tests/v5-collection-v2-webkit.test.cjs
+          WIDTH=390 node tests/v5-collection-v2-webkit.test.cjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: footprint-safari-collection-v2-webkit-evidence
+          path: webkit-collection-v2-evidence/
+          if-no-files-found: ignore
