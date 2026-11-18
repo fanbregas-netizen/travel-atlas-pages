@@ -35,6 +35,19 @@ jobs:
       - name: Prepare public static site
         run: |
           mkdir -p _site
+          # Full original V4 product + only the approved five-step route files.
+          # Keep production root and every previous preview untouched.
+          cp -R v4-route-six-step-refined-20261118 _site/v4-route-live-five-step-20261118
+          cp v4-route-live-five-step-20261118-overrides/journey.html _site/v4-route-live-five-step-20261118/journey.html
+          cp -R v4-route-live-five-step-20261118-overrides/src/route/. _site/v4-route-live-five-step-20261118/src/route/
+          # Isolate the new offline cache without changing the user's existing V4 route/place database.
+          sed -i "s/footprint-v4-review-20261116-v19c/footprint-v4-live-five-step-20261118-v1/g;s/k.startsWith('footprint-v4-review-20261116-')/k.startsWith('footprint-v4-live-five-step-20261118-')/g" _site/v4-route-live-five-step-20261118/sw.js
+          test -s _site/v4-route-live-five-step-20261118/index.html
+          test -s _site/v4-route-live-five-step-20261118/journey.html
+          test -s _site/v4-route-live-five-step-20261118/src/route/route-live-network-v1.js
+          node --check _site/v4-route-live-five-step-20261118/src/route/route-step-flow-v4.js
+          node --check _site/v4-route-live-five-step-20261118/src/route/route-live-network-v1.js
+          node --check _site/v4-route-live-five-step-20261118/src/route/route-color-live-bridge.js
           # User-approved screenshot language, revised five-stage route flow: isolated interactive preview.
           cp -R v4-route-five-step-approved-20261118 _site/v4-route-five-step-approved-20261118
           test -s _site/v4-route-five-step-approved-20261118/index.html

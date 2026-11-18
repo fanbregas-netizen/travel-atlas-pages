@@ -1,0 +1,275 @@
+/* Footprint Map V4 | user-approved six-step bottom-card journey.
+   Deliberately scoped: never restyle homepage, favorites, media or original map.
+   Warm paper / sage / dark grey green / low-contrast gold are original V4 tokens.
+ */
+body.fp-step-route{
+ --rs-paper:#fffefa;--rs-soft:#f8f9f5;--rs-sage:#edf1e9;
+ --rs-ink:#27342f;--rs-green:#304b3b;--rs-muted:#69746e;
+ --rs-line:#e5e7df;--rs-gold:#b59a62;--rs-gold-light:#f3eddf;
+ --rs-spring:cubic-bezier(.2,.86,.2,1);
+ color:var(--rs-ink);background:#e9efe5;
+ font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","SF Pro Text",sans-serif;
+}
+body.fp-step-route #atlasMap{background:linear-gradient(140deg,#e9efe4 0%,#e5ebdf 60%,#dce7dc 100%);filter:saturate(.82) contrast(.98)}
+body.fp-step-route :is(#stopsDock,.atlas-topbar,#routeLegend,#atlasStatus,#stopBubble,#routeBootNotice,#routeSaveDialog,#addStopDialog,#routePickDialog,#fpRouteBadge,#fpRouteTools,#fpRoutePanel,#fpRouteCard,#fpRouteAnchors,#fpRouteToast){
+ display:none!important
+}
+/* Hide the obsolete large numbered markers: use exactly one original-scale gold star per place. */
+body.fp-step-route #pinLayer{display:none!important}
+body.fp-step-route #routeLines{z-index:8}
+body.fp-step-route.fp-route-empty #routeLines,body.fp-step-route.fp-route-empty #pinLayer{opacity:0!important;pointer-events:none!important}
+body.fp-step-route :is(button,input,select){font-family:inherit;-webkit-tap-highlight-color:transparent}
+body.fp-step-route button:focus-visible,body.fp-step-route input:focus-visible,body.fp-step-route select:focus-visible{
+ outline:2px solid var(--rs-gold);outline-offset:3px
+}
+#fpRouteFlowTop{
+ position:fixed;z-index:40;top:calc(env(safe-area-inset-top) + 11px);left:14px;right:14px;
+ display:flex;align-items:center;justify-content:space-between;pointer-events:none;
+ max-width:520px;margin:0 auto;
+}
+#fpRouteFlowTop>*{pointer-events:auto}
+#fpRouteFlowTop .fp-rt-icon{
+ background:rgba(255,254,250,.96);border:1px solid #e9ebe2;
+ border-radius:50%;width:43px;height:43px;padding:11px;
+ box-shadow:0 3px 12px #1b392515;color:var(--rs-green);
+ display:grid;place-items:center;cursor:pointer;
+}
+#fpRouteFlowTop .fp-rt-title{font-size:13px;font-weight:750;letter-spacing:-.02em;
+ background:rgba(255,254,250,.88);padding:9px 14px;border-radius:99px;
+ color:var(--rs-green);box-shadow:0 2px 9px #1b392510;
+}
+#fpRouteFlowTop svg,#fpRouteFlowSheet svg{display:inline-block;vertical-align:middle;width:20px;height:20px;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none}
+#fpRouteFavLayer{position:fixed;inset:0;z-index:11;pointer-events:none;overflow:hidden}
+#fpRouteFavLayer .fp-route-extra-star{
+ position:absolute;pointer-events:auto;transform:translate(-50%,-50%);width:29px;height:29px;padding:4px;
+ border:0;background:rgba(255,254,250,.82);border-radius:50%;box-shadow:0 2px 8px #36462e1b;
+ display:grid;place-items:center;cursor:pointer;touch-action:manipulation;
+ transition:scale .18s var(--rs-spring);
+}
+#fpRouteFavLayer .fp-route-extra-star:active{scale:1.20}
+#fpRouteFavLayer .fp-route-extra-star .fp-small-gold-star{width:18px;height:18px;display:block}
+#fpRouteFavLayer .fp-route-extra-star[aria-pressed=true]{background:rgba(255,254,250,.96);box-shadow:0 0 0 1.5px #d5bb75,0 2px 7px #314d3418}
+#fpRouteFlowSheet{
+ position:fixed;z-index:55;left:0;right:0;bottom:0;margin:0 auto;
+ height:var(--fp-flow-visible,190px);
+ max-height:calc(100dvh - env(safe-area-inset-top) - 66px);
+ width:min(100%,540px);
+ display:flex;flex-direction:column;overflow:hidden;
+ background:var(--rs-paper);border:1px solid #e0e5db;border-bottom:0;
+ border-radius:27px 27px 0 0;
+ box-shadow:0 -9px 38px rgba(26,43,35,.14),0 -2px 9px #1a2b2309;
+ transform:translate3d(0,0,0);
+ will-change:height;backface-visibility:hidden;contain:layout style;
+}
+#fpRouteSheetHead{
+ flex:0 0 auto;min-height:65px;padding:8px 18px 8px;touch-action:none;
+ display:flex;flex-direction:column;justify-content:center;gap:7px;background:var(--rs-paper);
+ border-bottom:1px solid var(--rs-line);cursor:grab;user-select:none;
+}
+#fpRouteSheetHead:active{cursor:grabbing}
+#fpRouteSheetHead .fp-route-grab{margin:0 auto 1px;width:38px;height:5px;border-radius:100px;background:#c6cbc4}
+#fpRouteSheetHead .fp-route-headrow{display:flex;align-items:center;gap:9px;min-height:34px}
+#fpRouteSheetHead strong{font-weight:760;font-size:15px;line-height:1.25;letter-spacing:-.035em}
+#fpRouteSheetHead .fp-route-summary{font-size:11px;color:var(--rs-muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fpRouteSheetHead .fp-route-head-action{width:34px;height:34px;border:0;background:var(--rs-sage);color:#526755;border-radius:11px;display:grid;place-items:center}
+#fpRouteSheetContent{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+ padding:14px 18px 18px;scrollbar-width:none}
+#fpRouteSheetContent::-webkit-scrollbar{display:none}
+#fpRouteSheetContent h2{font-size:17px;letter-spacing:-.05em;line-height:1.35;margin:0 0 12px;font-weight:780;color:var(--rs-ink)}
+#fpRouteSheetContent .fp-route-hint{font-size:11px;line-height:1.65;color:var(--rs-muted);margin:8px 0 13px}
+#fpRouteSheetContent .fp-route-rowbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+#fpRouteSheetContent .fp-route-minor{font-size:11px;color:var(--rs-muted)}
+#fpRouteSheetContent .fp-route-search{
+ display:flex;align-items:center;gap:8px;background:var(--rs-paper);
+ border:1px solid var(--rs-line);border-radius:13px;min-height:45px;padding:0 12px;margin-bottom:11px;
+}
+#fpRouteSheetContent .fp-route-search svg{width:17px;height:17px;color:#8b998d;flex:0 0 auto}
+#fpRouteSheetContent input[type=search]{width:100%;min-width:0;background:transparent;border:0;outline:0;font-size:15px;color:var(--rs-ink)}
+#fpRouteSheetContent input[type=search]::placeholder{color:#9da69b}
+#fpRouteSheetContent .fp-route-place-list{display:flex;flex-direction:column;gap:5px}
+#fpRouteSheetContent .fp-route-place-row,#fpRouteSheetContent .fp-route-order-row{
+ display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 9px;
+ border:1px solid var(--rs-line);border-radius:13px;background:var(--rs-paper);
+}
+#fpRouteSheetContent .fp-route-place-row img{width:21px;height:21px;object-fit:contain;flex:0 0 auto}
+#fpRouteSheetContent .fp-route-place-name{font-size:12.5px;font-weight:720;line-height:1.35;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fpRouteSheetContent .fp-route-place-sub{font-size:11px;color:var(--rs-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#fpRouteSheetContent .fp-route-place-row .fp-route-add{
+ width:34px;height:34px;border:1px solid #e4e7e0;color:#536d56;
+ border-radius:50%;background:#f9faf7;display:grid;place-items:center;flex:0 0 auto;
+}
+#fpRouteSheetContent .fp-route-add[aria-pressed=true]{background:var(--rs-gold-light);border-color:#e1d5bd;color:#8c713e}
+#fpRouteSheetContent .fp-route-place-row .fp-route-add svg{width:18px;height:18px}
+#fpRouteSheetContent .fp-route-order-row{min-height:53px;transition:background .16s,transform .18s var(--rs-spring)}
+#fpRouteSheetContent .fp-route-order-row.fp-is-dragging{background:#f0f3eb;box-shadow:0 4px 15px #23332418;position:relative;z-index:2}
+#fpRouteSheetContent .fp-route-small-star{width:17px;height:17px}
+#fpRouteSheetContent .fp-route-day{
+ border:0;background:var(--rs-sage);border-radius:8px;color:#637866;padding:5px 8px;
+ font-size:10.5px;font-weight:700;min-width:36px;min-height:29px;
+}
+#fpRouteSheetContent .fp-route-drag{
+ border:0;background:transparent;color:#89988b;width:32px;height:36px;
+ touch-action:none;display:grid;place-items:center;flex:0 0 auto;
+}
+#fpRouteSheetContent .fp-route-drag svg{width:19px;height:19px}
+#fpRouteSheetContent .fp-route-line{margin-bottom:8px;display:flex;gap:8px}
+#fpRouteSheetContent .fp-route-field{display:grid;gap:6px;flex:1;min-width:0}
+#fpRouteSheetContent .fp-route-field label{font-size:11px;color:var(--rs-muted)}
+#fpRouteSheetContent .fp-route-field input,#fpRouteSheetContent .fp-route-field select{
+ appearance:auto;max-width:100%;width:100%;min-width:0;min-height:44px;padding:9px 9px;
+ color:var(--rs-ink);font-size:14px;background:#fffefa;border:1px solid var(--rs-line);border-radius:12px;
+}
+#fpRouteSheetContent .fp-route-mode-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:14px}
+#fpRouteSheetContent .fp-route-mode{
+ background:#f8f9f5;border:1px solid var(--rs-line);color:#647367;border-radius:13px;
+ min-height:55px;display:grid;place-items:center;gap:3px;padding:8px 3px;font-size:11px;font-weight:680;
+}
+#fpRouteSheetContent .fp-route-mode svg{width:22px;height:22px}
+#fpRouteSheetContent .fp-route-mode[aria-pressed=true]{background:#f1eddc;border-color:#c9af73;color:#806938}
+#fpRouteSheetContent .fp-route-route-overview{
+ display:flex;align-items:center;gap:8px;min-height:45px;background:#f8f9f5;
+ border:1px solid var(--rs-line);border-radius:12px;padding:9px 11px;margin-bottom:12px;color:#556b5a;font-size:12px;
+}
+#fpRouteSheetContent .fp-route-recommend{
+ background:#f9f7ef;border:1px solid #e9e2d1;border-radius:17px;
+ padding:14px 13px;display:grid;gap:11px;margin:5px 0 15px;
+}
+#fpRouteSheetContent .fp-route-recommend-title{font-size:13px;font-weight:780;color:#5c513a}
+#fpRouteSheetContent .fp-route-recommend-note{font-size:11px;color:#827760;line-height:1.5}
+#fpRouteSheetContent .fp-route-chain{display:flex;align-items:center;justify-content:space-between;gap:4px;overflow:hidden}
+#fpRouteSheetContent .fp-route-chain .fp-route-chain-star{flex:0 0 auto;display:grid;justify-items:center;font-size:10px;color:#61583f;gap:3px}
+#fpRouteSheetContent .fp-route-chain img{width:22px;height:22px}
+#fpRouteSheetContent .fp-route-chain-line{height:1px;background:#d3bc80;flex:1;min-width:4px}
+#fpRouteSheetContent .fp-route-recommend-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+#fpRouteSheetContent .fp-route-recommend-actions button{min-height:42px;border-radius:14px;border:1px solid #e3ddcf;background:#fffefa;color:#6c705e;font-size:12px;font-weight:700}
+#fpRouteSheetContent .fp-route-recommend-actions button.fp-route-gold{background:linear-gradient(135deg,#d8bb6e,#cba957);border-color:#d4b66d;color:#fffefa}
+#fpRouteSheetContent .fp-route-check{width:45px;height:45px;background:#e7efe5;color:#68896b;border-radius:50%;display:grid;place-items:center;margin:0 auto 8px}
+#fpRouteSheetContent .fp-route-check svg{width:27px;height:27px}
+#fpRouteSheetContent .fp-route-done-title{text-align:center;margin:0 0 13px}
+#fpRouteSheetContent .fp-route-day-list{background:var(--rs-soft);border:1px solid var(--rs-line);border-radius:13px;padding:9px 11px;font-size:12px}
+#fpRouteSheetContent .fp-route-day-list .fp-route-day-list-row{display:flex;align-items:center;gap:10px;border-top:1px solid var(--rs-line);padding:8px 0}
+#fpRouteSheetContent .fp-route-day-list .fp-route-day-list-row:first-child{border-top:0}
+#fpRouteSheetContent .fp-route-day-list b{background:var(--rs-sage);border-radius:5px;color:#607761;padding:4px 5px;font-size:10px;min-width:26px;text-align:center}
+#fpRouteSheetFoot{
+ display:grid;gap:8px;flex:0 0 auto;padding:10px 17px calc(11px + env(safe-area-inset-bottom));
+ border-top:1px solid var(--rs-line);background:var(--rs-paper);
+}
+#fpRouteSheetFoot .fp-route-main-btn{
+ display:flex;align-items:center;justify-content:center;gap:8px;
+ width:100%;min-height:43px;padding:10px 15px;background:linear-gradient(130deg,#4e6f58,#3c5d48);
+ border:0;border-radius:999px;color:#fffefa;font-size:13px;font-weight:740;letter-spacing:.01em;
+}
+#fpRouteSheetFoot .fp-route-main-btn:disabled{opacity:.4}
+#fpRouteSheetFoot .fp-route-foot-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#fpRouteSheetFoot .fp-route-quiet-btn{background:transparent;border:0;color:var(--rs-muted);font-size:11px;min-height:30px;padding:4px 5px}
+#fpRouteSheetFoot .fp-route-undo{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ background:#eef3ea;border:1px solid #e0e7dc;padding:7px 11px;border-radius:11px;
+ font-size:11px;color:#536959;min-height:34px;
+}
+#fpRouteSheetFoot .fp-route-undo button{background:transparent;color:#9a7e43;border:0;min-height:30px;font-size:11px;font-weight:760}
+#fpRouteSheetFoot .fp-route-undo[hidden],#fpRouteSheetContent [hidden]{display:none!important}
+#fpRouteSheetContent .fp-route-empty-hint{
+ padding:22px 12px;text-align:center;color:var(--rs-muted);font-size:12px;border:1px dashed var(--rs-line);border-radius:14px;
+}
+#fpRouteSheetContent .fp-route-tiny{font-size:10px;color:var(--rs-muted);margin:8px 0;line-height:1.6}
+#fpRouteSheetContent .fp-route-divider{border:0;border-top:1px solid var(--rs-line);margin:14px 0}
+#fpRouteSheetContent .fp-route-choose-next{font-size:12px;color:#607964;display:flex;align-items:center;gap:8px}
+#fpRouteSheetContent .fp-route-save-error{font-size:11px;color:#9e554c;margin:7px 0}
+#fpRouteSheetContent .fp-route-save-error[hidden]{display:none}
+@media(min-width:700px){
+ #fpRouteFlowSheet{width:min(430px,100%);left:auto;right:20px;border-radius:24px 24px 0 0}
+ #fpRouteFlowTop{max-width:none;margin:0}
+}
+@media(prefers-reduced-motion:reduce){
+ #fpRouteFlowSheet,#fpRouteFlowSheet *{animation:none!important;transition:none!important}
+}
+
+/* Sheet geometry: keep CTA at viewport bottom in every detent. Never translate the entire tall card. */
+#fpRouteFavLayer .fp-route-extra-star[hidden]{display:none!important}
+
+/* Screen-recording corrections · keep the accepted V4 visual tokens. */
+body.fp-step-route #routeLines .seg-outline{stroke:#fffefa;stroke-width:4.4;opacity:.84}
+body.fp-step-route #routeLines .seg-stroke{stroke:#3f624d;stroke-width:2.15;opacity:.88}
+body.fp-step-route #routeLines .seg-mark{display:none!important}
+body.fp-step-route .day-start-pill{display:none!important}
+body.fp-step-route #routeLines{opacity:.86;transition:opacity .18s ease}
+body.fp-step-route #fpRouteFavLayer .fp-route-extra-star{z-index:2}
+#fpRouteSheetContent .fp-small-gold-star{width:17px;height:17px;flex:0 0 17px}
+#fpRouteSheetContent .fp-route-chain .fp-small-gold-star{width:18px;height:18px}
+#fpRouteSheetContent .fp-route-place-row .fp-small-gold-star{width:17px;height:17px;flex:0 0 17px}
+#fpRouteSheetHead .fp-route-headrow{gap:7px}
+#fpRouteSheetHead .fp-route-head-action{width:32px;height:32px;flex:0 0 32px}
+#fpRouteSheetHead .fp-route-undo-icon{width:32px;height:32px;background:transparent;border:0;color:#a68a50;display:grid;place-items:center}
+#fpRouteSheetHead .fp-route-undo-icon[hidden]{display:none!important}
+#fpRouteSheetContent .fp-route-recommend-title svg{width:15px;height:15px;color:#c9a755;margin-right:4px}
+#fpRouteSheetContent .fp-route-date-row{display:flex;gap:8px;margin-bottom:9px}
+#fpRouteSheetContent .fp-route-date-button{
+ flex:1;min-height:44px;border:1px solid var(--rs-line);border-radius:12px;
+ display:flex;justify-content:space-between;align-items:center;padding:9px 10px;
+ background:#fffefa;color:var(--rs-ink);font-size:12px;font-weight:600}
+#fpRouteSheetContent .fp-route-date-button[aria-pressed=true]{background:#eef3eb;border-color:#b5c6b5}
+#fpRouteSheetContent .fp-route-calendar{background:#f8faf6;border:1px solid #e3e8df;border-radius:14px;padding:10px;margin:9px 0 14px}
+#fpRouteSheetContent .fp-route-calendar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;font-size:12px;color:var(--rs-ink);font-weight:720}
+#fpRouteSheetContent .fp-route-calendar-head button{border:0;background:#edf1e9;color:#546c59;border-radius:9px;min-width:31px;height:31px}
+#fpRouteSheetContent .fp-route-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+#fpRouteSheetContent .fp-route-calendar-grid button,#fpRouteSheetContent .fp-route-calendar-grid span{
+ width:100%;min-height:31px;display:grid;place-items:center;border-radius:8px;font-size:11px;border:0;background:transparent;color:#607361}
+#fpRouteSheetContent .fp-route-calendar-grid button[data-selected=true]{background:#536f59;color:#fffefa}
+#fpRouteSheetContent .fp-route-calendar-grid button:disabled{opacity:.25}
+#fpRouteSheetContent .fp-route-day-warning{display:flex;gap:7px;align-items:flex-start;padding:9px 10px;border-radius:11px;background:#f5f3e9;color:#766c4f;font-size:11px;line-height:1.45;margin:8px 0}
+#fpRouteSheetContent .fp-route-day-warning button{background:#fffdf5;border:1px solid #e7dcbc;border-radius:8px;color:#907641;font-size:11px;white-space:nowrap;padding:6px 8px}
+#fpRouteSheetContent .fp-route-point-detail{display:flex;flex-direction:column;gap:9px}
+#fpRouteSheetContent .fp-route-point-detail .fp-route-point-meta{font-size:12px;color:var(--rs-muted);line-height:1.5}
+#fpRouteSheetContent .fp-route-point-detail .fp-route-point-note{font-size:12px;color:#465e4b;line-height:1.6;background:#f4f6f1;padding:11px;border-radius:11px}
+#fpRouteSheetContent .fp-route-empty-ok{font-size:12px;color:#657b6b;background:#edf2eb;border-radius:13px;padding:13px;margin:9px 0}
+#fpRouteSheetContent .fp-route-mini-heading{font-size:12px;color:#5c6d61;font-weight:750;margin:2px 0 8px}
+#fpRouteSheetContent .fp-route-day-list{margin-top:8px}
+#fpRouteSheetContent .fp-route-recommend-actions:has(button:only-child){grid-template-columns:1fr}
+#fpRouteFlowSheet.fp-route-animating #fpRouteSheetContent{animation:fp-route-content-in .23s ease both}
+@keyframes fp-route-content-in{from{opacity:.52;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){#fpRouteFlowSheet.fp-route-animating #fpRouteSheetContent{animation:none}}
+
+/* 录屏验收：预览态必须保证底部主操作按钮始终位于 iPhone 可点击区域。 */
+#fpRouteFlowSheet{box-sizing:border-box}
+#fpRouteFlowSheet.fp-route-at-peek #fpRouteSheetContent{visibility:hidden;padding:0}
+#fpRouteFlowSheet.fp-route-at-peek #fpRouteSheetFoot .fp-route-foot-row,
+#fpRouteFlowSheet.fp-route-at-peek #fpRouteSheetFoot .fp-route-undo{display:none!important}
+#fpRouteFlowSheet.fp-route-at-peek #fpRouteSheetFoot{gap:0}
+
+
+/* V4 live five-step integration: based on approved warm-paper / sage / gold visuals. */
+#fpRouteSheetContent .fp-route-pick-modes{
+ display:flex;gap:5px;padding:4px;margin:0 0 13px;border-radius:14px;background:var(--rs-sage)
+}
+#fpRouteSheetContent .fp-route-pick-modes button{
+ flex:1;min-height:42px;border:0;border-radius:11px;color:#58705e;background:transparent;
+ font-size:13px;font-weight:720;touch-action:manipulation
+}
+#fpRouteSheetContent .fp-route-pick-modes button[aria-pressed=true]{
+ background:var(--rs-paper);box-shadow:0 1px 8px rgba(44,67,46,.10);color:var(--rs-green)
+}
+#fpRouteSheetContent .fp-route-leg-row{
+ display:flex;align-items:center;gap:9px;width:100%;min-height:41px;border:0;background:transparent;
+ border-left:1.5px dashed #c5d0c6;border-radius:0;margin:-2px 0 8px 21px;
+ padding:4px 9px 4px 14px;text-align:left;font-size:11.5px;color:#657669;max-width:calc(100% - 24px)
+}
+#fpRouteSheetContent .fp-route-leg-row svg{width:17px;height:17px}
+#fpRouteSheetContent .fp-route-leg-row span{flex:1}
+#fpRouteSheetContent .fp-route-leg-row small{color:var(--rs-green);white-space:nowrap;font-size:11px}
+#fpRouteSheetContent .fp-route-map-label{display:block;color:var(--rs-ink);font-weight:730;font-size:13px}
+#fpRouteSheetContent .fp-route-map-label input{
+ display:block;margin-top:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--rs-line);
+ border-radius:13px;background:#fffefa;color:var(--rs-ink);font-size:16px
+}
+#fpRouteSheetContent .fp-route-nav-out{
+ display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:13px;
+ margin:16px 0 5px;background:var(--rs-sage);color:var(--rs-green);font-size:13px;font-weight:750;text-decoration:none
+}
+#fpRouteSheetContent .fp-route-fixed-summary{display:flex;flex-direction:column;gap:5px}
+#fpRouteSheetContent .fp-route-fixed-summary b{font-size:15px;color:var(--rs-ink)}
+#fpRouteSheetContent .fp-route-fixed-summary span{font-size:12px;color:var(--rs-muted)}
+body.fp-step-route.fp-has-live-road #routeLines{opacity:0;pointer-events:none}
+body.fp-step-route.fp-route-empty #routeLines{opacity:0!important}
+body.fp-step-route #fpRouteSheetHead .fp-route-grab{margin-left:auto;margin-right:auto}
+body.fp-step-route #fpRouteFlowSheet.fp-route-at-peek #fpRouteSheetContent{padding-top:9px}
