@@ -44,8 +44,12 @@ new_namespace='atlas-v5-bv2-media-v9-20261118-'
 for page in ('index.html','journey.html','route-view.html'):
     path=dest/page
     txt=path.read_text(encoding='utf-8')
-    assert namespace in txt,page
-    txt=txt.replace(namespace,new_namespace)
+    if page!='route-view.html':
+        assert namespace in txt,page
+        txt=txt.replace(namespace,new_namespace)
+    else:
+        # The approved V5 route-view is only a tiny redirect, without an IDB namespace.
+        assert './journey.html' in txt
     if page=='index.html':
         assert txt.count('./footprint-home.js?v=search-physical-19')==1
         txt=txt.replace('./footprint-home.js?v=search-physical-19',
