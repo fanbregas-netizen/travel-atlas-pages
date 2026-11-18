@@ -261,8 +261,7 @@ function renderBody(){
  case 'recommend':{
   const p=state.proposal||suggestion();state.proposal=p;
   const useful=p&&p.order.join('|')!==state.order.join('|')&&p.before-p.after>Math.max(.6,p.before*.025)&&Math.round(p.before)!==Math.round(p.after);
-  return routeHint()+
-   '<div class="fp-route-recommend"><div><div class="fp-route-recommend-title">'+iSvg('star')+
+  return '<div class="fp-route-recommend"><div><div class="fp-route-recommend-title">'+iSvg('star')+
    (useful?' 推荐顺序':' 当前顺序已较合理')+'</div>'+
    '<p class="fp-route-recommend-note">'+(useful?'按地点间直线距离减少折返；不代表导航距离。':'没有明显更短的排列，不必调整。')+'</p></div>'+
    chain(useful?p.order:state.order)+
