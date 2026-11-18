@@ -468,6 +468,6 @@ function initMapProjection(){
  }ready();
 }
 window.__fpSixStepRoute={get state(){return {...routeRecord(),step:state.step,savedId:state.savedId,dirty:state.dirty}},
- get visibleHeight(){return currentHeight},step:setStep,snap,undo,fit:fitRoute};
+ get visibleHeight(){return currentHeight},step:setStep,snap,undo,fit:fitRoute,openPoint};
 window.__fpRouteLiveReady.then(startSheet).catch(e=>console.error('路线加载失败',e));
 })();
