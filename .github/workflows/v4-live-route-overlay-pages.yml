@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/v4-live-route-overlay-pages.yml'
       - 'v4-route-live-five-step-20261118-overrides/**'
+      - 'v5-route-interaction-demo-20261118/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,6 +39,11 @@ jobs:
           mkdir -p _site
           tar -xf _verified_pages_artifact/artifact.tar -C _site
           test -s _site/index.html
+          # Standalone V5 interaction demo only: leave product root and V4 previews unchanged.
+          mkdir -p _site/v5-route-interaction-demo-20261118
+          cp v5-route-interaction-demo-20261118/index.html _site/v5-route-interaction-demo-20261118/index.html
+          test -s _site/v5-route-interaction-demo-20261118/index.html
+          grep -q '__footprintV5Demo' _site/v5-route-interaction-demo-20261118/index.html
           test -s _site/v4-route-live-five-step-20261118/index.html
           test -s _site/v4-route-live-five-step-20261118/journey.html
           sha256sum _site/index.html > /tmp/route-preview-root-sha-before
@@ -57,3 +63,10 @@ jobs:
       - name: Publish verified site plus updated isolated route preview
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Confirm V5 standalone iPhone demo is reachable over HTTPS
+        run: |
+          curl --fail --location --retry 18 --retry-delay 4 --retry-all-errors --max-time 15 \
+            https://fanbregas-netizen.github.io/travel-atlas-pages/v5-route-interaction-demo-20261118/index.html \
+            --output /tmp/v5-demo-live.html
+          grep -q '__footprintV5Demo' /tmp/v5-demo-live.html
+          echo 'V5 interactive demo is published and HTTP-accessible.'
