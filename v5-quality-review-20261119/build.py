@@ -7,7 +7,7 @@ import hashlib,json,shutil,subprocess
 root=Path('_site')
 base=root/'v5-v12-unified-full-product-20261118'
 dest=root/'v5-quality-full-product-20261119'
-source=Path('__prototype/v5-quality-review-20261119/product')
+source=Path('__prototype/v5-quality-review-20261119')
 assert base.is_dir() and not dest.exists(), 'V12 base must exist, fresh output only'
 before={str(x.relative_to(root)):hashlib.sha256(x.read_bytes()).hexdigest() for x in root.rglob('*') if x.is_file()}
 expected={
