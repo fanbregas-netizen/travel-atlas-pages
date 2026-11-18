@@ -44,6 +44,32 @@ function peek(a,b,mode){
  if(result.status!=='ok')return {state:'error',label:'暂无道路用时'};
  return {state:'ok',label:duration(result.duration)+' · '+(result.distance/1000).toFixed(1)+' 公里',seconds:result.duration,meters:result.distance};
 }
+
+/* AMap URI expects GCJ-02 coordinates inside mainland China; the product map stores WGS84. */
+function inChina(p){return valid(p)&&+p.lng>=72.004&&+p.lng<=137.8347&&+p.lat>=0.8293&&+p.lat<=55.8271}
+function gcj(p){
+ const x=+p.lng,y=+p.lat;if(!inChina(p))return [x,y];
+ const pi=Math.PI,a=6378245.0,ee=0.006693421622965943;
+ function latShift(x,y){return -100+2*x+3*y+.2*y*y+.1*x*y+.2*Math.sqrt(Math.abs(x))+
+ (20*Math.sin(6*x*pi)+20*Math.sin(2*x*pi))*2/3+
+ (20*Math.sin(y*pi)+40*Math.sin(y/3*pi))*2/3+
+ (160*Math.sin(y/12*pi)+320*Math.sin(y*pi/30))*2/3}
+ function lngShift(x,y){return 300+x+2*y+.1*x*x+.1*x*y+.1*Math.sqrt(Math.abs(x))+
+ (20*Math.sin(6*x*pi)+20*Math.sin(2*x*pi))*2/3+
+ (20*Math.sin(x*pi)+40*Math.sin(x/3*pi))*2/3+
+ (150*Math.sin(x/12*pi)+300*Math.sin(x/30*pi))*2/3}
+ const xx=x-105,yy=y-35,r=y/180*pi,sin=Math.sin(r),magic=1-ee*sin*sin,sq=Math.sqrt(magic);
+ const dlat=latShift(xx,yy)*180/((a*(1-ee))/(magic*sq)*pi),dlng=lngShift(xx,yy)*180/(a/sq*Math.cos(r)*pi);
+ return [x+dlng,y+dlat];
+}
+function amapLink(a,b,mode){
+ if(!inChina(a)||!inChina(b))return '';
+ const from=gcj(a),to=gcj(b),amMode=({car:'car',walk:'walk',bike:'ride',transit:'bus'})[mode]||'car';
+ const place=p=>encodeURIComponent(String(p.title||'地点')).slice(0,120);
+ return 'https://uri.amap.com/navigation?from='+encodeURIComponent(from.join(',')+','+String(a.title||'起点'))+
+  '&to='+encodeURIComponent(to.join(',')+','+String(b.title||'终点'))+
+  '&mode='+amMode+'&policy=0&callnative=0&src=footprint-map';
+}
 function link(a,b,mode){
  if(!valid(a)||!valid(b))return '';
  // Live transit options are opened in the chosen navigation provider. No fake in-app GTFS.
@@ -102,7 +128,7 @@ function metric(a,b,mode){
  const meters=matrix.distances?.[i]?.[j];
  return Number.isFinite(meters)?meters/1000:null;
 }
-window.__fpLiveRouting={peek,link,update,prepareMatrix,metric,get,
+window.__fpLiveRouting={peek,link,amapLink,update,prepareMatrix,metric,get,
  get state(){return {segments:active.length,network:active.map(s=>({a:s.a.id,b:s.b.id,mode:s.mode,status:peek(s.a,s.b,s.mode).state}))}}};
 document.addEventListener('atlas:route-stops-changed',scheduleDraw);
 let tries=0;(function attach(){const m=window.__atlasRV?.currentMap;if(m&&m!==map){map=m;map.on?.('styledata',scheduleDraw);map.on?.('load',scheduleDraw);scheduleDraw()}else if(++tries<100)setTimeout(attach,400)})();

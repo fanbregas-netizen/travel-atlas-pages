@@ -46,7 +46,7 @@ const state={
  days:{...(initial.days||{})},from:initial.from||'same',to:initial.to||'same',
  start:initial.start||'',end:initial.end||'',mode:initial.mode||'car',
  legs:{...(initial.legs||{})},locked:[...(initial.locked||[])],
- query:'',pickMode:'list',legDetail:null,mapDraft:null,proposal:null,undo:[],undoLabel:'',dirty:false,saving:false,saveError:'',
+ query:'',pickMode:'list',legDetail:null,mapDraft:null,dayView:0,proposal:null,undo:[],undoLabel:'',dirty:false,saving:false,saveError:'',
  savedId:initial.id||null,title:initial.title||'我的旅行路线',placeCard:null
 };
 let sheet=null,head=null,content=null,foot=null,topbar=null,favLayer=null;
@@ -54,7 +54,7 @@ let currentHeight=190,goalHeight=190,velocity=0,frame=0,gesture=null,drag=null;
 let mapInstalled=false,favNodes=new Map(),mapRefresh=0,toastTimer=0,undoTimer=0,fitTimer=0;
 let preferredDetent='peek';state.undoVisible=false;state.datePickerField=null;state.datePickerMonth=null;
 const snapshot=()=>({order:[...state.order],days:{...state.days},from:state.from,to:state.to,
- start:state.start,end:state.end,mode:state.mode,legs:{...state.legs}});
+ start:state.start,end:state.end,mode:state.mode,legs:{...state.legs},title:state.title,locked:[...state.locked]});
 function canUndo(label){
  state.undo.push(snapshot());if(state.undo.length>25)state.undo.shift();
  state.undoLabel=label||'已调整';state.undoVisible=true;state.dirty=true;
@@ -62,7 +62,7 @@ function canUndo(label){
 }
 function undo(){if(!state.undo.length)return;const u=state.undo.pop();
  state.undoVisible=state.undo.length>0;clearTimeout(undoTimer);
- Object.assign(state,{order:u.order,days:u.days,from:u.from,to:u.to,start:u.start,end:u.end,mode:u.mode,legs:u.legs});
+ Object.assign(state,{order:u.order,days:u.days,from:u.from,to:u.to,start:u.start,end:u.end,mode:u.mode,legs:u.legs,title:u.title,locked:u.locked});
  state.proposal=null;state.dirty=true;syncRoute();render(true);}
 function normalizeDays(){const total=dateDays(state.start,state.end);
  for(const id of state.order)state.days[id]=clamp(Number(state.days[id])||1,1,total);}
@@ -82,8 +82,11 @@ function syncRoute(){
  window.__fpRoutePreviewMode=state.mode;
  window.__fpRouteHasNonDrivingLegs=state.mode!=='car'||Object.values(state.legs).some(m=>m!=='car');
  document.dispatchEvent(new CustomEvent('atlas:route-stops-changed'));
- window.__fpRouteLiveBridge?.changed?.(routeRecord());drawFavorites();window.__fpLiveRouting?.update(state.order,placeList,state.mode,state.legs);
+ window.__fpRouteLiveBridge?.changed?.(routeRecord());drawFavorites();updateRoadDisplay();
 }
+function displayOrder(){return state.step==='preview'&&state.dayView
+ ?state.order.filter(id=>Number(state.days[id]||1)===state.dayView):state.order;}
+function updateRoadDisplay(){window.__fpLiveRouting?.update(displayOrder(),placeList,state.mode,state.legs)}
 function endpointName(v){if(v==='same')return '不指定';return point(String(v).replace(/^place:/,''))?.title||'未指定'}
 function daysGroups(){const groups=new Map();for(const id of state.order){const day=state.days[id]||1;if(!groups.has(day))groups.set(day,[]);groups.get(day).push(point(id)?.title||'地点')}return [...groups].sort((a,b)=>a[0]-b[0])}
 function startSheet(){
@@ -121,7 +124,7 @@ function startSheet(){
 }
 function getDetents(){
  const h=window.visualViewport?.height||innerHeight||844;
- const peek=clamp(Math.min(189,h*.24),152,206);
+ const peek=state.step==='preview'&&!state.placeCard?clamp(Math.min(224,h*.28),194,228):clamp(Math.min(189,h*.24),152,206);
  const maxMapReserve=Math.max(170,Math.min(245,h*.30));
  const full=Math.max(peek+80,h-maxMapReserve);
  const maxHalf=Math.min(full-36,h*.53,470);
@@ -131,7 +134,7 @@ function getDetents(){
 }
 function applyHeight(){if(!sheet)return;
  const h=window.visualViewport?.height||innerHeight||844;
- const peek=Math.max(152,Math.min(189,h*.24));
+ const peek=getDetents().peek;
  sheet.classList.toggle('fp-route-at-peek',currentHeight<=peek+11);
  sheet.style.setProperty('--fp-flow-visible',Math.max(140,currentHeight).toFixed(1)+'px');
 }
@@ -250,11 +253,12 @@ function renderBody(){
   const a=point(state.order[state.legDetail]),b=point(state.order[state.legDetail+1]);
   if(!a||!b)return '<p>路段已变更</p>';
   const mode=state.legs[a.id]||state.mode,p=window.__fpLiveRouting?.peek(a,b,mode)||{label:'等待路线服务'};
-  const nav=window.__fpLiveRouting?.link(a,b,mode)||'';
+  const nav=window.__fpLiveRouting?.link(a,b,mode)||'',amap=window.__fpLiveRouting?.amapLink(a,b,mode)||'';
   return '<div class="fp-route-mini-heading">'+esc(a.title)+' → '+esc(b.title)+'</div>'+
    '<p class="fp-route-hint">'+esc(p.label)+(mode==='transit'?'（具体班次以导航服务为准）':'（道路用时，非实时交通）')+'</p>'+
    '<div class="fp-route-mode-list">'+Object.keys(modeLabels).map(m=>'<button type="button" class="fp-route-mode" data-action="legmode" data-mode="'+m+'" aria-pressed="'+(m===mode)+'">'+iSvg(modeIcons[m])+'<span>'+modeLabels[m]+'</span></button>').join('')+'</div>'+
-   (nav?'<a class="fp-route-nav-out" href="'+nav+'" target="_blank" rel="noopener noreferrer">查看'+(mode==='transit'?'公交换乘':'导航详情')+' ↗</a>':'');
+   (amap?'<a class="fp-route-nav-out" href="'+amap+'" target="_blank" rel="noopener noreferrer">高德地图 · '+(mode==='transit'?'公交换乘':'导航详情')+' ↗</a>':'')+
+   (nav?'<a class="fp-route-nav-out" href="'+nav+'" target="_blank" rel="noopener noreferrer">Google 地图 · '+(mode==='transit'?'公交换乘':'导航详情')+' ↗</a>':'');
  }
  if(state.placeCard){
   const p=point(state.placeCard);
@@ -274,7 +278,8 @@ function renderBody(){
   '<div class="fp-route-place-list">'+state.order.map((id,i)=>orderRow(id,i)+legRow(id,i)).join('')+'</div>'+
   '<p class="fp-route-hint">拖动右侧抓手排序，轻点 D1 调整旅行日。</p>'+
   '<button type="button" class="fp-route-choose-next" data-action="backpick">'+iSvg('plus')+' 添加地点</button>';
- case 'settings':return '<div class="fp-route-mini-heading">旅行日期</div>'+
+ case 'settings':return '<label class="fp-route-map-label">路线名称<input id="fpRouteTripName" maxlength="64" value="'+esc(state.title)+'" placeholder="为这条路线命名"></label>'+ 
+   '<div class="fp-route-mini-heading">旅行日期</div>'+
   '<div class="fp-route-date-row">'+
   '<button type="button" class="fp-route-date-button" data-action="calendar" data-field="start" aria-pressed="'+(state.datePickerField==='start')+'">'+iSvg('calendar')+fmt(state.start)+'</button>'+
   '<button type="button" class="fp-route-date-button" data-action="calendar" data-field="end" aria-pressed="'+(state.datePickerField==='end')+'">'+iSvg('calendar')+fmt(state.end)+'</button></div>'+calendarWidget()+
@@ -300,7 +305,8 @@ function renderBody(){
   '<h2 class="fp-route-done-title">已保存</h2>'+
   '<div class="fp-route-mini-heading">'+esc(state.title)+'</div>'+routeHint()+
    '<p class="fp-route-hint">'+esc(fmt(state.start))+' — '+esc(fmt(state.end))+' · 起点 '+esc(endpointName(state.from))+' · 终点 '+esc(endpointName(state.to))+'</p>'+daysDetails();
- case 'preview':return '<div class="fp-route-fixed-summary"><b>'+esc(state.title)+'</b><span>'+count()+' 地点 · '+dateDays(state.start,state.end)+' 天 · '+modeLabels[state.mode]+'</span></div>';
+ case 'preview':return '<div class="fp-route-fixed-summary"><b>'+esc(state.title)+'</b><span>'+count()+' 地点 · '+dateDays(state.start,state.end)+' 天 · '+modeLabels[state.mode]+'</span></div>'+
+ '<div class="fp-route-day-tabs"><button data-action="dayview" data-day="0" aria-pressed="'+(!state.dayView)+'">全部</button>'+Array.from({length:Math.min(7,dateDays(state.start,state.end))},(_,i)=>'<button data-action="dayview" data-day="'+(i+1)+'" aria-pressed="'+(state.dayView===i+1)+'">D'+(i+1)+'</button>').join('')+'</div>';
  default:return '';
  }
 }
@@ -324,7 +330,7 @@ function renderFoot(){
   (state.saving?'正在保存…':label)+' '+iSvg(act==='view'?'route':'next')+'</button>';
 }
 function render(preserveScroll=false){
- const scroll=content?.scrollTop||0;headerText();
+ const scroll=content?.scrollTop||0;document.body.classList.toggle('fp-day-filter',state.step==='preview'&&state.dayView>0);headerText();
  content.innerHTML=renderBody();foot.innerHTML=renderFoot();
  const undoButton=$('#fpRouteUndoHead');
  if(undoButton)undoButton.hidden=!state.undo.length||state.step==='preview'||state.step==='done';
@@ -334,7 +340,7 @@ function render(preserveScroll=false){
 function setStep(step){
  state.placeCard=null;state.legDetail=null;state.mapDraft=null;state.step=step;state.saveError='';
  if(step==='recommend')state.proposal=suggestion();
- render();
+ render();updateRoadDisplay();
  sheet.classList.remove('fp-route-animating');void sheet.offsetWidth;sheet.classList.add('fp-route-animating');
  snap(step==='preview'||step==='done'?'peek':'half');
  // Never cancel the pending selected-route fit when moving from picking to ordering.
@@ -391,7 +397,8 @@ function action(name,b){
  case 'keep':state.proposal={order:state.order.slice(),before:pathLength(state.order),after:pathLength(state.order)};render(true);return;
  case 'undo':undo();return;
  case 'save':requestSave();return;
- case 'view':if(state.savedId)setStep('preview');return;
+ case 'view':if(state.savedId){state.dayView=0;setStep('preview')}return;
+ case 'dayview':if(state.step!=='preview')return;state.dayView=Number(b.dataset.day)||0;render(true);drawFavorites();updateRoadDisplay();setTimeout(()=>fitRoute(),100);return;
  case 'edit':setStep('settings');return;
  case 'closepoint':state.placeCard=null;render();snap(state.step==='preview'||(state.step==='pick'&&state.pickMode==='map')?'peek':'half');return;
  case 'togglepoint':if(state.placeCard){const id=state.placeCard;state.placeCard=null;togglePlace(id);if(state.step==='entry'||state.step==='preview'||state.step==='done')setStep('pick')}return;
@@ -413,15 +420,16 @@ function attachHandlers(){
   if(e.target.id==='fpRoutePlaceSearch'){state.query=e.target.value;const list=$('#fpRoutePlaceRows');if(list)list.innerHTML=pickList()}
  });
  content.addEventListener('change',e=>{
-  const name=e.target.dataset.field;if(name)updateField(name,e.target.value)
- });
+   if(e.target.id==='fpRouteTripName'){const name=e.target.value.trim().slice(0,64);if(name&&name!==state.title){canUndo('路线名称已修改');state.title=name;render(true)}return}
+   const name=e.target.dataset.field;if(name)updateField(name,e.target.value)
+  });
  topbar.addEventListener('click',e=>{
   const btn=e.target.closest('[data-top]');if(!btn)return;
   if(btn.dataset.top==='back'){if(state.dirty&&!confirm('当前路线尚未保存，确定返回地图吗？'))return;location.assign('./index.html')}
   else fitRoute(true);
  });
  head.addEventListener('pointerdown',e=>{
-  if(e.target.closest('button'))return;
+   if(e.target.closest('button')||state.step==='preview'&&!state.placeCard)return;
   stopFrame();gesture={id:e.pointerId,sy:e.clientY,initial:currentHeight,lastY:e.clientY,lastTime:performance.now(),speed:0,moved:false};
   try{head.setPointerCapture(e.pointerId)}catch{}
  });
@@ -485,14 +493,15 @@ function drawFavorites(){
   node.setAttribute('aria-pressed',String(selected.has(p.id)));
   const pt=map.project([Number(p.lng),Number(p.lat)]);
   const maxY=h-Math.max(currentHeight,getDetents().peek)-12;
-  const inFrame=pt&&Number.isFinite(pt.x)&&Number.isFinite(pt.y)&&pt.x>=17&&pt.x<=w-17&&pt.y>=84&&pt.y<=maxY;
+  const allowed=state.step!=='preview'||(selected.has(p.id)&&(!state.dayView||Number(state.days[p.id]||1)===state.dayView));
+   const inFrame=allowed&&pt&&Number.isFinite(pt.x)&&Number.isFinite(pt.y)&&pt.x>=17&&pt.x<=w-17&&pt.y>=84&&pt.y<=maxY;
   node.hidden=!inFrame;if(inFrame){node.style.left=pt.x+'px';node.style.top=pt.y+'px'}
  }
 }
 function scheduleFavorites(){if(mapRefresh)return;mapRefresh=requestAnimationFrame(()=>{mapRefresh=0;drawFavorites()})}
 function fitRoute(all=false){
  const map=window.__atlasRV?.currentMap;if(!map||typeof map.fitBounds!=='function')return;
- const selected=state.order.map(point).filter(Boolean);
+ const selected=displayOrder().map(point).filter(Boolean);
  const visible=(all||!selected.length)?placeList.slice(0,45):selected;
  if(visible.length===1){const p=visible[0];map.easeTo?.({center:[Number(p.lng),Number(p.lat)],zoom:10,duration:320});return}
  if(visible.length<2)return;
