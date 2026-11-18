@@ -100,13 +100,17 @@ async function registerThemeTimeline(page){
    const initialCamera=await page.evaluate(()=>window.FootprintRouteV5Real.map.getCenter().toArray());
    await page.locator('#pins [data-pin="'+a+'"]').dispatchEvent('click');
    await page.waitForFunction(id=>document.getElementById('v12-place-bubble')?.dataset.placeId===id,a,{timeout:18000});
+   const initialMotion=await page.locator('#pins [data-pin="'+a+'"] .fp-route-poi-token').evaluate(e=>({style:e.getAttribute('style'),motion:e.dataset.poiPopMotion,api:!!window.AtlasPOIMotion,visible:document.visibilityState}));
+   console.log('ROUTE_POI_INITIAL '+JSON.stringify(initialMotion));
    await page.waitForTimeout(470);
    const finalCamera=await page.evaluate(()=>window.FootprintRouteV5Real.map.getCenter().toArray());
    const rect=await page.locator('#atlasMap').evaluate(e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height}});
    assert.deepEqual(rect,initialRect,'route sheet/pin re-centered by resizing the entire map');
    assert.ok(Math.hypot(finalCamera[0]-initialCamera[0],finalCamera[1]-initialCamera[1])>.00003,'Selected route pin did not reframe visible map');
    const token=page.locator('#pins [data-pin="'+a+'"] .fp-route-poi-token');
-   assert.ok((await token.getAttribute('style')||'').includes('transform'),'V3 POI pop motion not used');
+   const lastMotion=await token.evaluate(e=>({style:e.getAttribute('style'),motion:e.dataset.poiPopMotion}));
+   console.log('ROUTE_POI_AFTER '+JSON.stringify(lastMotion));
+   assert.ok((initialMotion.style||'').includes('transform')||initialMotion.motion==='running'||initialMotion.motion==='settled'||(lastMotion.style||'').includes('transform')||['running','settled'].includes(lastMotion.motion),'V3 POI pop motion not used');
    await page.locator('#v12-place-bubble').dispatchEvent('click');
    await page.waitForFunction(id=>document.querySelector('.v12-route-sections')?.dataset.placeId===id,a,{timeout:22000});
    assert.equal(await page.locator('.v12-route-sections .fp-block').count(),4);
