@@ -35,6 +35,9 @@ jobs:
       - name: Prepare public static site
         run: |
           mkdir -p _site
+          # User-approved screenshot language, revised five-stage route flow: isolated interactive preview.
+          cp -R v4-route-five-step-approved-20261118 _site/v4-route-five-step-approved-20261118
+          test -s _site/v4-route-five-step-approved-20261118/index.html
           # Exact six-screen user reference: interactive iPhone prototype, isolated from production root.
           cp -R v4-route-six-screen-reference-20261118 _site/v4-route-six-screen-reference-20261118
           test -s _site/v4-route-six-screen-reference-20261118/index.html
