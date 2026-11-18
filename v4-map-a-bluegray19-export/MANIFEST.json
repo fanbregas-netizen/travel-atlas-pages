@@ -1,0 +1,30 @@
+{
+  "source_commit": "49cd4e4d039f66e16078dd1f8777068147427958",
+  "base_commit": "54c2b68347e3bfe2a7e7ed47ef63e12550e007b7",
+  "allowed_changed_files": [
+    "index.html",
+    "journey.html",
+    "route-view.html",
+    "v4-map-runtime.js",
+    "src/map/shared-v4-map.js",
+    "src/interaction/route-cards-v5-live.js",
+    "src/interaction/poi-svg-motion-v4.js"
+  ],
+  "added_assets": [
+    "map-home-bluegray-v18.js",
+    "map-home-bluegray-v18.css",
+    "map-visual-parity.css"
+  ],
+  "build_hashes_sha256": {
+    "index.html": "ced8f3c2ac03cbbcba1dbb3ff45ce1f81cfec309d433ee34e9f7b32d4337a0db",
+    "journey.html": "7d755fe686917a343e5119a618add91725970da1980e8e90c03f95b18bffb8e0",
+    "route-view.html": "abbf9f6185b28f8cc1baea5bcdb8fbddd123bcac64896d1bdb4b3f78481c0cee",
+    "v4-map-runtime.js": "fbd90011b9b2ea2e2b64d840041086481e16bf7ccfe406241920a2383bdc6ed6",
+    "src/map/shared-v4-map.js": "12458406abe8332ce7f5e372998b5b562cfceb740865ac95bc63f5d2c0eab084",
+    "src/interaction/route-cards-v5-live.js": "41370fdf816a199d4b61429ec34e89178899a8bcbd8749c2e3aec5b4b342c16e",
+    "src/interaction/poi-svg-motion-v4.js": "3cf3a7821482c8b60bd6d1b792067391fb60ca38bf7940ee4fc27f033f77097e",
+    "map-home-bluegray-v18.js": "f074fd4df6a711bdf4708081171ea376b77aa578bbdc5c09f333f5b7a254ea34",
+    "map-home-bluegray-v18.css": "527e148967db913544cb4d37227e9a6af8fbbd79899373c02e7b5e4c117a52e3",
+    "map-visual-parity.css": "cf3cd9c142603a82575470f32ff06606ceda74c3026c46a2185b3b3f38b6bd9b"
+  }
+}
