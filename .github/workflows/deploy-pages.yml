@@ -49,6 +49,33 @@ jobs:
           test -s _site/v4-route-color-original-20261118/journey.html
           test -s _site/v4-route-color-original-20261118/route-color-parity-v3.css
           test -s _site/v4-route-color-original-20261118/src/route/route-color-live-bridge.js
+          # Isolated full-product Media V9 acceptance, retaining route color V4.
+          cp -R _site/v4-route-color-original-20261118 _site/v4-media-v9-integrated-20261118
+          cp v4-media-v9-integrated-20261118/footprint-home.js _site/v4-media-v9-integrated-20261118/footprint-home.js
+          python3 - <<'PYMEDIA_V9_INTEGRATION'
+          from pathlib import Path
+          root=Path('_site/v4-media-v9-integrated-20261118')
+          old='atlas-v4-review-20261116-'
+          new='atlas-v4-media-v9-integrated-20261118-'
+          for html in root.rglob('*.html'):
+              data=html.read_text(encoding='utf-8')
+              data=data.replace(old,new)
+              data=data.replace('./footprint-home.js?v=search-physical-19','./footprint-home.js?v=media-v9-integration-20261118')
+              data=data.replace('V4.C.PagesParityMotion.20261116.19','V4.MediaV9.IntegratedPreview.20261118')
+              html.write_text(data,encoding='utf-8')
+          sw=root/'sw.js'
+          data=sw.read_text(encoding='utf-8')
+          data=data.replace('footprint-v4-review-20261116-v19c','footprint-v4-media-v9-integrated-20261118-v1')
+          data=data.replace("k.startsWith('footprint-v4-review-20261116-')","k.startsWith('footprint-v4-media-v9-integrated-20261118-')")
+          sw.write_text(data,encoding='utf-8')
+          PYMEDIA_V9_INTEGRATION
+          test -s _site/v4-media-v9-integrated-20261118/index.html
+          test -s _site/v4-media-v9-integrated-20261118/journey.html
+          test -s _site/v4-media-v9-integrated-20261118/route-view.html
+          node --check _site/v4-media-v9-integrated-20261118/footprint-home.js
+          grep -q 'duration=350' _site/v4-media-v9-integrated-20261118/footprint-home.js
+          grep -q 'atlas-v4-media-v9-integrated-20261118-' _site/v4-media-v9-integrated-20261118/index.html
+          grep -q 'footprint-v4-media-v9-integrated-20261118-v1' _site/v4-media-v9-integrated-20261118/sw.js
           # Entire accepted C V5 real-product route replacement; published as an isolated folder only.
           # This was previously missing from _site even though GitHub Pages reported success.
           cp -R v4-approved-route-20261118 _site/v4-approved-route-20261118
