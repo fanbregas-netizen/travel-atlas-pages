@@ -52,6 +52,16 @@ jobs:
           node --check _site/v4-route-live-five-step-20261118/src/route/route-step-flow-v4.js
           node --check _site/v4-route-live-five-step-20261118/src/route/route-live-network-v1.js
           node --check _site/v4-route-live-five-step-20261118/src/route/route-color-live-bridge.js
+          # Approved V5 REAL full-product release, isolated: no production root overwrite.
+          cp -R _site/v4-route-live-five-step-20261118 _site/v5-route-real-product-20261118
+          cp v5-route-real-product-20261118-overrides/index.html _site/v5-route-real-product-20261118/index.html
+          cp v5-route-real-product-20261118-overrides/route-view.html _site/v5-route-real-product-20261118/route-view.html
+          cp v5-route-real-product-20261118-overrides/journey-v5.html _site/v5-route-real-product-20261118/journey-v5.html
+          cp v5-route-real-product-20261118-overrides/src/route/route-v5-runtime.js _site/v5-route-real-product-20261118/src/route/route-v5-runtime.js
+          cp v5-route-real-product-20261118-overrides/src/media/media-core.js _site/v5-route-real-product-20261118/src/media/media-core.js
+          test -s _site/v5-route-real-product-20261118/index.html
+          test -s _site/v5-route-real-product-20261118/journey-v5.html
+          node --check _site/v5-route-real-product-20261118/src/route/route-v5-runtime.js
           # User-approved screenshot language, revised five-stage route flow: isolated interactive preview.
           cp -R v4-route-five-step-approved-20261118 _site/v4-route-five-step-approved-20261118
           test -s _site/v4-route-five-step-approved-20261118/index.html
