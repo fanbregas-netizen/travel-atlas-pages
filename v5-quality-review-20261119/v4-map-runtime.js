@@ -1675,7 +1675,13 @@
   function mapConnection(message,active=true){const el=$('mapConnectionNote');el.textContent=message;el.hidden=!active;}
   function vectorSetStyle(){
     if(!vectorMap)return;
-    try{window.AtlasFigureGround?.apply?.(vectorMap)}catch(err){console.warn('建筑地图样式待加载',err)}
+    // Use one authoritative style owner: Map A bluegray19. The old white
+    // FigureGround paint used to run AFTER bluegray and reveal a bright map.
+    const useBlueGray=!!window.__atlasBlueGrayMap?.applyTo;
+    if(!useBlueGray){
+      try{window.AtlasFigureGround?.apply?.(vectorMap)}catch(err){console.warn('备用建筑地图配色待加载',err)}
+      document.documentElement.dataset.fpMapTheme='fallback-light';
+    }
     try{window.AtlasRouteBuildings?.attach?.(vectorMap)}catch(err){console.warn('建筑体块待加载',err)}
     const layers=vectorMap.getStyle()?.layers||[];
     for(const layer of layers){if(layer.type!=='symbol')continue;
@@ -1697,6 +1703,7 @@
       }catch(_){}
     }
     // Figure-ground is strictly overhead 2D: do not add 3D extrusion layers.
+    if(useBlueGray)try{window.__atlasBlueGrayMap.applyTo(vectorMap)}catch(err){console.warn('蓝灰地图配色未就绪',err)}
     updateVectorCamera(true);
   }
   function updateVectorCamera(){

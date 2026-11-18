@@ -9,6 +9,20 @@ html:not([data-fp-map-theme="bluegray-v18"]) #atlasMap .maplibregl-canvas{opacit
 }
 #atlasMap{background:#485d6b!important}
 #atlasMap .maplibregl-canvas-container,#atlasMap .maplibregl-canvas{background-color:#485d6b}
+/* Offline-safe MapLibre core dimensions: the remote MapLibre stylesheet can
+ * finish late on Safari. A zero-height canvas-container would otherwise keep
+ * the map blank even when its JS renderer reports that tiles are loaded. */
+#atlasVectorMap{position:fixed!important;inset:0!important;width:100%!important;height:100vh!important;height:100dvh!important}
+#atlasVectorMap .maplibregl-canvas-container,#atlasMap .maplibregl-canvas-container{
+ position:absolute!important;inset:0!important;
+ width:100%!important;height:100%!important;overflow:hidden
+}
+#atlasVectorMap .maplibregl-canvas,#atlasMap .maplibregl-canvas{
+ position:absolute!important;top:0;left:0
+}
+/* If the approved palette asset is blocked, still show the reachable
+ * fallback map instead of leaving the entire canvas permanently hidden. */
+html[data-fp-map-theme="fallback-light"] body.vector-active.atlas-remote-ready #atlasVectorMap .maplibregl-canvas{opacity:1!important}
 /* The original stage1.29 renderer owns POI projection through an rAF on move. */
 body.vector-active #atlasPoiOverlay{opacity:1!important;visibility:visible}
 #stage #atlasMap{
