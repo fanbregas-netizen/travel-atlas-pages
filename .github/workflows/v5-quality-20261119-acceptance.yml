@@ -131,7 +131,7 @@ jobs:
           grep -q 'route-v5-runtime.js' /tmp/qa-route.html
           ! grep -q 'class="city-map"' /tmp/qa-route.html
           curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/visual/v5-map-quality-pass.css" -o /tmp/qa-visual.css
-          test "$(git hash-object /tmp/qa-visual.css)" = 8b454fcfe7a8c8046333fa933059b820a95ca1e9
+          test "$(git hash-object /tmp/qa-visual.css)" = 8057168d974d2bce05246b8db6f8efbe33565411
           curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/route/route-v5-runtime.js" -o /tmp/qa-route.js
           test "$(git hash-object /tmp/qa-route.js)" = 92bffc4e7886abe93d3a6a0945a6b9fd1b993193
           node --check /tmp/qa-route.js

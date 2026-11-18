@@ -12,6 +12,7 @@ async function inspectMap(page,kind){
  }else{
   await page.waitForFunction(()=>window.FootprintRouteV5Real?.map?.areTilesLoaded?.()&&document.documentElement.dataset.fpMapTheme==='bluegray-v18',null,{timeout});
  }
+ await page.waitForTimeout(260); // allow the single 160ms canvas fade after tile readiness
  const values=await page.evaluate(kind=>{
   const map=kind==='home'?window.__atlasPOIBridge?.vector?.():window.FootprintRouteV5Real?.map;
   const canvas=document.querySelector(kind==='home'?'#atlasVectorMap .maplibregl-canvas':'#atlasMap .maplibregl-canvas');

@@ -13,11 +13,11 @@ before={str(x.relative_to(root)):hashlib.sha256(x.read_bytes()).hexdigest() for 
 expected={
 'index.html':'72ac3a9627911041727eab3ce4e7df3e580168dc',
 'journey.html':'d4dba2e8a227cc3d4cfa82cd16e41ef1728226bb',
-'v4-map-runtime.js':'8970d8411416a2168ebf62d9d85cce684f0bd283',
+'v4-map-runtime.js':'f6d2b8b9210dd57267fa545a232f63b67f8828fb',
 'map-home-bluegray-v18.js':'aa9f382d4efc5f582af0e1cab1d01b8dab393fad',
 'src/route/route-v5-runtime.js':'92bffc4e7886abe93d3a6a0945a6b9fd1b993193',
 'src/visual/v12-route-place.js':'3e6d0ba01c246838d8574d07d07b7ef3e6943df7',
-'src/visual/v5-map-quality-pass.css':'8b454fcfe7a8c8046333fa933059b820a95ca1e9',
+'src/visual/v5-map-quality-pass.css':'8057168d974d2bce05246b8db6f8efbe33565411',
 'sw.js':'1e5a39a61c29937c3cd007c33d71feb83a7f33d2'
 }
 def blob(p):
