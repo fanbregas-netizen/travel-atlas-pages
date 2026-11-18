@@ -81,7 +81,7 @@ async function testWidth(width){
   assert.ok(before.id&&before.record,'Route must be saved in real MediaCore repository');
   assert.equal(before.record.transportMode,'bike');
   assert.equal(before.record.stops.length,4);
-  assert.deepEqual(before.record.placeIds,state.order);
+  assert.deepEqual(before.record.stops.map(x=>String(x.placeId)),state.order);
   assert.ok(Object.values(before.record.legModes||{}).includes('walk'));
   fs.mkdirSync('route-v4-color-evidence',{recursive:true});
   await page.screenshot({path:'route-v4-color-evidence/'+kind+'-'+width+'-settings.png'});
