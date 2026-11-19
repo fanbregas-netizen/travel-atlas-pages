@@ -54,10 +54,11 @@
 }
 /* The live destination-selected state has a stronger V4 selector that
    used translucent paper and 22px corners. Match the real route/place shell. */
-body.destination-selected #destinationCard,
-body #destinationCard.destination-card{
-  background:var(--fp-u-paper)!important;
-  border-radius:var(--fp-u-outer-radius)!important;
+html body.destination-selected section#destinationCard.destination-card.visible,
+html body section#destinationCard.destination-card{
+  background:var(--fp-u-paper,#fffefa)!important;
+  background-color:#fffefa!important;
+  border-radius:24px!important;
   border-color:var(--fp-u-line)!important;
 }
 /* The unified route sheet already owns these bounds; reinforce only the
