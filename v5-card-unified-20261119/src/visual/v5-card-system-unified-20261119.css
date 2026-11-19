@@ -52,6 +52,14 @@
   border:1px solid var(--fp-u-line)!important;
   box-sizing:border-box!important;
 }
+/* The live destination-selected state has a stronger V4 selector that
+   used translucent paper and 22px corners. Match the real route/place shell. */
+body.destination-selected #destinationCard,
+body #destinationCard.destination-card{
+  background:var(--fp-u-paper)!important;
+  border-radius:var(--fp-u-outer-radius)!important;
+  border-color:var(--fp-u-line)!important;
+}
 /* The unified route sheet already owns these bounds; reinforce only the
    common outer material. Keep the 354/608px detent values intact. */
 #fpUnifiedRoute .fp-route-sheet{
