@@ -1,0 +1,30 @@
+name: V5 PR54 integrated POI interaction regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/v5-pr54-poi-integration-browser.cjs'
+      - '.github/workflows/v5-pr54-poi-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  visible-poi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser driver
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Verify live PR54 POI at iPhone widths
+        run: node tests/v5-pr54-poi-integration-browser.cjs
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-pr54-poi-integration-evidence
+          path: v5-pr54-poi-evidence/
+          if-no-files-found: ignore
