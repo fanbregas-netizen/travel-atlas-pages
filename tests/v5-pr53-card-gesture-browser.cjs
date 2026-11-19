@@ -79,6 +79,18 @@ const base='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
    const contracted=await page.locator('#fpUnifiedRoute .fp-route-sheet').boundingBox();
    assert.ok(contracted.height<expanded.height-45,'downward swipe should restore more map space');
    await page.screenshot({path:evidence+'/'+width+'-contracted.png'});
+   // The regression shown in the actual iPhone screenshot: the body itself
+   // must pass an upward touch/pointer drag to the shared sheet, not swallow it.
+   const bodyBox=await page.locator('#fpUnifiedRoute .fp-route-body').boundingBox();
+   assert.ok(bodyBox.height>20,'collapsed card must leave a usable body touch region');
+   const bodyX=bodyBox.x+Math.min(18,bodyBox.width*.2);
+   const bodyY=bodyBox.y+Math.min(14,bodyBox.height*.27);
+   await page.mouse.move(bodyX,bodyY);await page.mouse.down();
+   for(let n=1;n<=15;n++){await page.mouse.move(bodyX,bodyY-n*15);await page.waitForTimeout(14)}
+   await page.mouse.up();await page.waitForTimeout(720);
+   const bodyExpanded=await page.locator('#fpUnifiedRoute .fp-route-sheet').boundingBox();
+   assert.ok(bodyExpanded.height>contracted.height+55,'swiping from actual card content must expand the sheet');
+   await page.screenshot({path:evidence+'/'+width+'-body-swipe-expanded.png'});
    await page.locator('#fpUnifiedRoute .fp-route-close').click();
    await page.waitForTimeout(480);
    assert.equal(await page.evaluate(()=>window.FootprintUnifiedRoute.state.open),false);
