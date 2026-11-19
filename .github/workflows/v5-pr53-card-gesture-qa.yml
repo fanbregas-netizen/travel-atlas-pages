@@ -1,0 +1,30 @@
+name: V5 PR53 card gestures and camera follow
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/v5-pr53-card-gesture-browser.cjs'
+      - '.github/workflows/v5-pr53-card-gesture-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  card-gestures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test driver
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Exercise published V5 card drag and map camera at iPhone widths
+        run: node tests/v5-pr53-card-gesture-browser.cjs
+      - name: Upload interaction screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-pr53-card-gesture-evidence
+          path: v5-pr53-card-gesture-evidence/
+          if-no-files-found: ignore
