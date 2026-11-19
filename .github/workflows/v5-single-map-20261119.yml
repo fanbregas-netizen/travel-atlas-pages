@@ -1,0 +1,207 @@
+name: V5 one physical map + secure AMap POI adapter + four-system regression
+on:
+  push:
+    branches: [preview/v4-acceptance-20261117]
+    paths:
+      - '.github/workflows/v5-single-map-20261119.yml'
+      - 'v5-single-map-20261119/**'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages-v5-physical-single-map-20261119
+  cancel-in-progress: false
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: v4-safari-acceptance
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/v4-acceptance-20261117
+          path: __prototype
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reproduce official current Pages output byte for byte
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          s=Path('.github/workflows/deploy-pages.yml').read_text()
+          marker='      - name: Prepare public static site\n        run: |\n'
+          assert marker in s
+          block=s.split(marker,1)[1].split('\n      - ',1)[0]
+          lines=[]
+          for line in block.splitlines():
+              if line.startswith('          '):lines.append(line[10:])
+              elif not line.strip():lines.append('')
+              else:break
+          subprocess.run(['bash','-e','-c','\n'.join(lines)],check=True)
+          PY
+          test -s _site/index.html
+          test -s _site/v5-unified-full-product-20261118/index.html
+      - name: Build validated original V5 with all four systems
+        run: |
+          python3 __prototype/v5-combined-review-20261118/build.py
+          python3 __prototype/v5-v12-integrated-20261118/apply.py
+          test -s _site/v5-v12-unified-full-product-20261118/index.html
+      - name: Apply strictly pinned private quality PR only in new preview directory
+        run: |
+          python3 __prototype/v5-quality-review-20261119/build.py
+          test -s _site/v5-quality-full-product-20261119/integration-quality-manifest.json
+          node --check __prototype/v5-quality-review-20261119/quality-map-webkit.cjs
+      - name: Apply exact private PR53 to isolated complete product
+        run: |
+          python3 __prototype/v5-one-poi-card-20261119/build.py
+          test -s _site/v5-one-poi-card-full-product-20261119/integration-manifest.json
+          node --check __prototype/v5-one-poi-card-20261119/real-webkit.cjs
+      - name: Strict PR53 descendant: one physical map, optional POI data, all V5 data unchanged
+        run: |
+          python3 __prototype/v5-single-map-20261119/build.py
+          test -s _site/v5-single-map-full-product-20261119/integration-manifest.json
+          node --check __prototype/v5-single-map-20261119/real-webkit.cjs
+          node --check __prototype/v5-single-map-20261119/server/amap-poi-worker.mjs
+          node --check __prototype/v5-single-map-20261119/amap-worker-contract.mjs
+      - name: Mocked AMap Web Service POI 2.0 contract and security regression
+        run: |
+          node __prototype/v5-single-map-20261119/amap-worker-contract.mjs
+      - name: Pull official Safari-engine WebKit and Chromium test image
+        run: |
+          docker --version
+          docker pull mcr.microsoft.com/playwright:v1.58.2-noble
+      - name: Prepare established V5, V12, B V2 regression scripts for new product path
+        run: |
+          python3 __prototype/v5-combined-review-20261118/prepare-qa.py
+          sed -i 's/v5-bv2-media-v9-full-product-20261118/v5-single-map-full-product-20261119/g' \
+            tests/v5-collection-v2-webkit-combined.test.cjs \
+            tests/v5-unified-product-combined.test.cjs
+          sed 's/v5-v12-unified-full-product-20261118/v5-single-map-full-product-20261119/g' \
+            __prototype/v5-v12-integrated-20261118/real-webkit.cjs \
+            > tests/v5-quality-shared-place-webkit.cjs
+          cp __prototype/v5-quality-review-20261119/quality-map-webkit.cjs tests/v5-quality-map-webkit.cjs
+          sed -i 's/v5-quality-full-product-20261119/v5-single-map-full-product-20261119/g' tests/v5-quality-map-webkit.cjs
+          cp __prototype/v5-one-poi-card-20261119/real-webkit.cjs tests/v5-one-poi-real-webkit.cjs
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/v5-quality-shared-place-webkit.cjs')
+          s=p.read_text()
+          old='assert.equal(rect.w,before.w);assert.equal(rect.h,before.h);'
+          assert s.count(old)==1
+          # Map dimensions remain stable to a physical CSS pixel; WebKit viewport
+          # can yield subpixel 843.984375 vs 844 between font/layout frames.
+          s=s.replace(old,"assert.ok(Math.abs(rect.w-before.w)<1,'map width changed beyond 1px');assert.ok(Math.abs(rect.h-before.h)<1,'map height changed beyond 1px');")
+          p.write_text(s)
+          PY
+          node --check tests/v5-quality-shared-place-webkit.cjs
+          node --check tests/v5-one-poi-real-webkit.cjs
+      - name: WebKit verify real first-frame color, same map, POI and selected pin
+        run: |
+          python3 -m http.server 8765 --directory _site > /tmp/v5-quality-http.log 2>&1 &
+          sleep 2
+          docker run --rm --network host -v "$PWD":/workspace -w /workspace \
+            mcr.microsoft.com/playwright:v1.58.2-noble \
+            bash -lc "npm install --no-save --ignore-scripts playwright@1.58.2 playwright-core@1.58.2 && node tests/v5-quality-map-webkit.cjs"
+      - name: WebKit true single-map route mode, V5 3-step, IndexedDB save and reopen
+        run: |
+          cp __prototype/v5-single-map-20261119/real-webkit.cjs tests/v5-single-physical-map-webkit.cjs
+          docker run --rm --network host -v "$PWD":/workspace -w /workspace \
+            mcr.microsoft.com/playwright:v1.58.2-noble \
+            bash -lc "node tests/v5-single-physical-map-webkit.cjs"
+      - name: WebKit saved star replaces POI, card parity, saved route entry and legible preview
+        run: |
+          docker run --rm --network host -v "$PWD":/workspace -w /workspace \
+            mcr.microsoft.com/playwright:v1.58.2-noble \
+            bash -lc "node tests/v5-one-poi-real-webkit.cjs"
+      - name: WebKit V12 real route placeId 4 sections + Brief and links writeback
+        run: |
+          docker run --rm --network host -v "$PWD":/workspace -w /workspace \
+            mcr.microsoft.com/playwright:v1.58.2-noble \
+            bash -lc "node tests/v5-quality-shared-place-webkit.cjs"
+      - name: WebKit B V2 collection sheet, overlay and both Docks at 375 and 390px
+        run: |
+          docker run --rm --network host -v "$PWD":/workspace -w /workspace \
+            mcr.microsoft.com/playwright:v1.58.2-noble \
+            bash -lc "WIDTH=375 node tests/v5-collection-v2-webkit-combined.test.cjs && WIDTH=390 node tests/v5-collection-v2-webkit-combined.test.cjs"
+      - name: WebKit Media D V9 full-gallery five swipe cycles in three widths
+        env:
+          MEDIA_QA_ROOT: http://127.0.0.1:8765/v5-single-map-full-product-20261119/
+        run: |
+          docker run --rm --network host -v "$PWD":/workspace -w /workspace \
+            -e MEDIA_QA_ROOT="$MEDIA_QA_ROOT" \
+            mcr.microsoft.com/playwright:v1.58.2-noble \
+            bash -lc "node tests/v4-media-webkit-motion-browser.cjs"
+      - name: Chromium V5 3-step route save, reopen, original B v2 and Dock
+        run: |
+          docker run --rm --network host -v "$PWD":/workspace -w /workspace \
+            mcr.microsoft.com/playwright:v1.58.2-noble \
+            bash -lc "WIDTH=375 node tests/v5-unified-product-combined.test.cjs && WIDTH=390 node tests/v5-unified-product-combined.test.cjs"
+      - name: Archive actual quality-screen and interaction test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-single-map-20261119-evidence
+          path: |
+            v5-quality-webkit-evidence/
+            v5-one-poi-webkit-evidence/
+            v5-single-map-webkit-evidence/
+            v12-full-product-webkit-evidence/
+            webkit-collection-v2-evidence/
+            v4-media-webkit-evidence/
+            v5-unified-evidence/
+          if-no-files-found: ignore
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4
+        id: deploy
+      - name: Verify PR53 published real product and exact new file SHAs
+        run: |
+          URL='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-one-poi-card-full-product-20261119'
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/" -o /tmp/qa-home.html
+          grep -q 'v5-map-quality-pass.css' /tmp/qa-home.html
+          grep -q 'v5-card-reference.css' /tmp/qa-home.html
+          grep -q 'v4-approved-collection-sheet-v2.js' /tmp/qa-home.html
+          grep -q 'paired-dock-motion-v2.js' /tmp/qa-home.html
+          ! grep -q 'map-safari-preload-8' /tmp/qa-home.html
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/journey.html" -o /tmp/qa-route.html
+          grep -q 'quality-shared-bluegray-1' /tmp/qa-route.html
+          grep -q 'route-v5-runtime.js' /tmp/qa-route.html
+          ! grep -q 'class="city-map"' /tmp/qa-route.html
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/visual/v5-map-quality-pass.css" -o /tmp/qa-visual.css
+          test "$(git hash-object /tmp/qa-visual.css)" = c993ba6476ee6627b9d459491b50c6e786ab7417
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/route/route-v5-runtime.js" -o /tmp/qa-route.js
+          test "$(git hash-object /tmp/qa-route.js)" = d58cd23f45f8d7c0639e6efa962807f60e424b64
+          node --check /tmp/qa-route.js
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/map/shared-v4-map.js" -o /tmp/qa-map-shared.js
+          test "$(git hash-object /tmp/qa-map-shared.js)" = 9da06b7683bc26bf02a52517b2da7dba0c85055a
+          node --check /tmp/qa-map-shared.js
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/map-home-bluegray-v18.js" -o /tmp/qa-palette.js
+          test "$(git hash-object /tmp/qa-palette.js)" = aa9f382d4efc5f582af0e1cab1d01b8dab393fad
+
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/visual/v5-card-reference.css" -o /tmp/card-reference.css
+          test "$(git hash-object /tmp/card-reference.css)" = 294032257108e593e26517c9b8a6a7d303df1729
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/v4-map-runtime.js" -o /tmp/poi-runtime.js
+          test "$(git hash-object /tmp/poi-runtime.js)" = 38651921dd898b4eaa803434613fbb75997269f2
+          node --check /tmp/poi-runtime.js
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/integration-manifest.json" -o /tmp/pr53-manifest.json
+          grep -q '164' /tmp/pr53-manifest.json
+
+          URL2='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-single-map-full-product-20261119'
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL2/index.html" -o /tmp/single-home.html
+          grep -q 'route-single-map-v1.js' /tmp/single-home.html
+          grep -q 'amap-poi-overlay-v1.js' /tmp/single-home.html
+          grep -q 'v5-single-map-route.css' /tmp/single-home.html
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL2/src/route/route-single-map-v1.js" -o /tmp/single.js
+          test "$(git hash-object /tmp/single.js)" = 345b993f0e3fcde7581f43331609cc410df8ce35
+          node --check /tmp/single.js
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL2/src/map/amap-poi-overlay-v1.js" -o /tmp/amap-data.js
+          test "$(git hash-object /tmp/amap-data.js)" = d894fcdbd3ebe80cea6777df05e3d998763a7ca9
+          node --check /tmp/amap-data.js
+          curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL2/integration-manifest.json" -o /tmp/single-manifest.json
+          grep -q '167' /tmp/single-manifest.json
