@@ -28,15 +28,32 @@ const issues=[];const verify=(condition,msg)=>{if(!condition){issues.push(msg);c
   const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2,serviceWorkers:'block'});
   const page=await context.newPage();await page.setContent(html);await page.addStyleTag({content:css});
   for(const [name,[selector,title]] of Object.entries(selectors)){
-   await page.evaluate((o)=>{for(const [n,p] of Object.entries(o.parents)){const el=document.querySelector(p);el.style.setProperty('display',n===o.name?(n==='navigation'?'flex':'block'):'none','important')}document.querySelector('#fpSearchSheet').style.setProperty('display','none','important')},{parents,name});
-   const measure=await page.locator(selector).evaluate(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {x:r.left,right:innerWidth-r.right,bottom:innerHeight-r.bottom,corner:s.borderTopLeftRadius,paper:s.backgroundColor}});
+   await page.evaluate((o)=>{
+    document.querySelector('#drawer').classList.toggle('visible',o.name==='collection');
+    document.body.classList.toggle('destination-selected',o.name==='destination');
+    document.body.classList.toggle('fp-place-open',o.name==='place');
+    document.body.classList.toggle('fp-unified-route',o.name==='route');
+    for(const [n,p] of Object.entries(o.parents)){
+      const el=document.querySelector(p);el.style.setProperty('display',n===o.name?(n==='navigation'?'flex':'block'):'none','important');
+    }
+    document.querySelector('#fpSearchSheet').style.setProperty('display','none','important');
+   },{parents,name});
+   const measure=await page.locator(selector).evaluate(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {x:r.left,right:innerWidth-r.right,bottom:innerHeight-r.bottom,corner:s.borderTopLeftRadius,paper:s.backgroundColor,visibility:s.visibility,opacity:s.opacity}});
    verify(Math.abs(measure.x-12)<2.5,name+' left '+width+' '+JSON.stringify(measure));
    verify(Math.abs(measure.right-12)<2.5,name+' right '+width+' '+JSON.stringify(measure));
    verify(Math.abs(measure.bottom-16)<3,name+' bottom '+width+' '+JSON.stringify(measure));
    verify(measure.corner==='24px',name+' corner '+width+' '+measure.corner);
-   verify(measure.paper==='rgb(255, 254, 250)',name+' paper '+width+' '+measure.paper);
+   verify(measure.paper==='rgb(255, 254, 250)',name+' paper '+width+' '+measure.paper);verify(measure.visibility==='visible'&&Number(measure.opacity)>.95,name+' rendered '+width+' '+JSON.stringify(measure));
    const font=await page.locator(selector+' '+title).evaluate(e=>getComputedStyle(e).fontSize);
    verify(font==='24px'||font==='23px',name+' title '+width+' '+font);
+   if(name==='navigation'){
+    const grip=await page.locator('#navigationChooser .fp-nav-grip').evaluate(e=>getComputedStyle(e).backgroundColor);
+    verify(grip==='rgba(0, 0, 0, 0)','navigation transparent grip '+width+' '+grip);
+   }
+   if(name==='collection'){
+    const glyph=await page.locator('#closeDrawer').evaluate(e=>({font:getComputedStyle(e).fontSize,pseudo:getComputedStyle(e,'::before').content}));
+    verify(glyph.font==='25px','collection close glyph size '+width+' '+JSON.stringify(glyph));
+   }
    await page.screenshot({path:folder+'/'+width+'-'+name+'.png'});
   }
   await page.evaluate(o=>{for(const p of Object.values(o))document.querySelector(p).style.setProperty('display','none','important');document.querySelector('#fpSearchSheet').style.setProperty('display','block','important')},parents);
