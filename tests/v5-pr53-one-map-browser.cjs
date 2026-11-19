@@ -22,12 +22,30 @@ const root='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
    const response=await page.goto(root+'index.html?qa=pr53-'+width,{waitUntil:'domcontentloaded',timeout:60000});
    assert.equal(response?.status(),200,width+' homepage HTTP');
    await page.waitForFunction(()=>!!window.FootprintUnifiedRoute?.open&&!!window.__atlasCardDockMotion&&!!window.FootprintNavigationSheet,null,{timeout:27000});
+   // Capture startup/fallback state before asserting the one-map contract.
+   let before=await page.evaluate(()=>({
+    mode:window.__atlasCameraQA?.()||null, vector:!!window.__atlasPOIBridge?.vector?.(),
+    maplibre:!!window.maplibregl?.Map, loader:document.querySelector('#atlasMapLoader')?.textContent?.trim().slice(0,100),
+    canvas:document.querySelectorAll('canvas.maplibregl-canvas').length,
+    mapHidden:document.getElementById('atlasVectorMap')?.hidden,
+    status:window.__atlasMapHealth?.()||null
+   }));
+   console.log('PREVIEW-MAP-DIAGNOSTICS',width,JSON.stringify(before));
+   if(!before.vector){
+    await page.evaluate(()=>window.__atlasDemo?.vector?.());
+    await page.waitForFunction(()=>!!window.__atlasPOIBridge?.vector?.(),null,{timeout:23000}).catch(()=>{});
+   }
    const initial=await page.evaluate(()=>({
     map:window.__atlasPOIBridge?.vector?.()||null,
     canvas:document.querySelectorAll('#atlasVectorMap canvas.maplibregl-canvas').length,
     dock:[...document.querySelectorAll('#appDock>button')].map(n=>n.id),
-    isolation:window.FootprintMediaCore?.DB_NAME
+    isolation:window.FootprintMediaCore?.DB_NAME,
+    mode:window.__atlasCameraQA?.()||null,
+    maplibre:!!window.maplibregl?.Map,
+    allCanvases:document.querySelectorAll('canvas.maplibregl-canvas').length
    }));
+   await page.screenshot({path:'v5-pr53-browser-evidence/'+width+'-initial.png'});
+   console.log('PREVIEW-MAP-AFTER-ACTIVATE',width,JSON.stringify({...initial,map:!!initial.map}));
    assert.deepEqual(initial.dock,['dockStars','dockMap','dockRoute']);
    assert.equal(initial.isolation,'private-travel-footprints-v5-pr53-review-20261119');
    assert.ok(initial.map,'original home vector map not available');
