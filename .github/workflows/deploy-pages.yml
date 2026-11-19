@@ -48,6 +48,17 @@ jobs:
           # Screenshot comparison v2: real V5 with improved place/route peek
           # and compact collection; keep previous PR55 preview and root intact.
           cp -R v5-card-rhythm-20261119 _site/v5-card-rhythm-20261119
+          # V5 PR57 merged acceptance: complete latest PR53 + PR56 approved cards, never root.
+          cp -R v5-pr53-pr56-unified-20261119 _site/v5-pr53-pr56-unified-20261119
+          test -s _site/v5-pr53-pr56-unified-20261119/index.html
+          test -s _site/v5-pr53-pr56-unified-20261119/src/visual/v5-card-system-unified-20261119.css
+          test -s _site/v5-pr53-pr56-unified-20261119/src/route/route-single-map-v1.js
+          grep -q 'merged-pr53-pr56-20261119-1' _site/v5-pr53-pr56-unified-20261119/index.html
+          grep -q 'private-travel-footprints-v5-pr53-review-20261119' _site/v5-pr53-pr56-unified-20261119/src/media/media-core.js
+          node --check _site/v5-pr53-pr56-unified-20261119/footprint-home.js
+          node --check _site/v5-pr53-pr56-unified-20261119/src/interaction/physical-sheet.js
+          node --check _site/v5-pr53-pr56-unified-20261119/src/interaction/v4-approved-collection-sheet-v2.js
+          node --check _site/v5-pr53-pr56-unified-20261119/src/route/route-single-map-v1.js
           test -s _site/v5-card-rhythm-20261119/index.html
           test -s _site/v5-card-rhythm-20261119/src/visual/v5-card-system-unified-20261119.css
           test -s _site/v5-card-rhythm-20261119/src/interaction/physical-sheet.js

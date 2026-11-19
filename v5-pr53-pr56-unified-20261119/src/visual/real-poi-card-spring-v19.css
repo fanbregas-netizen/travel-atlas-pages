@@ -1,0 +1,59 @@
+/* Footprint Map V4 .19 | Actual POI-to-card elastic handoff.
+ * The C V5 physical sheet owns #fpPlaceCard; the same C V5 spring owns
+ * #destinationCard's independent translate/scale. Never animate geographic
+ * marker transforms, trigger forced map zoom, or create a second card. */
+#fpPlaceCard:not([hidden]){
+ animation:none!important;
+ /* Prevent the older fpCardIn keyframes from overwriting the physical
+    controller's live height/transform for the first 420ms. */
+}
+body.destination-selected #destinationCard.visible{
+ transition:opacity .12s linear!important;
+ transform:translateX(-50%) translateY(0)!important;
+ transform-origin:50% 100%!important;
+ backface-visibility:hidden;
+}
+body.destination-selected #destinationCard{
+ transform-origin:50% 100%!important;
+}
+/* POIs use ONLY the original inner artwork, never a second icon layer. The
+   live symbol/selection source retains map-owned absolute projection. */
+.fp-vector-selection .fp-vector-token,
+.fp-official-poi-icon .fp-vector-token,
+.fp-fallback-motion-poi .fp-vector-token{
+ animation:none!important;
+ transform-origin:50% 50%!important;
+}
+#atlasPoiOverlay .fp-poi.is-tapped .fp-poi-token{
+ animation:none!important;
+}
+/* Distinct motion from the anchored search bar: a dropdown should extend
+   down and rebound, never drift sideways or reposition the search field. */
+#fpSearchSheet[data-search-layout="anchored"]{
+ transform-origin:50% 0!important;
+ backface-visibility:hidden;
+}
+/* Respect the physical motor, rather than adding animation on top. */
+@media(prefers-reduced-motion:reduce){
+ body.destination-selected #destinationCard.visible{transition:none!important;translate:none!important;scale:1!important}
+}
+
+/* An ordinary map POI opens #destinationCard, not #fpPlaceCard. The home
+   search field must disappear over THIS accepted sheet as well. */
+body.destination-selected #fpTopSearch{
+ visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+}
+
+/* An active POI is already selected: first-star onboarding must not sit
+   behind the real destination card in a fresh Safari profile. */
+body.destination-selected #atlasFirstStar{
+ display:none!important;pointer-events:none!important;
+}
+
+/* A foreground search/collection surface must fully retire the outgoing
+   map-only POI card; a 180ms legacy opacity fade used to show through it. */
+body.fp-search-open #destinationCard,
+body:has(#drawer.visible) #destinationCard{
+ opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+ transition:none!important;
+}

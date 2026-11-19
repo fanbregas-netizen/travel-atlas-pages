@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" aria-label="Upload">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M9 42 L9 51 C16 55 47 54 55 51 L55 42"/>
+  <path d="M32 46 L32 11 M19 24 L32 11 L45 24" stroke-width="3.8"/>
+ </g>
+</svg>

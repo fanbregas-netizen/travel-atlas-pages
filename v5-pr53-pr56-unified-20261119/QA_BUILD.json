@@ -1,0 +1,21 @@
+{
+  "product": "Footprint Map V5",
+  "type": "isolated iPhone Safari full-product preview — PR53 latest interaction × PR56 accepted card visual",
+  "source_repo": "fanbregas-netizen/travel-atlas",
+  "source_commit": "0f8157cafefc81c7bc012e3832835f84e00b01f5",
+  "source_branch": "integration/v5-pr53-pr56-card-visual-20261119",
+  "visual_reference": "PR56 accepted full divider, equal width and single-row card header",
+  "interaction_reference": "PR53 latest saved-star map focus / auto-return / draft retained, map camera not canvas",
+  "new_behavior": "PR56 card titles/handles/dividers/content width and Brief stage action applied on PR53 latest",
+  "data_namespace": "private-travel-footprints-v5-pr53-review-20261119",
+  "production_modified": false,
+  "real_iphone_safari_qa": "pending",
+  "source_base_commit": "50aac0612a9a641bd3859cdde3c7bb1393851b2e",
+  "source_prs": [
+    53,
+    56,
+    57
+  ],
+  "data_note": "Same isolated PR53 QA IndexedDB namespace to preserve existing review bookmarks; never shares official production storage",
+  "pages_deployment": "pending"
+}
