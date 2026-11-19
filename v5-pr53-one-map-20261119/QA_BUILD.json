@@ -2,12 +2,10 @@
   "product": "Footprint Map V5",
   "type": "independent QA candidate",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "15112c8ed9cc0159bb5d799a3b7df290f1f70246",
+  "source_commit": "4df7ea781fc60b98fc29c8aeb24715b527fdf6b6",
   "source_branch": "integration/v5-one-poi-card-route-20261119",
   "original_product_files": 168,
-  "excluded": [
-    "product/index-preview.html"
-  ],
   "preview_data_namespace": "private-travel-footprints-v5-pr53-review-20261119",
-  "notes": "No production root merge; AMap Web Service Key and Worker not provisioned. Browser and real iPhone Safari QA pending."
+  "qa_scope": "card gesture, camera-fit, no production merge",
+  "notes": "Published from original PR53 with only original IndexedDB names isolated in media-core and map runtime. No AMap production key/proxy yet."
 }

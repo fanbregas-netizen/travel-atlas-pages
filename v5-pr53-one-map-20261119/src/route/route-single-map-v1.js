@@ -14,21 +14,34 @@ const datePlus=(value,n)=>{const d=new Date(value+'T12:00:00');d.setDate(d.getDa
 const getMap=()=>window.__atlasPOIBridge?.vector?.()||null;
 const DATA={open:false,mode:'pick',panel:'half',places:[],routes:[],order:[],days:{},start:today(),end:datePlus(today(),2),title:'我的旅行路线',travel:'car',routeId:'',pending:[],busy:false,selected:'',savedView:false,dayView:0};
 let db=null,map=null,routeRevision=0,activeRoads=new Map(),originalPaint=new Map(),tempPins=new Map(),sheetHeight=0,desiredHeight=0,velocity=0,frame=0,dragging=false,dragY=0,dragHeight=0,toastTimer=0,styleMap=null,styleListener=null,routeClickListener=null,observer=null,closing=false,exitTimeout=0;
+let sheetGesture=null,lastCameraFrame=0,cameraFrame=0,cameraTime=0,gestureToken=0;
 const shell=document.createElement('section');shell.id='fpUnifiedRoute';shell.hidden=true;shell.setAttribute('aria-label','足迹路线与地图');shell.innerHTML=
  '<header class="fp-route-top"><button class="fp-route-topbutton" type="button" data-command="exit" aria-label="返回主页">‹</button><div class="fp-route-title">路线</div></header>'+ 
- '<section class="fp-route-sheet" aria-label="路线操作卡片"><div class="fp-route-grip" role="button" tabindex="0" aria-label="上下拖动路线卡片"></div><div class="fp-route-heading"><h2>路线规划</h2><span class="fp-route-step">1 / 3</span><button type="button" class="fp-route-close" data-command="exit" aria-label="关闭路线卡片">×</button></div><div class="fp-route-body"></div><div class="fp-route-footer"></div></section><div class="fp-route-toast" role="status" aria-live="polite"></div>';
+ '<section class="fp-route-sheet" aria-label="路线操作卡片"><div class="fp-route-grip" role="button" tabindex="0" aria-label="上滑展开、下滑收起路线卡片"></div><div class="fp-route-heading"><h2>路线规划</h2><button type="button" class="fp-route-close" data-command="exit" aria-label="关闭路线卡片">×</button></div><div class="fp-route-status"><span class="fp-route-step">1 / 3</span><span class="fp-route-gesture-hint" aria-hidden="true">上滑查看更多</span></div><div class="fp-route-body"></div><div class="fp-route-footer"></div></section><div class="fp-route-toast" role="status" aria-live="polite"></div>';
 document.body.append(shell);
 const ui={top:shell.querySelector('.fp-route-title'),sheet:shell.querySelector('.fp-route-sheet'),grip:shell.querySelector('.fp-route-grip'),heading:shell.querySelector('.fp-route-heading h2'),step:shell.querySelector('.fp-route-step'),body:shell.querySelector('.fp-route-body'),footer:shell.querySelector('.fp-route-footer'),toast:shell.querySelector('.fp-route-toast')};
 const repo=()=>db||(db=window.FootprintMediaCore?.createRepository?.(indexedDB));
 const place=id=>DATA.places.find(p=>String(p.id)===String(id));
 const selectedPlaces=()=>DATA.order.map(place).filter(valid);
 const routeRows=r=>(r?.stops?.length?r.stops:r?.selected?.length?r.selected:r?.placeIds||[]).map(x=>typeof x==='string'?x:x?.placeId||x?.id).filter(Boolean).map(String);
-const heightFor=which=>{const h=window.innerHeight||document.documentElement.clientHeight;return which==='peek'?Math.min(260,Math.max(206,h*.28)):which==='full'?h-95:Math.min(585,Math.max(385,h*.60))};
-function height(value){sheetHeight=Math.max(175,Math.min(window.innerHeight-88,value));ui.sheet.style.setProperty('--fp-route-height',sheetHeight+'px');shell.style.setProperty('--fp-route-height',sheetHeight+'px')}
+const viewportHeight=()=>Math.max(430,Math.min(window.innerHeight||844,window.visualViewport?.height||window.innerHeight||844));
+// In full mode we intentionally reserve a useful map viewport above the sheet.
+// Content continues scrolling inside the sheet; the map canvas is never resized.
+const heightFor=which=>{const h=viewportHeight(),full=Math.max(370,Math.min(h*.72,h-220));return which==='peek'?Math.min(full-145,Math.max(236,Math.min(280,h*.33))):which==='full'?full:Math.max(350,Math.min(full-75,h*.57))};
+function height(value){sheetHeight=Math.max(175,Math.min(heightFor('full')+26,value));ui.sheet.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.dataset.detent=DATA.panel;}
 function spring(which){
- DATA.panel=which;desiredHeight=heightFor(which);cancelAnimationFrame(frame);
- if(matchMedia('(prefers-reduced-motion:reduce)').matches){height(desiredHeight);return}
- let tick=0;const move=()=>{velocity=(velocity+(desiredHeight-sheetHeight)*.17)*.72;height(sheetHeight+velocity);if((Math.abs(desiredHeight-sheetHeight)<.45&&Math.abs(velocity)<.43)||++tick>110){height(desiredHeight);velocity=0;frame=0;return}frame=requestAnimationFrame(move)};
+ if(!['peek','half','full'].includes(which))return;
+ DATA.panel=which;desiredHeight=heightFor(which);cancelAnimationFrame(frame);frame=0;
+ ui.sheet.classList.remove('is-dragging');
+ if(matchMedia('(prefers-reduced-motion:reduce)').matches){height(desiredHeight);updateRouteCamera(true);return}
+ let tick=0,last=0;
+ const move=now=>{
+  const dt=Math.min(1.7,Math.max(.3,(last?now-last:16.7)/16.7));last=now;
+  velocity=(velocity+(desiredHeight-sheetHeight)*.17*dt)*Math.pow(.72,dt);
+  height(sheetHeight+velocity*dt);queueRouteCamera(false);
+  if((Math.abs(desiredHeight-sheetHeight)<.55&&Math.abs(velocity)<.48)||++tick>95){height(desiredHeight);velocity=0;frame=0;updateRouteCamera(true);return}
+  frame=requestAnimationFrame(move)
+ };
  frame=requestAnimationFrame(move)
 }
 function hint(value){ui.toast.textContent=value;ui.toast.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>ui.toast.classList.remove('is-visible'),2600)}
@@ -112,7 +125,7 @@ function body(){
 }
 function setMode(next,force=false){
  DATA.mode=next;DATA.selected=next==='detail'?DATA.selected:'';
- body();syncMapMode();if(next==='view'||next==='pick')spring('peek');else if(force||next==='saved'||next==='detail')spring('half');else spring('half');
+ body();syncMapMode();spring(next==='view'?'peek':next==='detail'?'half':next==='pick'&&!force?'peek':'half');
 }
 function stopIndex(){return new Map(DATA.order.map((id,i)=>[String(id),i+1]))}
 function refreshStarLabels(){
@@ -168,7 +181,7 @@ function lines(){
    activeRoads.set(key,{status:'loading'});
    Promise.resolve(request(a,b,DATA.travel)).then(hit=>{
     if(revision!==routeRevision||!DATA.open)return;
-    activeRoads.set(key,hit||{status:'error'});lines()
+    activeRoads.set(key,hit||{status:'error'});lines();if(hit?.status==='ok')queueRouteCamera(true)
    }).catch(()=>{activeRoads.set(key,{status:'error'});if(revision===routeRevision)lines()});
   }
  }
@@ -211,12 +224,43 @@ async function suggestOrder(){
   body();hint('发现可减少绕路的访问顺序')
  }catch(_){hint('道路服务暂不可用，保持当前访问顺序')}
 }
-function fit(){
- const pts=selectedPlaces();if(!map||!pts.length)return;
- if(pts.length===1){map.easeTo({center:[+pts[0].lng,+pts[0].lat],zoom:14,duration:420});return}
- const lng=pts.map(p=>+p.lng),lat=pts.map(p=>+p.lat);
- map.fitBounds([[Math.min(...lng),Math.min(...lat)],[Math.max(...lng),Math.max(...lat)]],{padding:{top:105,bottom:Math.min(innerHeight*.38,350),left:40,right:40},maxZoom:15.2,duration:490,essential:true});
+// Route geometry, not just stop markers, defines the map's visible bounds.
+function routeCoordinates(){
+ const pts=selectedPlaces(),coordinates=pts.map(p=>[+p.lng,+p.lat]);
+ for(let i=1;i<pts.length;i++){
+  const a=pts[i-1],b=pts[i];
+  const road=activeRoads.get(DATA.travel+'|'+a.id+'|'+b.id);
+  if(road?.status!=='ok'||!Array.isArray(road.geometry))continue;
+  for(const coord of road.geometry)if(Array.isArray(coord)&&Number.isFinite(+coord[0])&&Number.isFinite(+coord[1]))coordinates.push([+coord[0],+coord[1]]);
+ }
+ return coordinates;
 }
+function routeCameraPadding(){
+ const screen=viewportHeight(),visible=Math.max(160,screen-sheetHeight);
+ return {top:Math.max(26,Math.min(82,visible*.18)),
+  bottom:Math.min(screen-100,sheetHeight+Math.min(26,visible*.11)),left:36,right:36};
+}
+function updateRouteCamera(animate=true){
+ if(!DATA.open||!map||DATA.mode==='saved')return;
+ const pts=routeCoordinates();
+ if(!pts.length)return; // Never move the map before the user selects a place.
+ const padding=routeCameraPadding(),duration=animate?320:155;
+ try{
+  if(pts.length===1){map.easeTo({center:pts[0],padding,maxZoom:15.2,zoom:Math.min(14,map.getZoom?.()||14),duration,essential:true});return}
+  const lng=pts.map(p=>p[0]),lat=pts.map(p=>p[1]);
+  map.fitBounds([[Math.min(...lng),Math.min(...lat)],[Math.max(...lng),Math.max(...lat)]],
+   {padding,maxZoom:15.2,duration,essential:true});
+ }catch(e){console.debug('[V5 route] map camera fit unavailable',e)}
+}
+function queueRouteCamera(animate=false){
+ if(!DATA.open||!map||DATA.mode==='saved'||DATA.order.length===0)return;
+ if(animate){if(cameraFrame)cancelAnimationFrame(cameraFrame);cameraFrame=0;cameraTime=performance.now();updateRouteCamera(true);return}
+ const now=performance.now();
+ // At most ~7 camera reframes/sec during gestures, no WebGL canvas resizes.
+ if(cameraFrame||now-cameraTime<140)return;
+ cameraTime=now;cameraFrame=requestAnimationFrame(()=>{cameraFrame=0;updateRouteCamera(false)});
+}
+function fit(){queueRouteCamera(true)}
 function quieter(on){
  // MapLibre may be streaming tiles while its style layers already exist.
  // The approved V5 planner deliberately applies paint without waiting for
@@ -391,13 +435,114 @@ shell.addEventListener('drop',e=>{
  const ai=DATA.order.indexOf(a),bi=DATA.order.indexOf(b);if(ai<0||bi<0||ai===bi)return;
  DATA.order.splice(ai,1);DATA.order.splice(bi,0,a);routeRevision++;activeRoads.clear();body();syncMapMode();hint('拖动顺序已更新')
 });
-ui.grip.addEventListener('pointerdown',e=>{
- if(!DATA.open)return;dragging=true;dragY=e.clientY;dragHeight=sheetHeight;velocity=0;cancelAnimationFrame(frame);ui.grip.setPointerCapture(e.pointerId)
+// Route and the accepted location card share one three-detent gesture language.
+// A gesture may begin on the grip, title/header, or unused card content.
+// Never hijack buttons, fields, media, or native scrolling in full mode.
+const gestureForbidden='button:not(.fp-route-grip),a,input,textarea,select,video,[contenteditable],[draggable="true"]';
+const detents=['peek','half','full'];
+let lastGripDragAt=0;
+function beginSheetGesture(e,origin){
+ if(!DATA.open||closing||sheetGesture||e.isPrimary===false||e.button!==0)return;
+ if(e.target.closest?.(gestureForbidden))return;
+ if(origin==='body'&&DATA.panel==='full')return; // full-sheet body scroll is native
+ if(e.target.closest?.('.fp-route-reorder'))return;
+ if(document.activeElement?.matches?.('input,textarea,select'))return;
+ sheetGesture={id:e.pointerId,origin,startY:e.clientY,startX:e.clientX,
+  startHeight:sheetHeight,previousY:e.clientY,startedAt:e.timeStamp,
+  originDetent:DATA.panel,samples:[{y:e.clientY,t:e.timeStamp}],moved:false};
+ dragging=true;velocity=0;
+ cancelAnimationFrame(frame);frame=0;gestureToken++;
+ try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_){}
+}
+function moveSheetGesture(e){
+ const g=sheetGesture;if(!g||g.id!==e.pointerId)return;
+ const dx=e.clientX-g.startX,dy=e.clientY-g.startY;
+ if(!g.moved){
+  if(Math.abs(dx)>Math.abs(dy)*1.15&&Math.abs(dx)>8)return;
+  if(Math.abs(dy)<4)return;
+  g.moved=true;ui.sheet.classList.add('is-dragging');
+  if(g.origin==='grip')lastGripDragAt=performance.now();
+ }
+ const full=heightFor('full'),peek=heightFor('peek');
+ const desired=g.startHeight-dy;
+ const resisted=desired>full?full+(desired-full)*.22:desired<peek?peek-(peek-desired)*.28:desired;
+ height(Math.max(170,resisted));
+ g.previousY=e.clientY;g.samples.push({y:e.clientY,t:e.timeStamp});
+ while(g.samples.length>3&&e.timeStamp-g.samples[0].t>120)g.samples.shift();
+ queueRouteCamera(false);
+}
+function finishSheetGesture(e,cancelled=false){
+ const g=sheetGesture;if(!g||g.id!==e.pointerId)return;
+ sheetGesture=null;dragging=false;ui.sheet.classList.remove('is-dragging');
+ try{e.currentTarget.releasePointerCapture(e.pointerId)}catch(_){}
+ if(!g.moved||cancelled){spring(g.originDetent);return}
+ const last=g.samples.at(-1),first=g.samples[0];
+ const v=(last.y-first.y)/Math.max(1,last.t-first.t); // + downward, CSS px/ms
+ const dy=last.y-g.startY;
+ if(g.originDetent==='peek'&&dy>95&&v>.28){close();return}
+ const projected=sheetHeight-v*145;
+ const sizes={peek:heightFor('peek'),half:heightFor('half'),full:heightFor('full')};
+ let nearest=detents.reduce((best,key)=>Math.abs(projected-sizes[key])<Math.abs(projected-sizes[best])?key:best,'peek');
+ const startIndex=detents.indexOf(g.originDetent),nearestIndex=detents.indexOf(nearest);
+ if(Math.abs(v)>.58&&Math.abs(dy)>18){
+  const step=v<0?1:-1;
+  if((nearestIndex-startIndex)*step<=0)nearest=detents[Math.max(0,Math.min(2,startIndex+step))];
+ }
+ spring(nearest);
+}
+for(const [el,origin] of [[ui.grip,'grip'],[shell.querySelector('.fp-route-heading'),'header'],[shell.querySelector('.fp-route-status'),'status'],[ui.body,'body']]){
+ el.addEventListener('pointerdown',e=>beginSheetGesture(e,origin));
+ el.addEventListener('pointermove',moveSheetGesture);
+ el.addEventListener('pointerup',finishSheetGesture);
+ el.addEventListener('pointercancel',e=>finishSheetGesture(e,true));
+ el.addEventListener('lostpointercapture',e=>{if(sheetGesture?.id===e.pointerId)finishSheetGesture(e,true)});
+}
+ui.grip.addEventListener('click',()=>{
+ if(performance.now()-lastGripDragAt<430)return
+ if(!DATA.open)return;
+ const i=detents.indexOf(DATA.panel);spring(detents[i===2?1:i+1])
 });
-ui.grip.addEventListener('pointermove',e=>{if(dragging)height(dragHeight+dragY-e.clientY)});
-function endDrag(){if(!dragging)return;dragging=false;const d={peek:heightFor('peek'),half:heightFor('half'),full:heightFor('full')};spring(Object.keys(d).reduce((a,b)=>Math.abs(d[b]-sheetHeight)<Math.abs(d[a]-sheetHeight)?b:a,'peek'))}
-ui.grip.addEventListener('pointerup',endDrag);ui.grip.addEventListener('pointercancel',endDrag);
-ui.grip.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();const all=['peek','half','full'];spring(all[Math.max(0,Math.min(2,all.indexOf(DATA.panel)+(e.key==='ArrowUp'?1:-1)))])}});
+ui.grip.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){e.preventDefault();close()}
+ else if(['ArrowUp','ArrowDown','Enter',' '].includes(e.key)){
+  e.preventDefault();const i=detents.indexOf(DATA.panel),step=e.key==='ArrowDown'?-1:1;
+  if(i===0&&step<0)close();else spring(detents[Math.max(0,Math.min(2,i+step))])
+ }
+});
+/* In full detent the body scrolls naturally. Pulling DOWN from its top edge
+   collapses the sheet instead of being swallowed by Safari rubber-band scroll.
+   The header/grip also continue to work at every detent. */
+let fullScrollTouch=null;
+ui.body.addEventListener('touchstart',e=>{
+ if(!DATA.open||DATA.panel!=='full'||e.touches.length!==1||ui.body.scrollTop>1)return;
+ if(e.target.closest?.(gestureForbidden))return;
+ const t=e.touches[0];fullScrollTouch={id:t.identifier,x:t.clientX,y:t.clientY,drag:false};
+},{passive:true});
+ui.body.addEventListener('touchmove',e=>{
+ if(!fullScrollTouch||e.touches.length!==1)return;
+ const t=e.touches[0],dy=t.clientY-fullScrollTouch.y,dx=t.clientX-fullScrollTouch.x;
+ if(!fullScrollTouch.drag){
+  if(dy<9||Math.abs(dx)>dy*.9||ui.body.scrollTop>1){if(dy<0)fullScrollTouch=null;return}
+  beginSheetGesture({pointerId:100000+t.identifier,isPrimary:true,button:0,
+   clientX:fullScrollTouch.x,clientY:fullScrollTouch.y,timeStamp:e.timeStamp,
+   target:ui.body,currentTarget:ui.body},'full-scroll');
+  fullScrollTouch.drag=!!sheetGesture;
+ }
+ if(fullScrollTouch.drag){
+  e.preventDefault();
+  moveSheetGesture({pointerId:100000+t.identifier,clientX:t.clientX,clientY:t.clientY,timeStamp:e.timeStamp});
+ }
+},{passive:false});
+function endFullScrollTouch(e,cancelled=false){
+ if(!fullScrollTouch)return;
+ const gesture=fullScrollTouch;fullScrollTouch=null;
+ if(!gesture.drag)return;
+ const t=[...e.changedTouches].find(t=>t.identifier===gesture.id);
+ if(t)moveSheetGesture({pointerId:100000+t.identifier,clientX:t.clientX,clientY:t.clientY,timeStamp:e.timeStamp});
+ finishSheetGesture({pointerId:100000+gesture.id,currentTarget:ui.body},cancelled);
+}
+ui.body.addEventListener('touchend',e=>endFullScrollTouch(e));
+ui.body.addEventListener('touchcancel',e=>endFullScrollTouch(e,true));
 function detachMap(){
  routeRevision++;activeRoads.clear();quieter(false);
  if(map&&routeClickListener)map.off('click',routeClickListener);
@@ -413,6 +558,7 @@ function finishClose(){
  ui.sheet.style.removeProperty('transition');
  ui.sheet.style.removeProperty('transform');
  ui.sheet.style.removeProperty('pointer-events');
+ ui.sheet.classList.remove('is-dragging');
  document.body.classList.remove('fp-unified-route','fp-unified-route-preview');
  shell.hidden=true;detachMap();
  if(observer){observer.disconnect();observer=null}
@@ -421,6 +567,8 @@ function finishClose(){
 }
 function close(){
  if(!DATA.open||closing)return;
+ sheetGesture=null;dragging=false;ui.sheet.classList.remove('is-dragging');
+ if(cameraFrame){cancelAnimationFrame(cameraFrame);cameraFrame=0}
  document.removeEventListener('click',onStarClick,true);
  DATA.open=false;closing=true;window.__atlasTripPicking=false;
  cancelAnimationFrame(frame);frame=0;velocity=0;

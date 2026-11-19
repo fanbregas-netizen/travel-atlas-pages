@@ -10,15 +10,24 @@ body.fp-unified-route #atlasBookmarkOverlay{z-index:39!important}
 #fpUnifiedRoute .fp-route-top>*{pointer-events:auto}
 #fpUnifiedRoute .fp-route-topbutton{width:44px;height:44px;min-width:44px;border:1px solid #e0e6de;border-radius:14px;background:#fffefa;color:#293f33;display:grid;place-items:center;box-shadow:0 3px 13px #203d3230;font-size:24px;line-height:1}
 #fpUnifiedRoute .fp-route-title{flex:1;max-width:100%;min-width:0;text-align:center;font-weight:730;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px;letter-spacing:-.025em;color:#293f33;border:1px solid #e0e6de;background:#fffefa;padding:12px 8px;border-radius:18px;box-shadow:0 3px 13px #203d3223}
-#fpUnifiedRoute .fp-route-sheet{position:absolute;left:0;right:0;bottom:0;box-sizing:border-box;height:var(--fp-route-height,260px);max-height:calc(100% - 90px);min-height:170px;display:flex;flex-direction:column;pointer-events:auto;border:1px solid #e0e6de;border-bottom:0;border-radius:30px 30px 0 0;background:#fffefa;box-shadow:0 -13px 36px #213c3329;overflow:hidden;touch-action:pan-y;will-change:height}
+#fpUnifiedRoute .fp-route-sheet{position:absolute;left:0;right:0;bottom:0;box-sizing:border-box;height:var(--fp-route-height,260px);max-height:calc(100% - 90px);min-height:170px;display:flex;flex-direction:column;pointer-events:auto;border:1px solid #e0e6de;border-bottom:0;border-radius:30px 30px 0 0;background:#fffefa;box-shadow:0 -13px 36px #213c3329;overflow:hidden;touch-action:pan-y;will-change:height;overscroll-behavior:contain}
 #fpUnifiedRoute .fp-route-grip{display:grid;place-items:center;height:29px;min-height:29px;touch-action:none;cursor:grab}
 #fpUnifiedRoute .fp-route-grip:before{content:"";width:44px;height:5px;border-radius:100px;background:#c7d0c7}
-#fpUnifiedRoute .fp-route-heading{min-height:58px;padding:0 20px 13px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e0e6de}
-#fpUnifiedRoute .fp-route-heading h2{min-width:0;flex:1;margin:0;font-size:24px;line-height:1.18;font-weight:740;letter-spacing:-.045em;color:#293f33;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#fpUnifiedRoute .fp-route-heading .fp-route-step{font-size:12px;color:#859688;font-weight:650;white-space:nowrap}
-#fpUnifiedRoute .fp-route-close{width:44px;height:44px;min-width:44px;border:1px solid var(--fp-card-line,#e0e6de);border-radius:12px;background:var(--fp-card-soft,#f0f3ed);color:var(--fp-card-ink,#293f33);font-size:23px;line-height:1;display:grid;place-items:center}
-#fpUnifiedRoute .fp-route-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 20px 18px}
-#fpUnifiedRoute .fp-route-footer{padding:12px 20px calc(14px + env(safe-area-inset-bottom));background:#fffefa;border-top:1px solid #e0e6de;display:flex;gap:9px}
+#fpUnifiedRoute .fp-route-heading{min-height:62px;padding:3px 17px 0 20px;display:flex;align-items:center;gap:12px;border-bottom:0;touch-action:none;cursor:grab}
+#fpUnifiedRoute .fp-route-heading h2{min-width:0;flex:1;margin:0;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;font-size:24px;line-height:1.2;font-weight:740;letter-spacing:-.045em;color:var(--fp-card-ink,#293f33);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fpUnifiedRoute .fp-route-status{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:0 20px 14px;border-bottom:1px solid var(--fp-card-line,#e0e6de);touch-action:none;cursor:grab}
+#fpUnifiedRoute .fp-route-step{display:inline-flex;align-items:center;justify-content:center;min-height:31px;padding:0 12px;border:1px solid #e5e1d7;border-radius:18px;background:#f8f5ec;color:#8b8066;font-size:12px;line-height:1;font-weight:690;white-space:nowrap;letter-spacing:0}
+#fpUnifiedRoute .fp-route-gesture-hint{font-size:11px;color:#93a097;white-space:nowrap;letter-spacing:0}
+#fpUnifiedRoute[data-detent="full"] .fp-route-gesture-hint{opacity:0}
+#fpUnifiedRoute .fp-route-close{display:grid;place-items:center;width:44px;height:44px;min-width:44px;min-height:44px;margin:0 -4px 0 0;padding:0;border:0;border-radius:0;background:transparent;color:#778a7c;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:28px;font-weight:300;line-height:1;box-shadow:none;touch-action:manipulation;cursor:pointer}
+#fpUnifiedRoute .fp-route-close:active{transform:scale(.94)}
+#fpUnifiedRoute .fp-route-close:focus-visible{outline:2px solid #92b2a0;outline-offset:-4px;border-radius:10px}
+#fpUnifiedRoute .fp-route-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 20px 18px;touch-action:none}
+#fpUnifiedRoute[data-detent="full"] .fp-route-body{touch-action:pan-y}
+#fpUnifiedRoute .fp-route-sheet.is-dragging .fp-route-heading,#fpUnifiedRoute .fp-route-sheet.is-dragging .fp-route-grip{cursor:grabbing}
+#fpUnifiedRoute .fp-route-sheet.is-dragging .fp-route-body{overflow:hidden}
+#fpUnifiedRoute .fp-route-heading *{user-select:none;-webkit-user-select:none}
+#fpUnifiedRoute .fp-route-footer{flex:0 0 auto;padding:12px 20px calc(14px + env(safe-area-inset-bottom));background:#fffefa;border-top:1px solid #e0e6de;display:flex;gap:9px}
 #fpUnifiedRoute button{font:inherit;cursor:pointer}
 #fpUnifiedRoute .fp-route-btn{min-width:44px;min-height:44px;padding:10px 13px;border:1px solid #dce5dc;border-radius:13px;background:#eef2ed;color:#3c5a47;font-weight:700;font-size:14px;line-height:1.3}
 #fpUnifiedRoute .fp-route-btn:active{transform:scale(.985)}
