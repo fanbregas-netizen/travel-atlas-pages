@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/v5-card-rhythm-fast-pages.yml'
+      - 'v5-card-rhythm-20261119/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -40,13 +41,16 @@ jobs:
           test -s _site/v5-pr53-one-map-20261119/index.html
           rm -rf _site/v5-card-rhythm-20261119
           cp -R v5-card-rhythm-20261119 _site/v5-card-rhythm-20261119
-          for item in index.html src/visual/v5-card-system-unified-20261119.css src/interaction/physical-sheet.js src/interaction/v4-approved-collection-sheet-v2.js src/route/route-single-map-v1.js QA_BUILD.json; do
+          for item in index.html src/visual/v5-card-system-unified-20261119.css src/interaction/physical-sheet.js src/interaction/v4-approved-collection-sheet-v2.js src/route/route-single-map-v1.js footprint-home.js QA_BUILD.json; do
             test -s "_site/v5-card-rhythm-20261119/$item"
           done
           grep -q 'private-travel-footprints-v5-card-unified-review-20261119' _site/v5-card-rhythm-20261119/src/media/media-core.js
+          grep -q 'cardBrief.append(stageBtn)' _site/v5-card-rhythm-20261119/footprint-home.js
+          grep -q 'single-row-20261119-2' _site/v5-card-rhythm-20261119/index.html
           node --check _site/v5-card-rhythm-20261119/src/interaction/physical-sheet.js
           node --check _site/v5-card-rhythm-20261119/src/interaction/v4-approved-collection-sheet-v2.js
           node --check _site/v5-card-rhythm-20261119/src/route/route-single-map-v1.js
+          node --check _site/v5-card-rhythm-20261119/footprint-home.js
           cmp index.html _site/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
@@ -58,12 +62,13 @@ jobs:
         run: |
           set -euo pipefail
           URL='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-card-rhythm-20261119/'
-          for p in index.html src/visual/v5-card-system-unified-20261119.css src/interaction/physical-sheet.js src/interaction/v4-approved-collection-sheet-v2.js src/route/route-single-map-v1.js QA_BUILD.json; do
+          for p in index.html src/visual/v5-card-system-unified-20261119.css src/interaction/physical-sheet.js src/interaction/v4-approved-collection-sheet-v2.js src/route/route-single-map-v1.js footprint-home.js QA_BUILD.json; do
             curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 -H 'Cache-Control: no-cache' "${URL}${p}?release=${GITHUB_SHA}" -o /tmp/v5-card-live
             test -s /tmp/v5-card-live
             case "$p" in
-              index.html) grep -q 'safari-card-rhythm-3' /tmp/v5-card-live ;;
+              index.html) grep -q 'single-row-20261119-2' /tmp/v5-card-live ;;
+              footprint-home.js) grep -q 'cardBrief.append(stageBtn)' /tmp/v5-card-live ;;
               QA_BUILD.json) grep -q 'v5-card-unified-review-20261119' /tmp/v5-card-live ;;
             esac
           done
-          echo 'PASS new complete V5 card preview HTTP 6/6'
+          echo 'PASS new complete V5 red-line card preview HTTP 7/7'
