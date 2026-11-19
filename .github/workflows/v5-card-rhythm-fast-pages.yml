@@ -1,0 +1,69 @@
+name: Publish V5 screenshot-card isolated preview (fast overlay)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v5-card-rhythm-fast-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages-card-rhythm-fast
+  cancel-in-progress: false
+jobs:
+  deploy-card-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Recover previous complete Pages artifact (leave production root intact)
+        uses: actions/download-artifact@v4
+        with:
+          repository: fanbregas-netizen/travel-atlas-pages
+          run-id: 44512860262
+          name: github-pages
+          github-token: ${{ github.token }}
+          path: _verified_site
+      - name: Overlay ONLY the screenshot card review directory
+        run: |
+          set -euo pipefail
+          test -s _verified_site/artifact.tar
+          mkdir -p _site
+          tar -xf _verified_site/artifact.tar -C _site
+          cmp index.html _site/index.html
+          test -s _site/v5-pr53-one-map-20261119/index.html
+          rm -rf _site/v5-card-rhythm-20261119
+          cp -R v5-card-rhythm-20261119 _site/v5-card-rhythm-20261119
+          for item in index.html src/visual/v5-card-system-unified-20261119.css src/interaction/physical-sheet.js src/interaction/v4-approved-collection-sheet-v2.js src/route/route-single-map-v1.js QA_BUILD.json; do
+            test -s "_site/v5-card-rhythm-20261119/$item"
+          done
+          grep -q 'private-travel-footprints-v5-card-unified-review-20261119' _site/v5-card-rhythm-20261119/src/media/media-core.js
+          node --check _site/v5-card-rhythm-20261119/src/interaction/physical-sheet.js
+          node --check _site/v5-card-rhythm-20261119/src/interaction/v4-approved-collection-sheet-v2.js
+          node --check _site/v5-card-rhythm-20261119/src/route/route-single-map-v1.js
+          cmp index.html _site/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
+      - name: Verify public V5 card-rhythm URL and six assets return 200
+        run: |
+          set -euo pipefail
+          URL='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-card-rhythm-20261119/'
+          for p in index.html src/visual/v5-card-system-unified-20261119.css src/interaction/physical-sheet.js src/interaction/v4-approved-collection-sheet-v2.js src/route/route-single-map-v1.js QA_BUILD.json; do
+            curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 -H 'Cache-Control: no-cache' "${URL}${p}?release=${GITHUB_SHA}" -o /tmp/v5-card-live
+            test -s /tmp/v5-card-live
+            case "$p" in
+              index.html) grep -q 'safari-card-rhythm-3' /tmp/v5-card-live ;;
+              QA_BUILD.json) grep -q 'v5-card-unified-review-20261119' /tmp/v5-card-live ;;
+            esac
+          done
+          echo 'PASS new complete V5 card preview HTTP 6/6'
