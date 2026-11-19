@@ -166,3 +166,32 @@ body.fp-unified-route .map-controls .circlebtn{
 #fpUnifiedRoute .fp-route-dialog-footer:empty{display:none}
 #fpUnifiedRoute .fp-route-dialog-summary{font-size:14px;line-height:1.6}
 #fpUnifiedRoute .fp-route-dialog-summary p{color:#718474;margin:8px 0}
+
+
+/* Route interaction V5: reserved-star map focus and linked card-camera scale.
+   Saved star DOM stays outside the filtered MapLibre canvas. Never resize or
+   apply transform:scale() to the underlying map, which would warp hit testing. */
+body.fp-route-picking #atlasPoiOverlay{opacity:.18!important;pointer-events:none!important}
+body.fp-route-map-focus #atlasPoiOverlay{opacity:0!important;pointer-events:none!important}
+body.fp-route-map-focus #atlasVectorMap canvas.maplibregl-canvas{
+ filter:grayscale(.72) saturate(.48) brightness(1.075) contrast(.90);
+ transition:filter 320ms cubic-bezier(.22,.74,.24,1);
+}
+body.fp-unified-route:not(.fp-route-map-focus) #atlasVectorMap canvas.maplibregl-canvas{
+ filter:none;transition:filter 320ms cubic-bezier(.22,.74,.24,1);
+}
+body.fp-route-map-focus #fpUnifiedRoute .fp-route-toast{display:none!important}
+body.fp-route-map-focus #fpUnifiedRoute .fp-route-dialog-backdrop{pointer-events:none!important}
+body.fp-route-map-focus .map-controls #btnLayers,
+body.fp-route-map-focus .map-controls #layerMenu{display:none!important}
+body.fp-route-map-focus #atlasBookmarkOverlay{
+ opacity:1!important;filter:none!important;pointer-events:auto!important;z-index:1500!important
+}
+body.fp-unified-route #atlasBookmarkOverlay .atlas-bookmark-hit .fp-route-stop-order{
+ top:-7px!important;bottom:auto!important;right:-8px!important;
+ min-width:21px!important;width:auto;height:21px!important;padding:0 4px!important;
+ border-radius:50%!important;background:#fffefa!important;border:1.5px solid #8ba88e!important;
+ color:#315342!important;font-size:11px!important;line-height:1!important;
+ box-shadow:0 1px 6px rgba(32,57,46,.23)!important;
+ z-index:8!important;pointer-events:none!important
+}

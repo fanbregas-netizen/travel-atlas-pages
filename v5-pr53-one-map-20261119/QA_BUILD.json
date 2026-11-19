@@ -1,12 +1,13 @@
 {
   "product": "Footprint Map V5",
+  "type": "isolated Safari QA candidate",
   "source_repo": "fanbregas-netizen/travel-atlas",
+  "source_commit": "1941da107ca5e008e440f0abea9c00c2dd3642e6",
   "source_branch": "integration/v5-one-poi-card-route-20261119",
-  "source_commit": "3a79cfd8d22189df6af65a899195c9fc5ba27981",
-  "preview_storage": "private-travel-footprints-v5-pr53-review-20261119",
-  "approved_interaction_reference": "v5-route-interaction-demo-20261118/index.html",
-  "visual_reference": "Latest V5 PR53 card / POI / Dock",
-  "single_map": true,
-  "formal_site_unchanged": true,
-  "ios_safari_real_touch": "pending"
+  "interaction_reference": "2026-11-18 three-step route planner",
+  "visual_reference": "Latest V5 accepted card and V3 hand-drawn icons",
+  "scope": "yellow stars only; numbered top-right; no lines in pick; card down -> map focus; camera + 3 controls linked; X resumes draft",
+  "data_namespace": "private-travel-footprints-v5-pr53-review-20261119",
+  "production_site_modified": false,
+  "real_iphone_safari_qa": "pending"
 }

@@ -12,12 +12,12 @@ const today=()=>iso(new Date());
 const journeyDays=()=>{const a=Date.parse(DATA.start+'T12:00:00'),b=Date.parse(DATA.end+'T12:00:00');return Number.isFinite(a)&&Number.isFinite(b)?Math.max(1,Math.min(60,Math.floor((b-a)/86400000)+1)):1};
 const datePlus=(value,n)=>{const d=new Date(value+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
 const getMap=()=>window.__atlasPOIBridge?.vector?.()||null;
-const DATA={open:false,mode:'pick',panel:'half',places:[],routes:[],order:[],days:{},start:today(),end:datePlus(today(),2),title:'我的旅行路线',travel:'car',routeId:'',pending:[],busy:false,selected:'',savedView:false,dayView:0,pickMode:'list',origin:{type:'current'},dest:{type:'last'},legModes:{},history:[],endpointMap:null,modal:null,modalSeg:'',modalEndpoint:'',suggestion:null};
+const DATA={open:false,mode:'pick',panel:'half',places:[],routes:[],order:[],days:{},start:today(),end:datePlus(today(),2),title:'我的旅行路线',travel:'car',routeId:'',pending:[],busy:false,selected:'',savedView:false,dayView:0,pickMode:'list',origin:{type:'current'},dest:{type:'last'},legModes:{},history:[],endpointMap:null,modal:null,modalSeg:'',modalEndpoint:'',suggestion:null,mapFocus:false};
 let db=null,map=null,routeRevision=0,activeRoads=new Map(),originalPaint=new Map(),tempPins=new Map(),sheetHeight=0,desiredHeight=0,velocity=0,frame=0,dragging=false,dragY=0,dragHeight=0,toastTimer=0,styleMap=null,styleListener=null,routeClickListener=null,observer=null,closing=false,exitTimeout=0;
 let sheetGesture=null,lastCameraFrame=0,cameraFrame=0,cameraTime=0,gestureToken=0;
-let routeSegmentListener=null;
+let routeSegmentListener=null,focusReturnTimer=0,focusSwipe=null,focusZoomAtEntry=null;
 const shell=document.createElement('section');shell.id='fpUnifiedRoute';shell.hidden=true;shell.setAttribute('aria-label','足迹路线与地图');shell.innerHTML=
- '<section class="fp-route-sheet" aria-label="路线操作卡片"><div class="fp-route-grip" role="button" tabindex="0" aria-label="上滑展开、下滑收起路线卡片"></div><div class="fp-route-heading"><h2>路线规划</h2><button type="button" class="fp-route-close" data-command="exit" aria-label="关闭路线卡片">×</button></div><div class="fp-route-status"><span class="fp-route-step">1 / 3</span><span class="fp-route-gesture-hint" aria-hidden="true">上滑查看更多</span></div><div class="fp-route-body"></div><div class="fp-route-footer"></div></section><div class="fp-route-toast" role="status" aria-live="polite"></div><div class="fp-route-dialog-backdrop" hidden><div class="fp-route-dialog" role="dialog" aria-modal="true" aria-label="路线操作"><div class="fp-route-dialog-head"><h3>路线设置</h3><button type="button" data-command="dismiss-dialog" aria-label="关闭设置弹层">×</button></div><div class="fp-route-dialog-content"></div><div class="fp-route-dialog-footer"></div></div></div>';
+ '<section class="fp-route-sheet" aria-label="路线操作卡片"><div class="fp-route-grip" role="button" tabindex="0" aria-label="上滑展开、下滑收起路线卡片"></div><div class="fp-route-heading"><h2>路线规划</h2><button type="button" class="fp-route-close" data-command="exit" aria-label="保存草稿并退出路线">×</button></div><div class="fp-route-status"><span class="fp-route-step">1 / 3</span><span class="fp-route-gesture-hint" aria-hidden="true">上滑查看更多</span></div><div class="fp-route-body"></div><div class="fp-route-footer"></div></section><div class="fp-route-toast" role="status" aria-live="polite"></div><div class="fp-route-dialog-backdrop" hidden><div class="fp-route-dialog" role="dialog" aria-modal="true" aria-label="路线操作"><div class="fp-route-dialog-head"><h3>路线设置</h3><button type="button" data-command="dismiss-dialog" aria-label="关闭设置弹层">×</button></div><div class="fp-route-dialog-content"></div><div class="fp-route-dialog-footer"></div></div></div>';
 document.body.append(shell);
 const ui={dialog:shell.querySelector('.fp-route-dialog-backdrop'),dialogTitle:shell.querySelector('.fp-route-dialog-head h3'),dialogBody:shell.querySelector('.fp-route-dialog-content'),dialogFooter:shell.querySelector('.fp-route-dialog-footer'),top:shell.querySelector('.fp-route-title'),sheet:shell.querySelector('.fp-route-sheet'),grip:shell.querySelector('.fp-route-grip'),heading:shell.querySelector('.fp-route-heading h2'),step:shell.querySelector('.fp-route-step'),body:shell.querySelector('.fp-route-body'),footer:shell.querySelector('.fp-route-footer'),toast:shell.querySelector('.fp-route-toast')};
 const repo=()=>db||(db=window.FootprintMediaCore?.createRepository?.(indexedDB));
@@ -86,7 +86,7 @@ function endpointSet(id){
  const kind=DATA.endpointMap||DATA.modalEndpoint;
  if(!['origin','dest'].includes(kind))return;
  snapshot('指定'+(kind==='origin'?'起点':'终点'));DATA[kind]={type:'point',id:String(id)};
- DATA.endpointMap=null;DATA.modalEndpoint='';modalClose();markChanged();setMode('settings');fit();hint('已选择'+(kind==='origin'?'起点':'终点'))
+ DATA.endpointMap=null;DATA.modalEndpoint='';modalClose();markChanged();if(DATA.mapFocus)leaveMapFocus();setMode('settings');fit();hint('已选择'+(kind==='origin'?'起点':'终点'))
 }
 
 const routeRows=r=>(r?.stops?.length?r.stops:r?.selected?.length?r.selected:r?.placeIds||[]).map(x=>typeof x==='string'?x:x?.placeId||x?.id).filter(Boolean).map(String);
@@ -96,23 +96,25 @@ const viewportHeight=()=>Math.max(430,Math.min(window.innerHeight||844,window.vi
 /* The SAME home-map three-button tool stack yields to the route card.
  * One spring for all buttons, no separate route toolbar or map resize.
  * The screen-space target is derived from the real map-tool box at open. */
-let mapTools=null,toolsBaseBottom=0,toolsBoxHeight=0,toolsY=0,toolsV=0,toolsTarget=0,toolsFrame=0;
+let mapTools=null,toolsBaseBottom=0,toolsBoxHeight=0,toolsY=0,toolsV=0,toolsTarget=0,toolsFrame=0,toolsScale=1,toolsScaleV=0,toolsScaleTarget=1;
 function prepareMapTools(){
  const el=document.querySelector('.map-controls');
  if(!el)return;
  if(toolsFrame){cancelAnimationFrame(toolsFrame);toolsFrame=0}
- mapTools=el;el.style.removeProperty('translate');
+ mapTools=el;el.style.removeProperty('translate');el.style.removeProperty('scale');
  const rect=el.getBoundingClientRect();
  toolsBaseBottom=rect.bottom;toolsBoxHeight=rect.height;
- toolsY=0;toolsV=0;toolsTarget=0;
+ toolsY=0;toolsV=0;toolsTarget=0;toolsScale=1;toolsScaleV=0;toolsScaleTarget=1;
 }
-function shiftMapTools(target){
+function shiftMapTools(target,scale=1){
  if(!mapTools)return;
  toolsTarget=Number.isFinite(target)?Math.min(0,target):0;
+ toolsScaleTarget=Math.max(.92,Math.min(1,scale));
  if(matchMedia('(prefers-reduced-motion:reduce)').matches){
-  toolsY=toolsTarget;toolsV=0;
+  toolsY=toolsTarget;toolsV=0;toolsScale=toolsScaleTarget;toolsScaleV=0;
   if(!DATA.open&&Math.abs(toolsY)<.5)mapTools.style.removeProperty('translate');
   else mapTools.style.setProperty('translate','0 '+toolsY.toFixed(2)+'px','important');
+  mapTools.style.setProperty('scale',toolsScale.toFixed(4),'important');
   return;
  }
  if(toolsFrame)return;
@@ -120,13 +122,17 @@ function shiftMapTools(target){
   const target=toolsTarget;
   toolsV=(toolsV+(target-toolsY)*.19)*.70;
   toolsY+=toolsV;
-  if(Math.abs(target-toolsY)<.45&&Math.abs(toolsV)<.38){
-   toolsY=target;toolsV=0;toolsFrame=0;
+  toolsScaleV=(toolsScaleV+(toolsScaleTarget-toolsScale)*.23)*.72;
+  toolsScale+=toolsScaleV;
+  if(Math.abs(target-toolsY)<.45&&Math.abs(toolsV)<.38&&Math.abs(toolsScaleTarget-toolsScale)<.001&&Math.abs(toolsScaleV)<.001){
+   toolsY=target;toolsV=0;toolsScale=toolsScaleTarget;toolsScaleV=0;toolsFrame=0;
    if(!DATA.open&&Math.abs(target)<.45)mapTools?.style.removeProperty('translate');
    else mapTools?.style.setProperty('translate','0 '+toolsY.toFixed(2)+'px','important');
+   if(!DATA.open)mapTools?.style.removeProperty('scale');else mapTools?.style.setProperty('scale',toolsScale.toFixed(4),'important');
    return;
   }
   mapTools?.style.setProperty('translate','0 '+toolsY.toFixed(2)+'px','important');
+  mapTools?.style.setProperty('scale',toolsScale.toFixed(4),'important');
   toolsFrame=requestAnimationFrame(tick);
  };
  toolsFrame=requestAnimationFrame(tick);
@@ -136,11 +142,85 @@ function followSheetWithTools(){
  // Anchor the bottom of the ENTIRE existing 3-button stack above the card.
  // At the highest detent its top remains inside the exposed map viewport.
  const screen=viewportHeight(),sheetInset=16;
+ if(DATA.mapFocus){shiftMapTools(0,1);return}
  const safeTop=30,need=(toolsBoxHeight||162)+safeTop;
  const visibleBottom=Math.max(need,screen-sheetHeight-sheetInset-14);
- shiftMapTools(visibleBottom-toolsBaseBottom);
+ const scale=1-Math.min(.08,Math.max(0,sheetHeight/screen)*.11);
+ shiftMapTools(visibleBottom-toolsBaseBottom,scale);
 }
 
+// Card and route lifecycle must be independent: map focus is NOT route exit.
+const draftKey='fp-v5-route-draft';
+function preserveRouteDraft(){
+ if(!['pick','settings','order'].includes(DATA.mode))return;
+ const payload={savedAt:Date.now(),mode:DATA.mode,order:[...DATA.order],
+  days:{...DATA.days},origin:{...DATA.origin},dest:{...DATA.dest},
+  legModes:{...DATA.legModes},start:DATA.start,end:DATA.end,travel:DATA.travel,
+  title:DATA.title,routeId:DATA.routeId,
+  pendingPlaces:DATA.places.filter(p=>p.routeOnly===true&&p.pending===true)};
+ try{sessionStorage.setItem(draftKey,JSON.stringify(payload))}catch(_){}
+}
+function clearRouteDraft(){try{sessionStorage.removeItem(draftKey)}catch(_){}}
+function restoreRouteDraft(){
+ try{
+  const raw=sessionStorage.getItem(draftKey);
+  if(!raw)return false;
+  const p=JSON.parse(raw);
+  if(!p||!Array.isArray(p.order)||!p.order.length||Date.now()-p.savedAt>7*86400000)return false;
+  for(const item of p.pendingPlaces||[])if(valid(item)&&!place(item.id))DATA.places.push(item);
+  DATA.order=p.order.map(String).filter(id=>!!place(id));
+  if(!DATA.order.length)return false;
+  DATA.mode=['pick','settings','order'].includes(p.mode)?p.mode:'pick';
+  DATA.days=p.days&&typeof p.days==='object'?p.days:{};
+  DATA.origin=p.origin||{type:'current'};DATA.dest=p.dest||{type:'last'};
+  DATA.legModes=p.legModes||{};DATA.start=p.start||today();
+  DATA.end=p.end||datePlus(DATA.start,2);DATA.travel=p.travel||'car';
+  DATA.title=p.title||'我的旅行路线';DATA.routeId=p.routeId||'';
+  DATA.pickMode='map';return true;
+ }catch(_){return false}
+}
+function stopFocusReturn(){if(focusReturnTimer){clearTimeout(focusReturnTimer);focusReturnTimer=0}}
+function enterMapFocus(){
+ if(!DATA.open||closing||DATA.mapFocus||DATA.modal)return;
+ if(DATA.mode==='pick'){DATA.pickMode='map';body()}
+ stopFocusReturn();cancelAnimationFrame(frame);frame=0;velocity=0;
+ DATA.mapFocus=true;focusZoomAtEntry=map?.getZoom?.()||null;
+ ui.sheet.classList.remove('is-dragging');
+ ui.sheet.style.setProperty('transition','transform 350ms cubic-bezier(.22,.74,.22,1)');
+ ui.sheet.style.setProperty('transform','translate3d(0,calc(100% + 35px),0)');
+ ui.sheet.style.setProperty('pointer-events','none');
+ document.body.classList.add('fp-route-map-focus');
+ shell.dataset.detent='map';followSheetWithTools();queueRouteCamera(true);
+}
+function leaveMapFocus(){
+ if(!DATA.open||!DATA.mapFocus)return;
+ stopFocusReturn();DATA.mapFocus=false;focusZoomAtEntry=null;
+ document.body.classList.remove('fp-route-map-focus');
+ ui.sheet.style.setProperty('transition','transform 350ms cubic-bezier(.22,.74,.22,1)');
+ ui.sheet.style.setProperty('transform','translate3d(0,0,0)');
+ ui.sheet.style.removeProperty('pointer-events');
+ spring('peek');queueRouteCamera(true);
+}
+function scheduleFocusReturn(){
+ stopFocusReturn();
+ if(!DATA.mapFocus||DATA.mode!=='pick'||DATA.order.length<2)return;
+ // Deliberate pause: never pop the sheet in the middle of consecutive taps.
+ focusReturnTimer=setTimeout(()=>{focusReturnTimer=0;if(DATA.mapFocus&&DATA.mode==='pick'&&DATA.order.length>=2)leaveMapFocus()},680);
+}
+function onFocusTouchStart(e){
+ if(!DATA.mapFocus||e.touches.length!==1)return;
+ const t=e.touches[0],h=viewportHeight();
+ if(t.clientY<h-100||t.clientY>h-14)return;
+ focusSwipe={identifier:t.identifier,x:t.clientX,y:t.clientY};
+}
+function onFocusTouchEnd(e){
+ const g=focusSwipe;focusSwipe=null;if(!g||!DATA.mapFocus)return;
+ const t=[...e.changedTouches].find(v=>v.identifier===g.identifier);
+ if(t&&g.y-t.clientY>64&&Math.abs(t.clientX-g.x)<100)leaveMapFocus();
+}
+document.addEventListener('touchstart',onFocusTouchStart,{capture:true,passive:true});
+document.addEventListener('touchend',onFocusTouchEnd,{capture:true,passive:true});
+document.addEventListener('touchcancel',()=>{focusSwipe=null},{capture:true,passive:true});
 const heightFor=which=>{const h=viewportHeight(),full=Math.max(370,Math.min(h*.72,h-220));return which==='peek'?Math.max(278,Math.min(358,h*.42,full-100)):which==='full'?full:Math.max(350,Math.min(full-75,h*.57))};
 function height(value){sheetHeight=Math.max(175,Math.min(heightFor('full')+26,value));ui.sheet.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.dataset.detent=DATA.panel;followSheetWithTools();}
 function spring(which){
@@ -256,6 +336,7 @@ function body(){
  }
 }
 function setMode(next,force=false){
+ if(DATA.mapFocus)leaveMapFocus();
  DATA.mode=next;DATA.selected=next==='detail'?DATA.selected:'';
  body();syncMapMode();spring(['saved','pick','view'].includes(next)?'peek':'half');
 }
@@ -311,6 +392,8 @@ function ensureLineLayers(){
 }
 function lines(){
  if(!DATA.open||!ensureLineLayers())return;
+ // Stage 1 only collects yellow stars with numbered badges.
+ if(DATA.mode==='pick'){map.getSource('fp-single-route')?.setData(geo([]));return}
  const pts=effectiveWaypoints(),features=[];
  for(let i=1;i<pts.length;i++){
   const a=pts[i-1],b=pts[i],mode=segmentMode(a,b),key=mode+'|'+a.id+'|'+b.id;
@@ -382,9 +465,9 @@ function routeCoordinates(){
  return coordinates;
 }
 function routeCameraPadding(){
- const screen=viewportHeight(),visible=Math.max(160,screen-sheetHeight);
+ const screen=viewportHeight(),occupied=DATA.mapFocus?0:sheetHeight,visible=Math.max(160,screen-occupied);
  return {top:Math.max(26,Math.min(82,visible*.18)),
-  bottom:Math.min(screen-100,sheetHeight+16+Math.min(26,visible*.11)),left:36,right:36};
+  bottom:Math.min(screen-100,occupied+(DATA.mapFocus?18:16)+Math.min(26,visible*.11)),left:36,right:36};
 }
 function updateRouteCamera(animate=true){
  if(!DATA.open||!map||DATA.mode==='saved')return;
@@ -392,7 +475,7 @@ function updateRouteCamera(animate=true){
  if(!pts.length)return; // Never move the map before the user selects a place.
  const padding=routeCameraPadding(),duration=animate?320:155;
  try{
-  if(pts.length===1){map.easeTo({center:pts[0],padding,maxZoom:15.2,zoom:Math.min(14,map.getZoom?.()||14),duration,essential:true});return}
+  if(pts.length===1){const zoom=DATA.mapFocus?Math.min(15.25,Math.max(14.2,focusZoomAtEntry||map.getZoom?.()||14)+.3):Math.min(14.7,map.getZoom?.()||14);map.easeTo({center:pts[0],padding,zoom,duration,essential:true});return}
   const lng=pts.map(p=>p[0]),lat=pts.map(p=>p[1]);
   map.fitBounds([[Math.min(...lng),Math.min(...lat)],[Math.max(...lng),Math.max(...lat)]],
    {padding,maxZoom:15.2,duration,essential:true});
@@ -438,12 +521,14 @@ function syncMapMode(){
  if(!DATA.open)return;
  const preview=DATA.mode==='view'||DATA.mode==='detail';
  shell.dataset.routeMode=preview?'preview':'planning';
+ document.body.classList.toggle('fp-route-picking',DATA.mode==='pick'||!!DATA.endpointMap);
  // Planning keeps the original hand-drawn POIs tappable; preview quiets them.
  document.body.classList.toggle('fp-unified-route-preview',preview);
  quieter(preview);refreshStarLabels();temporaryMarkers();lines();
 }
 function selectStop(id){
  id=String(id);if(!DATA.open)return;
+ const saved=place(id);if(!saved||!valid(saved)||saved.starred===false)return;
  if(DATA.endpointMap){endpointSet(id);return}
  if(DATA.mode==='view'||DATA.mode==='detail'){
   DATA.selected=id;setMode('detail');hint('已选中路线站点');return
@@ -452,36 +537,22 @@ function selectStop(id){
  snapshot(index===-1?'添加地点':'移除地点');markChanged();
  if(index===-1)DATA.order.push(id);else DATA.order.splice(index,1);
  if(DATA.days[id]===undefined)DATA.days[id]=1;
- body();syncMapMode();spring('peek');fit();hint(index===-1?'已添加站点 · 地图路线已更新':'已从路线移除站点');
+ body();syncMapMode();if(DATA.mapFocus){queueRouteCamera(true);scheduleFocusReturn()}else{spring('peek');fit()}
+ hint(index===-1?'已添加收藏地点':'已移除收藏地点');
 }
 function onMapClick(e){
- if(!DATA.open||(DATA.mode!=='pick'&&!DATA.endpointMap)||!e.lngLat||!valid({lat:e.lngLat.lat,lng:e.lngLat.lng}))return;
- if(e.originalEvent?.target?.closest?.('#fpUnifiedRoute,#atlasBookmarkOverlay,.fp-poi'))return;
- const lon=+e.lngLat.lng,lat=+e.lngLat.lat;
- const old=DATA.places.find(p=>valid(p)&&Math.hypot((p.lng-lon)*Math.cos(lat*Math.PI/180),(p.lat-lat))<.00012);
- if(old){if(DATA.endpointMap)endpointSet(old.id);else selectStop(old.id);return}
- const id='route-map-'+(crypto.randomUUID?.()||Date.now().toString(36));
- DATA.places.push({id,title:DATA.endpointMap?'地图指定位置':'地图选点 '+(DATA.order.length+1),lat,lng:lon,routeOnly:true,starred:false,pending:true});
- if(DATA.endpointMap){endpointSet(id);return}
- snapshot('添加地图地点');DATA.order.push(id);markChanged();body();syncMapMode();spring('peek');fit();hint('已添加地图选点 · 保存时才写入数据');
+ // Map remains pannable; blank map taps and generic POI must never become
+ // selected places in the saved-star-only picking workflow.
+ return;
 }
 function onStarClick(e){
  if(!DATA.open)return;
- const b=e.target.closest?.('#atlasBookmarkOverlay .atlas-bookmark-hit,#atlasPoiOverlay .fp-poi');
+ const b=e.target.closest?.('#atlasBookmarkOverlay .atlas-bookmark-hit');
  if(!b)return;
- const id=String(b.dataset.placeId||'');
- let p=place(id);
- if(!p&&b.classList.contains('fp-poi')){
-  const loc={lat:Number(b.dataset.poiLat),lng:Number(b.dataset.poiLng)};
-  p=DATA.places.find(x=>valid(x)&&Math.hypot((x.lng-loc.lng)*Math.cos(loc.lat*Math.PI/180),x.lat-loc.lat)<.00012);
-  if(!p&&valid(loc)){
-   const k='route-poi-'+(b.dataset.poiId||crypto.randomUUID?.()||Date.now());
-   p={id:k,title:b.dataset.poiName||'地图地点',...loc,routeOnly:true,starred:false,pending:true};
-   DATA.places.push(p);
-  }
- }
- if(!p)return;
- e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();selectStop(p.id);
+ const id=String(b.dataset.placeId||''),p=place(id);
+ if(!p||!valid(p)||p.starred===false)return;
+ e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+ selectStop(p.id);
 }
 async function reload(){
  const r=repo();if(!r)throw Error('原产品路线存储尚未加载');
@@ -490,7 +561,7 @@ async function reload(){
  DATA.routes=routes||[];
 }
 function reset(){
- DATA.order=[];DATA.days={};DATA.suggestion=null;DATA.history=[];DATA.pickMode='list';DATA.origin={type:'current'};DATA.dest={type:'last'};DATA.legModes={};DATA.endpointMap=null;DATA.modalEndpoint='';DATA.modal=null;DATA.dayView=0;modalClose();DATA.title='我的旅行路线';DATA.start=today();DATA.end=datePlus(DATA.start,2);DATA.travel='car';DATA.routeId='';DATA.selected='';DATA.pending=[];DATA.query='';
+ DATA.mapFocus=false;stopFocusReturn();document.body.classList.remove('fp-route-map-focus');DATA.order=[];DATA.days={};DATA.suggestion=null;DATA.history=[];DATA.pickMode='list';DATA.origin={type:'current'};DATA.dest={type:'last'};DATA.legModes={};DATA.endpointMap=null;DATA.modalEndpoint='';DATA.modal=null;DATA.dayView=0;modalClose();DATA.title='我的旅行路线';DATA.start=today();DATA.end=datePlus(DATA.start,2);DATA.travel='car';DATA.routeId='';DATA.selected='';DATA.pending=[];DATA.query='';
  activeRoads.clear();routeRevision++;
 }
 function loadSaved(id){
@@ -513,7 +584,7 @@ async function save(){
   const temp=[...new Map([...selectedPlaces(),place(DATA.origin.id),place(DATA.dest.id)].filter(Boolean).map(p=>[p.id,p])).values()].filter(p=>p.pending&&p.routeOnly===true&&p.starred===false).map(p=>({id:String(p.id),title:p.title||p.name||'地图选点',name:p.title||p.name||'地图选点',lat:+p.lat,lng:+p.lng,routeOnly:true,starred:false,createdAt:new Date().toISOString()}));
   const old=DATA.routes.find(x=>String(x.id)===String(id))||{};
   const record={...old,id,title:DATA.title.trim()||'我的旅行路线',startDate:DATA.start,endDate:DATA.end,travelMode:DATA.travel==='transit'?'city':DATA.travel,transportMode:DATA.travel,stops,placeIds:[...DATA.order],routeOrigin:{...DATA.origin},routeDestination:{...DATA.dest},originPlaceId:DATA.origin.type==='point'?DATA.origin.id:null,destinationPlaceId:DATA.dest.type==='point'?DATA.dest.id:null,legModes:{...DATA.legModes},updatedAt:new Date().toISOString()};
-  await r.saveRoute(record,{places:temp});
+  await r.saveRoute(record,{places:temp});clearRouteDraft();
   DATA.routeId=id;DATA.history=[];DATA.routes=await r.listRoutes();
   DATA.places=DATA.places.map(p=>temp.some(t=>t.id===p.id)?{...p,pending:false}:p);
   document.dispatchEvent(new CustomEvent('footprint:route-saved',{detail:{id,placeIds:[...DATA.order]}}));
@@ -550,7 +621,7 @@ function command(type,target){
  if(type==='dayview'){DATA.dayView=Number(target.dataset.value)||0;body();syncMapMode();fit();return}
  if(type==='exit'){close();return}
  if(type==='saved'){setMode('saved',true);return}
- if(type==='new'){reset();setMode('pick',true);return}
+ if(type==='new'){clearRouteDraft();reset();setMode('pick',true);return}
  if(type==='open-saved'){loadSaved(target.dataset.id);return}
  if(type==='toggle'){selectStop(target.dataset.id);return}
  if(type==='settings'){if(DATA.order.length<2){hint('请先选择至少两个地点');return}setMode('settings');return}
@@ -672,7 +743,7 @@ function finishSheetGesture(e,cancelled=false){
  const last=g.samples.at(-1),first=g.samples[0];
  const v=(last.y-first.y)/Math.max(1,last.t-first.t); // + downward, CSS px/ms
  const dy=last.y-g.startY;
- if(g.originDetent==='peek'&&dy>95&&v>.28){close();return}
+ if(g.originDetent==='peek'&&dy>95&&v>.28){enterMapFocus();return}
  const projected=sheetHeight-v*145;
  const sizes={peek:heightFor('peek'),half:heightFor('half'),full:heightFor('full')};
  let nearest=detents.reduce((best,key)=>Math.abs(projected-sizes[key])<Math.abs(projected-sizes[best])?key:best,'peek');
@@ -699,7 +770,7 @@ ui.grip.addEventListener('keydown',e=>{
  if(e.key==='Escape'){e.preventDefault();close()}
  else if(['ArrowUp','ArrowDown','Enter',' '].includes(e.key)){
   e.preventDefault();const i=detents.indexOf(DATA.panel),step=e.key==='ArrowDown'?-1:1;
-  if(i===0&&step<0)close();else spring(detents[Math.max(0,Math.min(2,i+step))])
+  if(i===0&&step<0)enterMapFocus();else spring(detents[Math.max(0,Math.min(2,i+step))])
  }
 });
 /* In full detent the body scrolls naturally. Pulling DOWN from its top edge
@@ -753,7 +824,7 @@ function finishClose(){
  ui.sheet.style.removeProperty('transform');
  ui.sheet.style.removeProperty('pointer-events');
  ui.sheet.classList.remove('is-dragging');
- document.body.classList.remove('fp-unified-route','fp-unified-route-preview');
+ document.body.classList.remove('fp-unified-route','fp-unified-route-preview','fp-route-map-focus','fp-route-picking');
  shell.hidden=true;detachMap();
  if(observer){observer.disconnect();observer=null}
  if(new URLSearchParams(location.search).has('route'))history.replaceState(null,'','./index.html');
@@ -761,6 +832,7 @@ function finishClose(){
 }
 function close(){
  if(!DATA.open||closing)return;
+ preserveRouteDraft();stopFocusReturn();DATA.mapFocus=false;document.body.classList.remove('fp-route-map-focus');
  modalClose();DATA.endpointMap=null;
  sheetGesture=null;dragging=false;ui.sheet.classList.remove('is-dragging');
  if(cameraFrame){cancelAnimationFrame(cameraFrame);cameraFrame=0}
@@ -800,7 +872,7 @@ async function open(savedId=''){
  observer=new MutationObserver(()=>{if(DATA.open)refreshStarLabels()});
  const bookmark=$('atlasBookmarkOverlay');if(bookmark)observer.observe(bookmark,{childList:true,subtree:false});
  reset();
- if(savedId){loadSaved(savedId);if(new URLSearchParams(location.search).get('editRoute')==='1')setMode('pick',true)}else setMode('saved',true);
+ if(savedId){loadSaved(savedId);if(new URLSearchParams(location.search).get('editRoute')==='1')setMode('pick',true)}else if(restoreRouteDraft())setMode(DATA.mode,true);else setMode('saved',true);
  spring('peek');
  document.dispatchEvent(new Event('footprint:route-mode-opened'));
  return true
@@ -810,9 +882,9 @@ document.addEventListener('atlas:saved-stars-changed',()=>{if(DATA.open)refreshS
 const initial=new URLSearchParams(location.search),deeplink=initial.get('route');
 if(deeplink||initial.get('openRoute')==='1')window.addEventListener('load',()=>{void open(deeplink||'')},{once:true});
 window.FootprintUnifiedRoute=Object.freeze({
- version:'V5 same Map A instance 20261119',
- open,close,
- get state(){return {open:DATA.open,step:DATA.mode,order:[...DATA.order],routeId:DATA.routeId,selected:DATA.selected}},
+ version:'V5 same Map A instance 20261119 — saved stars focus',
+ open,close,enterMapFocus,leaveMapFocus,
+ get state(){return {open:DATA.open,step:DATA.mode,order:[...DATA.order],routeId:DATA.routeId,selected:DATA.selected,mapFocus:DATA.mapFocus,panel:DATA.panel}},
  get map(){return map},get savedCount(){return DATA.routes.length},
  get canvasCount(){return document.querySelectorAll('#atlasVectorMap canvas.maplibregl-canvas').length}
 });
