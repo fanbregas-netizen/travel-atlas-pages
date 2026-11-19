@@ -1,0 +1,31 @@
+name: V5 PR53 isolated one-map browser QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/v5-pr53-one-map-browser.cjs'
+      - '.github/workflows/v5-pr53-one-map-qa.yml'
+      - 'v5-pr53-one-map-20261119/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser driver
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Verify actual published V5 full product at 375 and 390 widths
+        run: node tests/v5-pr53-one-map-browser.cjs
+      - name: Preserve screenshots and JSON report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-pr53-one-map-browser
+          path: v5-pr53-browser-evidence/
+          if-no-files-found: ignore
