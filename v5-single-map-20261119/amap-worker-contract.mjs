@@ -12,13 +12,13 @@ assert.equal(typeof worker.fetch,'function');
 const response=(path,h=headers,e=env)=>handle(new Request('https://proxy.example/'+path,{headers:h}),e);
 const oldFetch=globalThis.fetch;let lastUrl='';
 globalThis.fetch=async req=>{
- const u=new URL(typeof req==='string'?req:req.url);lastUrl=u.href;
+ const u=new URL(req instanceof URL?req.href:typeof req==='string'?req:req.url);lastUrl=u.href;
  assert.equal(u.hostname,'restapi.amap.com');
- assert.equal(u.pathname,'/v5/place/around');
+ assert.ok(['/v5/place/around','/v5/place/text'].includes(u.pathname));
  assert.equal(u.searchParams.get('page_size'),'25');
  assert.equal(u.searchParams.get('key'),'NEVER_EXPOSE_SAMPLE_SECRET');
  assert.equal(u.searchParams.get('langCode'),'zh');
- assert.notEqual(u.searchParams.get('location'),input.lng+','+input.lat);
+ if(u.pathname.endsWith('/around'))assert.notEqual(u.searchParams.get('location'),input.lng+','+input.lat);
  return new Response(JSON.stringify({status:'1',infocode:'10000',pois:[{
   id:'B0001',name:'附近咖啡店',location:mapped[0]+','+mapped[1],
   type:'餐饮服务;咖啡厅',typecode:'050500',address:'长寿路'
