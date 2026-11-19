@@ -60,7 +60,7 @@ const root='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
   assert.ok(await page.getByRole('button',{name:'收藏列表'}).count());
   assert.ok(await page.getByRole('button',{name:'地图选点'}).count());
   await page.getByRole('button',{name:'地图选点'}).click();
-  assert.ok((await page.locator('.fp-route-body').innerText()).includes('点击地图'));
+  assert.ok((await page.locator('.fp-route-body').innerText()).includes('点地图已有地点'));
   await page.getByRole('button',{name:'收藏列表'}).click();
   await page.locator('[data-command="toggle"]').nth(0).click();
   await page.locator('[data-command="undo"]').click();
