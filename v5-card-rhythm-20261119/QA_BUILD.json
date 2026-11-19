@@ -2,7 +2,7 @@
   "product": "Footprint Map V5",
   "type": "independent full product — screenshot card rhythm QA",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "08cd7336f630db85c06b18afe82f1471bfd9a1ae",
+  "source_commit": "6a342269cc4220c0daff1dd45e881ca037313095",
   "source_branch": "design/v5-card-spacing-real-safari-20261119",
   "source_base_commit": "3a79cfd8d22189df6af65a899195c9fc5ba27981",
   "source_prs": [
@@ -14,9 +14,9 @@
   "preview_data_namespace": "private-travel-footprints-v5-card-unified-review-20261119",
   "qa_scope": "Place and route first detent parity; compact one-item collection; header and footer rhythm; unchanged map and B05 gestures",
   "isolation": "new subdirectory and IndexedDB namespace, existing preview and production root unchanged",
-  "static_contract": "18/18 checks, JS syntax pass",
-  "real_iphone_safari_qa": "pending",
+  "static_contract": "19/19 screenshot geometry contracts pass; footprint-home JS syntax pass",
+  "real_iphone_safari_qa": "pending after new browser QA",
   "published_no_production_merge": true,
-  "latest_visual_fix": "collection paper matches place/route opaque warm-white",
+  "latest_visual_fix": "One-row title/actions, full-width dividing line and equal 18px inner content rail on saved-place, collection, route",
   "data_note": "Reuses prior isolated QA namespace so the user's existing review bookmarks remain available; production database untouched"
 }

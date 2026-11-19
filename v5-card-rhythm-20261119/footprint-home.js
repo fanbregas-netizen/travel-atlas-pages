@@ -291,7 +291,9 @@ async function renderPlace(id){const revision=++renderRevision;const p=await rea
  },'fp-place-stage');
  stageBtn.setAttribute('aria-label','当前'+(p.stage==='visited'?'已到访':'想去')+'，点按切换');
  stageBtn.title='点按切换想去／已到访';
- titlewrap.append(stageBtn);
+ // Stage toggling is preserved in the Brief content section instead of
+ // occupying a redundant second header row. No data/handler changes.
+
 /* V4 .14: replace the header thumbnail with the approved drawn navigation icon.
    Photos remain in Media, and the Brief stays in its single reading section. */
 const navButton=btn('',()=>{
@@ -435,6 +437,7 @@ watchTileVideo(video);tile.append(video,h('span','fp-video-indicator','▶'))}if
    finally{load.disabled=false}
  },'fp-subaction');
  nearby.append(sectionHeading('04','附近地点',load),status);
+ cardBrief.append(stageBtn);
  sc.append(cardBrief,cardMedia,cardLinks,nearby);
  const f=h('div','fp-card-feedback');f.id='fpCardFeedback';sc.append(f);placeCard.append(sc);
  // Preserve reading position while editing the SAME real place; another
