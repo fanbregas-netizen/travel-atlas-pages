@@ -12,16 +12,83 @@ const today=()=>iso(new Date());
 const journeyDays=()=>{const a=Date.parse(DATA.start+'T12:00:00'),b=Date.parse(DATA.end+'T12:00:00');return Number.isFinite(a)&&Number.isFinite(b)?Math.max(1,Math.min(60,Math.floor((b-a)/86400000)+1)):1};
 const datePlus=(value,n)=>{const d=new Date(value+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
 const getMap=()=>window.__atlasPOIBridge?.vector?.()||null;
-const DATA={open:false,mode:'pick',panel:'half',places:[],routes:[],order:[],days:{},start:today(),end:datePlus(today(),2),title:'我的旅行路线',travel:'car',routeId:'',pending:[],busy:false,selected:'',savedView:false,dayView:0};
+const DATA={open:false,mode:'pick',panel:'half',places:[],routes:[],order:[],days:{},start:today(),end:datePlus(today(),2),title:'我的旅行路线',travel:'car',routeId:'',pending:[],busy:false,selected:'',savedView:false,dayView:0,pickMode:'list',origin:{type:'current'},dest:{type:'last'},legModes:{},history:[],endpointMap:null,modal:null,modalSeg:'',modalEndpoint:'',suggestion:null};
 let db=null,map=null,routeRevision=0,activeRoads=new Map(),originalPaint=new Map(),tempPins=new Map(),sheetHeight=0,desiredHeight=0,velocity=0,frame=0,dragging=false,dragY=0,dragHeight=0,toastTimer=0,styleMap=null,styleListener=null,routeClickListener=null,observer=null,closing=false,exitTimeout=0;
 let sheetGesture=null,lastCameraFrame=0,cameraFrame=0,cameraTime=0,gestureToken=0;
+let routeSegmentListener=null;
 const shell=document.createElement('section');shell.id='fpUnifiedRoute';shell.hidden=true;shell.setAttribute('aria-label','足迹路线与地图');shell.innerHTML=
- '<section class="fp-route-sheet" aria-label="路线操作卡片"><div class="fp-route-grip" role="button" tabindex="0" aria-label="上滑展开、下滑收起路线卡片"></div><div class="fp-route-heading"><h2>路线规划</h2><button type="button" class="fp-route-close" data-command="exit" aria-label="关闭路线卡片">×</button></div><div class="fp-route-status"><span class="fp-route-step">1 / 3</span><span class="fp-route-gesture-hint" aria-hidden="true">上滑查看更多</span></div><div class="fp-route-body"></div><div class="fp-route-footer"></div></section><div class="fp-route-toast" role="status" aria-live="polite"></div>';
+ '<section class="fp-route-sheet" aria-label="路线操作卡片"><div class="fp-route-grip" role="button" tabindex="0" aria-label="上滑展开、下滑收起路线卡片"></div><div class="fp-route-heading"><h2>路线规划</h2><button type="button" class="fp-route-close" data-command="exit" aria-label="关闭路线卡片">×</button></div><div class="fp-route-status"><span class="fp-route-step">1 / 3</span><span class="fp-route-gesture-hint" aria-hidden="true">上滑查看更多</span></div><div class="fp-route-body"></div><div class="fp-route-footer"></div></section><div class="fp-route-toast" role="status" aria-live="polite"></div><div class="fp-route-dialog-backdrop" hidden><div class="fp-route-dialog" role="dialog" aria-modal="true" aria-label="路线操作"><div class="fp-route-dialog-head"><h3>路线设置</h3><button type="button" data-command="dismiss-dialog" aria-label="关闭设置弹层">×</button></div><div class="fp-route-dialog-content"></div><div class="fp-route-dialog-footer"></div></div></div>';
 document.body.append(shell);
-const ui={top:shell.querySelector('.fp-route-title'),sheet:shell.querySelector('.fp-route-sheet'),grip:shell.querySelector('.fp-route-grip'),heading:shell.querySelector('.fp-route-heading h2'),step:shell.querySelector('.fp-route-step'),body:shell.querySelector('.fp-route-body'),footer:shell.querySelector('.fp-route-footer'),toast:shell.querySelector('.fp-route-toast')};
+const ui={dialog:shell.querySelector('.fp-route-dialog-backdrop'),dialogTitle:shell.querySelector('.fp-route-dialog-head h3'),dialogBody:shell.querySelector('.fp-route-dialog-content'),dialogFooter:shell.querySelector('.fp-route-dialog-footer'),top:shell.querySelector('.fp-route-title'),sheet:shell.querySelector('.fp-route-sheet'),grip:shell.querySelector('.fp-route-grip'),heading:shell.querySelector('.fp-route-heading h2'),step:shell.querySelector('.fp-route-step'),body:shell.querySelector('.fp-route-body'),footer:shell.querySelector('.fp-route-footer'),toast:shell.querySelector('.fp-route-toast')};
 const repo=()=>db||(db=window.FootprintMediaCore?.createRepository?.(indexedDB));
 const place=id=>DATA.places.find(p=>String(p.id)===String(id));
 const selectedPlaces=()=>DATA.order.map(place).filter(valid);
+const travelLabel=mode=>({car:'驾车',walk:'步行',bike:'骑行',transit:'公交'}[mode]||'驾车');
+const routeDays=()=>journeyDays();
+const originName=()=>DATA.origin.type==='current'?'当前位置':DATA.origin.type==='first'?'第一个访问地点':DATA.origin.type==='point'?(place(DATA.origin.id)?.title||place(DATA.origin.id)?.name||'指定地点'):'不指定';
+const destName=()=>DATA.dest.type==='last'?'最后一个访问地点':DATA.dest.type==='loop'?'返回起点 · 闭环':DATA.dest.type==='point'?(place(DATA.dest.id)?.title||place(DATA.dest.id)?.name||'指定地点'):'不指定';
+function snapshot(label){
+ DATA.history.push({label,order:[...DATA.order],days:{...DATA.days},origin:{...DATA.origin},dest:{...DATA.dest},legModes:{...DATA.legModes},start:DATA.start,end:DATA.end,travel:DATA.travel,title:DATA.title});
+ if(DATA.history.length>30)DATA.history.shift();
+}
+function undo(){
+ const old=DATA.history.pop();
+ if(!old){hint('没有可撤回的操作');return}
+ for(const k of ['order','days','origin','dest','legModes','start','end','travel','title'])DATA[k]=old[k];
+ DATA.suggestion=null;routeRevision++;activeRoads.clear();body();syncMapMode();fit();hint('已撤回：'+old.label)
+}
+function effectiveWaypoints(){
+ const stops=selectedPlaces(),out=[...stops];
+ const origin=place(DATA.origin.id),dest=place(DATA.dest.id);
+ if(DATA.origin.type==='point'&&valid(origin)&&out[0]?.id!==origin.id)out.unshift(origin);
+ if(DATA.dest.type==='point'&&valid(dest)&&out.at(-1)?.id!==dest.id)out.push(dest);
+ if(DATA.dest.type==='loop'&&out.length>1)out.push(out[0]);
+ return out;
+}
+function legKey(a,b){return String(a.id)+'|'+String(b.id)}
+function segmentMode(a,b){return DATA.legModes[legKey(a,b)]||DATA.travel}
+function markChanged(){DATA.suggestion=null;routeRevision++;activeRoads.clear()}
+function modalClose(){DATA.modal=null;ui.dialog.hidden=true;ui.dialogBody.innerHTML='';ui.dialogFooter.innerHTML=''}
+function dialogOpen(kind){
+ DATA.modal=kind;ui.dialog.hidden=false;renderDialog();
+}
+function renderDialog(){
+ if(!DATA.modal)return;
+ const type=DATA.modal,choice=(label,key,value,desc='')=>'<button type="button" class="fp-route-dialog-option" data-command="'+key+'" data-value="'+esc(value)+'"><strong>'+label+'</strong><small>'+esc(desc)+'</small><span>›</span></button>';
+ ui.dialogTitle.textContent=type==='origin'?'选择起点':type==='dest'?'选择终点':type==='segment'?'这一段怎么走':type==='save'?'确认保存路线':'路线设置';
+ if(type==='origin'){
+  ui.dialogBody.innerHTML=choice('当前位置','endpoint-choice','current','从当前定位开始')+choice('第一个访问地点','endpoint-choice','first','与第一站相同')+choice('从收藏地点选择','endpoint-choice','list','在收藏列表中指定')+choice('在地图上选择','endpoint-choice','map','地图上任意位置');
+ }else if(type==='dest'){
+  ui.dialogBody.innerHTML=choice('最后一个访问地点','endpoint-choice','last','到最后一站结束')+choice('返回起点 · 闭环','endpoint-choice','loop','连接回起点')+choice('不指定终点','endpoint-choice','none','开放路线')+choice('从收藏地点选择','endpoint-choice','list','指定不同终点')+choice('在地图上选择','endpoint-choice','map','地图上任意位置');
+ }else if(type==='segment'){
+  ui.dialogBody.innerHTML=[['car','驾车'],['walk','步行'],['bike','骑行'],['transit','公共交通']].map(([m,label])=>choice(label,'segment-choice',m)).join('');
+ }else if(type==='save'){
+  ui.dialogBody.innerHTML='<div class="fp-route-dialog-summary"><strong>'+esc(DATA.title)+'</strong><p>'+esc(DATA.start)+' — '+esc(DATA.end)+' · '+DATA.order.length+' 个地点</p><p>起点：'+esc(originName())+'</p><p>终点：'+esc(destName())+'</p></div>';
+  ui.dialogFooter.innerHTML=button('继续修改','dismiss-dialog')+button('确认保存','confirm-save',true);
+ }
+}
+function chooseEndpoint(value){
+ const kind=DATA.modalEndpoint||DATA.modal;
+ if(!['origin','dest'].includes(kind))return;
+ if(value==='list'){
+  DATA.modal='endpoint-list';ui.dialogTitle.textContent=kind==='origin'?'从收藏选择起点':'从收藏选择终点';
+  ui.dialogBody.innerHTML=DATA.places.filter(p=>valid(p)&&p.starred!==false&&!p.routeOnly).slice(0,100).map(p=>'<button class="fp-route-dialog-option" data-command="endpoint-select" data-id="'+esc(p.id)+'"><strong>'+esc(p.title||p.name)+'</strong><span>›</span></button>').join('')||'<p class="fp-route-caption">还没有收藏地点。可改用地图选点。</p>';
+  return;
+ }
+ if(value==='map'){
+  DATA.endpointMap=kind;modalClose();setMode('settings');spring('peek');
+  hint('请在地图上点选'+(kind==='origin'?'起点':'终点'));return;
+ }
+ snapshot('调整'+(kind==='origin'?'起点':'终点'));DATA[kind]={type:value};
+ modalClose();markChanged();body();syncMapMode();fit();hint('起终点已更新')
+}
+function endpointSet(id){
+ const kind=DATA.endpointMap||DATA.modalEndpoint;
+ if(!['origin','dest'].includes(kind))return;
+ snapshot('指定'+(kind==='origin'?'起点':'终点'));DATA[kind]={type:'point',id:String(id)};
+ DATA.endpointMap=null;DATA.modalEndpoint='';modalClose();markChanged();setMode('settings');fit();hint('已选择'+(kind==='origin'?'起点':'终点'))
+}
+
 const routeRows=r=>(r?.stops?.length?r.stops:r?.selected?.length?r.selected:r?.placeIds||[]).map(x=>typeof x==='string'?x:x?.placeId||x?.id).filter(Boolean).map(String);
 const viewportHeight=()=>Math.max(430,Math.min(window.innerHeight||844,window.visualViewport?.height||window.innerHeight||844));
 // In full mode we intentionally reserve a useful map viewport above the sheet.
@@ -108,10 +175,17 @@ function listSaved(routes=DATA.routes){
  return routes.map(r=>{const count=routeRows(r).length;return '<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">↗</span><strong>'+esc(r.title||'我的旅行路线')+'</strong><button class="fp-route-btn" data-command="open-saved" data-id="'+esc(r.id)+'" aria-label="查看已保存路线">查看</button></div><div class="fp-route-caption">'+esc(r.startDate||'')+(r.endDate?' — '+esc(r.endDate):'')+' · '+count+' 个地点</div></div>'}).join('')
 }
 function orderList(){
- return DATA.order.map((id,i)=>{
-  const p=place(id);if(!p)return '';
-  return '<div class="fp-route-reorder" data-stop="'+esc(id)+'" draggable="true"><span class="fp-route-index">'+(i+1)+'</span><span class="fp-route-name">'+esc(p.title||p.name||'地点')+'</span><button type="button" class="fp-route-day" data-command="day" data-id="'+esc(id)+'" aria-label="调整访问日期，当前第'+(DATA.days[id]||1)+'天">D'+(DATA.days[id]||1)+'</button><button type="button" data-command="up" data-id="'+esc(id)+'" aria-label="提前一站">↑</button><button type="button" data-command="down" data-id="'+esc(id)+'" aria-label="延后一站">↓</button></div>'
+ return DATA.order.map((id,i)=>{const p=place(id);if(!p)return '';
+ return '<div class="fp-route-reorder" data-stop="'+esc(id)+'"><span class="fp-route-index">'+(i+1)+'</span><span class="fp-route-name">'+esc(p.title||p.name||'地点')+'</span><button type="button" class="fp-route-day" data-command="day" data-id="'+esc(id)+'">D'+(DATA.days[id]||1)+'</button><button type="button" class="fp-route-grab" data-grab="'+esc(id)+'" aria-label="长按拖动调整站点顺序">☷</button></div>'
  }).join('');
+}
+function routeLegList(){
+ const pts=effectiveWaypoints();if(pts.length<2)return '';
+ return pts.slice(1).map((b,i)=>{const a=pts[i];return '<button type="button" class="fp-route-leg" data-command="leg" data-id="'+esc(legKey(a,b))+'"><span class="fp-route-leg-dot">'+(i+1)+'</span><span class="fp-route-leg-text">'+esc(a.title||a.name||'起点')+' → '+esc(b.title||b.name||'终点')+'</span><span class="fp-route-leg-mode">'+travelLabel(segmentMode(a,b))+' ›</span></button>'}).join('');
+}
+function previewDayFilter(){
+ return '<div class="fp-route-segment fp-route-day-filter"><button class="fp-route-btn '+(DATA.dayView===0?'is-active':'')+'" data-command="dayview" data-value="0">全部</button>'+
+ Array.from({length:Math.min(7,routeDays())},(_,i)=>'<button class="fp-route-btn '+(DATA.dayView===i+1?'is-active':'')+'" data-command="dayview" data-value="'+(i+1)+'">D'+(i+1)+'</button>').join('')+'</div>'
 }
 function body(){
  const n=DATA.order.length;
@@ -125,33 +199,44 @@ function body(){
  }
  if(DATA.mode==='pick'){
   head('选择地点','1 / 3');
-  ui.body.innerHTML='<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">01</span><strong>地图选点与收藏地点</strong><span class="fp-route-mode-label">'+n+' 处已选</span></div><p class="fp-route-caption">点地图黄星可加入或移除路线；地图上其他地点也可选取。下方仅保留必要操作。</p></div>'+
-   '<label class="fp-route-field" for="fpUnifiedPlaceSearch">搜索已收藏地点</label><input class="fp-route-input" id="fpUnifiedPlaceSearch" placeholder="输入地点名称…" value="'+esc(DATA.query||'')+'">'+
-   '<div id="fpUnifiedAvailable">'+placeList()+'</div>';
-  ui.footer.innerHTML=button('已保存路线','saved')+button('下一步 · 行程设置','settings',true);return;
+  const list=DATA.pickMode==='list';
+  ui.body.innerHTML='<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">01</span><strong>选择访问地点</strong><span class="fp-route-mode-label">'+n+' 处已选</span></div>'+
+  '<div class="fp-route-segment fp-route-tabs"><button class="fp-route-btn '+(list?'is-active':'')+'" data-command="pickmode" data-value="list">收藏列表</button><button class="fp-route-btn '+(!list?'is-active':'')+'" data-command="pickmode" data-value="map">地图选点</button></div>'+
+  (list?'<label class="fp-route-field" for="fpUnifiedPlaceSearch">搜索收藏地点</label><input class="fp-route-input" id="fpUnifiedPlaceSearch" placeholder="输入地点名称…" value="'+esc(DATA.query||'')+'"><div id="fpUnifiedAvailable">'+placeList()+'</div>':
+  '<p class="fp-route-caption">点地图已有地点可添加或移除；点空白位置可连续选点，地图实时显示成果。</p>')+'</div>';
+  ui.footer.innerHTML=(DATA.history.length?button('撤回','undo'):button('我的路线','saved'))+button('下一步 · 行程设置','settings',true);
+  ui.footer.querySelector('[data-command="settings"]').disabled=n<2;return;
  }
  if(DATA.mode==='settings'){
-  head('行程设置','2 / 3');
-  ui.body.innerHTML='<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">02</span><strong>路线基本信息</strong></div>'+
-   '<label class="fp-route-field" for="fpUnifiedTitle">路线名称</label><input class="fp-route-input" id="fpUnifiedTitle" maxlength="64" value="'+esc(DATA.title)+'">'+
-   '<label class="fp-route-field" for="fpUnifiedStart">出发日期</label><input type="date" class="fp-route-input" id="fpUnifiedStart" value="'+esc(DATA.start)+'">'+
-   '<label class="fp-route-field" for="fpUnifiedEnd">结束日期</label><input type="date" class="fp-route-input" id="fpUnifiedEnd" value="'+esc(DATA.end)+'">'+
-   '<div class="fp-route-field">出行方式</div><div class="fp-route-segment">'+[['car','驾车'],['walk','步行'],['bike','骑行'],['transit','公交']].map(([m,l])=>'<button class="fp-route-btn '+(DATA.travel===m?'is-active':'')+'" data-command="travel" data-value="'+m+'">'+l+'</button>').join('')+'</div></div>';
-  ui.footer.innerHTML=button('返回选点','pick')+button('下一步 · 排列顺序','order',true);return;
+  head(DATA.endpointMap?'地图选点':'行程设置','2 / 3');
+  if(DATA.endpointMap){ui.body.innerHTML='<div class="fp-route-card"><strong>在地图上指定'+(DATA.endpointMap==='origin'?'起点':'终点')+'</strong><p class="fp-route-caption">点击地图上的地点或空白位置，选择后返回行程设置。</p></div>';ui.footer.innerHTML=button('取消选点','cancel-endpoint',true);return}
+  ui.body.innerHTML='<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">02</span><strong>行程设置</strong></div>'+
+  '<label class="fp-route-field" for="fpUnifiedTitle">路线名称</label><input class="fp-route-input" id="fpUnifiedTitle" maxlength="42" value="'+esc(DATA.title)+'">'+
+  '<div class="fp-route-field">旅行日期</div><div class="fp-route-dates"><label>开始<input type="date" class="fp-route-input" id="fpUnifiedStart" value="'+esc(DATA.start)+'"></label><label>结束<input type="date" class="fp-route-input" id="fpUnifiedEnd" value="'+esc(DATA.end)+'"></label></div>'+
+  '<p class="fp-route-caption">'+routeDays()+' 天行程 · 点击日期使用系统选择器</p>'+
+  '<div class="fp-route-field">起点与终点</div>'+
+  '<button class="fp-route-endpoint" data-command="endpoint" data-value="origin"><span><small>起点</small><strong>'+esc(originName())+'</strong></span><b>›</b></button>'+
+  '<button class="fp-route-endpoint" data-command="endpoint" data-value="dest"><span><small>终点</small><strong>'+esc(destName())+'</strong></span><b>›</b></button>'+
+  '<div class="fp-route-field">旅行模式</div><div class="fp-route-travel">'+
+  '<button class="fp-route-btn '+(DATA.travel==='car'?'is-active':'')+'" data-command="main-travel" data-value="car">驾车旅行 <small>驾车为主</small></button>'+
+  '<button class="fp-route-btn '+(DATA.travel!=='car'?'is-active':'')+'" data-command="main-travel" data-value="walk">城市出行 <small>步行／公交按段</small></button></div></div>';
+  ui.footer.innerHTML=button('上一步','pick')+button('下一步 · 排列顺序','order',true);return;
  }
  if(DATA.mode==='order'){
   head('排列顺序','3 / 3');
-  ui.body.innerHTML='<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">03</span><strong>访问顺序</strong></div><div class="fp-route-caption">上下调整站点，地图线路实时对应。没有路网结果的连接显示为虚线示意，不代表真实道路。</div>'+
-   orderList()+'</div><div class="fp-route-recommendation">'+
-   (DATA.suggestion?.revision===routeRevision
-     ?'<p>按可获取的道路距离，建议的访问顺序预计可减少约 '+DATA.suggestion.saving+'% 的绕路；不代表实时路况。</p>'+button('采用建议顺序','adopt-suggestion',true)
-     :button('检查是否有更顺的访问顺序','suggest'))+'</div>';
-  ui.footer.innerHTML=button('返回设置','settings')+button('保存并预览','save',true);return;
+  ui.body.innerHTML='<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">03</span><strong>访问顺序</strong></div>'+
+  '<p class="fp-route-caption">长按右侧手柄拖动排序 · 点击 D 标签调整天数 · 地图同步更新编号</p>'+orderList()+
+  '<button type="button" class="fp-route-addmore" data-command="pick">＋ 继续添加地点</button></div>'+
+  '<div class="fp-route-recommendation">'+(DATA.suggestion?.revision===routeRevision?'<p>道路距离建议可减少约 '+DATA.suggestion.saving+'% 绕行（不代表实时路况）。</p>'+button('采用建议','adopt-suggestion',true):button('检查是否有更顺的顺序','suggest'))+'</div>'+
+  '<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">↗</span><strong>路段出行方式</strong></div>'+routeLegList()+'</div>';
+  ui.footer.innerHTML=button('上一步','settings')+button('完成并保存','confirm',true);return;
  }
  if(DATA.mode==='view'){
-  head(DATA.title,'路线预览');
-  ui.body.innerHTML='<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">✓</span><strong>路线预览</strong><span class="fp-route-mode-label">'+n+' 站</span></div><p class="fp-route-caption">'+esc(DATA.start)+' — '+esc(DATA.end)+' · '+({car:'驾车',walk:'步行',bike:'骑行',transit:'公交'}[DATA.travel]||'规划中')+'。底图已适度降低干扰，路线和黄星保持清晰。</p><div class="fp-route-actions">'+button('地图总览','fit')+button('站点详情','details')+'</div></div>';
-  ui.footer.innerHTML=button('编辑路线','pick')+button('选择导航','navigate',true);return;
+  head('查看行程','路线预览');
+  ui.body.innerHTML='<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">✓</span><strong>'+esc(DATA.title)+'</strong><span class="fp-route-mode-label">'+n+' 地点</span></div>'+
+  '<p class="fp-route-caption">'+esc(DATA.start)+' — '+esc(DATA.end)+' · '+esc(originName())+' → '+esc(destName())+'</p>'+
+  previewDayFilter()+routeLegList()+'<p class="fp-route-caption">点击地图站点查看详情，点路段调整出行方式。</p></div>';
+  ui.footer.innerHTML=button('编辑路线','settings')+button('选择导航','navigate',true);return;
  }
  if(DATA.mode==='detail'){
   const p=place(DATA.selected);
@@ -178,55 +263,69 @@ function stopIndex(){return new Map(DATA.order.map((id,i)=>[String(id),i+1]))}
 function refreshStarLabels(){
  if(!DATA.open)return;
  const index=stopIndex();document.querySelectorAll('#atlasBookmarkOverlay .atlas-bookmark-hit').forEach(b=>{
-  const n=index.get(String(b.dataset.placeId));
+  const id=String(b.dataset.placeId),n=index.get(id);
+  b.style.opacity=DATA.mode==='view'&&DATA.dayView>0&&DATA.days[id]!==DATA.dayView?'.42':'';
   const old=b.querySelector('.fp-route-stop-order');
   if(!n){old?.remove();return}
   const node=old||document.createElement('span');node.className='fp-route-stop-order';node.textContent=n;if(!old)b.append(node);
  });
 }
-function clearStarLabels(){document.querySelectorAll('#atlasBookmarkOverlay .fp-route-stop-order').forEach(n=>n.remove())}
+function clearStarLabels(){document.querySelectorAll('#atlasBookmarkOverlay .fp-route-stop-order').forEach(n=>n.remove());document.querySelectorAll('#atlasBookmarkOverlay .atlas-bookmark-hit').forEach(n=>n.style.removeProperty('opacity'))}
 function temporaryMarkers(){
  if(!map)return;
- const selected=new Set(DATA.order);
+ const selected=new Set([...DATA.order,DATA.origin.type==='point'?DATA.origin.id:null,DATA.dest.type==='point'?DATA.dest.id:null].filter(Boolean));
  for(const [id,pin] of tempPins)if(!selected.has(id)){pin.remove();tempPins.delete(id)}
- DATA.order.forEach((id,i)=>{
+ [...selected].forEach((id,i)=>{
   const p=place(id);if(!p||p.starred!==false||tempPins.has(id))return;
-  const el=document.createElement('button');el.type='button';el.className='fp-route-temp-marker';el.dataset.id=id;el.innerHTML='<span class="fp-route-temp-number">'+(i+1)+'</span>';
+  const el=document.createElement('button');el.type='button';el.className='fp-route-temp-marker';el.dataset.id=id;el.innerHTML='<span class="fp-route-temp-number">'+(DATA.order.includes(id)?DATA.order.indexOf(id)+1:id===DATA.origin.id?'起':'终')+'</span>';
    el.setAttribute('aria-label','路线临时站点 '+(i+1));
   el.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();selectStop(id)});
   const pin=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([+p.lng,+p.lat]).addTo(map);tempPins.set(id,pin);
  });
- for(const [id,pin] of tempPins){const n=DATA.order.indexOf(id);if(n>=0){const tag=pin.getElement().querySelector('span');if(tag)tag.textContent=n+1}}
+ for(const [id,pin] of tempPins){const n=DATA.order.indexOf(id),tag=pin.getElement().querySelector('span');if(tag)tag.textContent=n>=0?n+1:(id===DATA.origin.id?'起':'终')}
 }
 const geo=(features)=>({type:'FeatureCollection',features});
 function ensureLineLayers(){
  if(!map||!map.isStyleLoaded?.())return false;
  if(!map.getSource('fp-single-route'))map.addSource('fp-single-route',{type:'geojson',data:geo([])});
+ const faded=['case',['==',['get','dim'],true],.18,1];
  const layers=[
- ['fp-single-outline',['==',['get','kind'],'road'],{'line-color':'#fffefa','line-width':9,'line-opacity':1}],
- ['fp-single-road',['==',['get','kind'],'road'],{'line-color':'#3f6654','line-width':4.5,'line-opacity':1}],
- ['fp-single-order',['==',['get','kind'],'sequence'],{'line-color':'#d9b56b','line-width':3,'line-opacity':.93,'line-dasharray':[1.1,1.4]}]
+ ['fp-single-outline',['==',['get','kind'],'road'],{'line-color':'#fffefa','line-width':9,'line-opacity':faded}],
+ ['fp-single-road',['==',['get','kind'],'road'],{'line-color':'#3f6654','line-width':4.5,'line-opacity':faded}],
+ ['fp-single-order',['==',['get','kind'],'sequence'],{'line-color':'#d9b56b','line-width':3,'line-opacity':['case',['==',['get','dim'],true],.16,.93],'line-dasharray':[1.1,1.4]}]
  ];
  for(const [id,filter,paint] of layers)if(!map.getLayer(id))map.addLayer({id,type:'line',source:'fp-single-route',filter,paint,layout:{'line-cap':'round','line-join':'round'}});
+ if(!routeSegmentListener&&map.on){
+  routeSegmentListener=e=>{
+   if(!DATA.open||!['order','view'].includes(DATA.mode))return;
+   const f=e.features?.[0],from=f?.properties?.from,to=f?.properties?.to;
+   if(!from||!to)return;
+   e.originalEvent?.stopPropagation?.();
+   DATA.modalSeg=legKey({id:from},{id:to});
+   dialogOpen('segment');
+  };
+  map.on('click','fp-single-road',routeSegmentListener);
+  map.on('click','fp-single-order',routeSegmentListener)
+ }
  return true
 }
 function lines(){
  if(!DATA.open||!ensureLineLayers())return;
- const pts=selectedPlaces(),features=[];
+ const pts=effectiveWaypoints(),features=[];
  for(let i=1;i<pts.length;i++){
-  const a=pts[i-1],b=pts[i],key=DATA.travel+'|'+a.id+'|'+b.id;
+  const a=pts[i-1],b=pts[i],mode=segmentMode(a,b),key=mode+'|'+a.id+'|'+b.id;
   const hit=activeRoads.get(key);
   const kind=hit?.status==='ok'?'road':'sequence';
-  features.push({type:'Feature',properties:{kind,from:a.id,to:b.id},geometry:{type:'LineString',coordinates:kind==='road'?hit.geometry:[[+a.lng,+a.lat],[+b.lng,+b.lat]]}});
+  features.push({type:'Feature',properties:{kind,from:a.id,to:b.id,dim:DATA.mode==='view'&&DATA.dayView>0&&DATA.days[a.id]!==DATA.dayView&&DATA.days[b.id]!==DATA.dayView},geometry:{type:'LineString',coordinates:kind==='road'?hit.geometry:[[+a.lng,+a.lat],[+b.lng,+b.lat]]}});
  }
  map.getSource('fp-single-route')?.setData(geo(features));
  if(pts.length>1){
   const revision=routeRevision,request=window.__fpLiveRouting?.get;
-  if(request&&DATA.travel!=='transit')for(let i=1;i<pts.length;i++){
-   const a=pts[i-1],b=pts[i],key=DATA.travel+'|'+a.id+'|'+b.id;
+  if(request)for(let i=1;i<pts.length;i++){
+   const a=pts[i-1],b=pts[i],mode=segmentMode(a,b),key=mode+'|'+a.id+'|'+b.id;
    if(activeRoads.has(key))continue;
    activeRoads.set(key,{status:'loading'});
-   Promise.resolve(request(a,b,DATA.travel)).then(hit=>{
+   Promise.resolve(mode==='transit'?{status:'unavailable'}:request(a,b,mode)).then(hit=>{
     if(revision!==routeRevision||!DATA.open)return;
     activeRoads.set(key,hit||{status:'error'});lines();if(hit?.status==='ok')queueRouteCamera(true)
    }).catch(()=>{activeRoads.set(key,{status:'error'});if(revision===routeRevision)lines()});
@@ -247,7 +346,7 @@ function roadDistance(ids,road){
 async function suggestOrder(){
  const road=window.__fpLiveRouting;
  if(DATA.mode!=='order'||DATA.order.length<3||DATA.order.length>10){hint('建议适用于 3 至 10 个站点');return}
- if(DATA.travel==='transit'||!road?.prepareMatrix||!road?.metric){hint('该出行方式暂无可验证的道路距离建议');return}
+ if(DATA.travel==='transit'||Object.keys(DATA.legModes).length||DATA.origin.type==='point'||['point','loop'].includes(DATA.dest.type)||!road?.prepareMatrix||!road?.metric){hint('该出行方式暂无可验证的道路距离建议');return}
  const revision=routeRevision,original=[...DATA.order];
  hint('正在核对道路距离');
  try{
@@ -273,10 +372,10 @@ async function suggestOrder(){
 }
 // Route geometry, not just stop markers, defines the map's visible bounds.
 function routeCoordinates(){
- const pts=selectedPlaces(),coordinates=pts.map(p=>[+p.lng,+p.lat]);
+ const pts=effectiveWaypoints(),coordinates=pts.map(p=>[+p.lng,+p.lat]);
  for(let i=1;i<pts.length;i++){
   const a=pts[i-1],b=pts[i];
-  const road=activeRoads.get(DATA.travel+'|'+a.id+'|'+b.id);
+  const road=activeRoads.get(segmentMode(a,b)+'|'+a.id+'|'+b.id);
   if(road?.status!=='ok'||!Array.isArray(road.geometry))continue;
   for(const coord of road.geometry)if(Array.isArray(coord)&&Number.isFinite(+coord[0])&&Number.isFinite(+coord[1]))coordinates.push([+coord[0],+coord[1]]);
  }
@@ -345,23 +444,26 @@ function syncMapMode(){
 }
 function selectStop(id){
  id=String(id);if(!DATA.open)return;
+ if(DATA.endpointMap){endpointSet(id);return}
  if(DATA.mode==='view'||DATA.mode==='detail'){
   DATA.selected=id;setMode('detail');hint('已选中路线站点');return
  }
  const index=DATA.order.indexOf(id);
- routeRevision++;activeRoads.clear();
+ snapshot(index===-1?'添加地点':'移除地点');markChanged();
  if(index===-1)DATA.order.push(id);else DATA.order.splice(index,1);
- body();syncMapMode();spring('peek');hint(index===-1?'已添加站点 · 地图路线已更新':'已从路线移除站点');
+ if(DATA.days[id]===undefined)DATA.days[id]=1;
+ body();syncMapMode();spring('peek');fit();hint(index===-1?'已添加站点 · 地图路线已更新':'已从路线移除站点');
 }
 function onMapClick(e){
- if(!DATA.open||DATA.mode!=='pick'||!e.lngLat||!valid({lat:e.lngLat.lat,lng:e.lngLat.lng}))return;
+ if(!DATA.open||(DATA.mode!=='pick'&&!DATA.endpointMap)||!e.lngLat||!valid({lat:e.lngLat.lat,lng:e.lngLat.lng}))return;
  if(e.originalEvent?.target?.closest?.('#fpUnifiedRoute,#atlasBookmarkOverlay,.fp-poi'))return;
  const lon=+e.lngLat.lng,lat=+e.lngLat.lat;
  const old=DATA.places.find(p=>valid(p)&&Math.hypot((p.lng-lon)*Math.cos(lat*Math.PI/180),(p.lat-lat))<.00012);
- if(old){selectStop(old.id);return}
+ if(old){if(DATA.endpointMap)endpointSet(old.id);else selectStop(old.id);return}
  const id='route-map-'+(crypto.randomUUID?.()||Date.now().toString(36));
- DATA.places.push({id,title:'地图选点 '+(DATA.order.length+1),lat,lng,routeOnly:true,starred:false,pending:true});
- DATA.order.push(id);routeRevision++;activeRoads.clear();body();syncMapMode();spring('peek');hint('已添加地图选点 · 保存时才写入数据');
+ DATA.places.push({id,title:DATA.endpointMap?'地图指定位置':'地图选点 '+(DATA.order.length+1),lat,lng,routeOnly:true,starred:false,pending:true});
+ if(DATA.endpointMap){endpointSet(id);return}
+ snapshot('添加地图地点');DATA.order.push(id);markChanged();body();syncMapMode();spring('peek');fit();hint('已添加地图选点 · 保存时才写入数据');
 }
 function onStarClick(e){
  if(!DATA.open)return;
@@ -388,7 +490,7 @@ async function reload(){
  DATA.routes=routes||[];
 }
 function reset(){
- DATA.order=[];DATA.days={};DATA.suggestion=null;DATA.title='我的旅行路线';DATA.start=today();DATA.end=datePlus(DATA.start,2);DATA.travel='car';DATA.routeId='';DATA.selected='';DATA.pending=[];DATA.query='';
+ DATA.order=[];DATA.days={};DATA.suggestion=null;DATA.history=[];DATA.pickMode='list';DATA.origin={type:'current'};DATA.dest={type:'last'};DATA.legModes={};DATA.endpointMap=null;DATA.modalEndpoint='';DATA.modal=null;DATA.dayView=0;modalClose();DATA.title='我的旅行路线';DATA.start=today();DATA.end=datePlus(DATA.start,2);DATA.travel='car';DATA.routeId='';DATA.selected='';DATA.pending=[];DATA.query='';
  activeRoads.clear();routeRevision++;
 }
 function loadSaved(id){
@@ -397,7 +499,7 @@ function loadSaved(id){
  reset();DATA.routeId=String(r.id);DATA.title=String(r.title||DATA.title);
  DATA.start=r.startDate||DATA.start;DATA.end=r.endDate||DATA.end;DATA.travel=r.transportMode||r.travelMode||'car';
  if(DATA.travel==='city')DATA.travel='transit';
- DATA.order=routeRows(r).filter(id=>!!place(id));DATA.days=Object.fromEntries((r.stops||[]).map(x=>[String(x.placeId||x.id),Number(x.day)||1]));
+ DATA.order=routeRows(r).filter(id=>!!place(id));DATA.days=Object.fromEntries((r.stops||[]).map(x=>[String(x.placeId||x.id),Number(x.day)||1]));DATA.origin=r.routeOrigin||{type:r.originPlaceId?'point':'current',id:r.originPlaceId};DATA.dest=r.routeDestination||{type:r.destinationPlaceId?'point':'last',id:r.destinationPlaceId};DATA.legModes=r.legModes&&typeof r.legModes==='object'?{...r.legModes}:{};
  DATA.selected='';setMode('view');fit();hint('已打开已保存路线');
 }
 async function save(){
@@ -408,11 +510,11 @@ async function save(){
  try{
   const id=DATA.routeId||(crypto.randomUUID?.()||'route-'+Date.now());
   const stops=DATA.order.map((placeId,i)=>({placeId,order:i+1,day:DATA.days[placeId]||1,time:''}));
-  const temp=selectedPlaces().filter(p=>p.pending&&p.routeOnly===true&&p.starred===false).map(p=>({id:String(p.id),title:p.title||p.name||'地图选点',name:p.title||p.name||'地图选点',lat:+p.lat,lng:+p.lng,routeOnly:true,starred:false,createdAt:new Date().toISOString()}));
+  const temp=[...new Map([...selectedPlaces(),place(DATA.origin.id),place(DATA.dest.id)].filter(Boolean).map(p=>[p.id,p])).values()].filter(p=>p.pending&&p.routeOnly===true&&p.starred===false).map(p=>({id:String(p.id),title:p.title||p.name||'地图选点',name:p.title||p.name||'地图选点',lat:+p.lat,lng:+p.lng,routeOnly:true,starred:false,createdAt:new Date().toISOString()}));
   const old=DATA.routes.find(x=>String(x.id)===String(id))||{};
-  const record={...old,id,title:DATA.title.trim()||'我的旅行路线',startDate:DATA.start,endDate:DATA.end,travelMode:DATA.travel==='transit'?'city':DATA.travel,transportMode:DATA.travel,stops,placeIds:[...DATA.order],updatedAt:new Date().toISOString()};
+  const record={...old,id,title:DATA.title.trim()||'我的旅行路线',startDate:DATA.start,endDate:DATA.end,travelMode:DATA.travel==='transit'?'city':DATA.travel,transportMode:DATA.travel,stops,placeIds:[...DATA.order],routeOrigin:{...DATA.origin},routeDestination:{...DATA.dest},originPlaceId:DATA.origin.type==='point'?DATA.origin.id:null,destinationPlaceId:DATA.dest.type==='point'?DATA.dest.id:null,legModes:{...DATA.legModes},updatedAt:new Date().toISOString()};
   await r.saveRoute(record,{places:temp});
-  DATA.routeId=id;DATA.routes=await r.listRoutes();
+  DATA.routeId=id;DATA.history=[];DATA.routes=await r.listRoutes();
   DATA.places=DATA.places.map(p=>temp.some(t=>t.id===p.id)?{...p,pending:false}:p);
   document.dispatchEvent(new CustomEvent('footprint:route-saved',{detail:{id,placeIds:[...DATA.order]}}));
   history.replaceState(null,'','./index.html?route='+encodeURIComponent(id));
@@ -433,33 +535,46 @@ function viewPlace(){
  window.__atlasPOIBridge?.selectSaved?.(String(p.id));
 }
 function command(type,target){
+ if(type==='dismiss-dialog'){modalClose();return}
+ if(type==='confirm'){dialogOpen('save');return}
+ if(type==='confirm-save'){modalClose();void save();return}
+ if(type==='undo'){undo();return}
+ if(type==='pickmode'){DATA.pickMode=target.dataset.value==='map'?'map':'list';body();spring(DATA.pickMode==='map'?'peek':'half');return}
+ if(type==='endpoint'){DATA.modalEndpoint=target.dataset.value;dialogOpen(DATA.modalEndpoint);return}
+ if(type==='endpoint-choice'){chooseEndpoint(target.dataset.value);return}
+ if(type==='endpoint-select'){endpointSet(target.dataset.id);return}
+ if(type==='cancel-endpoint'){DATA.endpointMap=null;setMode('settings');return}
+ if(type==='main-travel'){snapshot('调整旅行模式');DATA.travel=target.dataset.value==='car'?'car':'walk';DATA.legModes={};markChanged();body();syncMapMode();return}
+ if(type==='leg'){DATA.modalSeg=target.dataset.id;dialogOpen('segment');return}
+ if(type==='segment-choice'){snapshot('调整单段交通');DATA.legModes[DATA.modalSeg]=target.dataset.value;modalClose();markChanged();body();syncMapMode();return}
+ if(type==='dayview'){DATA.dayView=Number(target.dataset.value)||0;body();syncMapMode();fit();return}
  if(type==='exit'){close();return}
  if(type==='saved'){setMode('saved',true);return}
  if(type==='new'){reset();setMode('pick',true);return}
  if(type==='open-saved'){loadSaved(target.dataset.id);return}
  if(type==='toggle'){selectStop(target.dataset.id);return}
  if(type==='settings'){if(DATA.order.length<2){hint('请先选择至少两个地点');return}setMode('settings');return}
- if(type==='pick'||type==='back'){setMode(type==='back'?'pick':type);return}
+ if(type==='pick'||type==='back'){DATA.endpointMap=null;setMode(type==='back'?'pick':type);return}
  if(type==='order'){if(DATA.end<DATA.start){hint('结束日期不能早于出发日期');return}setMode('order');fit();return}
  if(type==='day'){
-  const id=String(target.dataset.id||'');if(!DATA.order.includes(id))return;
+  const id=String(target.dataset.id||'');snapshot('修改访问日期');if(!DATA.order.includes(id))return;
   const days=journeyDays();DATA.days[id]=((DATA.days[id]||1)%days)+1;
   body();hint('已调整为行程第 '+DATA.days[id]+' 天');return
  }
  if(type==='suggest'){void suggestOrder();return}
  if(type==='adopt-suggestion'){
   if(DATA.suggestion?.revision!==routeRevision)return;
-  DATA.order=[...DATA.suggestion.order];DATA.suggestion=null;
+  snapshot('采用路线建议');DATA.order=[...DATA.suggestion.order];DATA.suggestion=null;
   routeRevision++;activeRoads.clear();body();syncMapMode();fit();hint('已采用建议顺序');return
  }
  if(type==='up'||type==='down'){
   const index=DATA.order.indexOf(target.dataset.id),other=index+(type==='up'?-1:1);
   if(index<0||other<0||other>=DATA.order.length)return;
-  [DATA.order[index],DATA.order[other]]=[DATA.order[other],DATA.order[index]];
+  snapshot('调整访问顺序');[DATA.order[index],DATA.order[other]]=[DATA.order[other],DATA.order[index]];
   routeRevision++;activeRoads.clear();
   body();syncMapMode();hint('路线顺序已更新');return
  }
- if(type==='travel'){DATA.travel=target.dataset.value;activeRoads.clear();routeRevision++;body();syncMapMode();return}
+ if(type==='travel'){snapshot('调整交通方式');DATA.travel=target.dataset.value;activeRoads.clear();routeRevision++;body();syncMapMode();return}
  if(type==='save'){void save();return}
  if(type==='view'){setMode('view');return}
  if(type==='fit'){fit();spring('peek');return}
@@ -468,19 +583,50 @@ function command(type,target){
  if(type==='place-detail'){viewPlace();return}
 }
 shell.addEventListener('click',e=>{const t=e.target.closest('[data-command]');if(!t)return;e.preventDefault();command(t.dataset.command,t)});
+ui.dialog.addEventListener('click',e=>{if(e.target===ui.dialog)modalClose()});
 shell.addEventListener('input',e=>{
  const t=e.target;if(t.id==='fpUnifiedPlaceSearch'){DATA.query=t.value;const el=$('fpUnifiedAvailable');if(el)el.innerHTML=placeList()}
  if(t.id==='fpUnifiedTitle')DATA.title=t.value;
- if(t.id==='fpUnifiedStart')DATA.start=t.value;
- if(t.id==='fpUnifiedEnd')DATA.end=t.value;
+ if(t.id==='fpUnifiedStart'){snapshot('调整开始日期');DATA.start=t.value}
+ if(t.id==='fpUnifiedEnd'){snapshot('调整结束日期');DATA.end=t.value}
 });
-shell.addEventListener('dragstart',e=>{const el=e.target.closest('[data-stop]');if(el){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',el.dataset.stop)}});
-shell.addEventListener('dragover',e=>{if(e.target.closest('[data-stop]'))e.preventDefault()});
-shell.addEventListener('drop',e=>{
- const el=e.target.closest('[data-stop]');if(!el)return;e.preventDefault();
- const a=e.dataTransfer.getData('text/plain'),b=el.dataset.stop;
- const ai=DATA.order.indexOf(a),bi=DATA.order.indexOf(b);if(ai<0||bi<0||ai===bi)return;
- DATA.order.splice(ai,1);DATA.order.splice(bi,0,a);routeRevision++;activeRoads.clear();body();syncMapMode();hint('拖动顺序已更新')
+// Approved 11/18 ordering: a long handle drag, not desktop HTML5 DnD.
+let routeRowDrag=null;
+ui.body.addEventListener('pointerdown',e=>{
+ const handle=e.target.closest?.('[data-grab]');if(!handle||e.isPrimary===false)return;
+ const id=handle.dataset.grab,initial=DATA.order.indexOf(id);if(initial<0)return;
+ routeRowDrag={pointerId:e.pointerId,id,initial,target:initial,y:e.clientY,started:e.timeStamp,moved:false,handle};
+ handle.setPointerCapture?.(e.pointerId);
+},{passive:true});
+ui.body.addEventListener('pointermove',e=>{
+ const g=routeRowDrag;if(!g||g.pointerId!==e.pointerId)return;
+ const dy=e.clientY-g.y;
+ if(!g.moved&&Math.abs(dy)<7)return;
+ g.moved=true;e.preventDefault();
+ const rows=[...ui.body.querySelectorAll('.fp-route-reorder')];
+ const to=rows.reduce((i,r,n)=>{const b=r.getBoundingClientRect();return Math.abs(e.clientY-(b.top+b.bottom)/2)<Math.abs(e.clientY-(rows[i].getBoundingClientRect().top+rows[i].getBoundingClientRect().bottom)/2)?n:i},0);
+ g.target=to;
+ for(const [i,row] of rows.entries()){row.classList.toggle('is-drop-target',i===to);row.classList.toggle('is-drag-source',i===g.initial)}
+},{passive:false});
+function finishRowDrag(e){
+ const g=routeRowDrag;if(!g||g.pointerId!==e.pointerId)return;
+ routeRowDrag=null;
+ for(const row of ui.body.querySelectorAll('.fp-route-reorder'))row.classList.remove('is-drop-target','is-drag-source');
+ try{g.handle.releasePointerCapture?.(e.pointerId)}catch(_){}
+ if(!g.moved||g.initial===g.target)return;
+ snapshot('调整访问顺序');
+ const ids=[...DATA.order];ids.splice(g.initial,1);ids.splice(g.target,0,g.id);
+ DATA.order=ids;markChanged();body();syncMapMode();fit();hint('路线顺序已更新')
+}
+ui.body.addEventListener('pointerup',finishRowDrag);
+ui.body.addEventListener('pointercancel',e=>{routeRowDrag=null;for(const row of ui.body.querySelectorAll('.fp-route-reorder'))row.classList.remove('is-drop-target','is-drag-source')});
+ui.body.addEventListener('keydown',e=>{
+ const handle=e.target.closest('[data-grab]');if(!handle||!['ArrowUp','ArrowDown'].includes(e.key))return;
+ e.preventDefault();const i=DATA.order.indexOf(handle.dataset.grab),j=i+(e.key==='ArrowUp'?-1:1);
+ if(j<0||j>=DATA.order.length)return;
+ snapshot('调整访问顺序');[DATA.order[i],DATA.order[j]]=[DATA.order[j],DATA.order[i]];
+ markChanged();body();syncMapMode();fit();
+ ui.body.querySelectorAll('[data-grab]')[j]?.focus()
 });
 // Route and the accepted location card share one three-detent gesture language.
 // A gesture may begin on the grip, title/header, or unused card content.
@@ -593,6 +739,7 @@ ui.body.addEventListener('touchcancel',e=>endFullScrollTouch(e,true));
 function detachMap(){
  routeRevision++;activeRoads.clear();quieter(false);
  if(map&&routeClickListener)map.off('click',routeClickListener);
+ if(map&&routeSegmentListener){for(const layer of ['fp-single-road','fp-single-order'])try{map.off('click',layer,routeSegmentListener)}catch(_){}routeSegmentListener=null}
  if(styleMap&&styleListener)styleMap.off('style.load',styleListener);
  styleMap=null;styleListener=null;routeClickListener=null;
  if(map?.getLayer){for(const id of ['fp-single-order','fp-single-road','fp-single-outline'])if(map.getLayer(id))try{map.removeLayer(id)}catch(_){}if(map.getSource('fp-single-route'))try{map.removeSource('fp-single-route')}catch(_){}}
@@ -614,6 +761,7 @@ function finishClose(){
 }
 function close(){
  if(!DATA.open||closing)return;
+ modalClose();DATA.endpointMap=null;
  sheetGesture=null;dragging=false;ui.sheet.classList.remove('is-dragging');
  if(cameraFrame){cancelAnimationFrame(cameraFrame);cameraFrame=0}
  document.removeEventListener('click',onStarClick,true);

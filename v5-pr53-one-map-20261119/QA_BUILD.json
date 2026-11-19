@@ -1,15 +1,22 @@
 {
   "product": "Footprint Map V5",
-  "type": "independent QA candidate",
+  "type": "independent interactive QA candidate",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "15921b19a17c0cdfa02ec88355220d249fa88e16",
+  "source_commit": "96628ca11d6d7623f2dbf366a07b73dded4156a1",
   "source_branch": "integration/v5-one-poi-card-route-20261119",
-  "source_prs": [
-    53,
-    54
+  "route_interaction_reference": "v5-route-interaction-demo-20261118/index.html",
+  "route_interaction_contract": "Nov 18 approved 3-step route pick/settings/order, editable endpoints/loop, day schedule, undo, per-leg mode, save confirmation and saved preview",
+  "visual_reference": "Latest V5 PR53 Changshou card and existing palette",
+  "retained": [
+    "one live MapLibre instance",
+    "yellow-star saved POIs",
+    "media V9",
+    "dock V2",
+    "existing IndexedDB schema",
+    "route rubber-band card"
   ],
-  "preview_data_namespace": "private-travel-footprints-v5-pr53-review-20261119",
-  "qa_scope": "POI selected V3 1.42x, visible hit no jumping, consistent route peek / 12px side margins, no route top, elastic right map tools",
-  "published_no_production_merge": true,
-  "real_iphone_safari_qa": "pending"
+  "preview_db_namespace": "private-travel-footprints-v5-pr53-review-20261119",
+  "data_isolation": true,
+  "formal_site_unchanged": true,
+  "ios_real_qa": "pending"
 }

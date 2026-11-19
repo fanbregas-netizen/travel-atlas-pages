@@ -121,3 +121,48 @@ body.fp-unified-route .map-controls .circlebtn{
 @media(min-width:740px){
  #fpUnifiedRoute .fp-route-sheet{left:auto!important;right:24px!important;width:440px;max-width:calc(100vw - 48px)}
 }
+
+
+/* 11/18 approved interaction port: appearance intentionally inherits the
+   latest Changshou Road V5 card tokens rather than the historical demo CSS. */
+#fpUnifiedRoute .fp-route-tabs{margin:12px 0 6px}
+#fpUnifiedRoute .fp-route-btn:disabled{opacity:.45;cursor:default}
+#fpUnifiedRoute .fp-route-dates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:5px 0 0}
+#fpUnifiedRoute .fp-route-dates label{min-width:0;font-size:12px;color:var(--fp-card-muted,#91a095);font-weight:650}
+#fpUnifiedRoute .fp-route-dates input{margin-top:6px;max-width:100%;padding:9px;font-size:14px}
+#fpUnifiedRoute .fp-route-endpoint{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:57px;padding:10px 14px;text-align:left;border:1px solid var(--fp-card-line,#e0e6de);border-radius:14px;background:var(--fp-card-paper,#fffefa);color:var(--fp-card-ink,#293f33);margin:6px 0;touch-action:manipulation}
+#fpUnifiedRoute .fp-route-endpoint span{display:grid;gap:4px}
+#fpUnifiedRoute .fp-route-endpoint small{font-size:11px;color:var(--fp-card-muted,#91a095)}
+#fpUnifiedRoute .fp-route-endpoint strong{font-size:14px;font-weight:750}
+#fpUnifiedRoute .fp-route-endpoint b{font-size:22px;color:#99a79b;font-weight:400}
+#fpUnifiedRoute .fp-route-travel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:7px 0 0}
+#fpUnifiedRoute .fp-route-travel .fp-route-btn{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;min-height:65px;text-align:left}
+#fpUnifiedRoute .fp-route-travel small{font-size:11px;font-weight:500;color:#718474}
+#fpUnifiedRoute .fp-route-reorder{grid-template-columns:38px minmax(0,1fr) 44px 44px}
+#fpUnifiedRoute .fp-route-reorder .fp-route-grab{font-size:21px;color:#68816e;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+#fpUnifiedRoute .fp-route-reorder.is-drop-target{background:#edf4eb;border-radius:10px}
+#fpUnifiedRoute .fp-route-reorder.is-drag-source{opacity:.6}
+#fpUnifiedRoute .fp-route-addmore{display:block;min-height:44px;width:100%;margin:11px 0 0;background:transparent;border:1px dashed #c8d9cd;border-radius:13px;color:#55715f;font-size:13px;font-weight:700}
+#fpUnifiedRoute .fp-route-leg{display:flex;align-items:center;gap:9px;width:100%;min-height:52px;padding:8px 2px;background:transparent;border:0;border-top:1px solid #ecf0eb;text-align:left;color:var(--fp-card-ink,#293f33)}
+#fpUnifiedRoute .fp-route-leg-dot{min-width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:#eef2ec;color:#718b75;font-size:12px}
+#fpUnifiedRoute .fp-route-leg-text{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:650}
+#fpUnifiedRoute .fp-route-leg-mode{flex-shrink:0;font-size:12px;color:#6e8672}
+#fpUnifiedRoute .fp-route-day-filter{overflow:auto;overscroll-behavior-x:contain;margin:12px 0;scrollbar-width:none}
+#fpUnifiedRoute .fp-route-day-filter::-webkit-scrollbar{display:none}
+#fpUnifiedRoute .fp-route-day-filter .fp-route-btn{flex:0 0 auto;min-width:44px}
+/* Overlay is scoped to the single route sheet; no separate MapLibre canvas. */
+#fpUnifiedRoute .fp-route-dialog-backdrop{position:absolute;inset:0;z-index:90;display:flex;align-items:flex-end;justify-content:center;background:rgba(28,43,33,.25);pointer-events:auto}
+#fpUnifiedRoute .fp-route-dialog-backdrop[hidden]{display:none!important}
+#fpUnifiedRoute .fp-route-dialog{box-sizing:border-box;width:calc(100% - 24px);max-width:536px;max-height:min(72dvh,640px);overflow:hidden;display:flex;flex-direction:column;background:var(--fp-card-paper,#fffefa);border:1px solid var(--fp-card-line,#e0e6de);border-radius:22px 22px 0 0;box-shadow:0 -9px 30px #213c3329}
+#fpUnifiedRoute .fp-route-dialog-head{display:flex;align-items:center;gap:10px;padding:14px 20px 8px;border-bottom:1px solid var(--fp-card-line,#e0e6de)}
+#fpUnifiedRoute .fp-route-dialog-head h3{flex:1;min-width:0;font-size:20px;font-weight:740;margin:0;color:var(--fp-card-ink,#293f33)}
+#fpUnifiedRoute .fp-route-dialog-head button{width:44px;height:44px;background:transparent;border:0;color:#7b8d7f;font-size:25px}
+#fpUnifiedRoute .fp-route-dialog-content{padding:12px 20px 22px;overflow:auto}
+#fpUnifiedRoute .fp-route-dialog-option{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;background:transparent;border:0;border-bottom:1px solid var(--fp-card-line,#e0e6de);padding:10px 3px;text-align:left;color:var(--fp-card-ink,#293f33)}
+#fpUnifiedRoute .fp-route-dialog-option strong{font-size:15px;font-weight:700;flex:1}
+#fpUnifiedRoute .fp-route-dialog-option small{color:var(--fp-card-muted,#91a095);font-size:12px;max-width:43%}
+#fpUnifiedRoute .fp-route-dialog-option span{font-size:20px;color:#8e9e90}
+#fpUnifiedRoute .fp-route-dialog-footer{display:flex;gap:9px;padding:13px 20px calc(13px + env(safe-area-inset-bottom))}
+#fpUnifiedRoute .fp-route-dialog-footer:empty{display:none}
+#fpUnifiedRoute .fp-route-dialog-summary{font-size:14px;line-height:1.6}
+#fpUnifiedRoute .fp-route-dialog-summary p{color:#718474;margin:8px 0}
