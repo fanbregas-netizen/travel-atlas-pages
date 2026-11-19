@@ -2,12 +2,12 @@
   "product": "Footprint Map V5",
   "type": "isolated Safari QA candidate",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "1941da107ca5e008e440f0abea9c00c2dd3642e6",
+  "source_commit": "50aac0612a9a641bd3859cdde3c7bb1393851b2e",
   "source_branch": "integration/v5-one-poi-card-route-20261119",
-  "interaction_reference": "2026-11-18 three-step route planner",
-  "visual_reference": "Latest V5 accepted card and V3 hand-drawn icons",
-  "scope": "yellow stars only; numbered top-right; no lines in pick; card down -> map focus; camera + 3 controls linked; X resumes draft",
+  "visual_reference": "Latest V5 Changshou card and V3 POI",
+  "interaction_reference": "Approved Nov 18 3-step route with saved-star focus",
+  "new_behavior": "only bookmarked yellow stars may be picked; circular order badges on star top-right; no line until order; card-down focus; X preserves in-tab draft; camera and controls linked",
   "data_namespace": "private-travel-footprints-v5-pr53-review-20261119",
-  "production_site_modified": false,
+  "production_modified": false,
   "real_iphone_safari_qa": "pending"
 }

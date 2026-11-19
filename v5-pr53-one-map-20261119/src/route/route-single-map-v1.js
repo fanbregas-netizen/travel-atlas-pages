@@ -57,9 +57,9 @@ function renderDialog(){
  const type=DATA.modal,choice=(label,key,value,desc='')=>'<button type="button" class="fp-route-dialog-option" data-command="'+key+'" data-value="'+esc(value)+'"><strong>'+label+'</strong><small>'+esc(desc)+'</small><span>›</span></button>';
  ui.dialogTitle.textContent=type==='origin'?'选择起点':type==='dest'?'选择终点':type==='segment'?'这一段怎么走':type==='save'?'确认保存路线':'路线设置';
  if(type==='origin'){
-  ui.dialogBody.innerHTML=choice('当前位置','endpoint-choice','current','从当前定位开始')+choice('第一个访问地点','endpoint-choice','first','与第一站相同')+choice('从收藏地点选择','endpoint-choice','list','在收藏列表中指定')+choice('在地图上选择','endpoint-choice','map','地图上任意位置');
+  ui.dialogBody.innerHTML=choice('当前位置','endpoint-choice','current','从当前定位开始')+choice('第一个访问地点','endpoint-choice','first','与第一站相同')+choice('从收藏地点选择','endpoint-choice','list','在收藏列表中指定')+choice('在地图上选择','endpoint-choice','map','仅选择已收藏的黄星');
  }else if(type==='dest'){
-  ui.dialogBody.innerHTML=choice('最后一个访问地点','endpoint-choice','last','到最后一站结束')+choice('返回起点 · 闭环','endpoint-choice','loop','连接回起点')+choice('不指定终点','endpoint-choice','none','开放路线')+choice('从收藏地点选择','endpoint-choice','list','指定不同终点')+choice('在地图上选择','endpoint-choice','map','地图上任意位置');
+  ui.dialogBody.innerHTML=choice('最后一个访问地点','endpoint-choice','last','到最后一站结束')+choice('返回起点 · 闭环','endpoint-choice','loop','连接回起点')+choice('不指定终点','endpoint-choice','none','开放路线')+choice('从收藏地点选择','endpoint-choice','list','指定不同终点')+choice('在地图上选择','endpoint-choice','map','仅选择已收藏的黄星');
  }else if(type==='segment'){
   ui.dialogBody.innerHTML=[['car','驾车'],['walk','步行'],['bike','骑行'],['transit','公共交通']].map(([m,label])=>choice(label,'segment-choice',m)).join('');
  }else if(type==='save'){
@@ -77,7 +77,7 @@ function chooseEndpoint(value){
  }
  if(value==='map'){
   DATA.endpointMap=kind;modalClose();setMode('settings');spring('peek');
-  hint('请在地图上点选'+(kind==='origin'?'起点':'终点'));return;
+  hint('请点选收藏黄星作为'+(kind==='origin'?'起点':'终点'));return;
  }
  snapshot('调整'+(kind==='origin'?'起点':'终点'));DATA[kind]={type:value};
  modalClose();markChanged();body();syncMapMode();fit();hint('起终点已更新')
@@ -244,7 +244,7 @@ function head(title,step){ui.heading.textContent=title;ui.step.textContent=step}
 function placeList(){
  let q=(DATA.query||'').trim();
  const available=DATA.places.filter(p=>valid(p)&&p.starred!==false&&!p.demo&&(!q||String(p.title||p.name||'').includes(q))).slice(0,130);
- if(!available.length)return '<div class="fp-route-empty">'+(q?'没有匹配地点':'还没有收藏地点。可以先返回地图收藏地点，或直接在地图点选。')+'</div>';
+ if(!available.length)return '<div class="fp-route-empty">'+(q?'没有匹配地点':'还没有收藏地点，请先收藏想去的地点。')+'</div>';
  return available.map(p=>{
   const chosen=DATA.order.includes(String(p.id));
   return '<div class="fp-route-place"><span class="fp-route-index">'+(chosen?'★':'☆')+'</span><div class="fp-route-name"><strong>'+esc(p.title||p.name)+'</strong><small>'+esc(p.address||p.city||'收藏地点')+'</small></div><button class="fp-route-btn '+(chosen?'is-active':'')+'" data-command="toggle" data-id="'+esc(p.id)+'" aria-label="'+(chosen?'移除':'添加')+esc(p.title||p.name)+'">'+(chosen?'✓':'＋')+'</button></div>'
@@ -283,13 +283,13 @@ function body(){
   ui.body.innerHTML='<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">01</span><strong>选择访问地点</strong><span class="fp-route-mode-label">'+n+' 处已选</span></div>'+
   '<div class="fp-route-segment fp-route-tabs"><button class="fp-route-btn '+(list?'is-active':'')+'" data-command="pickmode" data-value="list">收藏列表</button><button class="fp-route-btn '+(!list?'is-active':'')+'" data-command="pickmode" data-value="map">地图选点</button></div>'+
   (list?'<label class="fp-route-field" for="fpUnifiedPlaceSearch">搜索收藏地点</label><input class="fp-route-input" id="fpUnifiedPlaceSearch" placeholder="输入地点名称…" value="'+esc(DATA.query||'')+'"><div id="fpUnifiedAvailable">'+placeList()+'</div>':
-  '<p class="fp-route-caption">点地图已有地点可添加或移除；点空白位置可连续选点，地图实时显示成果。</p>')+'</div>';
+  '<p class="fp-route-caption">仅点选地图上的收藏黄星；右上角自动编号。这一步不连线。</p>')+'</div>';
   ui.footer.innerHTML=(DATA.history.length?button('撤回','undo'):button('我的路线','saved'))+button('下一步 · 行程设置','settings',true);
   ui.footer.querySelector('[data-command="settings"]').disabled=n<2;return;
  }
  if(DATA.mode==='settings'){
   head(DATA.endpointMap?'地图选点':'行程设置','2 / 3');
-  if(DATA.endpointMap){ui.body.innerHTML='<div class="fp-route-card"><strong>在地图上指定'+(DATA.endpointMap==='origin'?'起点':'终点')+'</strong><p class="fp-route-caption">点击地图上的地点或空白位置，选择后返回行程设置。</p></div>';ui.footer.innerHTML=button('取消选点','cancel-endpoint',true);return}
+  if(DATA.endpointMap){ui.body.innerHTML='<div class="fp-route-card"><strong>在地图上指定'+(DATA.endpointMap==='origin'?'起点':'终点')+'</strong><p class="fp-route-caption">点选地图上的收藏黄星，完成后返回行程设置。</p></div>';ui.footer.innerHTML=button('取消选点','cancel-endpoint',true);return}
   ui.body.innerHTML='<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">02</span><strong>行程设置</strong></div>'+
   '<label class="fp-route-field" for="fpUnifiedTitle">路线名称</label><input class="fp-route-input" id="fpUnifiedTitle" maxlength="42" value="'+esc(DATA.title)+'">'+
   '<div class="fp-route-field">旅行日期</div><div class="fp-route-dates"><label>开始<input type="date" class="fp-route-input" id="fpUnifiedStart" value="'+esc(DATA.start)+'"></label><label>结束<input type="date" class="fp-route-input" id="fpUnifiedEnd" value="'+esc(DATA.end)+'"></label></div>'+
