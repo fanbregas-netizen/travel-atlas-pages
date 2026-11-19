@@ -20,10 +20,6 @@ jobs:
           node-version: '22'
       - name: Install browser runner
         run: npm install --no-save --ignore-scripts playwright-core@1.58.2
-      - name: Install CJK font for screenshot fidelity
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq fonts-noto-cjk
       - name: Verify approved card geometry on iPhone sizes
         run: node tests/v5-card-unified-visual-browser.cjs
       - name: Upload card visual screenshots
