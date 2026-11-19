@@ -22,7 +22,7 @@ const base='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
    assert.equal(cssRes.status(),200,'route CSS asset must be live');
    const script=await jsRes.text(),style=await cssRes.text();
    assert.ok(script.includes('beginSheetGesture')&&script.includes('queueRouteCamera'),'new real gesture/camera source missing');
-   await page.setContent('<!doctype html><html lang="zh"><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body style="margin:0;background:#729185"><div id="atlasBookmarkOverlay"></div><div id="atlasVectorMap"></div></body></html>');
+   await page.setContent('<!doctype html><html lang="zh"><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>.map-controls{position:fixed;right:12px;bottom:124px;display:flex;flex-direction:column;gap:9px}.map-controls button{width:48px;height:48px}</style></head><body style="margin:0;background:#729185"><div id="atlasBookmarkOverlay"></div><div id="atlasVectorMap"></div><div class="map-controls"><button aria-label="定位">⌖</button><button aria-label="放大">＋</button><button aria-label="缩小">－</button></div></body></html>');
    await page.addStyleTag({content:style});
    await page.evaluate(()=>{
     window.__qaCameraCalls=[];
@@ -42,12 +42,22 @@ const base='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
     })};
    });
    await page.addScriptTag({content:script});
+   const toolsRest=await page.locator('.map-controls').boundingBox();
    await page.evaluate(()=>window.FootprintUnifiedRoute.open());
    await page.waitForTimeout(720);
    assert.equal(await page.evaluate(()=>window.FootprintUnifiedRoute.state.step),'saved');
+   assert.equal(await page.locator('#fpUnifiedRoute .fp-route-top').count(),0,'no redundant route nav above map');
+   const savedPeek=await page.locator('#fpUnifiedRoute .fp-route-sheet').boundingBox();
+   assert.ok(savedPeek.x>=11&&Math.abs((width-savedPeek.width)-savedPeek.x)<2,'both sides of route card must match place card');
+   const toolsAtSaved=await page.locator('.map-controls').boundingBox();
+   assert.ok(toolsAtSaved.y+toolsAtSaved.height<savedPeek.y-7,'all 3 right map tools must clear saved-route card');
    await page.locator('#fpUnifiedRoute [data-command="new"]').first().click();
    await page.waitForTimeout(680);
    assert.equal(await page.evaluate(()=>window.FootprintUnifiedRoute.state.step),'pick');
+   const pickPeek=await page.locator('#fpUnifiedRoute .fp-route-sheet').boundingBox();
+   assert.ok(Math.abs(pickPeek.height-savedPeek.height)<2,'saved list and initial planning must open at SAME height');
+   const toolsAtPick=await page.locator('.map-controls').boundingBox();
+   assert.ok(toolsAtPick.y+toolsAtPick.height<pickPeek.y-7,'map controls overlap the initial picking card');
    const titleStyle=await page.locator('#fpUnifiedRoute .fp-route-heading h2').evaluate(e=>getComputedStyle(e).fontSize);
    assert.equal(titleStyle,'24px','route title must match approved Changshou card');
    const xStyle=await page.locator('#fpUnifiedRoute .fp-route-close').evaluate(e=>({border:getComputedStyle(e).borderTopWidth,bg:getComputedStyle(e).backgroundColor}));
@@ -64,6 +74,8 @@ const base='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
    await page.mouse.up();await page.waitForTimeout(760);
    const expanded=await page.locator('#fpUnifiedRoute .fp-route-sheet').boundingBox();
    assert.ok(expanded.height>initial.height+65,'header swipe should expand the route sheet by at least 65px');
+   const toolsAtFull=await page.locator('.map-controls').boundingBox();
+   assert.ok(toolsAtFull.y+toolsAtFull.height<expanded.y-7,'tools must avoid fully expanded route sheet');
    const actual=await page.evaluate(()=>window.FootprintUnifiedRoute.state);
    assert.equal(actual.open,true);
    const padsAfter=await page.evaluate(()=>window.__qaCameraCalls.filter(x=>x.padding).map(x=>x.padding.bottom));
@@ -94,6 +106,9 @@ const base='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
    await page.locator('#fpUnifiedRoute .fp-route-close').click();
    await page.waitForTimeout(480);
    assert.equal(await page.evaluate(()=>window.FootprintUnifiedRoute.state.open),false);
+   await page.waitForTimeout(250);
+   const toolsReturned=await page.locator('.map-controls').boundingBox();
+   assert.ok(Math.abs(toolsReturned.y-toolsRest.y)<3,'the right-map tools must spring back after route closes');
    assert.deepEqual(errors,[],'no JS exceptions');
    console.log('PASS v5 PR53 route swipe card',width,{initial:Math.round(initial.height),expanded:Math.round(expanded.height),contracted:Math.round(contracted.height),cameraCalls:padsAfter.length});
    await context.close();
