@@ -93,7 +93,33 @@
     b.dataset.poiId=id;
     const token=document.createElement('span');token.className='fp-poi-token';
     const img=document.createElement('img');img.src=fileFor(p.category,p.name);img.alt='';img.setAttribute('aria-hidden','true');token.append(img);b.append(token);
+    // Capture the actual V3 icon or visible text label at pointerdown. The
+    // outer 44px accessibility target must not create an invisible 52px POI hit.
+    b.addEventListener('pointerdown',e=>{
+      const symbol=b.querySelector('.fp-poi-token')?.getBoundingClientRect();
+      const label=b.querySelector('.fp-poi-label')?.getBoundingClientRect();
+      const within=r=>r&&e.clientX>=r.left-4&&e.clientX<=r.right+4&&e.clientY>=r.top-4&&e.clientY<=r.bottom+4;
+      b.__fpTapStart={id:b.dataset.poiId,x:e.clientX,y:e.clientY,
+        cx:symbol?(symbol.left+symbol.right)/2:0,cy:symbol?(symbol.top+symbol.bottom)/2:0,
+        allowed:!!(within(symbol)||within(label))};
+    },{passive:true});
     b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+      const initial=b.__fpTapStart;delete b.__fpTapStart;
+      if(e.detail!==0){
+        if(!initial||!initial.allowed||initial.id!==b.dataset.poiId||
+           Math.hypot(initial.x-e.clientX,initial.y-e.clientY)>12)return;
+        const rect=b.querySelector('.fp-poi-token')?.getBoundingClientRect();
+        if(!rect)return;
+        // A moving map cannot turn an already-pressed neighboring POI into
+        // a different destination. Reject a stale projection instead.
+        if(Math.hypot(initial.cx-(rect.left+rect.right)/2,initial.cy-(rect.top+rect.bottom)/2)>11)return;
+        const d=Math.hypot(e.clientX-(rect.left+rect.right)/2,e.clientY-(rect.top+rect.bottom)/2);
+        for(const node of pane.querySelectorAll(':scope > .fp-poi')){
+          if(node===b)continue;
+          const near=node.querySelector('.fp-poi-token')?.getBoundingClientRect();
+          if(near&&Math.hypot(e.clientX-(near.left+near.right)/2,e.clientY-(near.top+near.bottom)/2)+3<d)return;
+        }
+      }
       const old=pane.querySelector('.fp-poi.is-selected');if(old!==b)old?.classList.remove('is-selected','is-tapped');
       b.classList.add('is-selected');activePointer=b.dataset.poiId;
       // The pictogram pops while the camera smoothly pans at a CONSTANT zoom.

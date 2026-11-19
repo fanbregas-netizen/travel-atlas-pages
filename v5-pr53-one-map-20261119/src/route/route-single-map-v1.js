@@ -16,7 +16,6 @@ const DATA={open:false,mode:'pick',panel:'half',places:[],routes:[],order:[],day
 let db=null,map=null,routeRevision=0,activeRoads=new Map(),originalPaint=new Map(),tempPins=new Map(),sheetHeight=0,desiredHeight=0,velocity=0,frame=0,dragging=false,dragY=0,dragHeight=0,toastTimer=0,styleMap=null,styleListener=null,routeClickListener=null,observer=null,closing=false,exitTimeout=0;
 let sheetGesture=null,lastCameraFrame=0,cameraFrame=0,cameraTime=0,gestureToken=0;
 const shell=document.createElement('section');shell.id='fpUnifiedRoute';shell.hidden=true;shell.setAttribute('aria-label','足迹路线与地图');shell.innerHTML=
- '<header class="fp-route-top"><button class="fp-route-topbutton" type="button" data-command="exit" aria-label="返回主页">‹</button><div class="fp-route-title">路线</div></header>'+ 
  '<section class="fp-route-sheet" aria-label="路线操作卡片"><div class="fp-route-grip" role="button" tabindex="0" aria-label="上滑展开、下滑收起路线卡片"></div><div class="fp-route-heading"><h2>路线规划</h2><button type="button" class="fp-route-close" data-command="exit" aria-label="关闭路线卡片">×</button></div><div class="fp-route-status"><span class="fp-route-step">1 / 3</span><span class="fp-route-gesture-hint" aria-hidden="true">上滑查看更多</span></div><div class="fp-route-body"></div><div class="fp-route-footer"></div></section><div class="fp-route-toast" role="status" aria-live="polite"></div>';
 document.body.append(shell);
 const ui={top:shell.querySelector('.fp-route-title'),sheet:shell.querySelector('.fp-route-sheet'),grip:shell.querySelector('.fp-route-grip'),heading:shell.querySelector('.fp-route-heading h2'),step:shell.querySelector('.fp-route-step'),body:shell.querySelector('.fp-route-body'),footer:shell.querySelector('.fp-route-footer'),toast:shell.querySelector('.fp-route-toast')};
@@ -27,8 +26,56 @@ const routeRows=r=>(r?.stops?.length?r.stops:r?.selected?.length?r.selected:r?.p
 const viewportHeight=()=>Math.max(430,Math.min(window.innerHeight||844,window.visualViewport?.height||window.innerHeight||844));
 // In full mode we intentionally reserve a useful map viewport above the sheet.
 // Content continues scrolling inside the sheet; the map canvas is never resized.
-const heightFor=which=>{const h=viewportHeight(),full=Math.max(370,Math.min(h*.72,h-220));return which==='peek'?Math.min(full-145,Math.max(236,Math.min(280,h*.33))):which==='full'?full:Math.max(350,Math.min(full-75,h*.57))};
-function height(value){sheetHeight=Math.max(175,Math.min(heightFor('full')+26,value));ui.sheet.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.dataset.detent=DATA.panel;}
+/* The SAME home-map three-button tool stack yields to the route card.
+ * One spring for all buttons, no separate route toolbar or map resize.
+ * The screen-space target is derived from the real map-tool box at open. */
+let mapTools=null,toolsBaseBottom=0,toolsBoxHeight=0,toolsY=0,toolsV=0,toolsTarget=0,toolsFrame=0;
+function prepareMapTools(){
+ const el=document.querySelector('.map-controls');
+ if(!el)return;
+ if(toolsFrame){cancelAnimationFrame(toolsFrame);toolsFrame=0}
+ mapTools=el;el.style.removeProperty('translate');
+ const rect=el.getBoundingClientRect();
+ toolsBaseBottom=rect.bottom;toolsBoxHeight=rect.height;
+ toolsY=0;toolsV=0;toolsTarget=0;
+}
+function shiftMapTools(target){
+ if(!mapTools)return;
+ toolsTarget=Number.isFinite(target)?Math.min(0,target):0;
+ if(matchMedia('(prefers-reduced-motion:reduce)').matches){
+  toolsY=toolsTarget;toolsV=0;
+  if(!DATA.open&&Math.abs(toolsY)<.5)mapTools.style.removeProperty('translate');
+  else mapTools.style.setProperty('translate','0 '+toolsY.toFixed(2)+'px','important');
+  return;
+ }
+ if(toolsFrame)return;
+ const tick=()=>{
+  const target=toolsTarget;
+  toolsV=(toolsV+(target-toolsY)*.19)*.70;
+  toolsY+=toolsV;
+  if(Math.abs(target-toolsY)<.45&&Math.abs(toolsV)<.38){
+   toolsY=target;toolsV=0;toolsFrame=0;
+   if(!DATA.open&&Math.abs(target)<.45)mapTools?.style.removeProperty('translate');
+   else mapTools?.style.setProperty('translate','0 '+toolsY.toFixed(2)+'px','important');
+   return;
+  }
+  mapTools?.style.setProperty('translate','0 '+toolsY.toFixed(2)+'px','important');
+  toolsFrame=requestAnimationFrame(tick);
+ };
+ toolsFrame=requestAnimationFrame(tick);
+}
+function followSheetWithTools(){
+ if(!DATA.open||!mapTools)return;
+ // Anchor the bottom of the ENTIRE existing 3-button stack above the card.
+ // At the highest detent its top remains inside the exposed map viewport.
+ const screen=viewportHeight(),sheetInset=16;
+ const safeTop=30,need=(toolsBoxHeight||162)+safeTop;
+ const visibleBottom=Math.max(need,screen-sheetHeight-sheetInset-14);
+ shiftMapTools(visibleBottom-toolsBaseBottom);
+}
+
+const heightFor=which=>{const h=viewportHeight(),full=Math.max(370,Math.min(h*.72,h-220));return which==='peek'?Math.max(278,Math.min(358,h*.42,full-100)):which==='full'?full:Math.max(350,Math.min(full-75,h*.57))};
+function height(value){sheetHeight=Math.max(175,Math.min(heightFor('full')+26,value));ui.sheet.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.dataset.detent=DATA.panel;followSheetWithTools();}
 function spring(which){
  if(!['peek','half','full'].includes(which))return;
  DATA.panel=which;desiredHeight=heightFor(which);cancelAnimationFrame(frame);frame=0;
@@ -46,7 +93,7 @@ function spring(which){
 }
 function hint(value){ui.toast.textContent=value;ui.toast.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>ui.toast.classList.remove('is-visible'),2600)}
 function button(label,command,primary=false){return '<button type="button" class="fp-route-btn '+(primary?'fp-route-primary':'fp-route-secondary')+'" data-command="'+command+'">'+label+'</button>'}
-function head(title,step){ui.heading.textContent=title;ui.step.textContent=step;ui.top.textContent=DATA.mode==='saved'?'路线':DATA.mode==='view'?DATA.title:'路线规划'}
+function head(title,step){ui.heading.textContent=title;ui.step.textContent=step}
 function placeList(){
  let q=(DATA.query||'').trim();
  const available=DATA.places.filter(p=>valid(p)&&p.starred!==false&&!p.demo&&(!q||String(p.title||p.name||'').includes(q))).slice(0,130);
@@ -125,7 +172,7 @@ function body(){
 }
 function setMode(next,force=false){
  DATA.mode=next;DATA.selected=next==='detail'?DATA.selected:'';
- body();syncMapMode();spring(next==='view'?'peek':next==='detail'?'half':next==='pick'&&!force?'peek':'half');
+ body();syncMapMode();spring(['saved','pick','view'].includes(next)?'peek':'half');
 }
 function stopIndex(){return new Map(DATA.order.map((id,i)=>[String(id),i+1]))}
 function refreshStarLabels(){
@@ -238,7 +285,7 @@ function routeCoordinates(){
 function routeCameraPadding(){
  const screen=viewportHeight(),visible=Math.max(160,screen-sheetHeight);
  return {top:Math.max(26,Math.min(82,visible*.18)),
-  bottom:Math.min(screen-100,sheetHeight+Math.min(26,visible*.11)),left:36,right:36};
+  bottom:Math.min(screen-100,sheetHeight+16+Math.min(26,visible*.11)),left:36,right:36};
 }
 function updateRouteCamera(animate=true){
  if(!DATA.open||!map||DATA.mode==='saved')return;
@@ -570,6 +617,7 @@ function close(){
  sheetGesture=null;dragging=false;ui.sheet.classList.remove('is-dragging');
  if(cameraFrame){cancelAnimationFrame(cameraFrame);cameraFrame=0}
  document.removeEventListener('click',onStarClick,true);
+ shiftMapTools(0);
  DATA.open=false;closing=true;window.__atlasTripPicking=false;
  cancelAnimationFrame(frame);frame=0;velocity=0;
  ui.sheet.style.pointerEvents='none';
@@ -589,6 +637,7 @@ async function open(savedId=''){
  }
  map=getMap();if(!map){console.warn('[V5 route] shared Map A renderer unavailable; no second map created');return false}
  try{await reload()}catch(e){console.warn('[V5 route] failed to load original data',e);return false}
+ prepareMapTools();
  DATA.open=true;window.__atlasTripPicking=true;document.body.classList.add('fp-unified-route');
  shell.hidden=false;
  window.__fpCloseSearch?.();
@@ -604,7 +653,7 @@ async function open(savedId=''){
  const bookmark=$('atlasBookmarkOverlay');if(bookmark)observer.observe(bookmark,{childList:true,subtree:false});
  reset();
  if(savedId){loadSaved(savedId);if(new URLSearchParams(location.search).get('editRoute')==='1')setMode('pick',true)}else setMode('saved',true);
- spring('half');
+ spring('peek');
  document.dispatchEvent(new Event('footprint:route-mode-opened'));
  return true
 }

@@ -95,9 +95,9 @@ if(storage){const get=storage.getItem,set=storage.setItem,del=storage.removeItem
 <link rel="stylesheet" href="./map-visual-parity.css?v=map-a-19">
 
 <link rel="stylesheet" href="./src/visual/v12-v5-parity.css?v=v12-accepted-20261118">
-<link rel="stylesheet" href="./src/visual/v5-map-quality-pass.css?v=quality-poi-20261119-2">
+<link rel="stylesheet" href="./src/visual/v5-map-quality-pass.css?v=quality-poi-hit-20261119-3">
 <link rel="stylesheet" href="./src/visual/v5-card-reference.css?v=card-reference-1">
-<link rel="stylesheet" href="./src/visual/v5-single-map-route.css?v=route-swipe-2">
+<link rel="stylesheet" href="./src/visual/v5-single-map-route.css?v=route-uniform-20261119-3">
 </head>
 <body>
 <div id="map" aria-label="私人旅行收藏地图"></div><div id="amapSurface" aria-label="高德地点地图" hidden></div><div id="figureCaption" aria-hidden="true"></div><div class="map-status" id="mapStatus">建筑肌理 © OpenStreetMap</div><div id="atlasMapLoader" role="status" aria-live="polite"><span class="loader-star">★</span><span class="loader-text">正在绘制城市肌理</span><span class="loader-dots"><i></i><i></i><i></i></span></div><div class="map-shade" aria-hidden="true"></div><div id="atlasRoutesVeil"></div><div id="atlasRoutesSheet" role="dialog" aria-label="我的路线"><button type="button" class="rs-close" aria-label="关闭">×</button><div class="rs-head"><strong>已保存的路线</strong></div><!-- build .18 · 去掉 JOURNEYS/我的路线 眉题,双标题合一 --><div class="rs-list"></div><a class="rs-new" href="./journey.html">＋ 规划新路线</a></div><div id="atlasFirstStar" hidden><button type="button" class="fs-close" aria-label="知道了">×</button><div class="fs-star">★</div><strong>点亮第一颗 ★</strong><p>点顶部「搜索」探索地点，标下第一颗星</p></div>
@@ -389,7 +389,7 @@ class Map{
 <script src="./src/map/shared-v4-map.js?v=map-parity-2"></script>
 <script src="./src/interaction/shared-v5-spring-v18.js?v=18"></script>
 <script src="./src/interaction/poi-card-handoff-v19.js?v=19c"></script>
-<script src="./src/interaction/poi-svg-motion-v4.js?v=poi-pop-6"></script>
+<script src="./src/interaction/poi-svg-motion-v4.js?v=poi-pop-larger-7"></script>
 <script src="./src/map/poi-identity-v5.js?v=poi-identity-1"></script>
 <script src="./v4-map-runtime.js?v=poi-visible-hit-20261119"></script>
 <script id="atlas-v4-journal-behavior">
@@ -750,7 +750,33 @@ window.AtlasFigureGround={palette,apply,version:'v4-figure-ground-20261103.18'};
     b.dataset.poiId=id;
     const token=document.createElement('span');token.className='fp-poi-token';
     const img=document.createElement('img');img.src=fileFor(p.category,p.name);img.alt='';img.setAttribute('aria-hidden','true');token.append(img);b.append(token);
+    // Capture the actual V3 icon or visible text label at pointerdown. The
+    // outer 44px accessibility target must not create an invisible 52px POI hit.
+    b.addEventListener('pointerdown',e=>{
+      const symbol=b.querySelector('.fp-poi-token')?.getBoundingClientRect();
+      const label=b.querySelector('.fp-poi-label')?.getBoundingClientRect();
+      const within=r=>r&&e.clientX>=r.left-4&&e.clientX<=r.right+4&&e.clientY>=r.top-4&&e.clientY<=r.bottom+4;
+      b.__fpTapStart={id:b.dataset.poiId,x:e.clientX,y:e.clientY,
+        cx:symbol?(symbol.left+symbol.right)/2:0,cy:symbol?(symbol.top+symbol.bottom)/2:0,
+        allowed:!!(within(symbol)||within(label))};
+    },{passive:true});
     b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+      const initial=b.__fpTapStart;delete b.__fpTapStart;
+      if(e.detail!==0){
+        if(!initial||!initial.allowed||initial.id!==b.dataset.poiId||
+           Math.hypot(initial.x-e.clientX,initial.y-e.clientY)>12)return;
+        const rect=b.querySelector('.fp-poi-token')?.getBoundingClientRect();
+        if(!rect)return;
+        // A moving map cannot turn an already-pressed neighboring POI into
+        // a different destination. Reject a stale projection instead.
+        if(Math.hypot(initial.cx-(rect.left+rect.right)/2,initial.cy-(rect.top+rect.bottom)/2)>11)return;
+        const d=Math.hypot(e.clientX-(rect.left+rect.right)/2,e.clientY-(rect.top+rect.bottom)/2);
+        for(const node of pane.querySelectorAll(':scope > .fp-poi')){
+          if(node===b)continue;
+          const near=node.querySelector('.fp-poi-token')?.getBoundingClientRect();
+          if(near&&Math.hypot(e.clientX-(near.left+near.right)/2,e.clientY-(near.top+near.bottom)/2)+3<d)return;
+        }
+      }
       const old=pane.querySelector('.fp-poi.is-selected');if(old!==b)old?.classList.remove('is-selected','is-tapped');
       b.classList.add('is-selected');activePointer=b.dataset.poiId;
       // The pictogram pops while the camera smoothly pans at a CONSTANT zoom.
@@ -1104,7 +1130,7 @@ scan();new MutationObserver(entries=>{for(const entry of entries)for(const n of 
 <script src="./src/map/registry.js"></script>
 <script src="./src/map/map-adapter.js"></script>
 <script defer src="./src/route/route-live-network-v1.js?v=single-map-1"></script>
-<script defer src="./src/route/route-single-map-v1.js?v=route-swipe-2"></script>
+<script defer src="./src/route/route-single-map-v1.js?v=route-uniform-20261119-3"></script>
 <script defer src="./src/interaction/one-route-entry.js"></script>
 <!-- 已确认 Safari 收藏卡片 / 双 Dock 物理反馈，不重建收藏内容或路线流程 -->
 <script defer src="./src/interaction/paired-dock-motion-v2.js?v=paired-20261117"></script>

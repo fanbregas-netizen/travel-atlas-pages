@@ -2,13 +2,14 @@
   "product": "Footprint Map V5",
   "type": "independent QA candidate",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "fc656a22872839deec6bbfc8c915f1b6a67b508e",
+  "source_commit": "15921b19a17c0cdfa02ec88355220d249fa88e16",
   "source_branch": "integration/v5-one-poi-card-route-20261119",
   "source_prs": [
     53,
     54
   ],
   "preview_data_namespace": "private-travel-footprints-v5-pr53-review-20261119",
-  "qa_scope": "V5 single map + PR54 visible POI taps, icons, pan cancellation",
-  "note": "Formal root Pages not changed; preview data isolated. Safari real-device verification remains."
+  "qa_scope": "POI selected V3 1.42x, visible hit no jumping, consistent route peek / 12px side margins, no route top, elastic right map tools",
+  "published_no_production_merge": true,
+  "real_iphone_safari_qa": "pending"
 }

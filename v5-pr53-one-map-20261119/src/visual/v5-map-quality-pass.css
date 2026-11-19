@@ -107,3 +107,15 @@ body.vector-active #atlasVectorMap .fp-vector-selection .fp-vector-token{
 body.vector-active #atlasVectorMap .fp-vector-selection .fp-vector-token img{
   display:block;width:20px!important;height:20px!important;object-fit:contain;
 }
+
+/* V5 visible POI contract: reserve a 44pt touch target, not the previous
+   transparent 52pt neighbor interception box; active symbol scales itself. */
+body.vector-active #atlasPoiOverlay > .fp-poi{
+ width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;
+ overflow:visible!important;touch-action:manipulation;
+}
+body.vector-active #atlasPoiOverlay > .fp-poi.is-selected{z-index:160!important}
+body.vector-active #atlasPoiOverlay > .fp-poi.is-selected .fp-poi-token{
+ transform-origin:center center!important;
+ box-shadow:0 8px 22px rgba(33,61,61,.26)!important;
+}

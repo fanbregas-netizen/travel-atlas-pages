@@ -160,17 +160,17 @@ function popSelected(token){
  token.style.setProperty('transform-origin','center center','important');
  token.style.setProperty('transition','none','important');
  if(reduced()||document.hidden){
-  token.style.setProperty('transform','scale(1.22)','important');
+  token.style.setProperty('transform','scale(1.42)','important');
   return;
  }
  token.style.setProperty('will-change','transform');
  token.style.setProperty('transform','scale(1)','important');
  token.dataset.poiPopMotion='running';
  const segments=[
-  {at:0,value:1},{at:.49,value:1.34},
-  {at:.77,value:1.19},{at:1,value:1.22}
+  {at:0,value:1},{at:.42,value:1.58},
+  {at:.78,value:1.37},{at:1,value:1.42}
  ];
- const span=485,start=performance.now();
+ const span=505,start=performance.now();
  let frame=0,active=true;
  const state={cancel(){active=false;cancelAnimationFrame(frame)}};
  selectedPoiAnimation=state;
@@ -185,7 +185,7 @@ function popSelected(token){
   const value=from.value+(to.value-from.value)*e;
   token.style.setProperty('transform','scale('+value.toFixed(4)+')','important');
   if(t<1){frame=requestAnimationFrame(tick);return}
-  token.style.setProperty('transform','scale(1.22)','important');
+  token.style.setProperty('transform','scale(1.42)','important');
   token.style.removeProperty('will-change');
   token.dataset.poiPopMotion='settled';
   selectedPoiAnimation=null;

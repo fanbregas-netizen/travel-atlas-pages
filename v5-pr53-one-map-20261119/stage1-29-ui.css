@@ -39,10 +39,11 @@ body{color:#27363B;background:#EFF3F1}
 .search-dot{background:#78969F!important;border:3px solid #fff!important}
 /* Real POI icons sit in porcelain-like map tokens: native pictograms, no yellow dots. */
 #atlasPoiOverlay{z-index:420!important;pointer-events:none!important;overflow:hidden!important}
-#atlasPoiOverlay .fp-poi{width:52px;min-width:52px;height:52px;min-height:52px;padding:0!important;position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transform:translate(-50%,-50%);background:transparent!important;border:0!important;box-shadow:none!important;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer;isolation:isolate}
+#atlasPoiOverlay .fp-poi{width:44px;min-width:44px;height:44px;min-height:44px;padding:0!important;position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transform:translate(-50%,-50%);background:transparent!important;border:0!important;box-shadow:none!important;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer;isolation:isolate}
 #atlasPoiOverlay .fp-poi-token{width:31px;height:31px;flex:none;border-radius:12px;display:grid;place-items:center;background:rgba(248,250,248,.94);border:1px solid rgba(187,204,202,.7);box-shadow:0 3px 9px rgba(35,52,53,.17);transition:transform .44s cubic-bezier(.16,1.18,.28,1),box-shadow .35s ease,background .3s ease;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 #atlasPoiOverlay .fp-poi-token img{width:20px;height:20px;display:block;object-fit:contain;pointer-events:none}
 #atlasPoiOverlay .fp-poi-label{max-width:98px;padding:1px 5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px;font-weight:580;line-height:1.35;letter-spacing:-.008em;color:#455B60;text-shadow:0 1px 2px rgba(255,255,255,.93);background:rgba(248,251,250,.66);border-radius:5px}
+#atlasPoiOverlay .fp-poi.is-selected{z-index:150!important;overflow:visible}
 #atlasPoiOverlay .fp-poi.is-selected .fp-poi-token{background:#E8F1EA;border-color:#AABFBA;box-shadow:0 5px 19px rgba(41,72,77,.23)}
 #atlasPoiOverlay .fp-poi.is-tapped .fp-poi-token{animation:fpPoiSpring .48s cubic-bezier(.19,.9,.28,1) both}
 @keyframes fpPoiSpring{0%{transform:scale(1)}28%{transform:scale(1.22) rotate(-3deg)}46%{transform:scale(1.10) rotate(2deg)}68%{transform:scale(1.145) rotate(-1deg)}100%{transform:scale(1.08) rotate(0)}}
@@ -69,7 +70,7 @@ body{color:#27363B;background:#EFF3F1}
 #atlasOrbit .orbit-backdrop{background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 @media(max-width:355px){#atlasOrbit .orbit-ref-media-tile{min-height:24px!important}}
 @media(max-height:720px){#atlasOrbit{--fp-bubble-safe-top:45px}}
-@media(prefers-reduced-motion:reduce){#atlasPoiOverlay .fp-poi.is-tapped .fp-poi-token{animation:none!important;transform:scale(1.08)!important}}
+@media(prefers-reduced-motion:reduce){#atlasPoiOverlay .fp-poi.is-tapped .fp-poi-token{animation:none!important;transform:scale(1.42)!important}}
 
 #btnLocate > *{display:none!important}
 
