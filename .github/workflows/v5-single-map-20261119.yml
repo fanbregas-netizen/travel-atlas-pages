@@ -61,7 +61,7 @@ jobs:
           python3 __prototype/v5-one-poi-card-20261119/build.py
           test -s _site/v5-one-poi-card-full-product-20261119/integration-manifest.json
           node --check __prototype/v5-one-poi-card-20261119/real-webkit.cjs
-      - name: Strict PR53 descendant: one physical map, optional POI data, all V5 data unchanged
+      - name: 'Strict PR53 descendant: one physical map, optional POI data, all V5 data unchanged'
         run: |
           python3 __prototype/v5-single-map-20261119/build.py
           test -s _site/v5-single-map-full-product-20261119/integration-manifest.json
