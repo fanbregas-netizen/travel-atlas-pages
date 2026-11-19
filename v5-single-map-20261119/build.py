@@ -27,11 +27,11 @@ shutil.copytree(old,new)
 for p in delta:
  f=new/p;f.parent.mkdir(parents=True,exist_ok=True)
  shutil.copyfile(source/p,f)
-for page in ('index.html','journey.html'):
+for page,previous in (('index.html','atlas-v4-map-a-integration-20261118-'),
+ ('journey.html','atlas-v5-single-poi-20261119-')):
  f=new/page;s=f.read_text(encoding='utf-8')
- assert s.count('atlas-v5-single-poi-20261119-')==1,page
- f.write_text(s.replace('atlas-v5-single-poi-20261119-',
-  'atlas-v5-shared-map-20261119-'),encoding='utf-8')
+ assert s.count(previous)==1,(page,previous)
+ f.write_text(s.replace(previous,'atlas-v5-shared-map-20261119-'),encoding='utf-8')
 # Everything else must be the exact private branch asset, not stale public files.
 stale=[]
 for path,sha in expected.items():
