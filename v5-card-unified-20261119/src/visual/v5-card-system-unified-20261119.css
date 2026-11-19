@@ -104,6 +104,13 @@
   overflow-wrap:anywhere;
 }
 #destinationCard .destination-title{padding-right:44px!important}
+body #destinationCard .destination-title,
+body.destination-selected #destinationCard .destination-title{
+  font-size:24px!important;
+  font-weight:740!important;
+  line-height:1.2!important;
+  letter-spacing:-.045em!important;
+}
 #destinationCard .destination-category,
 #drawer #sheetCount,
 #fpUnifiedRoute .fp-route-caption,
@@ -298,7 +305,8 @@ dialog.editor :is(.input,.area),
 @media(max-width:380px){
   #fpPlaceCard .fp-card-header .fp-card-name,
   #drawer .drawer-head :is(h2,.drawer-cn),
-  #destinationCard .destination-title,
+  body #destinationCard .destination-title,
+  body.destination-selected #destinationCard .destination-title,
   #fpUnifiedRoute .fp-route-heading h2{
     font-size:23px!important;
   }
