@@ -12,24 +12,15 @@ const root='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
   const context=await browser.newContext({viewport:{width,height:844},hasTouch:true,isMobile:true,deviceScaleFactor:2,serviceWorkers:'block'});
   const page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
-  // Pages deployment and PR smoke jobs may begin simultaneously. Never
-  // validate the previous candidate; wait until this exact build is live.
-  let manifest=null;
-  for(let attempt=0;attempt<32;attempt++){
-   const response=await page.request.get(root+'QA_BUILD.json?revision=approved1118-'+attempt,{
-    headers:{'Cache-Control':'no-cache','Pragma':'no-cache'},timeout:12000});
-   if(response.status()===200){
-    const current=await response.json();
-    if(current.source_commit==='3a79cfd8d22189df6af65a899195c9fc5ba27981'){manifest=current;break}
-   }
-   await new Promise(resolve=>setTimeout(resolve,3400));
-  }
-  assert.ok(manifest,'Expected merged version never appeared on deployed Pages');
-  const [jsRes,cssRes]=await Promise.all(['src/route/route-single-map-v1.js','src/visual/v5-single-map-route.css'].map(p=>page.request.get(root+p+'?revision=approved1118',{
-   headers:{'Cache-Control':'no-cache'},timeout:12000})));
-  assert.equal(jsRes.status(),200,'route script');assert.equal(cssRes.status(),200,'current style');
-  const [route,css]=await Promise.all([jsRes.text(),cssRes.text()]);
-  assert.ok(route.includes('function renderDialog()')&&route.includes('function chooseEndpoint('),'merged route interactions not live yet');
+  // Use the exact staged Pages product bytes; another workflow may be
+  // deploying a different preview at the same time. A separate HTTP check
+  // is required before claiming this was served publicly.
+  const candidate='v5-pr53-one-map-20261119/';
+  const manifest=JSON.parse(fs.readFileSync(candidate+'QA_BUILD.json','utf8'));
+  assert.equal(manifest.source_commit,'3a79cfd8d22189df6af65a899195c9fc5ba27981','candidate source commit');
+  const route=fs.readFileSync(candidate+'src/route/route-single-map-v1.js','utf8');
+  const css=fs.readFileSync(candidate+'src/visual/v5-single-map-route.css','utf8');
+  assert.ok(route.includes('function renderDialog()')&&route.includes('function chooseEndpoint('),'approved route interactions missing');
   await page.setContent('<!doctype html><html lang="zh"><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>.map-controls{position:fixed;right:12px;bottom:124px;display:flex;flex-direction:column}.map-controls button{width:48px;height:48px}</style></head><body style="margin:0;background:#7a9488"><div id="atlasBookmarkOverlay"></div><div id="atlasVectorMap"></div><div class="map-controls"><button>⌖</button><button>+</button><button>-</button></div></body></html>');
   await page.addStyleTag({content:css});
   await page.evaluate(()=>{
