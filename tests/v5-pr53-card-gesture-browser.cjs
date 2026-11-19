@@ -48,7 +48,7 @@ const base='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
    assert.equal(await page.evaluate(()=>window.FootprintUnifiedRoute.state.step),'saved');
    assert.equal(await page.locator('#fpUnifiedRoute .fp-route-top').count(),0,'no redundant route nav above map');
    const savedPeek=await page.locator('#fpUnifiedRoute .fp-route-sheet').boundingBox();
-   assert.ok(savedPeek.x>=11&&Math.abs((width-savedPeek.width)-savedPeek.x)<2,'both sides of route card must match place card');
+   assert.ok(savedPeek.x>=11&&Math.abs((width-savedPeek.width-savedPeek.x)-savedPeek.x)<2,'both sides of route card must match place card');
    const toolsAtSaved=await page.locator('.map-controls').boundingBox();
    assert.ok(toolsAtSaved.y+toolsAtSaved.height<savedPeek.y-7,'all 3 right map tools must clear saved-route card');
    await page.locator('#fpUnifiedRoute [data-command="new"]').first().click();
