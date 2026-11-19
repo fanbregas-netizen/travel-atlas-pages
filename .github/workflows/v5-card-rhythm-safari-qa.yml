@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'tests/v5-card-rhythm-browser.cjs'
+      - 'tests/v5-card-redline-browser.cjs'
       - '.github/workflows/v5-card-rhythm-safari-qa.yml'
       - 'v5-card-rhythm-20261119/**'
   workflow_dispatch:
@@ -20,12 +21,12 @@ jobs:
           node-version: '22'
       - name: Install browser runner
         run: npm install --no-save --ignore-scripts playwright-core@1.58.2
-      - name: Check actual V5 CSS at 375 390 430 iPhone widths
-        run: node tests/v5-card-rhythm-browser.cjs
+      - name: Measure user red-line dividers and content rails at three iPhone widths
+        run: node tests/v5-card-redline-browser.cjs
       - name: Upload actual computed-card evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v5-card-rhythm-evidence
-          path: v5-card-rhythm-visual-evidence/
+          name: v5-card-redline-evidence
+          path: v5-card-redline-visual-evidence/
           if-no-files-found: ignore
