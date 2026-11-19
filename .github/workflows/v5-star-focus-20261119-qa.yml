@@ -1,0 +1,30 @@
+name: V5 star-only map focus and route draft browser QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/v5-star-focus-20261119-browser.cjs'
+      - '.github/workflows/v5-star-focus-20261119-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  star-focus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser driver
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Test actual V5 staged star-pick focus at iPhone widths
+        run: node tests/v5-star-focus-20261119-browser.cjs
+      - name: Keep gesture screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-star-focus-20261119-evidence
+          path: v5-star-focus-evidence/
+          if-no-files-found: ignore
