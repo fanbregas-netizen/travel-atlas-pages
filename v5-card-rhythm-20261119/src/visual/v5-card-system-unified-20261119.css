@@ -489,3 +489,13 @@ body #drawer.fp30-detail .footnote{
   #fpUnifiedRoute .fp-route-status,
   #fpUnifiedRoute .fp-route-footer{padding-left:16px!important;padding-right:16px!important}
 }
+
+
+/* Old V4 detail-only surface had a stronger gray-beige selector.
+ * Match the approved porcelain paper for every visible collection state. */
+html body #drawer.drawer.fp30-detail,
+html body #drawer.drawer.fp30-detail.visible,
+html body #drawer.drawer.fp30-hub.visible{
+  background:#fffefa!important;
+  background-color:#fffefa!important;
+}

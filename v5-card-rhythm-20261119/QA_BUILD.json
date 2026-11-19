@@ -2,7 +2,7 @@
   "product": "Footprint Map V5",
   "type": "independent full product — screenshot card rhythm QA",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "914e9408532701b5a24d8c69d0ed78c2125694eb",
+  "source_commit": "08cd7336f630db85c06b18afe82f1471bfd9a1ae",
   "source_branch": "design/v5-card-spacing-real-safari-20261119",
   "source_base_commit": "3a79cfd8d22189df6af65a899195c9fc5ba27981",
   "source_prs": [
@@ -17,6 +17,6 @@
   "static_contract": "18/18 checks, JS syntax pass",
   "real_iphone_safari_qa": "pending",
   "published_no_production_merge": true,
-  "latest_visual_fix": "destination selected-state exact CSS selector; 24px opaque paper + 25px controls",
+  "latest_visual_fix": "collection paper matches place/route opaque warm-white",
   "data_note": "Reuses prior isolated QA namespace so the user's existing review bookmarks remain available; production database untouched"
 }
