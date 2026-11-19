@@ -31,6 +31,15 @@ const root='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
     {id:'c',title:'苏州河',lat:31.22,lng:121.47,starred:true}
    ];
    window.__qaStore={routes,places};
+   // The live product loads MapLibre globally. In this isolated gesture test
+   // only its Marker is needed for new, unstarred endpoint display.
+   window.maplibregl={Marker:class{
+    constructor({element}){this.element=element}
+    setLngLat(){return this}
+    addTo(){document.getElementById('atlasVectorMap').append(this.element);return this}
+    getElement(){return this.element}
+    remove(){this.element.remove()}
+   }};
    const map={
     on(event,a,b){(listeners[event]??=[]).push(typeof b==='function'?b:a)},
     off(){},getZoom(){return 13},getStyle(){return {layers:[]}},isStyleLoaded(){return false},
