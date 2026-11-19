@@ -67,11 +67,12 @@ const folder='v5-star-focus-evidence';
    await page.waitForFunction(()=>window.FootprintUnifiedRoute.state.mapFocus===true);
    assert.equal(await page.evaluate(()=>window.FootprintUnifiedRoute.state.open),true,'card down must not close route');
    assert.ok(await page.evaluate(()=>document.body.classList.contains('fp-route-map-focus')),'focus body class missing');
+   await page.waitForTimeout(450); // allow a physical spring to reach its new equilibrium
    const backdrop=await page.locator('#fpUnifiedRoute .fp-route-sheet').evaluate(el=>getComputedStyle(el).transform);
    assert.notEqual(backdrop,'none','sheet did not slide off screen');
    const ui=await page.locator('.map-controls').evaluate(el=>({scale:getComputedStyle(el).scale,layers:getComputedStyle(document.querySelector('#btnLayers')).display}));
    assert.equal(ui.layers,'none','focus must show only 3 right map buttons');
-   assert.ok(parseFloat(ui.scale)>=.98,'right tools must expand at full-map focus');
+   assert.ok(parseFloat(ui.scale)>=.98,'right tools must expand at full-map focus: '+JSON.stringify(ui));
    await page.locator('#atlasPoiOverlay .fp-poi').dispatchEvent('click');
    await page.evaluate(()=>window.__qaMap.getSource('fp-single-route')?.setData({type:'FeatureCollection',features:[]}));
    assert.equal((await page.evaluate(()=>window.FootprintUnifiedRoute.state.order)).length,0,'ordinary POI incorrectly selected');
