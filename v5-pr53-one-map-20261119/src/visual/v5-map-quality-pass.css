@@ -80,3 +80,30 @@ body.vector-active #atlasPoiOverlay{opacity:1!important;visibility:visible}
 /* The top route controls should mask underlying Chinese place labels, not let
  * a second apparent text layer bleed through the semi-opaque button. */
 #stage #topbar .circle,#stage #topbar .top-pill{background:#fffefa!important;backdrop-filter:none!important}
+
+
+/* V5 2026-11-19: the LIVE product loads legacy-inline-cascade.css, not the
+   standalone stage1-29-ui.css. This final layer unifies selection dimensions
+   and suppresses the old pin-drop and teardrop pseudo-elements. */
+body.vector-active #atlasVectorMap .atlas-vector-selection.fp-vector-selection{
+  width:52px!important;height:52px!important;
+  display:grid!important;place-items:center!important;
+  pointer-events:none!important;filter:none!important;
+  animation:none!important;
+}
+body.vector-active #atlasVectorMap .atlas-vector-selection.fp-vector-selection::before,
+body.vector-active #atlasVectorMap .atlas-vector-selection.fp-vector-selection::after{
+  content:none!important;display:none!important;
+}
+body.vector-active #atlasVectorMap .fp-vector-selection .fp-vector-token{
+  display:grid!important;place-items:center!important;
+  width:31px!important;height:31px!important;
+  border-radius:12px!important;
+  background:rgba(248,250,248,.94)!important;
+  border:1px solid rgba(187,204,202,.7)!important;
+  box-shadow:0 3px 9px rgba(35,52,53,.17)!important;
+  animation:none!important;
+}
+body.vector-active #atlasVectorMap .fp-vector-selection .fp-vector-token img{
+  display:block;width:20px!important;height:20px!important;object-fit:contain;
+}

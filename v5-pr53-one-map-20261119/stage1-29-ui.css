@@ -74,9 +74,9 @@ body{color:#27363B;background:#EFF3F1}
 #btnLocate > *{display:none!important}
 
 /* The selected destination is a V3 pictogram too, never the former yellow pin. */
-.atlas-vector-selection.fp-vector-selection{width:48px!important;height:48px!important;display:grid;place-items:center;pointer-events:none;filter:none!important}
-.fp-vector-selection .fp-vector-token{display:grid;place-items:center;width:42px;height:42px;background:rgba(246,250,248,.96);border:1px solid #9BB5AE;border-radius:15px;box-shadow:0 6px 16px rgba(36,56,60,.2);animation:fpPoiSpring .49s cubic-bezier(.2,.9,.25,1) both}
-.fp-vector-selection .fp-vector-token img{width:26px;height:26px;display:block;object-fit:contain}
+.atlas-vector-selection.fp-vector-selection{width:52px!important;height:52px!important;display:grid;place-items:center;pointer-events:none;filter:none!important}
+.fp-vector-selection .fp-vector-token{display:grid;place-items:center;width:31px;height:31px;background:rgba(248,250,248,.94);border:1px solid rgba(187,204,202,.7);border-radius:12px;box-shadow:0 3px 9px rgba(35,52,53,.17);animation:none!important}
+.fp-vector-selection .fp-vector-token img{width:20px;height:20px;display:block;object-fit:contain}
 /* Center-place picking uses our drawing, never a system emoji map pin. */
 #pickTarget span{font-size:0!important;display:grid;place-items:center;width:46px;height:46px}
 #pickTarget span::before{content:"";width:38px;height:38px;background:#30494D;-webkit-mask:url('./icons/16_add_place.svg') center/contain no-repeat;mask:url('./icons/16_add_place.svg') center/contain no-repeat}

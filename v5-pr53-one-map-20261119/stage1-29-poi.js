@@ -62,51 +62,143 @@
  }
  function renderRows(rows,project,scale=1){const pane=$('atlasPoiOverlay');if(!pane||!project)return 0;
   const z=Number(currentMap?.getZoom?.()||15);const named=z>=15.25;
-  const W=innerWidth,H=innerHeight;const limit=z<13.3?0:z<14.4?12:z<16?20:34;
+  const W=innerWidth,H=innerHeight;const limit=z<10.5?0:z<13.3?7:z<14.4?13:z<16?24:40;
   const edges={left:28,right:W-28,top:90,bottom:Math.min(H-140,$('appDock')?.getBoundingClientRect().top-22||H-130)};
+  // The same physical point has ONE icon: saved yellow star replaces POI.
+  const identity=window.FootprintPOIIdentity;
+  const savedAnchors=(window.__atlasSavedPOIAnchors?.()||[]).filter(p=>Number.isFinite(+p.lat)&&Number.isFinite(+p.lng));
+  // One shared geographic identity replaces the old 43px/screen heuristic.
+  const isBehindStar=p=>identity?.nearSaved?.(p,savedAnchors)||false;
   const kept=[];cells.clear();
   // Category-rich scenic elements first; generic POIs are subordinate.
-  rows=rows.filter(p=>Boolean(categoryFor(p.category,p.name)));rows.sort((a,b)=>a.name.localeCompare(b.name,'zh-CN'));
+  const essential=new Set(['museum','creative','town','park','mountain','sea','lake','forest']);
+  rows=rows.filter(p=>{const type=categoryFor(p.category,p.name);return !!type&&(z>=13.3||essential.has(type))});
+  rows.sort((a,b)=>Number(b.fpSource==='amap')-Number(a.fpSource==='amap')||a.name.localeCompare(b.name,'zh-CN'));
   for(const p of rows){if(kept.length>=limit)break;let xy;try{xy=project(p)}catch(_){continue}if(!xy||!Number.isFinite(xy.x)||!Number.isFinite(xy.y))continue;
-   if(xy.x<edges.left||xy.x>edges.right||xy.y<edges.top||xy.y>edges.bottom)continue;
+   if(xy.x<edges.left||xy.x>edges.right||xy.y<edges.top||xy.y>edges.bottom||isBehindStar(p))continue;
+   if(kept.some(v=>identity?.samePlace?.(v.p,p)))continue;
    const cell=Math.floor(xy.x/(named?92:58))+':'+Math.floor(xy.y/(named?56:55));if(cells.has(cell))continue;cells.add(cell);kept.push({p,xy});
   }
+  // Retain rendered POI DOM across map movement. Recreating every button on
+  // zoomend interrupted the 1.3s SVG subpath animation and caused label flicker.
+  const prior=new Map([...pane.querySelectorAll(':scope > .fp-poi')].map(node=>[node.dataset.poiId,node]));
   const fragment=document.createDocumentFragment();
-  for(const {p,xy} of kept){const b=document.createElement('button');b.type='button';b.className='fp-poi';
-   b.style.left=xy.x+'px';b.style.top=xy.y+'px';b.title=p.name;b.setAttribute('aria-label','查看'+p.name);b.dataset.poiCategory=categoryFor(p.category,p.name);b.dataset.poiId=p.id;
-   const token=document.createElement('span');token.className='fp-poi-token';const img=document.createElement('img');img.src=fileFor(p.category,p.name);img.alt='';img.setAttribute('aria-hidden','true');token.append(img);b.append(token);
-   if(named){const label=document.createElement('span');label.className='fp-poi-label';label.textContent=p.name;b.append(label)}
-   b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-    const old=pane.querySelector('.fp-poi.is-selected');old?.classList.remove('is-selected','is-tapped');
-    b.classList.add('is-selected');b.classList.remove('is-tapped');void b.offsetWidth;b.classList.add('is-tapped');
-    activePointer=p.id;try{navigator.vibrate?.(8)}catch(_){}
-    // Keep the native location selection: never invent a second, duplicate marker.
-    window.setTimeout(()=>{if(!b.isConnected)return;bridge?.select?.({name:p.name,lat:p.lat,lng:p.lng,category:p.category,id:p.id})},125);
-   });fragment.append(b);
+  const visibleIds=new Set();
+  for(const {p,xy} of kept){
+   const id=String(p.id);
+   visibleIds.add(id);
+   let b=prior.get(id),fresh=!b;
+   if(!b){
+    b=document.createElement('button');b.type='button';b.className='fp-poi';
+    b.dataset.poiId=id;
+    const token=document.createElement('span');token.className='fp-poi-token';
+    const img=document.createElement('img');img.src=fileFor(p.category,p.name);img.alt='';img.setAttribute('aria-hidden','true');token.append(img);b.append(token);
+    b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+      const old=pane.querySelector('.fp-poi.is-selected');if(old!==b)old?.classList.remove('is-selected','is-tapped');
+      b.classList.add('is-selected');activePointer=b.dataset.poiId;
+      // The pictogram pops while the camera smoothly pans at a CONSTANT zoom.
+      window.AtlasPOIMotion?.popSelected?.(b.querySelector('.fp-poi-token'));
+      window.AtlasPOIMotion?.play(b.querySelector('.fp-poi-token'),b.dataset.poiCategory,b.dataset.poiName);
+      try{navigator.vibrate?.(8)}catch(_){}
+      const selected={name:b.dataset.poiName,lat:Number(b.dataset.poiLat),lng:Number(b.dataset.poiLng),category:b.dataset.poiRawCategory,id:b.dataset.poiId};
+      // Let the inner artwork reach its first spring peak before opening the
+      // place sheet. The georeferenced outer POI itself never transforms.
+      // The selected icon already animates in place; the card opens in the SAME tap frame.
+      // Delaying 220ms spawned another selected marker over it, visible as ghosting.
+      if(b.isConnected)bridge?.select?.(selected);
+    });
+   }
+   b.style.removeProperty('translate');
+   b.style.left=xy.x+'px';b.style.top=xy.y+'px';b.title=p.name;
+   b.setAttribute('aria-label','查看'+p.name);
+   b.dataset.poiCategory=categoryFor(p.category,p.name);
+   b.dataset.poiRawCategory=p.category;
+   b.dataset.poiName=p.name;b.dataset.poiLat=p.lat;b.dataset.poiLng=p.lng;
+   let label=b.querySelector('.fp-poi-label');
+   if(named){if(!label){label=document.createElement('span');label.className='fp-poi-label';b.append(label)}if(label.textContent!==p.name)label.textContent=p.name}
+   else if(label)label.remove();
+   b.classList.toggle('is-selected',activePointer===id&&document.body.classList.contains('destination-selected'));
+   // Existing POIs must stay attached: detaching on every map frame resets
+   // WebKit SVG subpath timing and makes a tapped pictogram stutter.
+   if(fresh)fragment.append(b);
   }
-  pane.replaceChildren(fragment);pane.dataset.realPoiCount=String(kept.length);
+  // Keep the selected SVG attached even when the POI density grid changes
+  // during centering: replacing it would truncate the accepted spring.
+  for(const [id,node] of prior){
+   if(visibleIds.has(id))continue;
+   const geo={id,lat:Number(node.dataset.poiLat),lng:Number(node.dataset.poiLng)};
+   const xy=Number.isFinite(geo.lat)&&Number.isFinite(geo.lng)?project(geo):null;
+   const nowSaved=isBehindStar({...geo,name:node.dataset.poiName});
+   if(id===activePointer&&!nowSaved)continue;
+   if(nowSaved&&id===activePointer)activePointer='';
+   node.remove();
+  }
+  if(fragment.childNodes.length)pane.append(fragment);
+  pane.dataset.realPoiCount=String(kept.length);
   return kept.length;
  }
  function doRender(){queued=0;bridge=window.__atlasPOIBridge||bridge;if(!bridge)return;
   const map=bridge.vector?.(),off=bridge.official?.();const pane=$('atlasPoiOverlay');if(!pane)return;
   if(map&&map.isStyleLoaded?.()){
-   currentMap=map;const rows=candidatesFromVector(map);
-   const shown=renderRows(rows,p=>map.project([p.lng,p.lat]));
+   // Keep a single camera-owned POI transform until the pan commits at moveend.
+   if(window.__atlasPOICentering)return;
+   currentMap=map;window.FootprintAMapPOI?.attach?.(map);
+   const nativeRows=candidatesFromVector(map),amapRows=window.FootprintAMapPOI?.visible?.(map)||[];
+   const shown=renderRows([...amapRows,...nativeRows],p=>map.project([p.lng,p.lat]));
    if(shown>0){
     // Preserve native POI text labels, especially for unknown categories.
     // Replacing the entire label layer previously erased many important names.
     const labels=nativeLabelLayers(map);
-    for(const l of labels){try{map.setPaintProperty(l.id,'icon-opacity',0)}catch(_){}}
+    for(const l of labels){try{if(map.getPaintProperty(l.id,'icon-opacity')!==0)map.setPaintProperty(l.id,'icon-opacity',0)}catch(_){}}
    }
    return;
   }
   if(off){currentMap={getZoom:()=>off.getZoom?.()};renderRows(bridge.officialPlaces?.()||[],p=>bridge.projectOfficial?.(p));return}
   pane.replaceChildren();
  }
+ // Reposition EXISTING georeferenced SVG buttons with the map on every visual
+ // frame. Never detach nodes or replay SVG motion while the camera eases.
+ let anchorFrame=0;
+ function queueAnchorSync(){
+  // Automatic centering is now handled by one shared parent compositor
+  // translation in the map renderer itself. No per-POI rAF in this path.
+  if(window.__atlasPOICentering)return;
+  if(anchorFrame||document.hidden)return;
+  anchorFrame=requestAnimationFrame(()=>{
+   anchorFrame=0;
+   const m=bridge?.vector?.(),pane=$('atlasPoiOverlay');
+   if(!m||!pane)return;
+   for(const b of pane.querySelectorAll(':scope > .fp-poi')){
+    const lng=Number(b.dataset.poiLng),lat=Number(b.dataset.poiLat);
+    if(!Number.isFinite(lng)||!Number.isFinite(lat))continue;
+    const p=m.project([lng,lat]);
+    if(!Number.isFinite(p.x)||!Number.isFinite(p.y))continue;
+    // Do not relayout ~20 individual POI hit targets every WebGL frame.
+    // Keep their baseline left/top stable and track camera pixels through
+    // a compositor-only translate; their SVG animation remains independent.
+    const baseX=parseFloat(b.style.left),baseY=parseFloat(b.style.top);
+    if(Number.isFinite(baseX)&&Number.isFinite(baseY))
+      b.style.translate=(p.x-baseX)+'px '+(p.y-baseY)+'px';
+    else {b.style.left=p.x+'px';b.style.top=p.y+'px'}
+   }
+  });
+ }
+ document.addEventListener('atlas:saved-stars-changed',()=>{if(queued){clearTimeout(queued);queued=0}doRender()});
+ document.addEventListener('atlas:poi-source-updated',schedule);
+ document.addEventListener('atlas:poi-cleared',()=>{
+  activePointer='';
+  $('atlasPoiOverlay')?.querySelectorAll('.fp-poi.is-selected').forEach(n=>n.classList.remove('is-selected'));
+ });
+ // Synchronous end-of-pan commit before the map renderer removes the
+ // shared overlay translation; avoids the one-frame marker disappearance.
+ window.__atlasPOICommitCurrent=()=>{
+  if(queued){clearTimeout(queued);queued=0}
+  doRender();
+ };
  function schedule(){if(queued)return;queued=window.setTimeout(doRender,140)}
  function attach(){bridge=window.__atlasPOIBridge;if(!bridge)return false;
   const map=bridge.vector?.(),off=bridge.official?.();
-  if(map&&!map.__fpPoi29Bound){map.__fpPoi29Bound=true;map.on?.('moveend',schedule);map.on?.('zoomend',schedule);map.on?.('load',schedule);map.on?.('styledata',schedule);map.on?.('sourcedata',schedule);}
+  if(map&&!map.__fpPoi29Bound){map.__fpPoi29Bound=true;map.on?.('move',queueAnchorSync);map.on?.('moveend',schedule);map.on?.('zoomend',schedule);map.on?.('load',schedule);map.on?.('styledata',schedule);map.on?.('sourcedata',schedule);}
   if(off&&!off.__fpPoi29Bound){off.__fpPoi29Bound=true;off.on?.('moveend',schedule);off.on?.('zoomend',schedule);}
   schedule();return Boolean(map||off);
  }

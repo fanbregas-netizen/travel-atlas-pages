@@ -140,10 +140,16 @@
     },95)
   }
   function hideDestination(){
+    // A blank tap during auto-centering must cancel the pending camera motion;
+    // otherwise the map keeps travelling after the card is already dismissed.
+    if(isVector()&&vectorMap&&window.__atlasPOICentering){
+      vectorMap.stop();
+      if(poiCenterOrigin)finishCenterPanVisuals();
+    }
     ++destinationRevealToken;
     if(destinationRevealTimer){clearTimeout(destinationRevealTimer);destinationRevealTimer=null}
     if(!selectedDestination&&!$('destinationCard').classList.contains('visible')&&$('selectionFeedback').hidden)return;
-    stableSelectionMarker?.remove();stableSelectionMarker=null;selectedDestination=null;if(isOfficial())updateOfficialSelectionPin(null);if(vectorSelectionMarker){vectorSelectionMarker.remove();vectorSelectionMarker=null;}$('destinationCard').classList.remove('visible');window.FootprintElasticHandoff?.stop($('destinationCard'));$('selectionFeedback').hidden=true;document.body.classList.remove('destination-selected')}
+    stableSelectionMarker?.remove();stableSelectionMarker=null;selectedDestination=null;if(isOfficial())updateOfficialSelectionPin(null);if(vectorSelectionMarker){vectorSelectionMarker.remove();vectorSelectionMarker=null;}$('destinationCard').classList.remove('visible');window.FootprintElasticHandoff?.stop($('destinationCard'));$('selectionFeedback').hidden=true;document.body.classList.remove('destination-selected');document.dispatchEvent(new Event('atlas:poi-cleared'))}
 
   function cancelBookmark(id){
     const p=places.find(item=>item.id===id);
@@ -189,6 +195,7 @@
     if(!poiCenterOrigin)return;
     // Finish position recomputation without removing the old translation
     // until both DOM surfaces have committed their final geo-anchored pixels.
+    window.__atlasPOICentering=false;
     try{window.__atlasPOICommitCurrent?.()}catch(error){console.warn('POI end-of-pan sync',error)}
     for(const id of ['atlasPoiOverlay','atlasBookmarkOverlay']){
       const pane=$(id);
@@ -213,6 +220,7 @@
       if(!p||Math.hypot(p.x-canvas.clientWidth/2,p.y-canvas.clientHeight/2)<2)return false;
       userHasMovedMap=true;
       vectorMap.stop();
+      if(poiCenterOrigin)finishCenterPanVisuals();
       window.__atlasPOICentering=true;
       beginCenterPanVisuals();
       vectorMap.easeTo({center:[lng,lat],zoom:vectorMap.getZoom(),
@@ -1843,75 +1851,41 @@
   }
   function showVectorSelection(place){
     if(!isVector())return;
-    // Reuse the existing georeferenced POI instead of painting a duplicate.
-    const node=Array.from(document.querySelectorAll('#atlasPoiOverlay > .fp-poi')).find(el=>
-      el.dataset.poiId===String(place.id||'')&&
-      Math.abs(Number(el.dataset.poiLat)-Number(place.lat))<.00001&&
-      Math.abs(Number(el.dataset.poiLng)-Number(place.lng))<.00001);
+    // Reuse the same visible V3 POI, never paint a duplicate selection marker.
+    const node=Array.from(document.querySelectorAll('#atlasPoiOverlay > .fp-poi')).find(el=>{
+      const near=Math.abs(Number(el.dataset.poiLat)-Number(place.lat))<.00009&&
+        Math.abs(Number(el.dataset.poiLng)-Number(place.lng))<.00009;
+      const id=String(place.id||'');
+      return near&&((!!id&&el.dataset.poiId===id)||el.dataset.poiName===String(place.name||''));
+    });
+    for(const el of document.querySelectorAll('#atlasPoiOverlay > .fp-poi.is-selected'))
+      if(el!==node)el.classList.remove('is-selected','is-tapped');
     if(node){
       vectorSelectionMarker?.remove();vectorSelectionMarker=null;
       node.classList.add('is-selected');
       window.AtlasPOIMotion?.popSelected?.(node.querySelector('.fp-poi-token'));
       return;
     }
-    if(vectorSelectionMarker)vectorSelectionMarker.remove();
-    const pin=document.createElement('div');pin.className='atlas-vector-selection fp-vector-selection fp-poi-selection-cue';
-    // The existing V3 icon owns the micro-motion: water gently ripples,
-    // ordinary POI symbols make one restrained arrival hop.
-    if(/水|浪|河|湖|海|溪|瀑|泉|beach|river|water|lake|sea|wave/i.test(String(place.category||'')+' '+String(place.name||'')))
-      pin.classList.add('fp-water-selection');
+    // Only an explicit search can reach here without a visible POI chip.
+    // Use a canonical V3 glyph; the canvas tap handler never selects blank map.
+    vectorSelectionMarker?.remove();vectorSelectionMarker=null;
+    const pin=document.createElement('div');
+    pin.className='atlas-vector-selection fp-vector-selection fp-poi-selection-cue';
     const token=document.createElement('span');token.className='fp-vector-token';
-    const img=document.createElement('img');img.src=window.AtlasPOIIcons?.fileFor(place.category,place.name)||'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiBhcmlhLWxhYmVsPSJOZWFyYnkiPgogPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTYxNjE2IiBzdHJva2Utd2lkdGg9IjMuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMzEgMTAgQzQxIDkgNDggMTcgNDcgMjcgQzQ2IDM2IDM5IDQxIDMxIDUxIEMyNCA0MiAxNiAzNCAxNiAyNiBDMTYgMTYgMjMgMTAgMzEgMTBaIi8+CiAgPGNpcmNsZSBjeD0iMzEiIGN5PSIyNiIgcj0iNi4xIi8+CiAgPHBhdGggZD0iTTE1IDQ3IEM5IDQ5IDggNTMgMTQgNTUgQzIyIDU5IDQxIDU5IDUwIDU1IEM1NSA1MyA1NCA0OSA0NyA0NyIgc3Ryb2tlLXdpZHRoPSIyLjQiLz4KIDwvZz4KPC9zdmc+';img.alt='';img.setAttribute('aria-hidden','true');token.append(img);pin.append(token);
-    vectorSelectionMarker=new window.maplibregl.Marker({element:pin,anchor:'center'}).setLngLat([+place.lng,+place.lat]).addTo(vectorMap);
-    // Raise this SAME georeferenced marker above other POIs and stars.
-    // MapLibre still updates its transform; no copy or floating duplicate.
-    let topPane=$('atlasSelectedPoiTop');
-    if(!topPane){
-      topPane=document.createElement('div');topPane.id='atlasSelectedPoiTop';
-      topPane.setAttribute('aria-hidden','true');document.body.appendChild(topPane);
-    }
-    topPane.appendChild(pin);
+    const img=document.createElement('img');
+    img.src=window.AtlasPOIIcons?.fileFor(place.category,place.name)||'./icons/16_add_place.svg';
+    img.alt='';img.setAttribute('aria-hidden','true');token.append(img);pin.append(token);
+    vectorSelectionMarker=new window.maplibregl.Marker({element:pin,anchor:'center'})
+      .setLngLat([Number(place.lng),Number(place.lat)]).addTo(vectorMap);
+    // Keep the marker in MapLibre's coordinate-managed pane.
+    // Reparenting it into a fixed document overlay detached map projection.
     window.AtlasPOIMotion?.popSelected?.(token);
     if(window.AtlasPOIMotion?.categoryId(place.category,place.name))
       window.AtlasPOIMotion.play(token,place.category,place.name);
-    else window.FootprintElasticHandoff?.acknowledgePoi(token);
-    // Map position is owned only by MapLibre; the symbol alone rebounds.
   }
   function guessPoiCategory(props){return props.class||props.subclass||props.type||props.category||'地点'}
   function readPoiName(props){return props['name:zh']||props.name_zh||props.name||props['name:en']||props.name_en||props.ref||''}
-  function getPoiFromFeatures(e){
-    if(!isVector())return null;
-    /* build .22 · 录屏批注「点地图标题乱跳」：旧版命中盒 44/64px 太大，且 queryRenderedFeatures
-       返回顺序与点击距离无关，两个相邻村名（上兑/上龙龛）之间等于抽签。
-       改为：收紧命中盒（先 22px 后 38px），候选一律按标签几何点到点击点的屏幕距离排序取最近。 */
-    let poi=null;
-    for(const pad of [22,38]){
-      let feats=[];
-      try{feats=vectorMap.queryRenderedFeatures([[e.point.x-pad,e.point.y-pad],[e.point.x+pad,e.point.y+pad]])}catch(err){return null}
-      const eligible=f=>/poi|place|station|shop|amenity|tourism|historic|museum|hotel|restaurant|cafe|railway|mountain_peak|attraction|park|garden/.test((f.layer?.id||'').toLowerCase()+' '+(f.sourceLayer||'')+' '+(f.properties?.class||'')+' '+(f.properties?.subclass||''))&&readPoiName(f.properties||{});
-      const pool=feats.filter(eligible);
-      if(!pool.length)continue;
-      let direct=[];
-      try{direct=vectorMap.queryRenderedFeatures(e.point).filter(eligible)}catch(_){}
-      const candidates=(direct.length?direct:pool).map(f=>{
-        let d=Infinity;
-        try{
-          if(f.geometry?.type==='Point'&&Array.isArray(f.geometry.coordinates)){
-            const px=vectorMap.project(f.geometry.coordinates);
-            d=Math.hypot(px.x-e.point.x,px.y-e.point.y);
-          }
-        }catch(_){}
-        return{f,d};
-      }).filter(item=>Number.isFinite(item.d)).sort((a,b)=>a.d-b.d);
-      if(candidates.length&&candidates[0].d<=pad+10){poi=candidates[0].f;break}
-      // Polygon labels are accepted only when the finger actually intersects
-      // the painted feature, not an arbitrary 38px neighboring rectangle.
-      if(direct.length){poi=direct[0];break}
-    }
-    if(!poi)return null;
-    const coords=poi.geometry?.type==='Point'&&Array.isArray(poi.geometry.coordinates)?poi.geometry.coordinates:[e.lngLat.lng,e.lngLat.lat];
-    return {name:String(readPoiName(poi.properties)),lng:coords[0],lat:coords[1],category:guessPoiCategory(poi.properties),address:poi.properties?.address||'',id:String(poi.properties?.id||'')};
-  }
+  // Hidden basemap features are not POI tap targets.
   // V31 vector POIs: render real tile-derived names as proper 44px buttons, not
   // tiny paint-only symbols. Distant maps stay quiet; names progressively appear.
   let vectorPoiRenderQueued=false;
@@ -1930,21 +1904,11 @@
     const pane=$('atlasPoiOverlay');
     if(pane&&!window.__atlasPOICommitCurrent)pane.replaceChildren();
   }
-  let reverseReq=0,lastVectorPickAt=0,lastVectorPickKey='';
-  async function selectVectorTap(e){
+  let reverseReq=0;
+  function selectVectorTap(e){
     if(!isVector()||picking||$('editor').open)return;
+    // Only the product's visible V3 POI buttons can open a destination.
     if(selectedId){closeMemory();return;}
-    const point=getPoiFromFeatures(e);
-    if(point){
-      /* build .22 · 同一点击的重复事件（触屏+仿真 click 连发）不得把卡片刷新成另一个名字：
-         350ms 内同一地点只认一次；点到真正不同的地点才切换。 */
-      const key=String(point.id||'')+'|'+point.name+'|'+point.lng.toFixed(5)+'|'+point.lat.toFixed(5);
-      const now=Date.now();
-      if(key===lastVectorPickKey&&now-lastVectorPickAt<350)return;
-      lastVectorPickKey=key;lastVectorPickAt=now;
-      showDestination({...point,__poiTap:true});return;
-    }
-    // iPhone Maps behavior: blank map tap returns to the map, not a fabricated place card.
     hideDestination();
   }
   let fallbackScriptRequest=null;
@@ -2160,8 +2124,9 @@
       });
       vectorMap.on('moveend',()=>{
         const wasCentering=window.__atlasPOICentering;
-        rememberMapView();renderVectorBookmarks();
+        rememberMapView();
         if(wasCentering)finishCenterPanVisuals();
+        renderVectorBookmarks();
         window.__atlasPOICentering=false;
         scheduleVectorPOIs();
         const pane=$('atlasPoiOverlay');if(pane&&pane.style.opacity!=='1')pane.style.opacity='1';
