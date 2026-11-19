@@ -1,0 +1,12 @@
+/* Footprint Map V4 — homepage only. Never tint cards, POI SVGs or Dock. */
+#atlasVectorMap{background:#485D6B!important;}
+#atlasVectorMap .maplibregl-canvas-container,
+#atlasVectorMap .maplibregl-canvas{background-color:#485D6B;}
+/* Native map attribution legible over dark map, controls unchanged. */
+#atlasVectorMap .maplibregl-ctrl-attrib{
+ background:rgba(255,254,249,.88)!important;
+ color:#405463!important;
+ border-radius:10px;
+}
+/* Preserve legibility of current feedback on both map themes. */
+#atlasVectorMap .maplibregl-ctrl button{filter:none;}

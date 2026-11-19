@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>足迹地图｜查看路线</title>
+<script>
+/* Legacy saved/view/edit links all land in the one live MapLibre home map. */
+(()=>{'use strict';
+ const params=new URLSearchParams(location.search);
+ const id=params.get('route')||params.get('saved')||params.get('edit')||params.get('id');
+ const to=new URL('./index.html',location.href);
+ if(id&&id.length<=256&&!/[\u0000-\u001f]/.test(id))to.searchParams.set('route',id);
+ else to.searchParams.set('openRoute','1');
+ if(params.has('edit'))to.searchParams.set('editRoute','1');
+ location.replace(to.href);
+})();
+</script></head><body style="background:#fffefa;color:#293f33;font:16px -apple-system,system-ui,sans-serif;padding:24px">正在打开路线… <a href="./index.html?openRoute=1">打开路线</a></body></html>

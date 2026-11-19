@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f7f3">
+<title>Footprint Map｜地图点位 SVG 细部动效审核</title>
+<style>
+:root{--bg:#f2f4ef;--paper:#fffefa;--ink:#263b31;--muted:#7b8b80;--line:#dce4da;--deep:#2b493d}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--bg);font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",sans-serif;-webkit-font-smoothing:antialiased}button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}button:focus-visible{outline:2px solid #b39455;outline-offset:3px}main,header>div{margin:0 auto;max-width:1020px;padding-inline:16px}
+header{background:#fffefa;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 20px) 0 22px}
+.eyebrow{font-size:11px;font-weight:750;letter-spacing:.13em;color:#8c9a8c}
+h1{font-size:26px;letter-spacing:-.055em;line-height:1.29;margin:8px 0 10px}
+header p{font-size:13px;line-height:1.75;color:#63766a;margin:0;max-width:620px}
+.metrics{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}.metrics span{padding:5px 10px;border-radius:40px;font-size:11px;background:#e8eee6;color:#506958}
+h2{font-size:18px;letter-spacing:-.035em;margin:0}
+.section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:23px 1px 13px}.section-heading small{color:var(--muted);font-size:12px}
+.stage{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:17px}
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:7px;align-items:center;margin:12px 0 13px}
+.flow-step{border-radius:15px;background:#f1f4ef;padding:13px 5px;text-align:center;font-weight:690;font-size:12px}
+.flow-step span{font-weight:450;color:#7a8a80;font-size:10px;display:block;margin-top:4px}.arrow{color:#9aa89a}
+.stage strong{font-size:13px}.stage p{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.65}
+.stage-demo{display:flex;gap:17px;align-items:center;border-top:1px solid var(--line);padding-top:15px;margin-top:15px}
+.stage-demo .art{width:85px;height:85px;border-radius:18px;background:#edf0e9;display:grid;place-items:center;flex:none;position:relative}
+.stage-demo .art svg{width:62px;height:62px}
+.stage-demo .art .star-halo{position:absolute;width:50px;height:50px;border:1.5px solid #c49a55;border-radius:50%;opacity:0;pointer-events:none}
+.stage-demo.is-playing .art .star-halo{animation:halo .74s ease-out both}
+.stage-demo .descr{flex:1}.stage-demo .descr b{font-size:13px}.stage-demo .descr small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.btn{border:0;background:var(--deep);color:white;padding:10px 14px;min-height:42px;border-radius:12px;font-weight:660;font-size:12px}
+.btn.secondary{background:#fffefa;color:var(--ink);border:1px solid var(--line)}
+.tools{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:16px 0 13px;flex-wrap:wrap}.tools p{margin:0;color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;padding-bottom:15px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:13px;min-width:0;position:relative}
+.card h3{font-size:14px;margin:0;font-weight:740;letter-spacing:-.02em}.card .duration{color:var(--muted);font-size:10px}
+.card .sub{color:var(--muted);font-size:10px;line-height:1.55;min-height:33px;margin-top:5px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.slot{display:grid;place-items:center;min-height:85px;background:#f1f3ee;border:1px solid #e7ece5;border-radius:14px;overflow:hidden;position:relative}
+.slot.play{background:#eaf0e9;border-color:#dbe5d9}
+.slot img,.slot svg{width:63px;height:63px;max-width:90%;display:block}
+.slot .error{font-size:11px;color:#b55a47;max-width:88px;text-align:center}
+.slot .local-halo{position:absolute;width:37px;height:37px;border:1.5px solid #b89251;border-radius:50%;opacity:0;pointer-events:none}
+.card.is-playing .local-halo{animation:halo .75s ease-out both}
+@keyframes halo{0%{opacity:.7;transform:scale(.55)}100%{opacity:0;transform:scale(2)}}
+.slotlabel{font-size:10px;color:var(--muted);text-align:center;margin-top:5px}
+.caption{font-size:11px;color:#5e7162;min-height:34px;line-height:1.55;margin:10px 0 9px}
+.replay{width:100%;height:34px;border:1px solid #cadacf;background:#f8faf6;color:var(--ink);border-radius:10px;font-size:11px;font-weight:660}
+.votes{display:flex;gap:4px;margin-top:7px}
+.votes button{min-height:31px;flex:1;white-space:nowrap;padding:3px 1px;background:#fff;border:1px solid var(--line);color:#718277;border-radius:8px;font-size:10px}
+.votes button[aria-pressed=true][data-vote="通过"]{background:#e5efe6;border-color:#bcd5be;color:#375d3e}
+.votes button[aria-pressed=true][data-vote="微调"]{background:#f8eedc;border-color:#e2cba0;color:#8d6a31}
+.votes button[aria-pressed=true][data-vote="取消"]{background:#ebeeeb;border-color:#c3cec4;color:#4f6556}
+.report{background:var(--paper);border:1px solid var(--line);border-radius:21px;padding:17px;margin:8px 0 34px}
+.report p{color:var(--muted);font-size:12px;margin:5px 0}
+.reportbuttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+pre{white-space:pre-wrap;overflow:auto;max-height:280px;padding:13px;border-radius:12px;background:#eff3ec;color:#526957;font-size:11px;margin:14px 0 0}
+footer{font-size:11px;color:#88988b;margin:0 0 30px}
+@media(min-width:660px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}h1{font-size:32px}}
+@media(min-width:960px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.stage-demo.is-playing .star-halo,.card.is-playing .local-halo{animation:none!important}}
+</style>
+</head>
+<body>
+<header><div><div class="eyebrow">FOOTPRINT MAP V4 · SVG 路径动效审核</div>
+<h1>让图案里面的线条动起来。</h1>
+<p>本版只审核地图地点标记：22 类真实 POI SVG ＋ 1 颗实际黄色星标。海浪改变波形，树冠轻摆、蒸汽上升、书页翻动、球面线条滚动。不是整枚图标统一摇晃或放大。</p>
+<div class="metrics"><span>23 个地图点位</span><span>原始 SVG 不重绘</span><span>细部路径动画</span><span>点击播放一次</span><span>独立审核，暂不接入产品</span></div>
+</div></header>
+<main>
+<div class="section-heading"><h2>01｜地图选中节奏</h2><small>仅示意衔接顺序</small></div>
+<section class="stage">
+<div class="flow"><div class="flow-step">地图聚焦<span>相机独立控制</span></div><div class="arrow">→</div><div class="flow-step">SVG 细部动作<span>一轮，约 0.9–1.5 秒</span></div><div class="arrow">→</div><div class="flow-step">详情卡片<span>沿用已确认交互</span></div></div>
+<p>图形自身在动，Pin 的地理坐标不动。地图镜头移动和详情卡片仍由原有系统控制，不由 SVG 动画改写。</p>
+<div class="stage-demo" id="stageDemo">
+<div class="art" id="starPreview"><span class="star-halo"></span></div>
+<div class="descr"><b>黄色星标 · 轮廓尖角轻微变化</b><small>不是整颗星旋转；星的五个尖角做短促形变，回到原画。</small></div>
+<button class="btn" type="button" id="starReplay">播放</button></div>
+<div class="votes" id="starVotes" aria-label="黄色星标动效审核" style="margin-top:12px">
+<button type="button" data-vote="通过" aria-pressed="false">通过</button>
+<button type="button" data-vote="微调" aria-pressed="false">微调</button>
+<button type="button" data-vote="取消" aria-pressed="false">取消</button>
+</div>
+</section>
+<div class="section-heading"><h2>02｜22 类地点 SVG 动效</h2><small>原画与动画逐项并排</small></div>
+<div class="tools"><p id="loadMessage">正在加载原始图标素材…</p><button class="btn secondary" type="button" id="replayVisible">重播当前可见图标</button></div>
+<div class="grid" id="grid"></div>
+<section class="report">
+<h2>03｜审核选择</h2><p>每个图标可标记「通过 / 微调 / 取消」。选择只存放在本机浏览器中，复制意见回聊天即可继续制作。</p>
+<div class="reportbuttons"><button type="button" class="btn" id="copy">复制审核结果</button><button type="button" class="btn secondary" id="view">查看审核结果</button><button type="button" class="btn secondary" id="reset">清空选择</button></div>
+<pre id="report" hidden></pre>
+</section>
+<footer>本页只预览动效候选，未修改 Footprint Map 地图运行代码、Pin 命中区域或正式网站。</footer>
+</main>
+<script>
+(()=>{
+'use strict';
+const NS='http://www.w3.org/2000/svg';
+const items=[
+{id:'21_mountain',name:'山峰',detail:'积雪与山脊两条细线依次勾勒，山体主轮廓固定。',dur:850},
+{id:'22_sea',name:'海浪',detail:'三层波线的贝塞尔曲线交错变形，波峰向前流动。',dur:1300},
+{id:'23_forest',name:'森林',detail:'两株树冠分别围绕自己的树干轻摆，树干固定。',dur:1100},
+{id:'24_town',name:'古镇',detail:'屋顶轮廓固定，三道门窗线条依次亮起。',dur:920},
+{id:'25_creative',name:'创意园',detail:'厂房不动，三扇窗与屋顶小火花分别描绘。',dur:930},
+{id:'26_lake',name:'湖泊 / 河流',detail:'湖内涟漪改变弧度，岸边波纹轻微延展。',dur:1250},
+{id:'43_food',name:'餐饮',detail:'餐叉的三根齿线依次闪动，餐勺保持稳定。',dur:760},
+{id:'44_stay',name:'住宿',detail:'枕头和被褥小幅回弹，床架固定。',dur:870},
+{id:'45_museum',name:'博物馆',detail:'四根内部立柱从上到下依次显现，外轮廓不动。',dur:920},
+{id:'46_park',name:'公园',detail:'树冠沿树干支点摆动，小灌木枝条轻弹。',dur:950},
+{id:'47_coffee',name:'咖啡',detail:'杯体稳定，两股蒸汽分别升起、淡去。',dur:1150},
+{id:'48_transit',name:'公共交通',detail:'车窗和车灯内部线条依次扫亮，车身不平移。',dur:780},
+{id:'49_shopping',name:'购物',detail:'袋口提手轻微伸展，袋身保持不动。',dur:870},
+{id:'50_school',name:'学校',detail:'校门轻开合，建筑保持在原坐标。',dur:800},
+{id:'51_hospital',name:'医院',detail:'中心十字的横竖笔画依次描绘，建筑不动。',dur:760},
+{id:'52_library',name:'图书馆',detail:'右侧书页的两条文字线逐条翻动，书脊不动。',dur:1100},
+{id:'53_pharmacy',name:'药房',detail:'内部药十字笔画依次写出，外框不动。',dur:740},
+{id:'54_bank',name:'银行',detail:'前景立柱线条按顺序显现，屋檐保持稳定。',dur:950},
+{id:'55_parking',name:'停车场',detail:'内部字母 P 沿笔画描出，外方框静止。',dur:840},
+{id:'56_sport',name:'运动场 / 足球',detail:'外圆保持固定，内部球面线条短促滚动再回正。',dur:900},
+{id:'57_civic',name:'公共设施',detail:'屋顶中心的小圆徽记脉冲，内侧立柱依次显示。',dur:850},
+{id:'58_worship',name:'宗教建筑',detail:'拱门内部开合，顶端小十字依次描绘。',dur:930}
+];
+const byId=new Map(items.map(x=>[x.id,x]));
+const morphSea=[
+['M7 23 C14 18 17 29 24 24 C31 18 35 28 42 24 C48 20 53 26 57 23',
+ 'M7 23 C14 27 17 19 24 24 C31 29 35 19 42 24 C48 27 53 20 57 23'],
+['M7 35 C13 31 17 41 24 36 C31 31 35 41 42 36 C48 32 53 39 57 35',
+ 'M7 35 C13 39 17 30 24 36 C31 40 35 31 42 36 C48 39 53 31 57 35'],
+['M12 47 C18 43 22 52 29 47 C35 43 39 52 45 47 C50 44 53 49 56 47',
+ 'M12 47 C18 51 22 43 29 47 C35 51 39 43 45 47 C50 50 53 44 56 47']
+];
+const starBase='M20 3.7 25.2 13.5 36.1 15.2 28.3 23 30.1 34 20 28.7 9.9 34 11.7 23 3.9 15.2 14.8 13.5Z';
+const starShape='M20 2.6 25.6 13.2 37.2 14.8 28.8 23 30.5 35.2 20 29.1 9.4 35.2 11.2 23 2.8 14.8 14.4 13.2Z';
+function svgNode(tag){return document.createElementNS(NS,tag)}
+function setA(n,o){for(const [k,v] of Object.entries(o))n.setAttribute(k,String(v));return n}
+function morph(n,from,to,dur,offset=0){
+ const a=setA(svgNode('animate'),{attributeName:'d',values:[from,to,from].join(';'),dur:dur+'ms',keyTimes:'0;0.5;1',begin:'indefinite',fill:'remove'});
+ a.dataset.animation='1';a.dataset.offset=String(offset);n.append(a);
+}
+function move(n,values,dur,type='translate',offset=0){
+ const a=setA(svgNode('animateTransform'),{attributeName:'transform',attributeType:'XML',type,values:values.join(';'),dur:dur+'ms',begin:'indefinite',fill:'remove',additive:'sum'});
+ a.dataset.animation='1';a.dataset.offset=String(offset);n.append(a);
+}
+function attr(n,name,values,dur,offset=0){
+ const a=setA(svgNode('animate'),{attributeName:name,values:values.join(';'),dur:dur+'ms',begin:'indefinite',fill:'remove'});
+ a.dataset.animation='1';a.dataset.offset=String(offset);n.append(a);
+}
+function draw(n,length,dur,offset=0){
+ n.setAttribute('stroke-dasharray',String(length)+' '+String(length));
+ attr(n,'stroke-dashoffset',[String(length),'0','0'],dur,offset);
+}
+function pieces(svg){
+ const paths=[];
+ for(const path of Array.from(svg.querySelectorAll('path'))){
+  const d=path.getAttribute('d')||'';
+  const chunks=d.match(/M[^M]*/g)||[d];
+  if(chunks.length===1){paths.push(path);continue}
+  const group=svgNode('g');
+  for(const part of chunks){
+   const n=path.cloneNode(false);n.setAttribute('d',part.trim());group.append(n);paths.push(n);
+  }
+  path.replaceWith(group);
+ }
+ return paths;
+}
+function addDetails(svg,id,dur){
+ const p=pieces(svg);
+ switch(id){
+ case '21_mountain': draw(p[1],28,650);draw(p[2],25,650,160);break;
+ case '22_sea':p.slice(0,3).forEach((n,i)=>morph(n,morphSea[i][0],morphSea[i][1],dur,i*100));break;
+ case '23_forest': move(p[1],['0 0','-1.1 0','1 0','0 0'],dur,'translate');move(p[3],['0 0','1.3 -0.6','-1.2 0.3','0 0'],dur,'translate',90);break;
+ case '24_town':p.slice(4,7).forEach((n,i)=>draw(n,22,650,i*120));draw(p[p.length-1],57,730);break;
+ case '25_creative':p.slice(1,4).forEach((n,i)=>attr(n,'opacity',['0.25','1','0.75','1'],dur,i*110));if(p[4])draw(p[4],18,700);break;
+ case '26_lake': {
+  const n=p[1],d=n?.getAttribute('d');
+  if(n&&d) morph(n,d,'M23 30 C29 33 39 27 42 33',dur);
+  const edge=p[2],e=edge?.getAttribute('d');
+  if(edge&&e)morph(edge,e,'M9 51 C17 54 25 47 34 50 C42 53 49 46 56 49',dur,100);
+  break;
+ }
+ case '43_food':p.slice(0,3).forEach((n,i)=>draw(n,30,540,i*100));break;
+ case '44_stay':p.slice(4,6).forEach((n,i)=>move(n,['0 0','0 -2.6','0 1','0 0'],dur,'translate',i*95));break;
+ case '45_museum':p.slice(2,6).forEach((n,i)=>draw(n,27,700,i*115));break;
+ case '46_park':move(p[0],['0 27 36','3 27 36','-2 27 36','0 27 36'],dur,'rotate');if(p[2])move(p[2],['0 0','1.7 -1','-1 0','0 0'],dur);break;
+ case '47_coffee':p.slice(-2).forEach((n,i)=>{move(n,['0 0','0 -4','0 -8'],dur,'translate',i*120);attr(n,'opacity',['1','0.85','0'],dur,i*120)});break;
+ case '48_transit':p.slice(1,4).forEach((n,i)=>{attr(n,'opacity',['0.3','1','0.4','1'],dur,i*90)});break;
+ case '49_shopping':move(p[1],['0 0','0 -3','0 -1','0 0'],dur);break;
+ case '50_school':{const door=p.find(n=>n.getAttribute('d')?.includes('M25 52'));if(door)move(door,['0 0','2 0','0 0'],dur);const clock=p[p.length-1];if(clock)draw(clock,18,dur);break}
+ case '51_hospital':p.slice(-2).forEach((n,i)=>draw(n,36,660,i*125));break;
+ case '52_library':p.slice(-2).forEach((n,i)=>move(n,['0 0','-2 -1','1 0','0 0'],dur,'translate',i*120));break;
+ case '53_pharmacy':p.forEach((n,i)=>draw(n,46,600,i*120));break;
+ case '54_bank':p.slice(2,6).forEach((n,i)=>draw(n,30,690,i*90));break;
+ case '55_parking':draw(p[0],95,dur);break;
+ case '56_sport': {
+  const original=svg.querySelector('circle'); if(original)original.setAttribute('data-fixed-outer-circle','true');
+  const inside=svgNode('g');p.forEach(n=>inside.append(n));svg.querySelector('g')?.append(inside);
+  move(inside,['0 32 32','12 32 32','31 32 32','0 32 32'],dur,'rotate');
+  break;
+ }
+ case '57_civic':{
+  const round=svg.querySelector('circle');if(round){attr(round,'r',['3','5','3'],dur);attr(round,'opacity',['1','0.6','1'],dur)}
+  p.slice(2,6).forEach((n,i)=>draw(n,30,680,i*100));break;
+ }
+ case '58_worship':{
+  const door=p.find(n=>(n.getAttribute('d')||'').startsWith('M25 53'));
+  if(door)move(door,['0 0','2.5 0','0 0'],dur);
+  p.slice(-2).forEach((n,i)=>draw(n,19,620,i*90));break;
+ }
+ }
+}
+function realStar(){
+ const svg=setA(svgNode('svg'),{viewBox:'0 0 40 40','aria-hidden':'true'});
+ const path=setA(svgNode('path'),{d:starBase,fill:'#D7B36E',stroke:'#344149','stroke-width':'2.2','stroke-linejoin':'round'});
+ svg.append(path);morph(path,starBase,starShape,750);return svg;
+}
+function animate(svg){
+ svg.querySelectorAll('[data-animation]').forEach(n=>{
+  const offset=Number(n.dataset.offset||0);
+  try{
+   if(offset&&typeof n.beginElementAt==='function')n.beginElementAt(offset/1000);
+   else n.beginElement?.();
+  }catch(_){}
+ });
+}
+function sourceSvgFor(id){
+ return fetch('./icons/'+id+'.svg',{cache:'force-cache'})
+ .then(r=>{if(!r.ok)throw new Error('图标读取失败：'+r.status);return r.text()})
+ .then(text=>{
+   const doc=new DOMParser().parseFromString(text,'image/svg+xml');
+   if(doc.querySelector('parsererror'))throw new Error('SVG 格式错误');
+   const node=doc.documentElement;
+   if(node.localName!=='svg')throw new Error('不是 SVG');
+   const cloned=document.importNode(node,true);
+   cloned.setAttribute('aria-hidden','true');
+   cloned.removeAttribute('width');cloned.removeAttribute('height');
+   return cloned;
+ });
+}
+const votes={};try{Object.assign(votes,JSON.parse(localStorage.getItem('footprint-poi-internal-review-v2')||'{}'))}catch(_){}
+const nodes=new Map();let loaded=0,failed=0;
+function markVotes(card,id){card.querySelectorAll('[data-vote]').forEach(b=>b.setAttribute('aria-pressed',String(votes[id]===b.dataset.vote)))}
+function saveVotes(){try{localStorage.setItem('footprint-poi-internal-review-v2',JSON.stringify(votes))}catch(_){}}
+function syncStarVotes(){
+ document.querySelectorAll('#starVotes [data-vote]').forEach(b=>b.setAttribute('aria-pressed',String(votes.map_star_live===b.dataset.vote)));
+}
+document.querySelectorAll('#starVotes [data-vote]').forEach(b=>b.addEventListener('click',()=>{
+ votes.map_star_live=b.dataset.vote;saveVotes();syncStarVotes();
+}));
+syncStarVotes();
+function playCard(card){
+ if(!card.querySelector('.slot.play svg'))return;
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ card.classList.remove('is-playing');void card.offsetWidth;card.classList.add('is-playing');
+ animate(card.querySelector('.slot.play svg'));
+ setTimeout(()=>card.classList.remove('is-playing'),1450);
+}
+async function addCard(item){
+ const card=document.createElement('article');card.className='card';card.dataset.id=item.id;
+ card.innerHTML='<div style="display:flex;justify-content:space-between;gap:5px;align-items:baseline"><h3>'+item.name+'</h3><small class="duration">'+item.dur+'ms</small></div>'+
+ '<div class="sub">真实源码：'+item.id+'.svg</div>'+
+ '<div class="pair"><div><div class="slot original"></div><div class="slotlabel">原图 · 静止</div></div><div><div class="slot play"></div><div class="slotlabel">SVG 内部路径动效</div></div></div>'+
+ '<div class="caption">'+item.detail+'</div>'+
+ '<button type="button" class="replay">↻ 重播细部动作</button>'+
+ '<div class="votes">'+['通过','微调','取消'].map(x=>'<button type="button" data-vote="'+x+'" aria-pressed="false">'+x+'</button>').join('')+'</div>';
+ const o=card.querySelector('.slot.original'),p=card.querySelector('.slot.play');
+ document.getElementById('grid').append(card);nodes.set(item.id,card);
+ card.querySelector('.replay').addEventListener('click',()=>playCard(card));
+ p.addEventListener('click',()=>playCard(card));p.style.cursor='pointer';
+ card.querySelectorAll('[data-vote]').forEach(b=>b.addEventListener('click',()=>{votes[item.id]=b.dataset.vote;saveVotes();markVotes(card,item.id)}));
+ markVotes(card,item.id);
+ try{
+  const original=await sourceSvgFor(item.id);o.append(original);
+  const moving=original.cloneNode(true);
+  addDetails(moving,item.id,item.dur);
+  p.append(moving);loaded++;
+  if(item.id==='22_sea')p.insertAdjacentHTML('beforeend','');
+ }catch(e){failed++;p.innerHTML='<div class="error">'+String(e.message||e)+'</div>';o.innerHTML='<div class="error">图标载入失败</div>'}
+ document.getElementById('loadMessage').textContent='SVG 原件已加载 '+loaded+'/'+items.length+(failed?' · '+failed+' 项失败':'');
+}
+const host=document.getElementById('starPreview'),star=realStar();host.append(star);
+let starTimer=0;function playStar(){
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ const node=document.getElementById('stageDemo');clearTimeout(starTimer);
+ node.classList.remove('is-playing');void node.offsetWidth;node.classList.add('is-playing');
+ animate(star);starTimer=setTimeout(()=>node.classList.remove('is-playing'),900);
+}
+document.getElementById('starReplay').addEventListener('click',playStar);
+host.addEventListener('click',playStar);
+document.getElementById('replayVisible').addEventListener('click',()=>{
+ for(const card of nodes.values()){
+  const r=card.getBoundingClientRect();if(r.bottom>=0&&r.top<innerHeight)playCard(card);
+ }
+});
+function reportText(){
+ const all=[{id:'map_star_live',name:'地图黄色星标'},...items];
+ const lines=['Footprint Map V4｜地图点位 SVG 细部动效审核','仅 22 类地点 POI + 单颗地图黄星','已审核 '+Object.keys(votes).length+'/'+all.length,''];
+ for(const v of ['通过','微调','取消']){
+  const a=all.filter(i=>votes[i.id]===v);
+  lines.push(v+'：'+a.length+' 项');
+  lines.push(a.length?a.map(x=>'• '+x.name).join('\n'):'• 暂无');lines.push('');
+ }
+ const left=all.filter(i=>!votes[i.id]);lines.push('未审核：'+left.length+' 项');
+ if(left.length)lines.push(left.map(x=>x.name).join('、'));
+ return lines.join('\n');
+}
+document.getElementById('view').addEventListener('click',()=>{const box=document.getElementById('report');box.textContent=reportText();box.hidden=!box.hidden});
+document.getElementById('copy').addEventListener('click',async e=>{
+ const report=reportText();try{await navigator.clipboard.writeText(report);e.currentTarget.textContent='已复制审核意见';setTimeout(()=>e.currentTarget.textContent='复制审核结果',1500)}
+ catch(_){const box=document.getElementById('report');box.textContent=report;box.hidden=false}
+});
+document.getElementById('reset').addEventListener('click',()=>{if(!confirm('清空当前页面的全部动效选择？'))return;for(const k of Object.keys(votes))delete votes[k];saveVotes();for(const it of items){const card=nodes.get(it.id);if(card)markVotes(card,it.id)}syncStarVotes();document.getElementById('report').hidden=true});
+for(const item of items)addCard(item);
+})();
+</script>
+</body></html>

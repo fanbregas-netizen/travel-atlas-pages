@@ -1,0 +1,19 @@
+{
+  "product": "Footprint Map V5",
+  "type": "independent QA candidate — unified card visual system",
+  "source_repo": "fanbregas-netizen/travel-atlas",
+  "source_commit": "1523e492c9cd8acd635c874145215add2ef7ac63",
+  "source_branch": "design/v5-unified-card-language-20261119",
+  "source_base_commit": "15921b19a17c0cdfa02ec88355220d249fa88e16",
+  "source_prs": [
+    53,
+    54,
+    55
+  ],
+  "preview_data_namespace": "private-travel-footprints-v5-card-unified-review-20261119",
+  "qa_scope": "Visual parity across visible destination, saved place, collection, route steps/preview, navigation, search, brief/media and editor. Keep existing height/gesture motors.",
+  "isolation": "new subdirectory and IndexedDB namespace, existing preview and production root unchanged",
+  "static_contract": "19/19 pass",
+  "real_iphone_safari_qa": "pending",
+  "published_no_production_merge": true
+}
