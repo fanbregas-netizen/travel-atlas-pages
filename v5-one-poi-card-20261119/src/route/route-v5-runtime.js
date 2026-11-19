@@ -127,9 +127,12 @@ function ensureLayers(){
  * Subdue background vectors, not the WebGL canvas, so the route line stays
  * sharp. Preserve initial paint values for an interruption-safe restore. */
 function syncPreviewStyle(){
- if(!map?.isStyleLoaded?.()||!api)return;
+ if(!api)return;
  const preview=api.state.step==='view'&&!api.state.detail;
  $('stage').dataset.routeMode=preview?'preview':'planning';
+ // MapLibre isStyleLoaded() may remain false while vector tiles continue to
+ // stream. The mode and available base symbol layers must not wait for them.
+ if(!map?.getStyle?.()?.layers?.length)return;
  if(preview===quietPreview)return;
  if(!preview){
   for(const [id,properties] of originalPaint){
@@ -189,7 +192,7 @@ function drawMap(state){
  if(chosen){const md=mode(chosen),info=segmentInfo(chosen);b.hidden=false;
   b.innerHTML='<div class="leg-title"><span>'+({car:'驾车',walk:'步行',bike:'骑行',transit:'公交'}[md]||'交通')+'</span><span>'+escapeHtml(info.label)+'</span></div><div class="leg-sub">'+escapeHtml(info.sub)+'</div><button data-open-leg="'+escapeHtml(chosen.id)+'">查看这一段 ›</button>';
  }else{b.hidden=true;b.innerHTML=''}
- if(map)updateMapLayers();
+ if(map){syncPreviewStyle();updateMapLayers()}
 }
 function escapeHtml(x){return String(x||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function focusPin(id){
@@ -232,7 +235,7 @@ async function init(hooks){
   window.__atlasBlueGrayMap?.attach?.(map);
   try{map.touchZoomRotate?.disableRotation();map.keyboard?.disableRotation()}catch{}
   map.on('load',()=>{window.FootprintSharedMap?.localizeLabels?.(map);ensureLayers();updateMapLayers();if(firstFit){firstFit=false;fit()}});
-  map.on('style.load',()=>{if(map.isStyleLoaded?.()){quietPreview=false;originalPaint.clear();window.FootprintSharedMap?.localizeLabels?.(map);updateMapLayers()}});
+  map.on('style.load',()=>{quietPreview=false;originalPaint.clear();window.FootprintSharedMap?.localizeLabels?.(map);syncPreviewStyle();if(map.isStyleLoaded?.())updateMapLayers()});
   map.on('move',scheduleProjection);map.on('resize',scheduleProjection);
   map.on('click',e=>{if(e.originalEvent?.defaultPrevented)return;
    try{if(map.getLayer('fp-v5-road-hit')&&map.queryRenderedFeatures(e.point,{layers:['fp-v5-road-hit']}).length)return}catch{}

@@ -159,7 +159,7 @@ jobs:
           curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/visual/v5-map-quality-pass.css" -o /tmp/qa-visual.css
           test "$(git hash-object /tmp/qa-visual.css)" = c993ba6476ee6627b9d459491b50c6e786ab7417
           curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/route/route-v5-runtime.js" -o /tmp/qa-route.js
-          test "$(git hash-object /tmp/qa-route.js)" = 3025072c5aea3bb8461033b2bf8ea661f7a95d8c
+          test "$(git hash-object /tmp/qa-route.js)" = d58cd23f45f8d7c0639e6efa962807f60e424b64
           node --check /tmp/qa-route.js
           curl -fSL --retry 12 --retry-delay 5 --retry-all-errors "$URL/src/map/shared-v4-map.js" -o /tmp/qa-map-shared.js
           test "$(git hash-object /tmp/qa-map-shared.js)" = 9da06b7683bc26bf02a52517b2da7dba0c85055a
