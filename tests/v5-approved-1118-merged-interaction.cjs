@@ -32,6 +32,10 @@ const root='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
     {id:'c',title:'苏州河',lat:31.22,lng:121.47,starred:true}
    ];
    window.__qaStore={routes,places};
+   // setContent() uses about:blank opaque origin. The real candidate runs
+   // at HTTPS and can call history.replaceState; isolate that browser-only
+   // difference without changing actual product route persistence.
+   history.replaceState=()=>{};
    // The live product loads MapLibre globally. In this isolated gesture test
    // only its Marker is needed for new, unstarred endpoint display.
    window.maplibregl={Marker:class{
