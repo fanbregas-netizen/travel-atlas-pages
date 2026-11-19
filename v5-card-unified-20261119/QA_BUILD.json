@@ -2,7 +2,7 @@
   "product": "Footprint Map V5",
   "type": "independent QA candidate — unified card visual system",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "911fb445f2e17a3062267699a9a7a5d6c9347548",
+  "source_commit": "e793ff0093cf816ba931b3f002ff39a78dc0451e",
   "source_branch": "design/v5-unified-card-language-20261119",
   "source_base_commit": "15921b19a17c0cdfa02ec88355220d249fa88e16",
   "source_prs": [
@@ -16,5 +16,5 @@
   "static_contract": "19/19 pass",
   "real_iphone_safari_qa": "pending",
   "published_no_production_merge": true,
-  "latest_visual_fix": "navigation grip clear and 25px close glyph parity; fixture visibility fixed"
+  "latest_visual_fix": "destination selected paper and 24px radius + 25px close / transparent nav grip"
 }
