@@ -32,6 +32,7 @@
 }
 #fpPlaceCard{
   border:1px solid var(--fp-u-line)!important;
+  bottom:calc(16px + env(safe-area-inset-bottom))!important;
 }
 /* Match the already approved route sheet: 12pt side and 16pt bottom.
    Do NOT set height or transform; B V2 and physical-sheet scripts own both. */

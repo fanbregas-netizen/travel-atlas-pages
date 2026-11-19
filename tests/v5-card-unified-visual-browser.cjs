@@ -21,6 +21,7 @@ const html='<!doctype html><html lang="zh"><head><meta name="viewport" content="
 const selectors={place:['#fpPlaceCard','.fp-card-name'],destination:['#destinationCard','.destination-title'],collection:['#drawer','.drawer-head h2'],route:['#fpUnifiedRoute .fp-route-sheet','.fp-route-heading h2'],navigation:['#navigationChooser .nav-panel','.fp-nav-title-row h2']};
 const parents={place:'#fpPlaceCard',destination:'#destinationCard',collection:'#drawer',route:'#fpUnifiedRoute',navigation:'#navigationChooser'};
 const folder='v5-card-unified-visual-evidence';fs.mkdirSync(folder,{recursive:true});
+const issues=[];const verify=(condition,msg)=>{if(!condition){issues.push(msg);console.error('LAYOUT_MISMATCH',msg)}};
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:chrome,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{for(const width of [375,390,430]){
@@ -29,19 +30,21 @@ const folder='v5-card-unified-visual-evidence';fs.mkdirSync(folder,{recursive:tr
   for(const [name,[selector,title]] of Object.entries(selectors)){
    await page.evaluate((o)=>{for(const [n,p] of Object.entries(o.parents)){const el=document.querySelector(p);el.style.setProperty('display',n===o.name?(n==='navigation'?'flex':'block'):'none','important')}document.querySelector('#fpSearchSheet').style.setProperty('display','none','important')},{parents,name});
    const measure=await page.locator(selector).evaluate(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {x:r.left,right:innerWidth-r.right,bottom:innerHeight-r.bottom,corner:s.borderTopLeftRadius,paper:s.backgroundColor}});
-   assert.ok(Math.abs(measure.x-12)<2.5,name+' left '+width+' '+JSON.stringify(measure));
-   assert.ok(Math.abs(measure.right-12)<2.5,name+' right '+width+' '+JSON.stringify(measure));
-   assert.ok(Math.abs(measure.bottom-16)<3,name+' bottom '+width+' '+JSON.stringify(measure));
-   assert.equal(measure.corner,'24px',name+' corner '+width);
-   assert.equal(measure.paper,'rgb(255, 254, 250)',name+' paper '+width);
+   verify(Math.abs(measure.x-12)<2.5,name+' left '+width+' '+JSON.stringify(measure));
+   verify(Math.abs(measure.right-12)<2.5,name+' right '+width+' '+JSON.stringify(measure));
+   verify(Math.abs(measure.bottom-16)<3,name+' bottom '+width+' '+JSON.stringify(measure));
+   verify(measure.corner==='24px',name+' corner '+width+' '+measure.corner);
+   verify(measure.paper==='rgb(255, 254, 250)',name+' paper '+width+' '+measure.paper);
    const font=await page.locator(selector+' '+title).evaluate(e=>getComputedStyle(e).fontSize);
-   assert.ok(font==='24px'||font==='23px',name+' title '+width+' '+font);
+   verify(font==='24px'||font==='23px',name+' title '+width+' '+font);
    await page.screenshot({path:folder+'/'+width+'-'+name+'.png'});
   }
   await page.evaluate(o=>{for(const p of Object.values(o))document.querySelector(p).style.setProperty('display','none','important');document.querySelector('#fpSearchSheet').style.setProperty('display','block','important')},parents);
   const search=await page.locator('#fpSearchSheet').evaluate(e=>({corner:getComputedStyle(e).borderTopLeftRadius,paper:getComputedStyle(e).backgroundColor}));
-  assert.equal(search.corner,'24px');assert.equal(search.paper,'rgb(255, 254, 250)');
+  verify(search.corner==='24px','search radius '+width+' '+search.corner);verify(search.paper==='rgb(255, 254, 250)','search paper '+width+' '+search.paper);
   console.log('PASS V5 six visual surfaces',width);
   await context.close();
- }}finally{await browser.close()}
+ }
+ if(issues.length)throw Error('Card visual mismatches: '+issues.join(' | '));
+ }finally{await browser.close()}
 })().catch(e=>{console.error(e.stack||e);process.exit(1)});
