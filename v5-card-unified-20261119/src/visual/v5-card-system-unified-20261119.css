@@ -134,6 +134,33 @@ body.destination-selected #destinationCard .destination-title{
   color:#718376!important;
 }
 #destinationClose{top:10px!important;right:12px!important}
+/* The original drawer has a pseudo X plus font-size:0. Restore the one
+   visible text X so every sheet uses the same 44px target / 25px glyph. */
+#drawer #closeDrawer::before{content:none!important;display:none!important}
+#destinationCard #destinationClose,
+#drawer #closeDrawer,
+#fpPlaceCard .fp-card-header .fp-card-close,
+#fpUnifiedRoute .fp-route-close,
+#navigationChooser #closeNavigationChooser{
+  font-family:var(--fp-u-font)!important;
+  font-size:25px!important;
+  font-weight:300!important;
+  line-height:1!important;
+}
+/* Legacy navigation button rules painted a broad grey bar under the real
+   draggable 44×5 grip. Keep that hit area transparent, as in place / route. */
+#navigationChooser .fp-nav-header{background:var(--fp-u-paper)!important}
+#navigationChooser .fp-nav-grip{
+  height:29px!important;
+  min-height:29px!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
 #fpUnifiedRoute .fp-route-close{margin:0 -4px 0 0!important}
 /* A single inner spacing / card rhythm: 19px sections, 13px controls. */
 #fpPlaceCard .fp-card-scroll{background:var(--fp-u-paper)!important}
