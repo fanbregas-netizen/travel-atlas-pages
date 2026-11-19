@@ -461,7 +461,7 @@ function onMapClick(e){
  const old=DATA.places.find(p=>valid(p)&&Math.hypot((p.lng-lon)*Math.cos(lat*Math.PI/180),(p.lat-lat))<.00012);
  if(old){if(DATA.endpointMap)endpointSet(old.id);else selectStop(old.id);return}
  const id='route-map-'+(crypto.randomUUID?.()||Date.now().toString(36));
- DATA.places.push({id,title:DATA.endpointMap?'地图指定位置':'地图选点 '+(DATA.order.length+1),lat,lng,routeOnly:true,starred:false,pending:true});
+ DATA.places.push({id,title:DATA.endpointMap?'地图指定位置':'地图选点 '+(DATA.order.length+1),lat,lng:lon,routeOnly:true,starred:false,pending:true});
  if(DATA.endpointMap){endpointSet(id);return}
  snapshot('添加地图地点');DATA.order.push(id);markChanged();body();syncMapMode();spring('peek');fit();hint('已添加地图选点 · 保存时才写入数据');
 }
