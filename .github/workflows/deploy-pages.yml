@@ -45,6 +45,19 @@ jobs:
           # V5 card visual acceptance (PR #55): publish FULL independent product.
           # Copy into Pages artifact; never modify root or the previous PR53 preview.
           cp -R v5-card-unified-20261119 _site/v5-card-unified-20261119
+          # Screenshot comparison v2: real V5 with improved place/route peek
+          # and compact collection; keep previous PR55 preview and root intact.
+          cp -R v5-card-rhythm-20261119 _site/v5-card-rhythm-20261119
+          test -s _site/v5-card-rhythm-20261119/index.html
+          test -s _site/v5-card-rhythm-20261119/src/visual/v5-card-system-unified-20261119.css
+          test -s _site/v5-card-rhythm-20261119/src/interaction/physical-sheet.js
+          test -s _site/v5-card-rhythm-20261119/src/interaction/v4-approved-collection-sheet-v2.js
+          test -s _site/v5-card-rhythm-20261119/src/route/route-single-map-v1.js
+          grep -q 'private-travel-footprints-v5-card-unified-review-20261119' _site/v5-card-rhythm-20261119/src/media/media-core.js
+          node --check _site/v5-card-rhythm-20261119/src/interaction/physical-sheet.js
+          node --check _site/v5-card-rhythm-20261119/src/interaction/v4-approved-collection-sheet-v2.js
+          node --check _site/v5-card-rhythm-20261119/src/route/route-single-map-v1.js
+
           test -s _site/v5-card-unified-20261119/index.html
           test -s _site/v5-card-unified-20261119/src/visual/v5-card-system-unified-20261119.css
           test -s _site/v5-card-unified-20261119/src/route/route-single-map-v1.js
@@ -692,6 +705,20 @@ jobs:
         run: sleep 18
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify NEW V5 card-rhythm complete preview is LIVE (not a 404)
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-card-rhythm-20261119/'
+          for path in index.html src/visual/v5-card-system-unified-20261119.css src/interaction/physical-sheet.js src/interaction/v4-approved-collection-sheet-v2.js src/route/route-single-map-v1.js QA_BUILD.json; do
+            curl -fsSL --retry 14 --retry-delay 3 --retry-all-errors --max-time 25 -H 'Cache-Control: no-cache' "${URL}${path}?deploy=${GITHUB_SHA}" -o /tmp/v5-card-rhythm-live
+            test -s /tmp/v5-card-rhythm-live
+            case "$path" in
+              index.html) grep -q 'safari-card-rhythm-2' /tmp/v5-card-rhythm-live ;;
+              QA_BUILD.json) grep -q 'v5-card-unified-review-20261119' /tmp/v5-card-rhythm-live ;;
+            esac
+          done
+          echo 'PASS V5 card-rhythm public URLs (6/6)'
       - name: Verify NEW V5 unified-card full iPhone preview has public HTTP 200
         shell: bash
         run: |
