@@ -12,6 +12,7 @@ const root='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
   const context=await browser.newContext({viewport:{width,height:844},hasTouch:true,isMobile:true,deviceScaleFactor:2,serviceWorkers:'block'});
   const page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
+  page.on('console',m=>{if(m.type()==='warning'||m.type()==='error')console.log('BROWSER-CONSOLE',m.type(),m.text())});
   // Use the exact staged Pages product bytes; another workflow may be
   // deploying a different preview at the same time. A separate HTTP check
   // is required before claiming this was served publicly.
@@ -91,7 +92,14 @@ const root='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
   await page.locator('[data-command="confirm"]').click();
   assert.ok((await page.locator('.fp-route-dialog-summary').innerText()).includes('2026 城市散步'));
   await page.locator('[data-command="confirm-save"]').click();
-  await page.waitForFunction(()=>window.FootprintUnifiedRoute.state.step==='view');
+  const viewReached=await page.waitForFunction(()=>window.FootprintUnifiedRoute.state.step==='view',null,{timeout:7000}).then(()=>true).catch(()=>false);
+  if(!viewReached){
+   const diagnostic=await page.evaluate(()=>({state:window.FootprintUnifiedRoute.state,
+    toast:document.querySelector('#fpUnifiedRoute .fp-route-toast')?.textContent,
+    savedCount:window.__qaStore.routes.length,href:location.href}));
+   console.log('SAVED-ROUTE-DIAGNOSTIC',JSON.stringify(diagnostic));
+   throw Error('Route save did not reach preview');
+  }
   const saved=await page.evaluate(()=>window.__qaStore.routes[0]);
   assert.equal(saved.title,'2026 城市散步');
   assert.equal(saved.routeOrigin.type,'point');
