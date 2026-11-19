@@ -20,7 +20,7 @@ const root='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
     headers:{'Cache-Control':'no-cache','Pragma':'no-cache'},timeout:12000});
    if(response.status()===200){
     const current=await response.json();
-    if(current.source_commit==='96628ca11d6d7623f2dbf366a07b73dded4156a1'){manifest=current;break}
+    if(current.source_commit==='3a79cfd8d22189df6af65a899195c9fc5ba27981'){manifest=current;break}
    }
    await new Promise(resolve=>setTimeout(resolve,3400));
   }
