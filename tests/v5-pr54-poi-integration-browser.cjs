@@ -21,7 +21,7 @@ const base='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
    for(let i=0;i<urls.length;i++)assert.equal(responses[i].status(),200,'live asset HTTP '+urls[i]);
    const strings=await Promise.all(responses.map(r=>r.text()));
    const manifest=JSON.parse(strings[0]);
-   assert.equal(manifest.source_commit,'fc656a22872839deec6bbfc8c915f1b6a67b508e','published PR54 version mismatch');
+   assert.equal(manifest.source_commit,'15921b19a17c0cdfa02ec88355220d249fa88e16','published PR54 version mismatch');
    const blankTap=strings[5].split('function selectVectorTap(e){')[1]?.split('let fallbackScriptRequest=null;')[0]||'';
    assert.ok(blankTap&&!/queryRenderedFeatures|getPoiFromFeatures|showDestination/.test(blankTap),'hidden broad POI hit remains');
    await page.setContent('<!doctype html><html lang="zh"><head><meta name="viewport" content="width=device-width,initial-scale=1"><base href="'+base+'"></head><body class="vector-active" style="margin:0;background:#dbe7df"><div id="atlasVectorMap" style="position:fixed;inset:0"></div><div id="atlasPoiOverlay" style="position:fixed;inset:0"></div><div id="atlasBookmarkOverlay"></div><div id="appDock" style="position:fixed;top:800px"></div></body></html>');
@@ -60,6 +60,13 @@ const base='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-pr53-one-m
      imgWidth:getComputedStyle(n.querySelector('img')).width
    })));
    assert.ok(icons.every(i=>i.width==='31px'&&i.height==='31px'&&i.imgWidth==='20px'),'POI icon size split '+JSON.stringify(icons));
+   const hits=await page.locator('#atlasPoiOverlay > .fp-poi').evaluateAll(nodes=>nodes.map(n=>({w:getComputedStyle(n).width,h:getComputedStyle(n).height})));
+   assert.ok(hits.every(x=>x.w==='44px'&&x.h==='44px'),'POI should not have invisible 52px click box');
+   const tokenBox=await page.locator('#atlasPoiOverlay > .fp-poi .fp-poi-token').first().boundingBox();
+   // Inside the transparent 44px hit box but more than 4px outside the
+   // visibly drawn 31px symbol: should never open a neighboring card.
+   await page.mouse.click(tokenBox.x+tokenBox.width+5.1,tokenBox.y+tokenBox.height*.50);
+   assert.equal(await page.evaluate(()=>window.__qaSelection.length),0,'invisible POI margin unexpectedly selected a place');
    await page.locator('#atlasPoiOverlay > .fp-poi').nth(0).click();
    await page.locator('#atlasPoiOverlay > .fp-poi').nth(1).click();
    assert.equal(await page.evaluate(()=>window.__qaSelection.length),2,'two genuine taps should select exactly two visible POIs');
