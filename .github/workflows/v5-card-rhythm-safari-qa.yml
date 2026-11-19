@@ -1,0 +1,31 @@
+name: V5 screenshot card rhythm iPhone geometry
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/v5-card-rhythm-browser.cjs'
+      - '.github/workflows/v5-card-rhythm-safari-qa.yml'
+      - 'v5-card-rhythm-20261119/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  card-rhythm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser runner
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Check actual V5 CSS at 375 390 430 iPhone widths
+        run: node tests/v5-card-rhythm-browser.cjs
+      - name: Upload actual computed-card evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-card-rhythm-evidence
+          path: v5-card-rhythm-visual-evidence/
+          if-no-files-found: ignore
