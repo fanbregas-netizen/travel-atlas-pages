@@ -45,6 +45,14 @@ jobs:
           mkdir -p _site
           tar -xf _verified_pages_artifact/artifact.tar -C _site
           test -s _site/index.html
+          # Preserve the NEW screenshot-card full-product QA when older
+          # workflow_run artifacts overlay this Pages site after their own QA.
+          # This does not alter the public root or legacy route preview.
+          rm -rf _site/v5-card-rhythm-20261119
+          cp -R v5-card-rhythm-20261119 _site/v5-card-rhythm-20261119
+          test -s _site/v5-card-rhythm-20261119/index.html
+          test -s _site/v5-card-rhythm-20261119/src/visual/v5-card-system-unified-20261119.css
+
           # Full real V4 product copied to an isolated V5 approval directory, never to the public root.
           if test ! -d _site/v5-route-real-product-20261118; then
             cp -R _site/v4-route-live-five-step-20261118 _site/v5-route-real-product-20261118
