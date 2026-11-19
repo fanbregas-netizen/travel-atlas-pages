@@ -1,0 +1,35 @@
+name: V5 iPhone-size fast smoke POI and route
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v5-20261119-fast-acceptance.yml'
+      - 'tests/v5-pr53-card-gesture-browser.cjs'
+      - 'tests/v5-pr54-poi-integration-browser.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mobile-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium driver
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Verify PR54 POI latest candidate
+        run: node tests/v5-pr54-poi-integration-browser.cjs
+      - name: Verify route card and map tools on 3 iPhone sizes
+        run: node tests/v5-pr53-card-gesture-browser.cjs
+      - name: Save mobile screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-20261119-fast-mobile-evidence
+          path: |
+            v5-pr54-poi-evidence/
+            v5-pr53-card-gesture-evidence/
+          if-no-files-found: ignore
