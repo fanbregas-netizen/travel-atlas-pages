@@ -24,15 +24,31 @@ const root='http://127.0.0.1:8765/v5-one-poi-card-full-product-20261119/';
    assert.ok(nav.links.every(x=>!x.text.startsWith('↗ ') && x.url.startsWith('https://')));
    assert.ok(nav.style && nav.style!=='rgba(0, 0, 0, 0)');
    await page.locator('#closeNavigationChooser').click();
-   await page.evaluate(()=>{
-    const map=window.__atlasPOIBridge.vector();
-    if(!map)throw Error('No common Map A vector engine');
-    map.jumpTo({center:[121.905,29.492],zoom:16});
+   // Use one deterministic POI fixture through the ACTUAL MapLibre source
+   // query. Real map canvas, camera, DOM/selection and source code are unmocked.
+   // A public vector tile may legitimately have zero restaurants in this area.
+   const fixture=await page.evaluate(()=>{
+     const map=window.__atlasPOIBridge?.vector?.();
+     if(!map)throw Error('No real MapLibre canvas');
+     const c=map.getCenter(),id='qa-restaurant|'+c.lng.toFixed(5)+','+c.lat.toFixed(5);
+     const geo=[c.lng,c.lat];
+     const synthetic={id:'qa-restaurant',geometry:{type:'Point',coordinates:geo},
+       properties:{name:'本地餐厅测试点',class:'restaurant',type:'restaurant'}};
+     const originalSource=map.querySourceFeatures.bind(map);
+     const originalRendered=map.queryRenderedFeatures.bind(map);
+     map.querySourceFeatures=()=>[synthetic];
+     map.queryRenderedFeatures=()=>[{...synthetic,layer:{id:'poi-fixture',type:'symbol'}}];
+     window.__fpRestorePOIFeatureQueries=()=>{
+       map.querySourceFeatures=originalSource;map.queryRenderedFeatures=originalRendered;
+       window.__atlasPOICommitCurrent?.();
+     };
+     window.__atlasPOICommitCurrent?.();
+     return {id,lat:c.lat,lng:c.lng,name:'本地餐厅测试点'};
    });
-   await page.waitForFunction(()=>document.querySelectorAll('#atlasPoiOverlay > .fp-poi').length>0,null,{timeout:45000});
+   await page.waitForFunction(id=>[...document.querySelectorAll('#atlasPoiOverlay > .fp-poi')].some(x=>x.dataset.poiId===id),fixture.id,{timeout:12000});
    const selected=await page.locator('#atlasPoiOverlay > .fp-poi').first().evaluate(x=>({
-      id:x.dataset.poiId,lat:Number(x.dataset.poiLat),lng:Number(x.dataset.poiLng),
-      name:x.dataset.poiName
+     id:x.dataset.poiId,lat:Number(x.dataset.poiLat),lng:Number(x.dataset.poiLng),
+     name:x.dataset.poiName
    }));
    assert.ok(Number.isFinite(selected.lat)&&Number.isFinite(selected.lng)&&selected.id);
    await page.evaluate(spot=>{
@@ -44,6 +60,7 @@ const root='http://127.0.0.1:8765/v5-one-poi-card-full-product-20261119/';
    await page.waitForFunction(id=>![...document.querySelectorAll('#atlasPoiOverlay > .fp-poi')].some(el=>el.dataset.poiId===id),selected.id,{timeout:15000});
    await page.evaluate(()=>window.__fpQARestoreSavedPOIAnchors());
    await page.waitForFunction(id=>[...document.querySelectorAll('#atlasPoiOverlay > .fp-poi')].some(el=>el.dataset.poiId===id),selected.id,{timeout:15000});
+   await page.evaluate(()=>window.__fpRestorePOIFeatureQueries());
    const a='single-poi-a-'+width,b='single-poi-b-'+width,trip='single-poi-route-'+width;
    await page.evaluate(async({a,b,trip})=>{
     await window.__atlasPlaceStore.save({id:a,title:'长寿路',lat:31.241,lng:121.456,starred:true,stage:'plan',note:'V5 统一卡片',photos:[]});

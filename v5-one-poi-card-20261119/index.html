@@ -718,6 +718,9 @@ window.AtlasFigureGround={palette,apply,version:'v4-figure-ground-20261103.18'};
   const z=Number(currentMap?.getZoom?.()||15);const named=z>=15.25;
   const W=innerWidth,H=innerHeight;const limit=z<13.3?0:z<14.4?12:z<16?20:34;
   const edges={left:28,right:W-28,top:90,bottom:Math.min(H-140,$('appDock')?.getBoundingClientRect().top-22||H-130)};
+  // The same physical point has ONE icon: saved yellow star replaces POI.
+  const savedScreen=(window.__atlasSavedPOIAnchors?.()||[]).map(p=>{try{return {...p,xy:project(p)}}catch{return null}}).filter(x=>x&&Number.isFinite(x.xy?.x)&&Number.isFinite(x.xy?.y));
+  const isBehindStar=(p,xy)=>savedScreen.some(s=>(p.id&&s.poiId&&String(p.id)===String(s.poiId))||Math.hypot(xy.x-s.xy.x,xy.y-s.xy.y)<43);
   const kept=[];cells.clear();
   // Category-rich scenic elements first; generic POIs are subordinate.
   rows=rows.filter(p=>Boolean(categoryFor(p.category,p.name)));rows.sort((a,b)=>a.name.localeCompare(b.name,'zh-CN'));
@@ -725,9 +728,6 @@ window.AtlasFigureGround={palette,apply,version:'v4-figure-ground-20261103.18'};
    if(xy.x<edges.left||xy.x>edges.right||xy.y<edges.top||xy.y>edges.bottom||isBehindStar(p,xy))continue;
    const cell=Math.floor(xy.x/(named?92:58))+':'+Math.floor(xy.y/(named?56:55));if(cells.has(cell))continue;cells.add(cell);kept.push({p,xy});
   }
-  // The same physical point has ONE icon: saved yellow star replaces POI.
-  const savedScreen=(window.__atlasSavedPOIAnchors?.()||[]).map(p=>{try{return {...p,xy:project(p)}}catch{return null}}).filter(x=>x&&Number.isFinite(x.xy?.x)&&Number.isFinite(x.xy?.y));
-  const isBehindStar=(p,xy)=>savedScreen.some(s=>(p.id&&s.poiId&&String(p.id)===String(s.poiId))||Math.hypot(xy.x-s.xy.x,xy.y-s.xy.y)<43);
   // Retain rendered POI DOM across map movement. Recreating every button on
   // zoomend interrupted the 1.3s SVG subpath animation and caused label flicker.
   const prior=new Map([...pane.querySelectorAll(':scope > .fp-poi')].map(node=>[node.dataset.poiId,node]));

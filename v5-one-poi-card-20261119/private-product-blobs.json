@@ -1,6 +1,6 @@
 {
-  "private_commit": "8fb9e13d9710097a70f525fbee4f1356d045c901",
-  "product_tree": "0145923a608844e7e05c32d0951442e97fc8d7d9",
+  "private_commit": "711f767e96b70c268054822cf7ad54bd51022e3d",
+  "product_tree": "03dccd7f2fa98e4a8d6e724c5424fa5d45db73ee",
   "files": {
     "amap-import.html": "2be4b960b6426def530a95e87130044a27b33315",
     "atlas-constellation-core.js": "eedc39656bf1ff0be8beb9549174c34ef201fee0",
@@ -82,7 +82,7 @@
     "icons/active_03_star.svg": "84c7c6f1e26dcef857c371e7715577b4e4f74843",
     "icons/active_04_star_saved.svg": "63c933d4d17c1470040c73b6ec2742d2c7072c8b",
     "index-preview.html": "697bacacc637972e5216364dbe3bd3c88071a94d",
-    "index.html": "e341e2f4be88d0455120b89578b98268f612bc8f",
+    "index.html": "f45d9aeb36265ef45f6a1edfe0cb3c5f7eda8c4c",
     "journey.html": "9f8fdda05f3e42a06e4f0ebe663c2c7585f00205",
     "legacy-inline-cascade.css": "2953963393e106b8b09b971ee88a382d71816dd9",
     "manifest.webmanifest": "24f296480076701688d26b5e67160a9ff943299f",
