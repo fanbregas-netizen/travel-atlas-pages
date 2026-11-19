@@ -80,6 +80,25 @@ const issues=[];const verify=(condition,msg)=>{if(!condition){issues.push(msg);c
   await page.evaluate(o=>{for(const p of Object.values(o))document.querySelector(p).style.setProperty('display','none','important');document.querySelector('#fpSearchSheet').style.setProperty('display','block','important')},parents);
   const search=await page.locator('#fpSearchSheet').evaluate(e=>({corner:getComputedStyle(e).borderTopLeftRadius,paper:getComputedStyle(e).backgroundColor}));
   verify(search.corner==='24px','search radius '+width+' '+search.corner);verify(search.paper==='rgb(255, 254, 250)','search paper '+width+' '+search.paper);
+  // Execute the REAL B05 collection controller, not just its CSS. One
+  // saved place should open at peek, while manual 3-stage gesture remains.
+  if(width===375){
+    const live=await context.newPage();
+    await live.setContent(html);
+    await live.addStyleTag({content:css});
+    await live.evaluate(()=>{
+      const el=document.getElementById('drawer');
+      el.className='drawer fp30-detail visible';
+    });
+    await live.addScriptTag({content:collectionJS});
+    await live.waitForTimeout(900);
+    const state=await live.evaluate(()=>window.__atlasCollectionSheet?.getState?.());
+    verify(!!state&&state.level==='peek','one saved-place collection auto-peek '+JSON.stringify(state));
+    verify(state?.height>=290&&state?.height<=385,'compact collection usable height '+JSON.stringify(state));
+    await live.screenshot({path:folder+'/375-collection-compact-real-motor.png'});
+    console.log('CHECK real B05 single-item motor',state);
+    await live.close();
+  }
   console.log('PASS V5 screenshot-card rhythm',width);
   await context.close();
  }
