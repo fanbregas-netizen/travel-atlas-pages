@@ -1,6 +1,6 @@
 /* PR53 continuation: same MapLibre instance, approved 长寿路 card grammar. */
 #fpUnifiedRoute[hidden]{display:none!important}
-#fpUnifiedRoute{position:fixed;inset:0;z-index:48;pointer-events:none;color:var(--fp-card-ink,#293f33);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+#fpUnifiedRoute{position:fixed;inset:0;z-index:2300!important;pointer-events:none;color:var(--fp-card-ink,#293f33);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
 body.fp-unified-route #appDock,body.fp-unified-route #dockSearch,body.fp-unified-route #searchDock{pointer-events:none!important;opacity:0!important;transform:translateY(115%)}
 body.fp-unified-route #atlasPoiOverlay{opacity:0!important;pointer-events:none!important}
 body.fp-unified-route #atlasBookmarkOverlay{z-index:39!important}
@@ -55,7 +55,7 @@ body.fp-unified-route #atlasBookmarkOverlay .atlas-bookmark-hit .fp-route-stop-o
  position:absolute;bottom:-4px;right:-6px;min-width:19px;height:19px;padding:0 3px;display:grid;place-items:center;
  border-radius:100px;border:1px solid #9aaf9a;background:#fffefa;color:#314d39;
  font-size:11px;line-height:1;font-weight:800;box-shadow:0 2px 5px #22392c30;pointer-events:none}
-body.fp-unified-route #navigationChooser{z-index:90!important}
+body.fp-unified-route #navigationChooser{z-index:2500!important}
 #fpUnifiedRoute .fp-route-temp-marker{display:grid;place-items:center;width:44px;height:44px;pointer-events:auto}
 #fpUnifiedRoute .fp-route-temp-marker img{width:33px;height:33px}
 #fpUnifiedRoute .fp-route-temp-marker span{position:absolute;right:-6px;bottom:-2px;display:grid;place-items:center;border-radius:50%;width:19px;height:19px;background:#fffefa;color:#3c5a47;font-size:11px;font-weight:760}
