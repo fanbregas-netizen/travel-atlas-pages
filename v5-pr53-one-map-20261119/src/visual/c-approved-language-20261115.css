@@ -1,0 +1,464 @@
+/*
+ Footprint Map V4 | C 视觉子系统统一语言 / 2026-11-15
+ Replaces cumulative visual C patches with one final, scoped skin.
+ Source: accepted C (8+10+7+6+10 visual pages) + user's iPhone screen recording.
+ Layout, typography and states ONLY. The approved B/C-V5 gesture owners
+ exclusively control height, transform, snap points, map camera, media and data.
+ No second star, no 4-direction bubbles, no new route.
+*/
+:root {
+ --c-paper:#fffefa; --c-canvas:#f8f8f4; --c-field:#f3f5ef;
+ --c-ink:#27382e; --c-copy:#526156; --c-sub:#778579;
+ --c-soft:#96a096; --c-line:#e6e9e1; --c-sage:#edf1e9;
+ --c-gold:#b59a62; --c-gold-wash:#f4f0e5;
+ --c-shadow:0 5px 23px rgba(33,48,36,.105);
+ --c-font:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB",sans-serif;
+ --fpv-ink:var(--c-ink);--fp14-ink:var(--c-ink);--fp-coh-ink:var(--c-ink);
+ --v4-ink:var(--c-ink);--rc-ink:var(--c-ink);
+ --fpv-paper:var(--c-paper);--fp14-paper:var(--c-paper);
+ --fp-coh-paper:var(--c-paper);--v4-paper:var(--c-paper);--rc-paper:var(--c-paper);
+ --fpv-line:var(--c-line);--v4-line:var(--c-line);--rc-line:var(--c-line);
+ --rc-quiet:var(--c-sub);--rc-sage:var(--c-sage);
+}
+:where(#appDock,#fpSearchSheet,#fpPlaceCard,#drawer,#memorySheet,#editor,#destinationCard,#rc-shell,#rc-main,#rc-mini) {
+ font-family:var(--c-font)!important;
+ -webkit-font-smoothing:antialiased;
+ color:var(--c-ink);
+}
+:where(#appDock,#fpSearchSheet,#fpPlaceCard,#drawer,#memorySheet,#editor,#rc-shell)
+:where(button,input,textarea,select){font-family:inherit!important}
+:where(#appDock,#fpSearchSheet,#fpPlaceCard,#drawer,#rc-shell)
+:where(button,input,textarea,a):focus-visible{outline:2px solid #a28b5f!important;outline-offset:2px!important}
+
+/* Home: four equal entries, a single quiet plane; hand-drawn artwork unchanged. */
+body #appDock.app-dock {
+ width:min(352px,calc(100vw - 32px))!important;
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ align-items:center!important;
+ min-height:67px!important;gap:4px!important;padding:6px!important;
+ border:1px solid #e2e6de!important;border-radius:24px!important;
+ background:rgba(255,254,250,.96)!important;
+ box-shadow:var(--c-shadow)!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+body #appDock .dock-btn {
+ min-width:0!important;width:100%!important;
+ height:54px!important;min-height:54px!important;
+ display:flex!important;flex-direction:column!important;
+ justify-content:center!important;align-items:center!important;
+ gap:4px!important;padding:5px 2px!important;
+ border:0!important;border-radius:16px!important;
+ box-shadow:none!important;background:transparent!important;
+}
+body #appDock .dock-btn:is(.active,[aria-pressed="true"],.fp25-current) {
+ background:#e9eee5!important;box-shadow:none!important;
+}
+body #appDock .dock-btn img{
+ width:23px!important;height:23px!important;
+ object-fit:contain!important;opacity:.96!important;filter:none!important;
+}
+body #appDock .dock-btn span{
+ color:#4a5c4f!important;font-size:11px!important;
+ font-weight:640!important;letter-spacing:0!important;line-height:1.2!important;
+}
+
+/* Chrome yields to content. The old dark layer button was drawn over Search
+   and Collection; keep its map function but remove it while a sheet owns focus. */
+body .map-controls .circlebtn {
+ width:45px!important;height:45px!important;
+ border-radius:15px!important;background:rgba(255,254,250,.95)!important;
+ border:1px solid #e2e7dd!important;color:var(--c-ink)!important;
+ box-shadow:0 3px 13px rgba(33,49,38,.09)!important;
+}
+body .map-controls .circlebtn.dark {
+ background:rgba(255,254,250,.96)!important;
+ color:var(--c-ink)!important;border-color:var(--c-line)!important;
+}
+body.fp-search-open .map-controls,
+body.fp-place-open .map-controls,
+body.memory-open .map-controls,
+body:has(#drawer.visible) .map-controls {
+ opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+}
+body .map-controls {
+ transition:opacity .16s ease,visibility .16s ease!important;
+}
+body .maphint,body .toast {
+ background:rgba(255,254,250,.97)!important;color:#485b4f!important;
+ border:1px solid #e1e7df!important;border-radius:13px!important;
+ box-shadow:0 4px 16px rgba(31,47,35,.09)!important;
+ font-size:12px!important;line-height:1.48!important;
+ font-weight:530!important;
+ white-space:normal!important;max-width:min(336px,calc(100vw - 42px))!important;
+ text-align:center!important;
+}
+/* Search-selected destination preview: same typography/rhythm as a saved place,
+   not the old yellow trip-action toolbar in a separate design language. */
+body #destinationCard.destination-card {
+ width:min(510px,calc(100vw - 32px))!important;
+ padding:20px 19px 17px!important;
+ border:1px solid var(--c-line)!important;
+ border-radius:24px!important;
+ background:var(--c-paper)!important;color:var(--c-ink)!important;
+ box-shadow:0 7px 28px rgba(26,42,32,.13)!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ transition:opacity .21s ease,transform .32s cubic-bezier(.2,.88,.25,1),visibility .21s!important;
+}
+body #destinationCard .destination-title {
+ font-size:21px!important;line-height:1.27!important;
+ color:var(--c-ink)!important;letter-spacing:-.045em!important;font-weight:730!important;
+}
+body #destinationCard .destination-category {
+ margin:7px 0 16px!important;font-size:12px!important;
+ line-height:1.55!important;color:var(--c-sub)!important;
+}
+body #destinationCard .destination-actions {display:flex!important;gap:8px!important}
+body #destinationCard .destination-actions button {
+ flex:1!important;min-width:0!important;min-height:45px!important;
+ border:1px solid var(--c-line)!important;border-radius:13px!important;
+ padding:11px 8px!important;font-size:12px!important;font-weight:660!important;
+ color:var(--c-copy)!important;background:var(--c-field)!important;
+ box-shadow:none!important;
+}
+body #destinationCard :is(#destinationStar,.destination-star){
+ background:#f1e9d7!important;border-color:#e7dac0!important;
+ color:#655234!important;
+}
+body #destinationCard :is(#destinationUnstar,.destination-unstar){
+ background:var(--c-canvas)!important;border-color:var(--c-line)!important;
+ color:#6b685a!important;
+}
+body #destinationCard :is(#destinationNav,.destination-route) {
+ background:#35513e!important;border-color:#35513e!important;
+ color:var(--c-paper)!important;
+}
+body #destinationCard .destination-close {
+ width:42px!important;height:42px!important;border-radius:13px!important;
+ color:var(--c-sub)!important;font-size:23px!important;
+ background:transparent!important;box-shadow:none!important;
+}
+body #cover.screen-cover {
+ background:rgba(22,34,26,.12)!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+body #fpSearchVeil {
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+
+
+/* Approved B sheet motor stays the only animation owner.
+   Remove the 2026 Stage1.25 CSS keyframe and duplicate spring transitions. */
+body #fpPlaceCard[data-atlas-physical-sheet],
+body #fpSearchSheet[data-atlas-physical-sheet] {
+ animation:none!important;transition:none!important;
+}
+body #fpPlaceCard,body #fpSearchSheet {
+ background:var(--c-paper)!important;border-color:var(--c-line)!important;
+ color:var(--c-ink)!important;
+ border-radius:26px 26px 0 0!important;
+ box-shadow:0 -10px 42px rgba(25,42,32,.13)!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+/* Location identity -> date/status -> Brief -> photos -> links, one canvas. */
+body #fpPlaceCard .fp-card-header {
+ padding:38px 19px 15px!important;
+ gap:10px!important;
+ background:var(--c-paper)!important;
+ border-bottom:1px solid var(--c-line)!important;
+}
+body #fpPlaceCard .fp-card-title-wrap {
+ display:flex!important;flex-direction:column!important;
+ align-items:flex-start!important;gap:8px!important;min-width:0!important;
+}
+body #fpPlaceCard .fp-card-kicker {display:none!important}
+body #fpPlaceCard .fp-card-name {
+ font-size:clamp(22px,5.7vw,25px)!important;
+ line-height:1.22!important;font-weight:740!important;
+ letter-spacing:-.04em!important;color:var(--c-ink)!important;
+ overflow:visible!important;max-height:none!important;
+}
+body #fpPlaceCard .fp-card-location {font-size:12px!important;line-height:1.55!important;color:var(--c-sub)!important}
+body #fpPlaceCard .fp-place-stage {
+ min-height:25px!important;padding:4px 9px!important;
+ font-size:10px!important;font-weight:650!important;
+ color:#826f4b!important;background:var(--c-gold-wash)!important;
+ border:1px solid #e8dec9!important;box-shadow:none!important;
+}
+body #fpPlaceCard .fp-card-scroll {
+ padding:0 20px 23px!important;background:var(--c-paper)!important;
+ overscroll-behavior:contain!important;
+}
+body #fpPlaceCard .fp-block {
+ margin:0!important;padding:20px 0 23px!important;
+ border:0!important;border-bottom:1px solid var(--c-line)!important;
+ border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
+body #fpPlaceCard .fp-block:last-of-type {border-bottom:0!important}
+body #fpPlaceCard .fp-subheading {min-height:28px!important;margin:0 0 11px!important;gap:8px!important}
+body #fpPlaceCard .fp-subheading .fp-section-label,
+body #fpPlaceCard .fp-subheading :is(strong,label) {
+ font-size:14px!important;line-height:1.35!important;font-weight:710!important;
+ letter-spacing:-.025em!important;color:var(--c-ink)!important;
+}
+body #fpPlaceCard .fp-section-index {color:#a79d8a!important;font-size:10px!important}
+body #fpPlaceCard .fp-brief-text {
+ font-size:15px!important;font-weight:420!important;line-height:1.75!important;
+ color:#4e5e52!important;letter-spacing:0!important;
+ max-height:none!important;overflow:visible!important;
+}
+body #fpPlaceCard .fp-brief-text.is-empty {color:var(--c-soft)!important;font-size:13px!important}
+body #fpPlaceCard .fp-media-mosaic {
+ gap:4px!important;border-radius:17px!important;
+ background:#e8ece6!important;border:0!important;box-shadow:none!important;
+}
+body #fpPlaceCard .fp-media-mosaic img,
+body #fpPlaceCard .fp-media-mosaic video {object-fit:cover!important}
+body #fpPlaceCard .fp-card-footer {
+ background:var(--c-paper)!important;border-top:1px solid var(--c-line)!important;
+ gap:8px!important;box-shadow:none!important;
+}
+body #fpPlaceCard .fp-card-chip {
+ min-height:44px!important;border:1px solid var(--c-line)!important;
+ border-radius:13px!important;background:var(--c-canvas)!important;
+ color:var(--c-copy)!important;font-weight:650!important;
+ box-shadow:none!important;
+}
+body #fpPlaceCard .fp-card-chip.accent {
+ background:var(--c-gold-wash)!important;
+ border-color:#e8dfc9!important;color:#715e40!important;
+}
+body #fpPlaceCard :is(.fp-subaction,.fp-edit-toggle) {
+ color:var(--c-copy)!important;border-color:var(--c-line)!important;
+ background:var(--c-canvas)!important;box-shadow:none!important;
+}
+
+/* Search: the field is the hero, results follow as clear rows. */
+body #fpSearchSheet .fp-search-top {
+ background:var(--c-paper)!important;border-bottom:1px solid var(--c-line)!important;
+ box-shadow:none!important;
+}
+body #fpSearchSheet .fp-search-eyebrow{display:none!important}
+body #fpSearchSheet .fp-search-head h2{
+ font-size:21px!important;line-height:1.25!important;font-weight:735!important;
+ letter-spacing:-.035em!important;color:var(--c-ink)!important;
+}
+body #fpSearchSheet .fp-search-bar{
+ min-height:53px!important;background:var(--c-field)!important;
+ border:1px solid #e3e8df!important;border-radius:16px!important;
+ box-shadow:none!important;
+}
+body #fpSearchSheet #fpSearchField {color:var(--c-ink)!important;font-size:16px!important}
+body #fpSearchSheet #fpSearchField::placeholder {color:#919c90!important}
+body #fpSearchSheet .fp-search-body {
+ background:var(--c-paper)!important;box-shadow:none!important;
+}
+body #fpSearchSheet .fp-search-label {font-size:11px!important;color:#847b67!important;letter-spacing:0!important}
+body #fpSearchSheet .fp-search-row {
+ width:100%!important;min-height:76px!important;
+ margin:0!important;padding:10px 0!important;gap:13px!important;
+ background:transparent!important;border:0!important;
+ border-bottom:1px solid var(--c-line)!important;border-radius:0!important;
+ box-shadow:none!important;
+}
+body #fpSearchSheet :is(.fp-row-photo,.fp-row-icon){
+ width:54px!important;height:54px!important;border-radius:13px!important;
+ flex:none!important;object-fit:cover!important;
+}
+body #fpSearchSheet .fp-row-main strong {
+ font-size:15px!important;font-weight:690!important;line-height:1.35!important;color:var(--c-ink)!important;
+}
+body #fpSearchSheet .fp-row-main small {
+ font-size:12px!important;line-height:1.55!important;color:var(--c-sub)!important;
+}
+body #fpSearchSheet .fp-search-empty {
+ padding:15px 16px!important;margin:12px 0!important;
+ border:1px solid var(--c-line)!important;border-radius:14px!important;
+ background:#f6f7f2!important;box-shadow:none!important;
+ color:var(--c-sub)!important;font-size:13px!important;line-height:1.65!important;
+}
+body #fpSearchSheet .fp-quick {
+ min-height:67px!important;border-radius:13px!important;
+ background:#f6f7f2!important;border:1px solid var(--c-line)!important;
+ box-shadow:none!important;color:var(--c-copy)!important;
+}
+
+/* Collection: saved places are an index, not a stack of cards. */
+body #drawer {
+ background:var(--c-paper)!important;color:var(--c-ink)!important;
+ border-color:var(--c-line)!important;
+ box-shadow:0 -10px 38px rgba(28,44,33,.12)!important;
+}
+body #drawer .drawer-head {
+ background:var(--c-paper)!important;
+ border-bottom:1px solid #edf0e9!important;
+}
+body #drawer :is(.drawer-head h2,.drawer-cn) {
+ font-size:22px!important;font-weight:725!important;letter-spacing:-.04em!important;
+ color:var(--c-ink)!important;
+}
+body.fp-single-route-owner #drawer #fpvCollectionTabs{display:none!important}
+body #drawer.fp30-detail #spotList {
+ display:flex!important;flex-direction:column!important;
+ gap:0!important;padding:0 20px 20px!important;
+}
+body #drawer.fp30-detail #spotList .spotrow {
+ display:flex!important;align-items:center!important;
+ margin:0!important;padding:13px 2px!important;
+ min-height:90px!important;gap:13px!important;
+ border:0!important;border-bottom:1px solid var(--c-line)!important;
+ border-radius:0!important;background:transparent!important;
+ box-shadow:none!important;
+}
+body #drawer.fp30-detail #spotList .spotrow :is(strong,b){
+ font-size:15px!important;line-height:1.32!important;
+ font-weight:705!important;color:var(--c-ink)!important;
+}
+body #drawer.fp30-detail #spotList .spotrow small {
+ font-size:12px!important;line-height:1.55!important;color:var(--c-sub)!important;
+}
+body #drawer.fp30-detail #spotList .spotrow>img,
+body #drawer.fp30-detail #spotList .spotrow .spotempty {
+ width:62px!important;height:62px!important;
+ object-fit:cover!important;border-radius:13px!important;
+}
+body #drawer.fp30-detail #drawerRouteList .rs-row{
+ border:0!important;border-bottom:1px solid var(--c-line)!important;
+ background:transparent!important;box-shadow:none!important;border-radius:0!important;
+}
+body #drawer .atlas-empty-places.atlas-empty-c{
+ display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+ justify-content:flex-start!important;text-align:left!important;
+ width:100%!important;max-width:none!important;min-height:0!important;
+ margin:0!important;padding:25px 3px 30px!important;gap:11px!important;
+ background:transparent!important;border:0!important;box-shadow:none!important;
+}
+body #drawer .atlas-empty-places.atlas-empty-c .empty-star{
+ display:grid!important;place-items:center!important;
+ width:43px!important;height:43px!important;
+ border:1px solid #e2e7dd!important;border-radius:15px!important;
+ background:#f0f3ec!important;color:#87998a!important;font-size:25px!important;
+}
+body #drawer .atlas-empty-places.atlas-empty-c strong {
+ font-size:19px!important;font-weight:730!important;
+ letter-spacing:-.04em!important;line-height:1.33!important;color:var(--c-ink)!important;
+}
+body #drawer .atlas-empty-places.atlas-empty-c p{
+ margin:0!important;max-width:310px!important;
+ font-size:13px!important;line-height:1.65!important;color:var(--c-sub)!important;
+}
+body #drawer .atlas-empty-places.atlas-empty-c .atlas-empty-actions{
+ display:flex!important;width:100%!important;gap:9px!important;margin:15px 0 0!important;
+}
+body #drawer .atlas-empty-places.atlas-empty-c .atlas-empty-actions button{
+ flex:1!important;min-width:0!important;width:auto!important;min-height:46px!important;
+ border-radius:13px!important;background:#35533e!important;
+ border:1px solid #35533e!important;color:var(--c-paper)!important;
+ font-size:13px!important;font-weight:680!important;box-shadow:none!important;
+}
+body #drawer .atlas-empty-places.atlas-empty-c .atlas-empty-actions button.quiet{
+ color:#4d6654!important;background:#f3f5f0!important;border-color:#e3e8df!important;
+}
+
+/* Route C V5: keep exact interaction, but share the C visual rhythm.
+   The monochrome building layer is supplied separately by SharedMap.routeFigureStyle. */
+body.route-v5-live {
+ --rc-ink:var(--c-ink);--rc-text:var(--c-copy);--rc-quiet:var(--c-sub);
+ --rc-paper:var(--c-paper);--rc-sage:var(--c-sage);--rc-line:var(--c-line);
+}
+body.route-v5-live #rc-main,
+body.route-v5-live #rc-mini {
+ background:var(--c-paper)!important;
+ box-shadow:0 -9px 34px rgba(26,43,32,.13)!important;
+ border-radius:26px 26px 0 0!important;
+ backdrop-filter:none!important;
+}
+body.route-v5-live #rc-map {
+ background:var(--c-canvas)!important;
+}
+body.route-v5-live #rc-map:has(#rc-live-map-canvas)>.map-art{display:none!important}
+body.route-v5-live .rc-upper h2{
+ font-size:23px!important;font-weight:740!important;
+ line-height:1.26!important;letter-spacing:-.045em!important;color:var(--c-ink)!important;
+}
+body.route-v5-live .rc-upper .rc-byline{
+ font-size:12px!important;line-height:1.6!important;color:var(--c-sub)!important;
+}
+body.route-v5-live .rc-section{
+ color:#91836a!important;font-size:11px!important;
+ font-weight:710!important;letter-spacing:0!important;
+}
+body.route-v5-live #rc-body {padding:12px 20px 23px!important}
+body.route-v5-live .rc-tabs {
+ border:1px solid var(--c-line)!important;
+ background:#f1f3ed!important;box-shadow:none!important;
+}
+body.route-v5-live .rc-tabs button {font-size:13px!important;font-weight:650!important;color:#6a7e6c!important}
+body.route-v5-live .rc-tabs button.is-active {
+ background:var(--c-paper)!important;color:var(--c-ink)!important;
+ box-shadow:0 1px 7px rgba(32,48,36,.055)!important;
+}
+body.route-v5-live .rc-stop {
+ background:var(--c-paper)!important;
+ border:1px solid var(--c-line)!important;box-shadow:none!important;
+}
+body.route-v5-live .rc-stop .rc-name strong{color:var(--c-ink)!important;font-size:14px!important}
+body.route-v5-live .rc-stop .rc-name small{color:var(--c-sub)!important;font-size:11px!important}
+body.route-v5-live .rc-meta button{
+ background:#f6f7f2!important;border:1px solid var(--c-line)!important;color:var(--c-copy)!important;
+}
+body.route-v5-live .rc-primary {
+ background:#304b3b!important;color:var(--c-paper)!important;
+ border:0!important;box-shadow:none!important;
+}
+body.route-v5-live .rc-soft{
+ background:var(--c-sage)!important;color:#4c6854!important;
+ border:0!important;box-shadow:none!important;
+}
+body.route-v5-live :is(#rc-footer,#rc-mini-bottom){
+ background:var(--c-paper)!important;border-top-color:var(--c-line)!important;
+}
+body.route-v5-live #rc-live-note :is(a,span){
+ background:rgba(255,254,250,.97)!important;
+ color:var(--c-ink)!important;border-color:var(--c-line)!important;
+ box-shadow:var(--c-shadow)!important;
+}
+body.route-v5-live .rc-zero-state {
+ display:flex;flex-direction:column;align-items:flex-start;gap:9px;
+ margin:18px 0 0;padding:24px 1px 19px;border-top:1px solid var(--c-line);
+}
+body.route-v5-live .rc-zero-symbol{
+ width:46px;height:46px;border-radius:14px;display:grid;place-items:center;
+ background:var(--c-sage);border:1px solid var(--c-line);color:#68816b;font-size:23px;
+}
+body.route-v5-live .rc-zero-state strong{font-size:18px;color:var(--c-ink)!important}
+body.route-v5-live .rc-zero-state p{
+ max-width:330px;margin:0;color:var(--c-sub);font-size:13px;line-height:1.7;
+}
+body.route-v5-live .rc-zero-action{
+ margin-top:9px;min-height:44px;padding:10px 15px;border:0;border-radius:13px;
+ background:var(--c-sage);color:#406449;font-size:13px;font-weight:690;
+}
+
+/* Media/editor/safety dialogs keep the same surface. Never alter actual
+   media player/fullscreen behaviors or destructive action callbacks. */
+body #memorySheet {background:var(--c-paper)!important;color:var(--c-ink)!important}
+body #memorySheet .memory-note {color:var(--c-copy)!important;line-height:1.72!important}
+body #editor .input {
+ font-size:16px!important;color:var(--c-ink)!important;
+ background:var(--c-paper)!important;border-color:var(--c-line)!important;
+}
+body :is(#atlasDiscardDialog,#atlasDeleteDialog,#atlasUnstarDialog) .atlas-discard-inner{
+ background:var(--c-paper)!important;color:var(--c-ink)!important;
+ box-shadow:0 10px 35px rgba(26,42,31,.13)!important;
+}
+@media(max-width:375px) {
+ body #appDock.app-dock {width:calc(100vw - 28px)!important}
+ body #fpPlaceCard .fp-card-header {padding-inline:16px!important}
+ body #fpPlaceCard .fp-card-scroll {padding-inline:16px!important}
+ body #drawer.fp30-detail #spotList {padding-inline:16px!important}
+ body.route-v5-live #rc-body {padding-inline:17px!important}
+}
+@media(prefers-reduced-motion:reduce) {
+ body #appDock .dock-btn{transition:none!important}
+ body #fpPlaceCard,body #fpSearchSheet,body #drawer {animation:none!important}
+}

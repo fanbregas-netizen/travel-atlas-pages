@@ -35,6 +35,13 @@ jobs:
       - name: Prepare public static site
         run: |
           mkdir -p _site
+          # V5 PR53 isolated COMPLETE product preview; root remains byte-for-byte unchanged.
+          cp -R v5-pr53-one-map-20261119 _site/v5-pr53-one-map-20261119
+          test -s _site/v5-pr53-one-map-20261119/index.html
+          test -s _site/v5-pr53-one-map-20261119/src/route/route-single-map-v1.js
+          test -s _site/v5-pr53-one-map-20261119/src/map/poi-identity-v5.js
+          test -s _site/v5-pr53-one-map-20261119/src/interaction/navigation-physical-sheet-v5.js
+          grep -q 'private-travel-footprints-v5-pr53-review-20261119' _site/v5-pr53-one-map-20261119/src/media/media-core.js
           # Publish standalone V5 route interaction demo, without touching the product root.
           mkdir -p _site/v5-route-interaction-demo-20261118
           cp v5-route-interaction-demo-20261118/index.html _site/v5-route-interaction-demo-20261118/index.html

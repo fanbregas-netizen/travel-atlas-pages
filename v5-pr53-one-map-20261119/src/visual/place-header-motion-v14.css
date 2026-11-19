@@ -1,0 +1,124 @@
+/* Footprint Map V4 Pages .14
+   The confirmed B physical card remains the only sheet controller.
+   The header shows the user's hand-drawn directions icon instead of a duplicated
+   media thumbnail; the Media section still owns every photo/video. */
+body #fpPlaceCard .fp-card-header{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) repeat(3,44px)!important;
+  grid-template-rows:auto auto 44px!important;
+  align-items:center!important;
+  gap:7px 6px!important;
+  padding:36px 17px 13px!important;
+  background:var(--fpv-paper,#fffefa)!important;
+}
+body #fpPlaceCard .fp-card-title-wrap{
+  display:contents!important;
+}
+body #fpPlaceCard .fp-card-header .fp-card-name{
+  grid-column:1 / 4!important;grid-row:1!important;
+  margin:0!important;padding:0!important;
+  align-self:center!important;
+  min-width:0!important;max-height:none!important;
+  font-size:clamp(22px,5.8vw,26px)!important;
+  line-height:1.24!important;font-weight:730!important;
+  letter-spacing:-.04em!important;
+  overflow-wrap:break-word!important;
+}
+body #fpPlaceCard .fp-card-header .fp-card-location{
+  grid-column:1 / 4!important;grid-row:2!important;
+  min-width:0!important;margin:0!important;
+  font-size:12px!important;line-height:1.45!important;
+  color:var(--fpv-secondary,#657568)!important;
+  display:-webkit-box!important;-webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;overflow:hidden!important;
+}
+body #fpPlaceCard .fp-card-header .fp-place-stage{
+  grid-column:1!important;grid-row:3!important;
+  justify-self:start!important;align-self:center!important;
+  margin:0!important;
+  min-height:29px!important;
+  padding:5px 11px!important;
+  width:auto!important;max-width:100%!important;
+  white-space:nowrap!important;
+}
+body #fpPlaceCard .fp-card-header .fp-place-navigation{
+  grid-column:4!important;grid-row:1 / 3!important;
+  justify-self:end!important;align-self:start!important;
+  display:grid!important;place-items:center!important;
+  width:49px!important;height:49px!important;
+  min-width:49px!important;min-height:49px!important;
+  margin:0!important;padding:9px!important;
+  background:#f1f4ee!important;
+  border:1px solid #dfe6dc!important;
+  border-radius:15px!important;
+  box-shadow:none!important;
+  color:var(--fpv-ink,#273a30)!important;
+  cursor:pointer;touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  transition:background-color .22s ease,scale .27s cubic-bezier(.22,.80,.24,1)!important;
+}
+body #fpPlaceCard .fp-card-header .fp-place-navigation img{
+  width:28px!important;height:28px!important;
+  max-width:100%!important;max-height:100%!important;
+  object-fit:contain!important;
+}
+body #fpPlaceCard .fp-card-header .fp-place-navigation:active{
+  background:#e7eee4!important;scale:.955!important;
+}
+body #fpPlaceCard .fp-card-header .fp-place-navigation:focus-visible{
+  outline:2px solid #a78d58!important;outline-offset:3px!important;
+}
+body #fpPlaceCard .fp-card-head-actions{
+  grid-column:2 / -1!important;grid-row:3!important;
+  justify-self:end!important;align-self:center!important;
+  display:flex!important;justify-content:flex-end!important;
+  align-items:center!important;gap:2px!important;
+  width:auto!important;min-width:0!important;
+}
+body #fpPlaceCard .fp-card-head-actions > button{
+  flex:0 0 44px!important;
+  width:44px!important;height:44px!important;
+  min-width:44px!important;min-height:44px!important;
+  margin:0!important;
+}
+body #fpPlaceCard .fp-card-title-wrap .fp-place-preview,
+body #fpPlaceCard .fp-card-header .fp-place-teaser{
+  display:none!important;
+}
+@media(max-width:375px){
+ body #fpPlaceCard .fp-card-header{
+  gap:6px 3px!important;padding-inline:14px!important;
+  grid-template-columns:minmax(0,1fr) repeat(3,41px)!important;
+ }
+ body #fpPlaceCard .fp-card-head-actions > button{
+  flex-basis:41px!important;width:41px!important;
+  min-width:41px!important;
+ }
+ body #fpPlaceCard .fp-card-header .fp-place-navigation{
+  width:45px!important;min-width:45px!important;
+  height:45px!important;min-height:45px!important;
+ }
+}
+/* The approved B-V5 sheet uses an actual frame-time-compensated spring.
+   Mirror its 1-peak + controlled return, applied ONLY to the inner SVG.
+   The outer marker stays pinned geographically; SMIL parts remain independent. */
+@keyframes fp14PoiArtworkElastic{
+  0%  {scale:1; animation-timing-function:cubic-bezier(.18,.70,.20,1)}
+  38% {scale:1.105;animation-timing-function:cubic-bezier(.25,.76,.22,1)}
+  67% {scale:1.026;animation-timing-function:cubic-bezier(.23,.73,.28,1)}
+  88% {scale:.998;animation-timing-function:cubic-bezier(.26,.76,.28,1)}
+  100%{scale:1}
+}
+body #atlasPoiOverlay .fp-internal-poi-envelope.fp-internal-poi-animate,
+body .fp-internal-poi-envelope.fp-internal-poi-animate{
+  animation:fp14PoiArtworkElastic 750ms linear both!important;
+  transform-origin:center center!important;
+  will-change:scale;
+}
+@media(prefers-reduced-motion:reduce){
+ body #fpPlaceCard .fp-card-header .fp-place-navigation{transition:none!important}
+ body #atlasPoiOverlay .fp-internal-poi-envelope.fp-internal-poi-animate,
+ body .fp-internal-poi-envelope.fp-internal-poi-animate{
+  animation:none!important;scale:1!important;
+ }
+}
