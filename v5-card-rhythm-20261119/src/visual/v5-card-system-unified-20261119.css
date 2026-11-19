@@ -608,7 +608,7 @@ html body #drawer.drawer.fp30-hub .drawer-head{
   grid-template-rows:var(--fp-card-header-grip-height) var(--fp-card-header-row-height)!important;
   column-gap:8px!important;row-gap:0!important;
   min-height:80px!important;
-  margin:0 -21px!important;
+  margin:0 -17px!important;
   padding:0 var(--fp-card-content-inset)!important;
   box-sizing:border-box!important;
   border:0!important;
@@ -653,7 +653,7 @@ html body #drawer .drawer-head #closeDrawer{
 html body #drawer.drawer.fp30-detail #spotList,
 html body #drawer.drawer.fp30-route-pick #spotList{
   box-sizing:border-box!important;
-  margin:0 -21px!important;
+  margin:0 -17px!important;
   padding:12px var(--fp-card-content-inset) 16px!important;
   width:auto!important;
 }

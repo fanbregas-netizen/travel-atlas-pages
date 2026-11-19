@@ -99,8 +99,8 @@ const issues=[];const verify=(condition,msg)=>{if(!condition){issues.push(msg);c
    }
    if(name==='place'){
     const rh=await page.locator('.fp-card-header').evaluate(e=>({paddingTop:getComputedStyle(e).paddingTop,paddingBottom:getComputedStyle(e).paddingBottom}));
-    verify(rh.paddingTop==='29px','place header top 29px '+width+' '+JSON.stringify(rh));
-    verify(rh.paddingBottom==='12px','place header bottom 12px '+width+' '+JSON.stringify(rh));
+    verify(rh.paddingTop==='0px','place one-row header top 0px '+width+' '+JSON.stringify(rh));
+    verify(rh.paddingBottom==='0px','place one-row header bottom 0px '+width+' '+JSON.stringify(rh));
    }
    if(name==='navigation'){
     const grip=await page.locator('#navigationChooser .fp-nav-grip').evaluate(e=>getComputedStyle(e).backgroundColor);
