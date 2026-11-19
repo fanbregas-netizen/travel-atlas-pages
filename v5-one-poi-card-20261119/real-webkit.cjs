@@ -77,6 +77,16 @@ const root='http://127.0.0.1:8765/v5-one-poi-card-full-product-20261119/';
    await page.waitForFunction(id=>document.querySelector('#v5-saved-route-list [data-id="'+id+'"]'),trip,{timeout:20000});
    assert.ok((await page.locator('#v5-saved-route-list').textContent()).includes('黄星与路线视觉'));
    await page.locator('#v5-saved-route-list [data-id="'+trip+'"]').click();
+   await page.waitForTimeout(2200);
+   console.log('PR53_ROUTE_OPEN '+JSON.stringify(await page.evaluate(()=>({
+      url:location.href,
+      ready:window.__footprintV5ProductReady,
+      state:window.__footprintV5Demo?.state?.(),
+      mode:document.getElementById('stage')?.dataset.routeMode,
+      mapReady:window.FootprintRouteV5Real?.ready,
+      styleReady:window.FootprintRouteV5Real?.map?.isStyleLoaded?.(),
+      errors:[...document.querySelectorAll('.v5-map-error')].map(x=>x.textContent)
+   })))+' pageerrors='+JSON.stringify(errors.slice(-8)));
    await page.waitForFunction(()=>window.__footprintV5Demo?.state().step==='view' && document.getElementById('stage')?.dataset.routeMode==='preview',null,{timeout:60000});
    const preview=await page.evaluate(()=>{
     const map=window.FootprintRouteV5Real.map;
