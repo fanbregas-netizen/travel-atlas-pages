@@ -1,0 +1,30 @@
+name: V5 approved Nov18 interaction merged into latest visual
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/v5-approved-1118-merged-interaction.cjs'
+      - '.github/workflows/v5-approved-1118-merged-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  approved-interaction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser driver
+        run: npm install --no-save --ignore-scripts playwright-core@1.58.2
+      - name: Exercise real published route and isolated data-backed flow at iPhone widths
+        run: node tests/v5-approved-1118-merged-interaction.cjs
+      - name: Preserve actual card screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-approved-1118-merged-interaction
+          path: v5-merged-1118-flow-evidence/
+          if-no-files-found: ignore
