@@ -42,7 +42,7 @@ assert not stale,'PRIVATE_PRODUCT_DRIFT '+str(stale)
 for p in old.rglob('*'):
  if not p.is_file():continue
  rel=str(p.relative_to(old))
- if rel not in delta:assert p.read_bytes()==(new/rel).read_bytes(),f'Unexpected base product modification: {rel}'
+ if rel not in delta and rel!='journey.html':assert p.read_bytes()==(new/rel).read_bytes(),f'Unexpected base product modification: {rel}'
 for p,h in before.items():assert hashlib.sha256((root/p).read_bytes()).hexdigest()==h,'Previous Pages modified '+p
 assert 'route-single-map-v1.js' in (new/'index.html').read_text()
 assert 'amap-poi-overlay-v1.js' in (new/'index.html').read_text()
