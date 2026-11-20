@@ -99,6 +99,13 @@ jobs:
           grep -q 'route-stages-20261120' _site/v5-route-stages-20261120/index.html
           grep -q '99627256d8cd2cf7471a3d617c50b9dd26ccb547' _site/v5-route-stages-20261120/QA_BUILD.json
           grep -q 'fp-route-segment-pill-button' _site/v5-route-stages-20261120/src/route/route-single-map-v1.js
+          # V5 ROUTE STORYBOARD: interactive approval draft, no product files or user data.
+          cp -R v5-route-storyboard-review-20261120 _site/v5-route-storyboard-review-20261120
+          test -s _site/v5-route-storyboard-review-20261120/index.html
+          test -s _site/v5-route-storyboard-review-20261120/QA_BUILD.json
+          grep -q '路线流程逐步交互验收' _site/v5-route-storyboard-review-20261120/index.html
+          grep -q 'maplibregl.Map' _site/v5-route-storyboard-review-20261120/index.html
+          grep -q 'fp-route-review-step-demo' _site/v5-route-storyboard-review-20261120/index.html || grep -q 'fp-route-review-step-demo-20261120' _site/v5-route-storyboard-review-20261120/index.html
           # PR58: publish only the isolated complete V5 Dock-order acceptance folder.
           cp -R v5-dock-route-center-20261120 _site/v5-dock-route-center-20261120
           test -s _site/v5-dock-route-center-20261120/index.html
@@ -763,6 +770,20 @@ jobs:
         run: sleep 18
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify standalone V5 step-by-step interactive route storyboard is public
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-route-storyboard-review-20261120'
+          for file in index.html QA_BUILD.json; do
+            curl -fsSL --retry 12 --retry-delay 3 --retry-all-errors --max-time 25 -H 'Cache-Control: no-cache' "${BASE}/${file}?sha=${GITHUB_SHA}" -o /tmp/fp-review-check
+            test -s /tmp/fp-review-check
+            case "${file}" in
+              index.html) grep -q '路线流程逐步交互验收' /tmp/fp-review-check ;;
+              QA_BUILD.json) grep -q 'interactive_storyboard' /tmp/fp-review-check ;;
+            esac
+          done
+          echo 'PASS independent route-step interactive review HTML and metadata publicly accessible'
       - name: Verify V5 route-pill and route-stages standalone iPhone previews are public
         shell: bash
         run: |

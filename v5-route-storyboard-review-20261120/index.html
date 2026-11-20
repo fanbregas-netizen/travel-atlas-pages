@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#f8f8f4">
+<title>Footprint Map V5｜路线流程逐步交互验收</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+:root{--cream:#fbfaf6;--green:#385c49;--dark:#294739;--muted:#8c9e91;--edge:#dce5db;--gold:#e5b95e;--sage:#eff3ed;--sea:#9dbdc4;--land:#506676;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;color:var(--dark)}
+*{box-sizing:border-box}button,input,textarea,select{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#edece6}
+#workspace{display:flex;justify-content:center;align-items:center;gap:30px;height:100dvh;padding:14px 20px}
+#device{width:min(390px,calc((100dvh - 28px)*.465));height:min(840px,calc(100dvh - 28px));flex:none;position:relative;border-radius:37px;border:8px solid #24372d;overflow:hidden;background:#4a6371;box-shadow:0 24px 80px #263b3040}
+#screen{position:absolute;inset:0;overflow:hidden;background:#506676;touch-action:pan-x pan-y}
+#map,#fallbackMap{position:absolute;inset:0;width:100%;height:100%}#map{z-index:1}#fallbackMap{z-index:0;overflow:hidden}#fallbackMap svg{width:100%;height:100%}
+#focusShade{position:absolute;inset:0;background:#52675a28;z-index:2;pointer-events:none;opacity:0;transition:opacity .25s}#screen.focus #focusShade{opacity:1}
+#roadLayer{position:absolute;inset:0;width:100%;height:100%;z-index:3;overflow:visible;pointer-events:none}#roadLayer path.hit{pointer-events:stroke;cursor:pointer}
+#stars{position:absolute;inset:0;z-index:4;pointer-events:none}
+.star{position:absolute;transform:translate(-50%,-50%);border:0;padding:0;width:51px;height:51px;background:transparent;pointer-events:auto;filter:drop-shadow(0 2px 1px #223a43a0);transition:opacity .18s}
+.star svg{width:100%;height:100%;overflow:visible}.star .number{position:absolute;top:-9px;right:-14px;min-width:25px;height:25px;padding:0 4px;border-radius:30px;background:#fffef8;border:2px solid #97ac97;color:#315342;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:750;box-shadow:0 2px 5px #273a3028}
+.star:active svg{transform:scale(1.12)}.star.softer{opacity:.65}
+#searchDock{position:absolute;z-index:7;top:78px;left:19px;right:19px;height:49px;border:1px solid #e7e9e0;border-radius:19px;background:#fffef8f0;display:flex;gap:12px;align-items:center;padding:0 17px;box-shadow:0 4px 17px #233c391c}
+#searchDock svg{flex:none}#searchDock input{background:transparent;border:0;outline:0;min-width:0;flex:1;color:#32513e;font-size:13px}
+#searchResult{position:absolute;z-index:12;top:132px;left:19px;right:19px;background:var(--cream);border:1px solid var(--edge);border-radius:15px;padding:6px;box-shadow:0 8px 18px #18312422}
+#searchResult button{display:block;text-align:left;padding:12px;border:0;background:none;width:100%;color:var(--dark)}
+#tools{position:absolute;right:14px;bottom:145px;z-index:7;display:grid;gap:8px;transition:transform .22s,opacity .22s}
+#tools button{width:43px;height:43px;border:1px solid #dce5db;border-radius:14px;background:#fffefa;box-shadow:0 3px 10px #142b2630;color:#345442;font-size:25px;font-weight:400}
+#dock{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:7;background:#fffefa;box-shadow:0 5px 23px #233c3830;border:1px solid #dfe5da;border-radius:25px;display:flex;gap:0;width:82%;height:69px;padding:5px}
+#dock button{flex:1;border:0;background:none;border-radius:19px;color:#2c493a;font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+#dock button.active{background:#eff2ec}#dock svg{width:23px;height:23px}
+#sheet{position:absolute;z-index:8;left:10px;right:10px;bottom:16px;height:312px;max-height:83%;display:flex;flex-direction:column;background:var(--cream);border:1px solid #d9e2d7;border-radius:28px;overflow:hidden;box-shadow:0 3px 15px #172d2830;touch-action:pan-y}
+#sheet.dragging{transition:none!important}#sheet:not(.dragging){transition:height .28s cubic-bezier(.2,.8,.2,1)}
+#sheet .grip{height:31px;flex:none;display:flex;align-items:center;justify-content:center;touch-action:none}
+#sheet .grip::after{content:"";width:42px;height:5px;border-radius:12px;background:#cad5cc}
+#sheetHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 18px 12px 20px;min-height:61px;border-bottom:1px solid var(--edge);touch-action:none}
+#sheetTitle{font-size:25px;letter-spacing:-.6px;font-weight:750;margin:0;color:#284435}
+#sheetClose{border:0;background:none;color:#87988d;font-size:32px;line-height:1;padding:0 6px}
+#sheetBody{padding:14px 18px 16px;overflow-y:auto;min-height:0;flex:1;overscroll-behavior:contain}
+#sheetFoot{padding:10px 17px 13px;display:flex;gap:9px;background:#fffefa;border-top:1px solid #dfe6dd;flex:none}
+#sheetFoot button{flex:1;min-height:47px;border-radius:15px;border:1px solid #dce4da;font-weight:680;font-size:14px;background:#eff3ec;color:#314b3d}
+#sheetFoot button.primary{background:var(--green);color:white;border-color:var(--green)}
+#sheetFoot button:disabled{opacity:.4}
+#sheet.hide,#dock.hide,#searchDock.hide,#tools.hide{display:none}
+.inner{background:#fffefa;border:1px solid #e1e7dd;border-radius:19px;padding:16px;margin-bottom:12px}
+.line{display:flex;align-items:center;gap:11px}.line strong{font-size:15px}.line small{font-size:12px;color:#89998b}
+.square{width:36px;height:36px;border-radius:12px;background:#eef2ec;display:grid;place-items:center;color:#709080;font-weight:750;flex:none}
+.sub{font-size:12px;color:#8a9b8c;line-height:1.75;margin:7px 0 10px}.tiny{font-size:11px;color:#8ca08e;line-height:1.5}
+.routeRow{display:flex;align-items:center;gap:10px;width:100%;background:transparent;padding:14px 12px;border:0;border-bottom:1px solid #e7ece6;text-align:left;color:#304d3e}
+.routeRow:last-child{border-bottom:0}.routeRow .copy{flex:1;min-width:0;display:grid;gap:5px}.routeRow strong{font-size:14px}.routeRow small{font-size:11px;color:#8da08f}.chevron{font-size:25px;color:#92a392}
+.pill{border:1px solid #dce5da;border-radius:12px;padding:9px 12px;background:#eff2ec;color:#31513d;font-size:12px;font-weight:650}
+.pill.active{background:#395d48;color:#fff;border-color:#395d48}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+.stopRow{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #edf0eb}.stopRow:last-child{border-bottom:0}
+.stopRow .name{flex:1;font-size:13px;font-weight:650}.stopRow button{min-width:34px;height:33px;border:1px solid #dbe4d9;border-radius:11px;background:#eef3ed;color:#385b48;font-size:13px}
+.stopRow .orderNum{width:31px;height:31px;display:grid;place-items:center;background:#e9efe8;border-radius:10px;color:#6d9483;font-weight:780}
+.stopRow[draggable=true]{touch-action:pan-y}
+.field{display:grid;gap:5px;margin:12px 0;color:#7b9483;font-size:12px;font-weight:650}
+.field input,.field select{height:43px;padding:0 11px;background:white;border:1px solid #dce5d9;border-radius:13px;color:#334e3f;width:100%;outline-color:#8fab94}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.note{padding:10px 12px;background:#f0f4ee;border-radius:12px;font-size:12px;line-height:1.6;color:#5e7b69;margin:10px 0}
+.demoLabel{font-size:10px;letter-spacing:.2px;color:#d6e9dd;background:#354e45c9;display:inline-block;padding:5px 8px;border-radius:12px}
+#routeStatus{position:absolute;z-index:5;top:150px;left:15px;pointer-events:none;max-width:60%}
+#popover{position:absolute;z-index:9;min-width:136px;max-width:210px;background:#fffefa;border:1px solid #dce6dd;border-radius:17px;box-shadow:0 6px 22px #223d2c30;padding:6px;transform:translate(-50%,-100%);pointer-events:auto;transition:opacity .18s,transform .18s}
+#popover button{border:0;background:none;width:100%;padding:9px;color:#31543f;font-size:12px;font-weight:660;text-align:center;border-radius:11px}
+#popover button:hover{background:#eff3ed}
+#popover .big{border-bottom:1px solid #e4eae1;font-weight:700;font-size:13px;text-align:left}
+#popover[hidden],#roadLayer[hidden],#routeStatus[hidden],#searchResult[hidden],#mini[hidden],#reviewModal[hidden],#placeCard[hidden],#toast[hidden]{display:none}
+#popDot{width:11px;height:11px;background:#fffefa;border:2px solid #395f49;border-radius:50%;position:absolute;z-index:8;transform:translate(-50%,-50%);pointer-events:none}
+#popDot[hidden]{display:none}
+#mini{position:absolute;z-index:8;bottom:19px;left:16px;right:16px;background:#fffefa;border:1px solid #dce5db;border-radius:22px;box-shadow:0 5px 20px #26382b2b;padding:11px 13px;display:flex;gap:10px;align-items:center}
+#mini strong{flex:1;font-size:14px;color:#375740}#mini button{border:0;border-radius:13px;background:#365b47;color:white;padding:11px 14px;font-size:13px;font-weight:700}
+#mini button.quiet{background:#edf2ec;color:#375740;padding:11px 9px}
+#placeCard{position:absolute;z-index:11;left:10px;right:10px;bottom:16px;padding:14px 18px 19px;background:#fffefa;border:1px solid #dce5db;border-radius:27px;box-shadow:0 9px 28px #243f3035}
+#placeCard header{display:flex;align-items:center;justify-content:space-between}#placeCard h3{font-size:22px;margin:6px 0 10px}#placeCard button{border:0;background:#edf3ec;border-radius:12px;padding:10px 13px;color:#355b44}
+#toast{position:absolute;z-index:20;left:50%;top:135px;transform:translateX(-50%);color:#fff;background:#314e40ed;border-radius:30px;padding:10px 16px;white-space:nowrap;font-size:12px;box-shadow:0 4px 15px #23382a50}
+#reviewBar{position:absolute;z-index:15;left:15px;right:15px;top:11px;min-height:48px;border-radius:16px;background:#fffefaeb;border:1px solid #e4e8de;box-shadow:0 3px 12px #263b3130;display:flex;align-items:center;gap:6px;padding:5px}
+#reviewBar button{border:0;background:#eef2ec;border-radius:11px;min-width:36px;height:35px;color:#33533f;font-size:21px}
+#reviewBar button.info{font-size:12px;padding:0 8px;white-space:nowrap}
+#reviewBar .stage{min-width:0;flex:1;text-align:center;font-size:12px;font-weight:730;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#reviewModal{position:absolute;z-index:28;inset:0;background:#13251cb0;display:flex;align-items:flex-end;justify-content:center}
+.reviewSheet{width:100%;max-height:82%;overflow:auto;background:#fffefa;border-radius:27px 27px 0 0;padding:18px 19px 24px;box-shadow:0 -10px 30px #15291c44}
+.reviewSheet h2{margin:0 0 6px;font-size:19px}.reviewSheet p{font-size:12px;line-height:1.8;color:#587364}.reviewSheet label{font-size:12px;color:#587364;display:block;margin:10px 0 5px}
+.reviewSheet textarea{width:100%;min-height:64px;border:1px solid #d7e3d8;border-radius:12px;padding:10px;resize:vertical;font-size:13px}
+.reviewSheet .votes{display:flex;gap:8px;margin:12px 0}.reviewSheet .votes button{flex:1;padding:11px;border:1px solid #dce6dd;border-radius:12px;background:#eff3ec;color:#315541;font-weight:700}
+.reviewSheet .votes button.sel{background:#345b45;color:#fff}
+.reviewSheet .closeReview{float:right;border:0;background:#eff3ec;border-radius:12px;padding:8px 12px;color:#315541}
+#side{width:355px;max-height:96dvh;overflow:auto;background:#fffefa;border:1px solid #e2e8df;border-radius:22px;padding:20px 20px 24px;box-shadow:0 10px 45px #273d2c1a}
+#side h1{font-size:20px;margin:0 0 7px}#side .desc{font-size:12px;color:#7e9685;line-height:1.7}
+#reviewSteps{display:grid;gap:6px;margin:18px 0}#reviewSteps button{display:flex;align-items:center;gap:8px;border:1px solid transparent;background:#f5f7f2;border-radius:13px;padding:11px;text-align:left;color:#355240;font-size:13px}
+#reviewSteps button.current{background:#e7eee5;border-color:#9cb6a0;font-weight:700}
+#reviewSteps .count{width:24px;color:#91a89b;text-align:center}.statusTag{margin-left:auto;color:#689076;font-size:10px}
+#reviewDetail{border-top:1px solid #e0e8de;padding-top:12px;font-size:12px;color:#4e6958;line-height:1.6}
+#reviewDetail strong{font-size:15px;color:#2d4e3d}#reviewDetail ul{padding-left:19px}
+#reviewDetail textarea{width:100%;margin-top:8px;border:1px solid #dce5dd;border-radius:11px;padding:9px;min-height:58px;resize:vertical;font-size:12px}
+.reviewActions{display:flex;gap:7px;margin:10px 0}.reviewActions button,#exportBtn{flex:1;border:1px solid #d9e5dc;border-radius:12px;background:#eef3eb;padding:11px;color:#335741;font-size:12px;font-weight:700}
+.reviewActions button.sel{background:#385c49;color:white}#exportBtn{width:100%;margin-top:10px}
+#scenarioChoice{display:flex;gap:7px;margin:9px 0}#scenarioChoice button{flex:1;border:1px solid #dce5db;border-radius:9px;background:#f0f4ee;padding:9px 4px;color:#425d49;font-size:11px}#scenarioChoice button.on{background:#365b47;color:white}
+.maplibregl-control-container{display:none!important}
+@media(max-width:760px){
+html,body{background:#506676}#workspace{display:block;padding:0}
+#device{position:fixed;inset:0;width:100%;height:100dvh;border:0;border-radius:0;box-shadow:none}
+#side{display:none}#searchDock{top:78px}#reviewBar{top:calc(env(safe-area-inset-top) + 5px)}
+#sheet{bottom:calc(env(safe-area-inset-bottom) + 10px)}#dock{bottom:calc(env(safe-area-inset-bottom) + 14px)}
+#mini,#placeCard{bottom:calc(env(safe-area-inset-bottom) + 12px)}#tools{bottom:calc(env(safe-area-inset-bottom) + 130px)}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition-duration:0s!important;animation:none!important}}
+</style></head>
+<body><div id="workspace"><div id="device"><div id="screen">
+<div id="fallbackMap" aria-hidden="true"><svg viewBox="0 0 390 860" preserveAspectRatio="xMidYMid slice">
+<rect width="390" height="860" fill="#506676"/>
+<path d="M-30 580 C50 465 62 450 117 420 C166 394 185 344 239 303 C299 262 375 281 425 270 L440 880 L-20 880 Z" fill="#9dbdc4"/>
+<path d="M-30 160 C75 175 67 180 137 152 C230 106 259 93 420 135 L420 0 L-30 0Z" fill="#4b626e" opacity=".8"/>
+<g fill="none" stroke="#cdb09d" stroke-width="2.5" opacity=".86">
+<path d="M-30 96 C82 79 122 146 220 107 S348 80 415 88"/><path d="M-20 143 C70 126 121 183 207 151 S316 111 413 137"/>
+<path d="M-16 195 C67 180 137 220 231 186 S365 182 430 174"/><path d="M-30 249 C81 211 118 261 212 236 S320 225 414 219"/>
+<path d="M-25 319 C85 272 118 334 212 282 S354 256 428 274"/><path d="M-20 366 C54 335 122 398 197 351 S340 315 421 330"/>
+<path d="M34 40 C63 134 65 217 52 332 S50 415 24 511"/><path d="M102 10 C127 130 138 204 124 323 S112 432 77 475"/>
+<path d="M170 0 C203 112 184 193 187 276 S167 349 157 401"/><path d="M252 -10 C261 95 248 150 274 244 S271 330 251 379"/>
+<path d="M322 -10 C327 100 325 195 340 279 S325 331 308 354"/>
+<path d="M-20 480 C56 460 85 432 133 406 S223 375 289 354"/>
+<path d="M-20 560 C51 506 95 482 143 443"/><path d="M-20 630 C60 590 79 570 117 508"/>
+</g>
+<g fill="none" stroke="#91a4ab" opacity=".5" stroke-width="1">
+<path d="M0 118 L332 118 M0 226 L340 226 M0 293 L310 293 M0 342 L255 342"/>
+<path d="M86 50L86 395 M150 0L150 410 M226 0L226 385 M305 0L305 330"/>
+</g>
+<g fill="#789a86" opacity=".75"><path d="M19 170l30-11 18 21-8 24-31-7zM205 170l47-9 20 36-38 14zM92 310l32 5 5 30-27 7z"/></g>
+<g font-size="18" fill="#f0eee5" opacity=".8"><text x="230" y="140">上海市</text><text x="36" y="319">嘉兴市</text><text x="175" y="335">平湖市</text><text x="95" y="606">杭州湾</text><text x="241" y="700">宁波市</text></g>
+</svg></div>
+<div id="map"></div><div id="focusShade"></div><svg id="roadLayer"></svg><div id="stars"></div><div id="routeStatus" hidden></div>
+<div id="reviewBar"><button data-action="prev-review" aria-label="上一步">‹</button><span class="stage" id="stepLabel">第 1 步</span><button class="info" data-action="open-review">本步说明</button><button data-action="next-review" aria-label="下一步">›</button></div>
+<div id="searchDock"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#2c4438" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="m15.5 15.5 6 6"/></svg><input id="searchField" placeholder="搜索城市、景点或地点" autocomplete="off" aria-label="搜索收藏地点"></div><div id="searchResult" hidden></div>
+<div id="tools"><button data-action="locate" aria-label="定位示例区域">⊙</button><button data-action="zoom-in" aria-label="放大地图">＋</button><button data-action="zoom-out" aria-label="缩小地图">−</button></div>
+<div id="popover" hidden></div><div id="popDot" hidden></div>
+<section id="sheet" aria-label="路线交互卡片"><div class="grip" id="grip"></div><div id="sheetHead"><h2 id="sheetTitle"></h2><button id="sheetClose" data-action="exit" aria-label="退出路线">×</button></div><div id="sheetBody"></div><div id="sheetFoot"></div></section>
+<div id="mini" hidden><strong id="miniCount">已选 0 处</strong><button class="quiet" data-action="focus-back">展开卡片</button><button data-action="confirm-stars">确认</button></div>
+<div id="dock"><button data-action="favorites"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 2 3 6.6 7.3 1-5.3 5.3 1.3 7.1L12 18.6l-6.3 3.4 1.3-7.1-5.3-5.3 7.3-1z"/></svg>收藏</button><button data-action="routes" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m4 19 5-5 4 2 7-10" stroke-dasharray="3 2"/><circle cx="4" cy="19" r="1.3"/><circle cx="20" cy="6" r="1.3"/></svg>路线</button><button data-action="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m7 3 1.5 3 3 .5-2.3 2.3.6 3.2L7 10.5 4.2 12l.6-3.2-2.3-2.3 3-.5zM17 9l1.2 2.5 2.8.4-2 1.9.5 2.7-2.5-1.3-2.5 1.3.5-2.7-2-1.9 2.8-.4zM8 17l.7 1.4 1.5.2-1.1 1 .2 1.5-1.3-.7-1.3.7.2-1.5-1.1-1 1.5-.2z"/></svg>总览</button></div>
+<div id="placeCard" hidden></div><div id="toast" hidden></div>
+<div id="reviewModal" hidden><div class="reviewSheet"><button class="closeReview" data-action="close-review">收起</button><h2 id="modalTitle">本步说明</h2><p id="modalGoal"></p><p id="modalSee"></p><p id="modalTry"></p><div id="mobileScenarioChoice" style="display:none"><p>这一步请比较：列表与地图如何对应？</p><div class="row"><button class="pill" data-action="preview-rule" data-value="manual">点路线后再预览</button><button class="pill" data-action="preview-rule" data-value="recent">保留上次预览</button></div></div><label>这一步的意见</label><textarea id="modalNote" placeholder="哪里不符合你的意思？可以直接写在这里"></textarea><div class="votes"><button data-action="approve">✓ 通过</button><button data-action="reject">需修改</button></div><div class="votes"><button data-action="prev-review">上一步</button><button data-action="next-review">下一步</button></div></div></div>
+</div></div><aside id="side"><h1>路线交互 · 逐步验收</h1><div class="desc">依据 Footprint Map 现款暖白卡片、黄星与蓝灰地图制作。每个阶段都可实际点击；此页面只有示例数据，不操作正式收藏与路线。</div><div id="reviewSteps"></div><div id="reviewDetail"></div><button id="exportBtn" data-action="copy-review">复制全部验收意见</button><div class="desc" style="margin-top:14px">这是一份交互逻辑演示，不是正式产品更新。道路优先调用真实路由服务；不可用时仅展示明确标注的线型示意。</div></aside></div>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+var stages=[
+ {name:'地图首页',goal:'保持现有主页地图；只显示用户收藏的黄色星标。',see:'地图：黄星、原有搜索与 Dock；无路线编号、无路线。',test:'点击底部「路线」进入我的路线。'},
+ {name:'我的路线',goal:'先看到保存的路线列表，再决定要查看哪一条；不要未经说明就切换路线。',see:'底部：单层路线列表。地图预览方式尚有争议，本页提供「选中才显示」与「沿用上次」两种可切换方案供你确认。',test:'切换两种地图行为，再点某一条路线，检查地图与列表是否一致。'},
+ {name:'查看已保存路线',goal:'点一条路线后，地图与卡片共同显示这同一条路线。',see:'地图：该路线真实道路、编号黄星；卡片：日期、地点、按天查看。卡片上滑时地图跟着重新取景，不重新加载路线。',test:'拖动卡片抓手，点击黄星查看地点，再返回路线。'},
+ {name:'新建路线 · 选择地点',goal:'新建只进入选点，不先画线，也不修改永久收藏。',see:'地图：仅黄星；卡片：收藏列表与地图选点入口。选中后按顺序编号。',test:'从列表添加地点；再点击「地图选点」进入地图专注模式。'},
+ {name:'地图专注选点',goal:'卡片让位地图；可连续点选黄星，已选地点能单独取消。',see:'灰绿色地图上只强调收藏黄星；保留右侧定位、缩放控件；下部只留轻量「已选·确认」栏。没有连线。',test:'点击黄星添加；再点已编号黄星，选择「移出本次路线」；确认后直接进入行程设置。'},
+ {name:'行程设置',goal:'地图继续提示当前选了哪些地点，卡片只设置路线名称、日期与主要交通方式。',see:'黄色虚线只作为「尚未排序的站点关系示意」；这不是实际道路。起点、终点由后续排序的首尾站决定，不再做两套独立选择。',test:'修改名称和日期；上滑、下滑卡片，观察地图避让；点击下一步。'},
+ {name:'排列顺序',goal:'到这里才正式形成道路路线。站点顺序和地图道路必须同步。',see:'地图：沿真实道路的白边深绿线；卡片：排序、分天、继续加点、检查顺路。道路暂不可用时必须明确提示，绝不把黄色直线冒充道路。',test:'拖动/点箭头调整顺序，观察线路重新计算；或点「继续添加」回地图选点再返回排序。'},
+ {name:'路段操作',goal:'不盖住地图：点击某路段，出现小圆点和一枚短标签；点标签才展开详情。',see:'被选中道路突出；轻量标签显示交通与时间，二次点开才能更改交通方式或导航。气泡与该路段保持关联，卡片动作不影响路线。',test:'点击道路和小标签，切换驾车/步行等交通方式，点击空白收起。'},
+ {name:'完成保存 · 查看行程',goal:'保存后继续看同一份路线，同一套地图、编号、道路和镜头。',see:'查看行程、日期分天标签、地点卡片、分段信息，路线始终位于卡片上方的可视地图内；不重新初始化数据。',test:'切换 D1/D2/D3，点星标，点路段，再返回我的路线。'},
+ {name:'返回与真正退出',goal:'区分「返回路线列表」与「退出路线模式」；不能把返回当成清空地图。',see:'返回列表保留当前路线；真正点 × 退出后，路线、编号、气泡全部消失，主页只剩收藏黄星与 Dock。',test:'点击「返回路线列表」看路线保持，再点「退出路线」确认首页已完全清理。'}
+];
+var pts=[
+ {id:'s',name:'上海南站',short:'上海南站',lat:31.154,lon:121.429,x:.48,y:.25},
+ {id:'f',name:'奉城镇',short:'奉城镇',lat:30.919,lon:121.667,x:.77,y:.40},
+ {id:'n',name:'宁波工程学院前湾校区',short:'前湾校区',lat:30.329,lon:121.245,x:.34,y:.70}
+];
+var routeRecords=[
+ {id:'a',title:'我的旅行路线',date:'11月20日—11月22日',ids:['s','f','n']},
+ {id:'b',title:'周末海岸线',date:'11月28日—11月29日',ids:['s','n']}
+];
+var state={step:0,plan:[],lastSaved:'a',selectedRoute:null,previewRule:'manual',days:{s:1,f:2,n:3},title:'我的旅行路线',start:'2026-11-20',end:'2026-11-22',transport:'car',legMode:{},day:0,popup:null,selectedLeg:0,place:null,fromOrder:false,detent:0,network:{},dragSource:null,panX:0,panY:0,zoom:1};
+var review={votes:{},notes:{}};
+try{var prior=JSON.parse(localStorage.getItem('fp-route-review-step-demo-20261120')||'{}');review.votes=prior.votes||{};review.notes=prior.notes||{};state.previewRule=prior.rule||'manual'}catch(e){}
+var map=null,mapReady=false,routeCache={},routeLoading={},frame=0,dragSheet=null,toastTimer;
+var ROAD_EXAMPLES=[
+ ['s','f',[[121.429,31.154],[121.446,31.13],[121.498,31.113],[121.529,31.07],[121.59,31.066],[121.601,31.007],[121.641,30.972],[121.667,30.919]]],
+ ['f','n',[[121.667,30.919],[121.642,30.88],[121.604,30.833],[121.564,30.805],[121.505,30.83],[121.445,30.78],[121.417,30.7],[121.378,30.61],[121.33,30.48],[121.245,30.329]]],
+ ['s','n',[[121.429,31.154],[121.467,31.10],[121.51,31.03],[121.49,30.95],[121.426,30.8],[121.363,30.6],[121.245,30.329]]]
+];
+function elem(tag,cls){var e=document.createElement(tag);if(cls)e.className=cls;return e}
+function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function point(id){return pts.find(function(x){return x.id===id})}
+function route(id){return routeRecords.find(function(x){return x.id===id})||routeRecords[0]}
+function persist(){try{localStorage.setItem('fp-route-review-step-demo-20261120',JSON.stringify({votes:review.votes,notes:review.notes,rule:state.previewRule}))}catch(e){}}
+function idList(){
+ if(state.step===0)return [];
+ if(state.step===1||state.step===9){
+  if(state.selectedRoute)return route(state.selectedRoute).ids;
+  return state.previewRule==='recent'?route(state.lastSaved).ids:[];
+ }
+ if(state.step===2)return route(state.selectedRoute||state.lastSaved).ids;
+ return state.plan;
+}
+function numbered(){return state.step!==0&&idList().length>0}
+function lineMode(){
+ if(state.step===5)return 'schematic';
+ if([1,2,6,7,8,9].indexOf(state.step)>=0&&idList().length>1)return 'road';
+ return 'none';
+}
+function sheetVisible(){return [0,4].indexOf(state.step)<0}
+function visibleHeight(){return state.detent===0?302:state.detent===1?Math.min(innerHeight*.56,490):Math.min(innerHeight*.77,670)}
+function updateClasses(){
+ var screen=$('screen'),focus=state.step===4,home=state.step===0;
+ screen.classList.toggle('focus',focus);
+ $('sheet').classList.toggle('hide',!sheetVisible());
+ $('dock').classList.toggle('hide',!home);
+ $('searchDock').classList.toggle('hide',!home);
+ $('tools').classList.toggle('hide',!home&&!focus);
+ $('mini').hidden=!focus;
+ if(focus)$('miniCount').textContent='已选 '+state.plan.length+' 处';
+ if(sheetVisible())$('sheet').style.height=visibleHeight()+'px';
+}
+function makeStar(n){
+ var badge=n?'<span class="number">'+n+'</span>':'';
+ return '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 2.9l6.3 12.9 14.1 2-10.2 10 2.4 14-12.6-6.8-12.7 6.8 2.4-14-10.2-10 14.1-2Z" fill="#e6b65d" stroke="#344852" stroke-width="3.2" stroke-linejoin="round"/></svg>'+badge;
+}
+function mapArea(){return Math.max(220,$('screen').clientHeight-(sheetVisible()?($('sheet').getBoundingClientRect().height+24):state.step===4?70:90))}
+function project(p){
+ if(mapReady&&map){var a=map.project([p.lon,p.lat]);return {x:a.x,y:a.y}}
+ var sc=$('screen'),w=sc.clientWidth,area=mapArea();
+ return {x:(p.x-.5)*w*state.zoom+w*.5+state.panX,y:(p.y-.5)*area*state.zoom+area*.5+state.panY};
+}
+function coord(v){
+ if(mapReady&&map){var z=map.project(v);return {x:z.x,y:z.y}}
+ var a=pts.slice().sort(function(p,q){return Math.hypot(p.lon-v[0],p.lat-v[1])-Math.hypot(q.lon-v[0],q.lat-v[1])})[0];
+ var b=pts.filter(function(p){return p!==a}).sort(function(p,q){return Math.hypot(p.lon-v[0],p.lat-v[1])-Math.hypot(q.lon-v[0],q.lat-v[1])})[0];
+ var aa=project(a),bb=project(b),dx=b.lon-a.lon,dy=b.lat-a.lat,den=dx*dx+dy*dy,t=den?( (v[0]-a.lon)*dx+(v[1]-a.lat)*dy )/den:0;
+ return {x:aa.x+(bb.x-aa.x)*t,y:aa.y+(bb.y-aa.y)*t};
+}
+function drawStars(){
+ var numberedIds=idList(),el=$('stars');el.innerHTML='';
+ pts.forEach(function(p){
+  var n=numberedIds.indexOf(p.id)+1;
+  var at=project(p),button=elem('button','star');
+  button.style.left=at.x+'px';button.style.top=at.y+'px';
+  if(n===0&&numberedIds.length&&state.step!==0)button.classList.add('softer');
+  button.innerHTML=makeStar(n);button.setAttribute('aria-label',p.name+(n?'第'+n+'站':'收藏地点'));
+  button.addEventListener('click',function(e){e.stopPropagation();onStar(p.id)});
+  el.appendChild(button);
+ });
+}
+function pointPath(coords){
+ return coords.map(function(p,i){var a=coord(p);return (i?'L':'M')+a.x.toFixed(1)+','+a.y.toFixed(1)}).join(' ');
+}
+function pairs(){
+ var ids=idList(),result=[];
+ for(var i=1;i<ids.length;i++)result.push({a:point(ids[i-1]),b:point(ids[i]),i:i-1,key:ids[i-1]+'-'+ids[i]});
+ return result;
+}
+function roadCacheKey(a,b){return a.id+'|'+b.id}
+function ensureRoad(a,b){
+ var key=roadCacheKey(a,b);
+ if(routeCache[key]||routeLoading[key])return;
+ if(!window.fetch)return;
+ routeLoading[key]=true;
+ var url='https://router.project-osrm.org/route/v1/driving/'+a.lon+','+a.lat+';'+b.lon+','+b.lat+'?overview=full&geometries=geojson';
+ var controller=window.AbortController?new AbortController():null;
+ var limit=setTimeout(function(){if(controller)controller.abort()},10500);
+ fetch(url,controller?{signal:controller.signal}:{})
+ .then(function(r){if(!r.ok)throw Error('road error');return r.json()})
+ .then(function(json){var r=json.routes&&json.routes[0];if(r&&r.geometry&&Array.isArray(r.geometry.coordinates)){
+ routeCache[key]={coords:r.geometry.coordinates,distance:r.distance,duration:r.duration,real:true};}
+ })
+ .catch(function(){routeCache[key]={real:false};})
+ .finally(function(){clearTimeout(limit);delete routeLoading[key];positionMap()});
+}
+function fallbackRoad(a,b){
+ var found=ROAD_EXAMPLES.find(function(r){return r[0]===a.id&&r[1]===b.id});
+ if(found)return found[2];
+ var rev=ROAD_EXAMPLES.find(function(r){return r[0]===b.id&&r[1]===a.id});
+ if(rev)return rev[2].slice().reverse();
+ var ax=a.lon,ay=a.lat,bx=b.lon,by=b.lat;
+ return [[ax,ay],[ax+(bx-ax)*.25,ay+(by-ay)*.07],[ax+(bx-ax)*.42,ay+(by-ay)*.31],[ax+(bx-ax)*.65,ay+(by-ay)*.64],[bx,by]];
+}
+function drawRoad(){
+ var mode=lineMode(),svg=$('roadLayer');svg.innerHTML='';svg.hidden=mode==='none';
+ $('routeStatus').hidden=true;
+ if(mode==='none')return;
+ var strokes=pairs(),anyExamples=false;
+ strokes.forEach(function(leg){
+  var source=routeCache[roadCacheKey(leg.a,leg.b)];
+  if(mode==='road'&&(state.legMode[leg.key]||state.transport)==='car')ensureRoad(leg.a,leg.b);
+  var legMode=state.legMode[leg.key]||state.transport;
+  var real=mode==='road'&&source&&source.real&&legMode==='car';
+  var geom=real?source.coords:fallbackRoad(leg.a,leg.b),path=pointPath(geom);
+  if(!real&&mode==='road')anyExamples=true;
+  var selected=state.popup==='segment'&&state.selectedLeg===leg.i;
+  if(mode==='schematic'){
+   svg.innerHTML+='<path d="'+pointPath([[leg.a.lon,leg.a.lat],[leg.b.lon,leg.b.lat]])+'" fill="none" stroke="#e2b95c" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="7 9" opacity=".92"/>';
+  }else{
+   svg.innerHTML+='<path d="'+path+'" fill="none" stroke="#fcfaf5" stroke-width="'+(selected?11:8)+'" stroke-linecap="round" stroke-linejoin="round"/>'+
+     '<path d="'+path+'" fill="none" stroke="'+(selected?'#256448':'#3e6851')+'" stroke-width="'+(selected?7:4.5)+'" stroke-linecap="round" stroke-linejoin="round" opacity="'+(real?1:.74)+'"/>'+
+     '<path class="hit" data-leg="'+leg.i+'" d="'+path+'" fill="none" stroke="transparent" stroke-width="22" stroke-linecap="round"/>';
+  }
+ });
+ if(mode==='schematic'){$('routeStatus').hidden=false;$('routeStatus').innerHTML='<span class="demoLabel">黄色虚线：站点关系示意，不是道路</span>'}
+ else if(anyExamples){$('routeStatus').hidden=false;$('routeStatus').innerHTML='<span class="demoLabel">演示线型 · 道路服务返回后替换</span>'}
+}
+function showBubble(){
+ if(state.popup!=='segment'){$('popover').hidden=true;$('popDot').hidden=true;return}
+ var leg=pairs()[state.selectedLeg]||pairs()[0];
+ if(!leg){state.popup=null;$('popover').hidden=true;$('popDot').hidden=true;return}
+ var c=routeCache[roadCacheKey(leg.a,leg.b)],g=c&&c.real?c.coords:fallbackRoad(leg.a,leg.b);
+ var anchor=coord(g[Math.floor(g.length*.5)]),screen=$('screen'),maxY=screen.clientHeight-(sheetVisible()?visibleHeight()+35:130);
+ anchor.y=Math.min(anchor.y,maxY-28);
+ $('popDot').hidden=false;$('popDot').style.left=anchor.x+'px';$('popDot').style.top=anchor.y+'px';
+ var pop=$('popover');pop.hidden=false;
+ pop.style.left=Math.max(80,Math.min(screen.clientWidth-82,anchor.x))+'px';pop.style.top=Math.max(190,anchor.y-14)+'px';
+ var mode=state.legMode[leg.key]||state.transport;
+ var names={car:'驾车',walk:'步行',bike:'骑行',transit:'公共交通'};
+ var label=c&&c.real&&mode==='car'?Math.max(1,Math.round(c.duration/60))+'分钟':'用时待计算';
+ if(state.expandedSegment){
+  pop.innerHTML='<div class="big" style="padding:8px 9px">'+names[mode]+' · '+label+'</div><div class="tiny" style="padding:7px">'+esc(leg.a.name)+' → '+esc(leg.b.name)+'</div>'+
+  '<button data-action="change-mode">更改出行方式</button><button data-action="nav-this">导航这一段</button>';
+ }else{
+  pop.innerHTML='<button data-action="expand-segment">'+names[mode]+' · '+label+'</button>';
+ }
+}
+function positionMap(){if(frame)return;frame=requestAnimationFrame(function(){frame=0;drawStars();drawRoad();showBubble()})}
+function fit(animate){
+ if(!mapReady||!map)return;
+ var ids=idList();
+ if(ids.length===0){if(state.step===0){map.easeTo({center:[121.43,30.76],zoom:8.25,duration:animate?420:0})}return}
+ var list=ids.map(point),lng=list.map(function(x){return x.lon}),lat=list.map(function(x){return x.lat});
+ var sw=[Math.min.apply(null,lng)-.06,Math.min.apply(null,lat)-.05],ne=[Math.max.apply(null,lng)+.06,Math.max.apply(null,lat)+.05];
+ var visible=sheetVisible()?$('sheet').getBoundingClientRect().height:state.step===4?68:95;
+ try{map.fitBounds([sw,ne],{padding:{top:160,left:40,right:48,bottom:visible+38},maxZoom:11.2,duration:animate?450:0})}catch(e){}
+}
+function tintMap(){
+ if(!map||!map.isStyleLoaded())return;
+ var style=map.getStyle(),names=style.layers||[];
+ names.forEach(function(l){
+  var key=(l.id+' '+(l['source-layer']||'')).toLowerCase(),value,prop;
+  var water=/water|river|lake|ocean|sea|canal/.test(key);
+  var green=/park|forest|grass|landuse|garden|wetland/.test(key);
+  var building=/building|roof|footprint/.test(key);
+  var road=/road|street|highway|bridge|transport|path/.test(key);
+  var major=/primary|motorway|highway|trunk/.test(key);
+  try{
+   if(l.type==='background'){prop='background-color';value='#485d6b'}
+   if(l.type==='fill'){prop='fill-color';value=water?'#9dbdc4':green?'#799a86':building?'#617687':road?'#b7c4c5':'#506676'}
+   if(l.type==='line'){prop='line-color';value=water?'#9fc6cb':road?(major?'#d8b7a6':'#b7c4c5'):green?'#8baa96':'#8298a4'}
+   if(l.type==='symbol'){map.setPaintProperty(l.id,'text-color','#f5f3ea');map.setPaintProperty(l.id,'text-halo-color','#384c5b');map.setPaintProperty(l.id,'text-halo-width',1.2)}
+   if(prop)map.setPaintProperty(l.id,prop,value);
+  }catch(e){}
+ });
+}
+function initMap(){
+ if(!window.maplibregl)return;
+ try{
+  map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/bright',center:[121.43,30.76],zoom:8.25,attributionControl:false,dragRotate:false,pitchWithRotate:false,touchZoomRotate:true});
+  map.on('style.load',function(){mapReady=true;tintMap();fit(false);positionMap()});
+  map.on('move',positionMap);map.on('zoom',positionMap);
+  map.on('click',function(){if(state.popup){state.popup=null;state.expandedSegment=false;positionMap()}});
+ }catch(e){map=null;mapReady=false}
+}
+function notify(t){
+ clearTimeout(toastTimer);var el=$('toast');el.hidden=false;el.textContent=t;
+ toastTimer=setTimeout(function(){el.hidden=true},2350);
+}
+function onStar(id){
+ var n=state.plan.indexOf(id);
+ if([3,4].indexOf(state.step)>=0){
+  if(n>=0){state.popup='selected';state.selectedPoint=id;renderPopoverSelected()}
+  else{state.plan.push(id);state.popup=null;render();notify('已添加第 '+state.plan.length+' 站')}
+  return;
+ }
+ state.popup=null;state.place=id;renderPlace();
+}
+function renderPopoverSelected(){
+ var p=point(state.selectedPoint),at=project(p),pop=$('popover');
+ $('popDot').hidden=true;pop.hidden=false;pop.style.left=Math.max(85,Math.min($('screen').clientWidth-85,at.x))+'px';pop.style.top=Math.max(170,at.y-25)+'px';
+ pop.innerHTML='<button data-action="remove-selected">移出本次路线</button>';
+}
+function renderPlace(){
+ var el=$('placeCard');el.hidden=!state.place;
+ if(!state.place)return;
+ var p=point(state.place);
+ el.innerHTML='<header><span class="tiny">收藏地点 · 与主页共用的详情卡片逻辑</span><button data-action="close-place">×</button></header><h3>'+esc(p.name)+'</h3><p class="sub">收藏黄星保留在原位置，关闭后返回此前的路线状态，不重建地图。</p><div class="row between"><span class="pill">想去</span><button data-action="close-place">返回路线</button></div>';
+}
+function rowBtn(title,date,count,id){
+ return '<button class="routeRow" data-action="open-route" data-id="'+esc(id)+'"><span class="square">↗</span><span class="copy"><strong>'+esc(title)+'</strong><small>'+esc(date)+' · '+count+' 个地点</small></span><span class="chevron">›</span></button>';
+}
+function btn(action,title,primary,disabled){
+ return '<button data-action="'+action+'" '+(primary?'class="primary"':'')+(disabled?' disabled':'')+'>'+title+'</button>';
+}
+function content(){
+ var t=state.step,html='',foot='',title='';
+ if(t===1||t===9){
+  title='我的路线';
+  html='<div class="inner" style="padding:0 6px">'+routeRecords.map(function(r){return rowBtn(r.title,r.date,r.ids.length,r.id)}).join('')+'</div>';
+  if(state.selectedRoute)html+='<p class="sub">当前地图对应：'+esc(route(state.selectedRoute).title)+' · '+route(state.selectedRoute).ids.length+' 地点</p>';
+  else html+='<p class="sub">先选一条路线，再查看它的地图。</p>';
+  foot=t===9?btn('exit','退出路线',false)+btn('open-selected','查看当前路线',true):btn('exit','返回主页',false)+btn('new','新建路线',true);
+ }else if(t===2||t===8){
+  title='查看行程';
+  var r=t===2?route(state.selectedRoute||state.lastSaved):{title:state.title,date:state.start+'—'+state.end,ids:state.plan};
+  var ids=r.ids;
+  html='<div class="inner"><div class="line"><span class="square">✓</span><strong>'+esc(r.title)+'</strong><span class="pill" style="margin-left:auto">'+ids.length+' 地点</span></div>'+
+  '<p class="sub">'+esc(r.date)+' · '+esc(point(ids[0]).short)+' → '+esc(point(ids[ids.length-1]).short)+'</p>'+
+  '<div class="row">'+[0,1,2,3].map(function(d){return '<button class="pill '+(state.day===d?'active':'')+'" data-action="day" data-day="'+d+'">'+(d?'D'+d:'全部')+'</button>'}).join('')+'</div>'+
+  '<p class="tiny" style="margin-top:14px">点击地图黄星查看地点；点击道路查看分段。地图与卡片使用同一份路线。</p></div>';
+  foot=btn('back-routes','返回我的路线',false)+btn('edit-route','编辑路线',true);
+ }else if(t===3){
+  title='选择地点';
+  html='<div class="inner"><div class="line"><span class="square">01</span><strong>选择收藏地点</strong><span class="pill" style="margin-left:auto">'+state.plan.length+' 处</span></div>'+
+  '<p class="sub">先选地点，不连线。点击已选择的地点可移出本次路线。</p>'+pts.map(function(p){var chosen=state.plan.indexOf(p.id)>=0;return '<div class="stopRow"><span class="orderNum">'+(chosen?state.plan.indexOf(p.id)+1:'☆')+'</span><span class="name">'+esc(p.name)+'</span><button data-action="'+(chosen?'remove-direct':'add-direct')+'" data-id="'+p.id+'">'+(chosen?'移出':'＋')+'</button></div>'}).join('')+'</div>';
+  foot=btn('focus','地图选点',false)+btn('settings','确认 · 行程设置',true,state.plan.length<2);
+ }else if(t===5){
+  title='行程设置';
+  html='<div class="inner"><div class="line"><span class="square">02</span><strong>行程设置</strong></div>'+
+  '<label class="field">路线名称<input id="routeTitle" value="'+esc(state.title)+'" maxlength="36"></label>'+
+  '<div class="two"><label class="field">开始日期<input type="date" id="fromDate" value="'+state.start+'"></label><label class="field">结束日期<input type="date" id="toDate" value="'+state.end+'"></label></div>'+
+  '<label class="field">主要出行方式<select id="mainMode"><option value="car"'+(state.transport==='car'?' selected':'')+'>驾车</option><option value="walk"'+(state.transport==='walk'?' selected':'')+'>步行</option><option value="bike"'+(state.transport==='bike'?' selected':'')+'>骑行</option><option value="transit"'+(state.transport==='transit'?' selected':'')+'>公共交通</option></select></label>'+
+  '<p class="sub">第一站：'+esc(point(state.plan[0]).short)+'；最后一站：'+esc(point(state.plan[state.plan.length-1]).short)+'。由排序决定起终点。</p></div>';
+  foot=btn('back-pick','上一步',false)+btn('order','下一步 · 排列顺序',true);
+ }else if(t===6||t===7){
+  title='排列顺序';
+  html='<div class="inner" style="padding-bottom:10px"><div class="line"><span class="square">03</span><strong>排列顺序</strong></div><p class="sub">拖动右侧排序，或点上下箭头；地图道路随顺序更新。</p>'+
+  state.plan.map(function(id,i){var p=point(id);return '<div class="stopRow" draggable="true" data-drag="'+i+'"><span class="orderNum">'+(i+1)+'</span><span class="name">'+esc(p.short)+'</span><button data-action="set-day" data-id="'+id+'">D'+state.days[id]+'</button><button data-action="move-up" data-i="'+i+'" aria-label="上移">↑</button><button data-action="move-down" data-i="'+i+'" aria-label="下移">↓</button></div>'}).join('')+
+  '<div class="row" style="margin-top:11px"><button class="pill" data-action="addmore" style="width:100%">＋ 继续添加地点</button><button class="pill" data-action="suggest" style="width:100%">检查是否有更顺的顺序</button></div></div>'+
+  '<p class="sub">道路应真实、连续；道路服务不可用时明确提示，不画假导航路线。</p>';
+  foot=btn('settings','上一步',false)+btn('save','完成并保存',true);
+ }else{title=''}
+ return {title:title,html:html,foot:foot};
+}
+function renderCard(){
+ var t=state.step;
+ if(!sheetVisible())return;
+ var c=content();$('sheetTitle').textContent=c.title;$('sheetBody').innerHTML=c.html;$('sheetFoot').innerHTML=c.foot;
+ if(t===9){
+  var r=route(state.selectedRoute||state.lastSaved);
+  $('sheetTitle').textContent='我的路线';
+ }
+}
+function updateReviewer(){
+ $('stepLabel').textContent=String(state.step+1).padStart(2,'0')+' / 10 · '+stages[state.step].name;
+ var list=$('reviewSteps');list.innerHTML=stages.map(function(s,i){
+ var vote=review.votes[i],label=vote==='yes'?'✓ 已通过':vote==='no'?'待调整':'';
+ return '<button data-action="goto" data-step="'+i+'" class="'+(state.step===i?'current':'')+'"><span class="count">'+(i+1)+'</span><span>'+esc(s.name)+'</span><span class="statusTag">'+label+'</span></button>';
+ }).join('');
+ var s=stages[state.step],vote=review.votes[state.step]||'';
+ $('mobileScenarioChoice').style.display=state.step===1?'block':'none';
+ $('mobileScenarioChoice').querySelectorAll('[data-action="preview-rule"]').forEach(function(b){b.classList.toggle('active',b.dataset.value===state.previewRule)});
+ var special=state.step===1?'<p>这一步的地图默认预览方式：</p><div id="scenarioChoice"><button data-action="preview-rule" data-value="manual" class="'+(state.previewRule==='manual'?'on':'')+'">选择后才预览</button><button data-action="preview-rule" data-value="recent" class="'+(state.previewRule==='recent'?'on':'')+'">沿用上次路线</button></div>':'';
+ $('reviewDetail').innerHTML='<strong>第 '+(state.step+1)+' 步 · '+esc(s.name)+'</strong>'+
+ '<p>目的：'+esc(s.goal)+'</p><p>应看到：'+esc(s.see)+'</p><p>请操作：'+esc(s.test)+'</p>'+special+
+ '<label for="reviewNote">这一环节需要调整的地方</label><textarea id="reviewNote" placeholder="这里记录你的意见"></textarea>'+
+ '<div class="reviewActions"><button data-action="approve" class="'+(vote==='yes'?'sel':'')+'">✓ 通过</button><button data-action="reject" class="'+(vote==='no'?'sel':'')+'">需修改</button></div>';
+ $('reviewNote').value=review.notes[state.step]||'';
+ $('modalTitle').textContent='第 '+(state.step+1)+' 步 · '+s.name;
+ $('modalGoal').textContent='目的：'+s.goal;
+ $('modalSee').textContent='画面：'+s.see;
+ $('modalTry').textContent='试操作：'+s.test;
+ $('modalNote').value=review.notes[state.step]||'';
+ document.querySelectorAll('.votes button').forEach(function(b){b.classList.toggle('sel',(b.dataset.action==='approve'&&vote==='yes')||(b.dataset.action==='reject'&&vote==='no'))});
+}
+function render(){
+ updateClasses();renderCard();updateReviewer();renderPlace();positionMap();
+}
+function setStep(n,byReview){
+ if(n<0||n>=stages.length)return;
+ var prev=state.step;
+ if(n===0){state.popup=null;state.place=null;state.selectedRoute=null;state.detent=0}
+ if(n===1&&prev===0){state.popup=null;state.place=null;state.detent=0}
+ if(n===2){state.selectedRoute=state.selectedRoute||state.lastSaved;state.lastSaved=state.selectedRoute;state.detent=0}
+ if(n===3&&prev!==4&&prev!==5&&prev!==6){state.plan=[];state.popup=null;state.detent=0}
+ if(n===4){state.popup=null;state.detent=0}
+ if(n>=5&&n<=8&&state.plan.length<2){state.plan=['s','f','n'];state.days={s:1,f:2,n:3}}
+ if(n===5){state.popup=null;state.detent=1}
+ if(n===6){state.popup=null;state.detent=1}
+ if(n===7){state.popup='segment';state.selectedLeg=0;state.expandedSegment=false;state.detent=0}
+ if(n===8){state.popup=null;state.lastSaved='demo';routeRecords=routeRecords.filter(function(r){return r.id!=='demo'});routeRecords.unshift({id:'demo',title:state.title,date:state.start+'—'+state.end,ids:state.plan.slice()});state.selectedRoute='demo';state.detent=0}
+ if(n===9){state.popup=null;state.detent=0}
+ state.step=n;render();
+ requestAnimationFrame(function(){fit(true);positionMap()});
+ if(byReview&&n===7)notify('点击道路或短标签可展开详情');
+}
+function action(type,target){
+ var t=state.step,id=target.dataset.id;
+ if(type==='goto'){setStep(+target.dataset.step,true);return}
+ if(type==='prev-review'){saveReviewNote();setStep(Math.max(0,t-1),true);return}
+ if(type==='next-review'){saveReviewNote();setStep(Math.min(stages.length-1,t+1),true);return}
+ if(type==='open-review'){$('reviewModal').hidden=false;return}
+ if(type==='close-review'){$('reviewModal').hidden=true;saveReviewNote();return}
+ if(type==='approve'||type==='reject'){
+  saveReviewNote();review.votes[t]=type==='approve'?'yes':'no';persist();updateReviewer();notify(type==='approve'?'已记录：本步通过':'已记录：本步需修改');return;
+ }
+ if(type==='copy-review'){copyReview();return}
+ if(type==='preview-rule'){state.previewRule=target.dataset.value;state.selectedRoute=null;persist();render();notify('已切换方案，供比较确认');return}
+ if(type==='routes'){setStep(1);return}
+ if(type==='favorites'){notify('演示聚焦路线；收藏交互沿用原产品');return}
+ if(type==='overview'){setStep(0);return}
+ if(type==='exit'){setStep(0);notify('退出路线：线路和编号已清理');return}
+ if(type==='open-route'){state.selectedRoute=id;state.lastSaved=id;setStep(2);return}
+ if(type==='open-selected'){setStep(2);return}
+ if(type==='back-routes'){setStep(9);return}
+ if(type==='new'){state.plan=[];state.selectedRoute=null;state.fromOrder=false;setStep(3);return}
+ if(type==='edit-route'){state.plan=route(state.selectedRoute||state.lastSaved).ids.slice();setStep(5);return}
+ if(type==='focus'){state.fromOrder=false;setStep(4);return}
+ if(type==='focus-back'){setStep(state.fromOrder?6:3);return}
+ if(type==='confirm-stars'){if(state.plan.length<2){notify('至少选择两处地点');return}setStep(state.fromOrder?6:5);state.fromOrder=false;return}
+ if(type==='add-direct'&&!state.plan.includes(id)){state.plan.push(id);render();return}
+ if(type==='remove-direct'){state.plan=state.plan.filter(function(x){return x!==id});render();return}
+ if(type==='remove-selected'){state.plan=state.plan.filter(function(x){return x!==state.selectedPoint});state.popup=null;render();notify('已移出本次路线，永久收藏未改变');return}
+ if(type==='addmore'){state.fromOrder=true;setStep(4);return}
+ if(type==='back-pick'){setStep(3);return}
+ if(type==='settings'){if(state.plan.length<2){notify('至少选择两处地点');return}setStep(5);return}
+ if(type==='order'){state.title=$('routeTitle')?.value||state.title;state.start=$('fromDate')?.value||state.start;state.end=$('toDate')?.value||state.end;state.transport=$('mainMode')?.value||state.transport;setStep(6);return}
+ if(type==='move-up'||type==='move-down'){
+  var i=+target.dataset.i,j=i+(type==='move-up'?-1:1);
+  if(j<0||j>=state.plan.length)return;
+  var list=state.plan.slice();var x=list[i];list[i]=list[j];list[j]=x;state.plan=list;state.popup=null;render();fit(true);notify('顺序更新，地图同步');return;
+ }
+ if(type==='set-day'){var d=(state.days[id]||1)%3+1;state.days[id]=d;render();return}
+ if(type==='suggest'){notify('演示：需取得道路距离后才给有效的推荐；不会任意重排');return}
+ if(type==='change-mode'){
+  var leg=pairs()[state.selectedLeg];if(!leg)return;
+  var types=['car','walk','bike','transit'];var old=state.legMode[leg.key]||state.transport;
+  state.legMode[leg.key]=types[(types.indexOf(old)+1)%types.length];state.expandedSegment=true;positionMap();
+  notify('出行方式仅调整这一段');return;
+ }
+ if(type==='expand-segment'){state.expandedSegment=true;showBubble();return}
+ if(type==='nav-this'){notify('示意：进入系统导航选择，保留当前路线草稿');return}
+ if(type==='save'){state.title=$('routeTitle')?.value||state.title;setStep(8);notify('已保存演示路线；地图没有重建');return}
+ if(type==='day'){state.day=+target.dataset.day;render();notify(state.day?'已选择 D'+state.day:'显示全部行程');return}
+ if(type==='close-place'){state.place=null;renderPlace();return}
+ if(type==='locate'){
+  if(mapReady){map.easeTo({center:[121.429,31.154],zoom:9,duration:420})}
+  else{state.panX=0;state.panY=0;state.zoom=1;positionMap()}
+  notify('演示定位：上海南站');return;
+ }
+ if(type==='zoom-in'||type==='zoom-out'){
+  if(mapReady)map.easeTo({zoom:Math.max(5,Math.min(15,map.getZoom()+(type==='zoom-in'?1:-1))),duration:250});
+  else{state.zoom=Math.max(.8,Math.min(1.9,state.zoom*(type==='zoom-in'?1.2:.83)));positionMap()}
+  return;
+ }
+}
+function saveReviewNote(){
+ var a=$('reviewNote'),b=$('modalNote'),chosen=(!$('reviewModal').hidden?b:a);
+ if(chosen){review.notes[state.step]=chosen.value;persist()}
+}
+function copyReview(){
+ saveReviewNote();
+ var str='# Footprint Map V5 · 路线交互逐步验收\n\n'+stages.map(function(s,i){
+  var status=review.votes[i]==='yes'?'通过':review.votes[i]==='no'?'需调整':'待确认';
+  return (i+1)+'. '+s.name+'｜'+status+'\n'+(review.notes[i]?'   意见：'+review.notes[i]+'\n':'');
+ }).join('\n')+'\n我的路线列表地图方案：'+(state.previewRule==='recent'?'沿用上次路线':'选中后才预览');
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(str).then(function(){notify('已复制 10 步验收意见')}).catch(function(){prompt('复制验收意见',str)});
+ else prompt('复制验收意见',str);
+}
+$('workspace').addEventListener('click',function(e){
+ var t=e.target.closest('[data-action]');
+ if(t){e.preventDefault();e.stopPropagation();action(t.dataset.action,t)}
+ else if(e.target.closest('.hit')){var p=e.target.closest('.hit');state.popup='segment';state.selectedLeg=+p.dataset.leg;state.expandedSegment=false;positionMap()}
+ else if(state.popup&&e.target.closest('#screen')&&!e.target.closest('#popover')){state.popup=null;state.expandedSegment=false;positionMap()}
+});
+$('workspace').addEventListener('input',function(e){if(e.target.id==='reviewNote'||e.target.id==='modalNote'){review.notes[state.step]=e.target.value;persist()}});
+$('workspace').addEventListener('change',function(e){if(e.target.id==='mainMode')state.transport=e.target.value});
+$('screen').addEventListener('dragstart',function(e){var el=e.target.closest('[data-drag]');if(el)state.dragSource=+el.dataset.drag});
+$('screen').addEventListener('dragover',function(e){if(e.target.closest('[data-drag]'))e.preventDefault()});
+$('screen').addEventListener('drop',function(e){var to=e.target.closest('[data-drag]');if(to&&state.dragSource!=null){e.preventDefault();var arr=state.plan.slice(),v=arr.splice(state.dragSource,1)[0];arr.splice(+to.dataset.drag,0,v);state.plan=arr;state.dragSource=null;render();fit(true);notify('顺序已调整')}}); 
+$('searchField').addEventListener('input',function(e){
+ var val=e.target.value.trim(),results=$('searchResult');results.hidden=!val;
+ if(val)results.innerHTML=pts.filter(function(p){return p.name.indexOf(val)>=0}).map(function(p){return '<button data-action="search-star" data-id="'+p.id+'">'+esc(p.name)+'</button>'}).join('')||'<p class="sub">没有找到该收藏地点</p>';
+});
+$('searchResult').addEventListener('click',function(e){var b=e.target.closest('[data-action="search-star"]');if(!b)return;$('searchField').value='';$('searchResult').hidden=true;onStar(b.dataset.id)});
+var grip=$('grip'),head=$('sheetHead');
+function startDrag(e){if(!sheetVisible())return;if(e.target.closest('button,input,textarea,select'))return;dragSheet={start:e.clientY,base:$('sheet').getBoundingClientRect().height};$('sheet').classList.add('dragging');try{e.currentTarget.setPointerCapture(e.pointerId)}catch(err){}}
+var followDragFrame=0;
+function moveDrag(e){if(!dragSheet)return;var next=dragSheet.base+dragSheet.start-e.clientY,min=218,max=innerHeight*.78;if(next<min)next=min+(next-min)*.25;if(next>max)next=max+(next-max)*.25;$('sheet').style.height=next+'px';positionMap();if(mapReady&&!followDragFrame){followDragFrame=requestAnimationFrame(function(){followDragFrame=0;fit(false)})}}
+function endDrag(e){if(!dragSheet)return;var changed=dragSheet.base+dragSheet.start-e.clientY;dragSheet=null;$('sheet').classList.remove('dragging');
+ var sizes=[302,Math.min(innerHeight*.56,490),Math.min(innerHeight*.77,670)];
+ var i=sizes.reduce(function(best,x,k){return Math.abs(x-changed)<Math.abs(sizes[best]-changed)?k:best},0);
+ if(changed<238&&state.step===3){setStep(4);return}
+ state.detent=i;render();fit(true);
+}
+[grip,head].forEach(function(el){el.addEventListener('pointerdown',startDrag);el.addEventListener('pointermove',moveDrag);el.addEventListener('pointerup',endDrag);el.addEventListener('pointercancel',endDrag)});
+var oldW=0;
+window.addEventListener('resize',function(){if(Math.abs(innerWidth-oldW)>1){oldW=innerWidth;render();fit(false)}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!$('reviewModal').hidden){$('reviewModal').hidden=true;return}if(state.place){state.place=null;renderPlace();return}state.popup=null;positionMap()}});
+initMap();render();oldW=innerWidth;
+})();
+</script>
+</body></html>
