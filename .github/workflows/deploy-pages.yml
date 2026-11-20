@@ -85,6 +85,20 @@ jobs:
           node --check _site/v5-nav-bubble-locate-20261120/v4-map-runtime.js
           node --check _site/v5-nav-bubble-locate-20261120/src/route/route-single-map-v1.js
           node --check _site/v5-nav-bubble-locate-20261120/src/interaction/navigation-physical-sheet-v5.js
+          # PR57 follow-ups: publish both COMPLETE standalone V5 route acceptance snapshots.
+          # Do not modify the Pages root, older reviews, or production.
+          for snapshot in v5-route-pill-20261120 v5-route-stages-20261120; do
+            cp -R "$snapshot" "_site/$snapshot"
+            test -s "_site/$snapshot/index.html"
+            test -s "_site/$snapshot/QA_BUILD.json"
+            test -s "_site/$snapshot/src/route/route-single-map-v1.js"
+            test -s "_site/$snapshot/src/visual/v5-card-system-unified-20261119.css"
+            grep -q "private-travel-footprints-v5-pr53-review-20261119" "_site/$snapshot/index.html"
+            node --check "_site/$snapshot/src/route/route-single-map-v1.js"
+          done
+          grep -q 'route-stages-20261120' _site/v5-route-stages-20261120/index.html
+          grep -q '99627256d8cd2cf7471a3d617c50b9dd26ccb547' _site/v5-route-stages-20261120/QA_BUILD.json
+          grep -q 'fp-route-segment-pill-button' _site/v5-route-stages-20261120/src/route/route-single-map-v1.js
           # PR58: publish only the isolated complete V5 Dock-order acceptance folder.
           cp -R v5-dock-route-center-20261120 _site/v5-dock-route-center-20261120
           test -s _site/v5-dock-route-center-20261120/index.html
@@ -749,6 +763,26 @@ jobs:
         run: sleep 18
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify V5 route-pill and route-stages standalone iPhone previews are public
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://fanbregas-netizen.github.io/travel-atlas-pages'
+          for snapshot in v5-route-pill-20261120 v5-route-stages-20261120; do
+            for file in index.html QA_BUILD.json src/route/route-single-map-v1.js src/visual/v5-card-system-unified-20261119.css; do
+              URL="${BASE}/${snapshot}/${file}?build=${GITHUB_SHA}"
+              curl -fsSL --retry 12 --retry-delay 4 --retry-all-errors --max-time 25 -H 'Cache-Control: no-cache' "${URL}" -o /tmp/v5-route-verify
+              test -s /tmp/v5-route-verify
+              if [ "${snapshot}" = v5-route-stages-20261120 ]; then
+                case "${file}" in
+                  index.html) grep -q 'route-stages-20261120' /tmp/v5-route-verify ;;
+                  QA_BUILD.json) grep -q '99627256d8cd2cf7471a3d617c50b9dd26ccb547' /tmp/v5-route-verify ;;
+                  src/route/route-single-map-v1.js) grep -q 'function showSelectedStopAction' /tmp/v5-route-verify ;;
+                esac
+              fi
+            done
+          done
+          echo 'PASS V5 route standalone previews: HTTP 200, nonempty assets and correct source version'
       - name: Verify NEW V5 card-rhythm complete preview is LIVE (not a 404)
         shell: bash
         run: |
