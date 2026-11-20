@@ -28,6 +28,17 @@ jobs:
         run: node qa/v5-rc1/smoke.cjs
       - name: Saved-route mock geometry and media backup regression
         run: node qa/v5-rc1/route-fixture.cjs
+      - name: Generate a 1-second test-only H264 video for actual viewer checks
+        shell: bash
+        run: |
+          if command -v ffmpeg >/dev/null; then
+            ffmpeg -hide_banner -loglevel error -f lavfi -i 'color=c=green:size=96x96:rate=12:duration=1' -c:v libx264 -pix_fmt yuv420p -movflags +faststart -y qa/v5-rc1/generated-video.mp4
+            test -s qa/v5-rc1/generated-video.mp4
+          else
+            echo "ffmpeg not available, video decoder test will be BLOCKED" >&2
+          fi
+      - name: Real OSRM provider, media viewer and offline resilience
+        run: node qa/v5-rc1/live-environment.cjs
       - name: Upload screenshot and JSON evidence
         if: always()
         uses: actions/upload-artifact@v4
