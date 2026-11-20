@@ -1,21 +1,31 @@
 {
   "product": "Footprint Map V5",
-  "type": "isolated iPhone Safari full-product preview — PR53 latest interaction × PR56 accepted card visual",
+  "type": "isolated full-product iPhone Safari acceptance preview",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "0f8157cafefc81c7bc012e3832835f84e00b01f5",
+  "source_commit": "06ce2c561a02cdaac7f26f293bd98beaa10d0741",
   "source_branch": "integration/v5-pr53-pr56-card-visual-20261119",
-  "visual_reference": "PR56 accepted full divider, equal width and single-row card header",
-  "interaction_reference": "PR53 latest saved-star map focus / auto-return / draft retained, map camera not canvas",
-  "new_behavior": "PR56 card titles/handles/dividers/content width and Brief stage action applied on PR53 latest",
-  "data_namespace": "private-travel-footprints-v5-pr53-review-20261119",
-  "production_modified": false,
-  "real_iphone_safari_qa": "pending",
-  "source_base_commit": "50aac0612a9a641bd3859cdde3c7bb1393851b2e",
   "source_prs": [
     53,
     56,
     57
   ],
-  "data_note": "Same isolated PR53 QA IndexedDB namespace to preserve existing review bookmarks; never shares official production storage",
-  "pages_deployment": "pending"
+  "visual_reference": "PR56 three-card visual parity retained",
+  "interaction_reference": "PR53 one map and saved-star model; Nov20 approved manual map-confirm A flow",
+  "confirmed_interaction": "map pick -> 72px mini eyebrow confirm -> settings; add more -> mini eyebrow confirm -> ordering",
+  "supported_rules": [
+    "no selected star persistent enlargement",
+    "no lines before order",
+    "route min 2 places",
+    "auto pop removed",
+    "right map tools only during map focus",
+    "segment bubble on route line",
+    "clear all selections rather than undo",
+    "no separate origin/destination fields",
+    "view route camera fits above card"
+  ],
+  "data_namespace": "private-travel-footprints-v5-pr53-review-20261119",
+  "data_note": "isolated PR53 QA IndexedDB kept to preserve already chosen preview stars, never production DB",
+  "production_modified": false,
+  "real_iphone_safari_qa": "pending",
+  "pages_deployment": "in progress"
 }
