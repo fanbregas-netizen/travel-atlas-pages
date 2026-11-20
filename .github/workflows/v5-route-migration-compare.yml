@@ -1,0 +1,35 @@
+name: V5 legacy route collision safety A/B
+on:
+  push:
+    branches:
+      - qa/v5-rc1-regression-20261120
+    paths:
+      - qa/v5-rc1/route-migration-compare.cjs
+      - qa/v5-rc1/candidate-media-core.js
+      - .github/workflows/v5-route-migration-compare.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  migration-compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install browsers
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium webkit --with-deps
+      - name: Reproduce baseline collision and validate non-overwrite production candidate
+        run: node qa/v5-rc1/route-migration-compare.cjs
+      - name: Save migration comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-legacy-route-collision-comparison
+          path: qa/v5-rc1/evidence/route-migration/
+          if-no-files-found: warn
+          retention-days: 14
