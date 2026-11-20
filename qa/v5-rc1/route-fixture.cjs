@@ -112,9 +112,19 @@ async function run(engine,launcher){
    await screenshot('03-view');
    await probe(engine,'D1 fades some roads; 全部 immediately restores all roads',async()=>{
     await page.locator('#fpUnifiedRoute [data-command="dayview"][data-value="1"]').click({force:true});
-    const a=await snapshot(page);assert.equal(a.road,2);assert(a.dim>0);
+    await page.waitForFunction(()=>{
+      const src=window.FootprintUnifiedRoute?.map?.getSource?.('fp-single-route');
+      return (src?._data?.features||[]).filter(f=>f.properties?.kind==='road').length===2 &&
+       (src?._data?.features||[]).some(f=>f.properties?.dim);
+    },{timeout:4500});
+    const a=await snapshot(page);assert.equal(a.road,2,'D1 road count: '+JSON.stringify(a));assert(a.dim>0,'D1 missing dim: '+JSON.stringify(a));
     await page.locator('#fpUnifiedRoute [data-command="dayview"][data-value="0"]').click({force:true});
-    const b=await snapshot(page);assert.equal(b.road,2);assert.equal(b.dim,0);
+    await page.waitForFunction(()=>{
+      const src=window.FootprintUnifiedRoute?.map?.getSource?.('fp-single-route');
+      const f=(src?._data?.features||[]).filter(f=>f.properties?.kind==='road');
+      return f.length===2&&f.every(x=>!x.properties?.dim);
+    },{timeout:4500});
+    const b=await snapshot(page);assert.equal(b.road,2,'全部 road count: '+JSON.stringify(b));assert.equal(b.dim,0);
     return 'D1 faded '+a.dim+', 全部 displays '+b.road;
    });
    await probe(engine,'User taps road segment: bubble and selected line',async()=>{
@@ -131,7 +141,11 @@ async function run(engine,launcher){
     assert(pt,'no visible route touch point in map viewport');
     await page.mouse.click(pt.x,pt.y);
     await page.locator('.fp-route-segment-pill-button').waitFor({state:'visible',timeout:7500});
-    const x=await snapshot(page);assert.equal(x.selected,1);
+    await page.waitForFunction(()=>{
+      const src=window.FootprintUnifiedRoute?.map?.getSource?.('fp-single-route');
+      return (src?._data?.features||[]).filter(f=>f.properties?.selected).length===1;
+    },{timeout:5500});
+    const x=await snapshot(page);assert.equal(x.selected,1,'Tap had popup but no selected geometry: '+JSON.stringify(x));
     await page.locator('.fp-route-segment-pill-button').click({force:true});
     await page.locator('.fp-route-line-bubble').waitFor({state:'visible',timeout:4500});
     return 'one selected segment with expanded bubble';
