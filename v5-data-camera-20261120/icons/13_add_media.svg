@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" aria-label="Add Media">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M10 16 L43 15 Q47 16 47 20 L47 43 L12 45 Z"/>
+  <path d="M16 36 L24 28 L31 34 L37 26"/>
+  <circle cx="22" cy="23" r="2.5"/>
+  <circle cx="47" cy="47" r="11.5" fill="white"/>
+  <path d="M47 40 L47 54 M40 47 L54 47" stroke-width="3.4"/>
+ </g>
+</svg>

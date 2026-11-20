@@ -59,6 +59,18 @@ jobs:
           node --check _site/v5-pr53-pr56-unified-20261119/src/interaction/physical-sheet.js
           node --check _site/v5-pr53-pr56-unified-20261119/src/interaction/v4-approved-collection-sheet-v2.js
           node --check _site/v5-pr53-pr56-unified-20261119/src/route/route-single-map-v1.js
+          # PR57: isolated complete V5 QA; unified bookmark/route data and live camera.
+          cp -R v5-data-camera-20261120 _site/v5-data-camera-20261120
+          test -s _site/v5-data-camera-20261120/index.html
+          test -s _site/v5-data-camera-20261120/QA_BUILD.json
+          grep -q 'private-travel-footprints-v5-pr53-review-20261119' _site/v5-data-camera-20261120/index.html
+          grep -q '__fpStorageNamespace' _site/v5-data-camera-20261120/v4-map-runtime.js
+          grep -q '__fpStorageNamespace' _site/v5-data-camera-20261120/src/media/media-core.js
+          grep -q 'cameraForBounds' _site/v5-data-camera-20261120/src/route/route-single-map-v1.js
+          grep -q 'routesWithExistingStars' _site/v5-data-camera-20261120/src/route/route-single-map-v1.js
+          node --check _site/v5-data-camera-20261120/v4-map-runtime.js
+          node --check _site/v5-data-camera-20261120/src/media/media-core.js
+          node --check _site/v5-data-camera-20261120/src/route/route-single-map-v1.js
           test -s _site/v5-card-rhythm-20261119/index.html
           test -s _site/v5-card-rhythm-20261119/src/visual/v5-card-system-unified-20261119.css
           test -s _site/v5-card-rhythm-20261119/src/interaction/physical-sheet.js
