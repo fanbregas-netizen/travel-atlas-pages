@@ -900,10 +900,35 @@ function reset(){
  DATA.mapFocus=false;document.body.classList.remove('fp-route-map-focus');DATA.savedPreviewId=DATA.routes.some(r=>String(r.id)===String(DATA.savedPreviewId))?String(DATA.savedPreviewId):String(DATA.routes[0]?.id||'');DATA.order=[];DATA.days={};DATA.suggestion=null;DATA.history=[];DATA.returnToOrder=false;DATA.pickMode='list';DATA.origin={type:'current'};DATA.dest={type:'last'};DATA.legModes={};DATA.endpointMap=null;DATA.modalEndpoint='';DATA.modal=null;DATA.dayView=0;modalClose();DATA.title='我的旅行路线';DATA.start=today();DATA.end=datePlus(DATA.start,2);DATA.travel='car';DATA.routeId='';DATA.selected='';DATA.pending=[];DATA.query='';DATA.mode='saved';
  activeRoads.clear();routeRevision++;
 }
+let routeSwitchMaskRevision=0;
+function concealPreviousRoute(){
+ const target=map;
+ if(!target?.getLayer)return;
+ const token=++routeSwitchMaskRevision;
+ const ids=['fp-single-selected-halo','fp-single-outline','fp-single-road','fp-single-order','fp-single-hit'];
+ let done=false,timer=0;
+ const show=()=>{
+  if(done)return;
+  done=true;clearTimeout(timer);
+  target.off?.('sourcedata',onReady);
+  if(token!==routeSwitchMaskRevision||!DATA.open||map!==target)return;
+  for(const id of ids)if(target.getLayer(id))try{target.setLayoutProperty(id,'visibility','visible')}catch(_){}
+ };
+ const onReady=e=>{
+  if(e.sourceId!=='fp-single-route'||!e.isSourceLoaded)return;
+  target.off?.('sourcedata',onReady);
+  requestAnimationFrame(()=>requestAnimationFrame(show));
+ };
+ for(const id of ids)if(target.getLayer(id))try{target.setLayoutProperty(id,'visibility','none')}catch(_){}
+ target.on?.('sourcedata',onReady);
+ try{target.getSource?.('fp-single-route')?.setData(geo([]))}catch(_){}
+ timer=setTimeout(show,1100);
+}
 function loadSaved(id){
  const r=DATA.routes.find(x=>String(x.id)===String(id));
  if(!r){setMode('saved',true);hint('路线所需收藏地点尚未恢复；已保存数据没有删除');return}
  const samePreview=previewRouteId()===String(r.id);
+ if(!samePreview)concealPreviousRoute();
  // Never reset() here. Saved-list and detail share a single route identity,
  // unchanged road cache, map instance, selected stops, and camera.
  dismissSegmentPopup(true);dismissSelectionPopup();
@@ -1208,6 +1233,7 @@ function detachMap(){
  if(styleMap&&styleListener)styleMap.off('style.load',styleListener);
  styleMap=null;styleListener=null;routeClickListener=null;
  if(map?.getLayer){for(const id of ['fp-single-hit','fp-single-order','fp-single-road','fp-single-outline','fp-single-selected-halo'])if(map.getLayer(id))try{map.removeLayer(id)}catch(_){}if(map.getSource('fp-single-route'))try{map.removeSource('fp-single-route')}catch(_){}}
+ routeSwitchMaskRevision++;
  for(const p of tempPins.values())p.remove();tempPins.clear();clearStarLabels();filteredRouteOwner='';map=null;
 }
 function finishClose(){
