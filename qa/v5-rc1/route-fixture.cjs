@@ -162,9 +162,21 @@ async function run(engine,launcher){
    await probe(engine,'Switch to another saved route without stray old segment',async()=>{
     await page.locator('#fpUnifiedRoute [data-command="saved"]').first().click({force:true});
     await page.locator('#fpUnifiedRoute [data-command="open-saved"]').nth(1).click({force:true});
-    const x=await waitRoad(page,1);assert.equal(x.route.routeId,'qa-r2');
-    assert(x.features.every(f=>!['qa-p2'].includes(f.properties?.from)&&!['qa-p2'].includes(f.properties?.to)));
-    return 'only one new route segment, no previous qa-p2';
+    const immediate=await snapshot(page);
+    const transitionOld=immediate.features.filter(f=>['qa-p2'].includes(f.properties?.from)||['qa-p2'].includes(f.properties?.to)).length;
+    const started=Date.now();
+    await page.waitForFunction(()=>{
+      const map=window.FootprintUnifiedRoute?.map,source=map?.getSource?.('fp-single-route');
+      const rows=(source?._data?.features||[]).filter(f=>f.properties?.kind==='road');
+      return window.FootprintUnifiedRoute?.state?.routeId==='qa-r2' &&
+       rows.length===1 && rows[0].properties?.from==='qa-p3' && rows[0].properties?.to==='qa-p1';
+    },null,{timeout:9000});
+    await page.waitForTimeout(220);
+    const x=await snapshot(page);assert.equal(x.route.routeId,'qa-r2');
+    assert(x.features.every(f=>f.properties?.from==='qa-p3'&&f.properties?.to==='qa-p1'),
+      'Stale route after settled switch: '+JSON.stringify(x.features.map(f=>f.properties)));
+    if(transitionOld>0)log(engine,'Old geometry observed during route transition','OBSERVED','initial old segments='+transitionOld);
+    return JSON.stringify({newRoads:x.road,settledMs:Date.now()-started,oldSegmentsImmediately:transitionOld});
    });
    await screenshot('05-switch');
   }
