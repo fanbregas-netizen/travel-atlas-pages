@@ -50,7 +50,7 @@ const assert=require('node:assert/strict');
   assert.equal(await page.locator('#roadLayer path.hit').count()>0,true);
   await page.screenshot({path:'route-storyboard-evidence/'+width+'-03-order-road.png'});
   await page.locator('[data-action="move-down"][data-i="0"]').click();
-  await page.locator('#roadLayer path.hit').first().evaluate(el=>el.dispatchEvent(new MouseEvent('click',{bubbles:true})));
+  await page.evaluate(()=>{const path=document.querySelector('#roadLayer path.hit');if(!path)throw new Error('No tappable route');path.dispatchEvent(new MouseEvent('click',{bubbles:true,composed:true}));});
   await page.waitForFunction(()=>!document.querySelector('#popover').hidden);
   await page.locator('#popover [data-action="expand-segment"]').click();
   assert.match(await page.locator('#popover').innerText(),/更改出行方式/);
