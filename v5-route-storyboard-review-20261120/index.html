@@ -450,7 +450,9 @@ function updateReviewer(){
  document.querySelectorAll('.votes button').forEach(function(b){b.classList.toggle('sel',(b.dataset.action==='approve'&&vote==='yes')||(b.dataset.action==='reject'&&vote==='no'))});
 }
 function render(){
- updateClasses();renderCard();updateReviewer();renderPlace();positionMap();
+ updateClasses();renderCard();updateReviewer();renderPlace();
+ // Clear prior stage geometry and old numbered stars synchronously before the next paint.
+ drawStars();drawRoad();positionMap();
 }
 function setStep(n,byReview){
  if(n<0||n>=stages.length)return;
