@@ -2,35 +2,39 @@
   "product": "Footprint Map V5",
   "type": "isolated full-product iPhone Safari acceptance preview",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "b667d85ddfa5e58e23b31ab3bb5f864b02d410b5",
+  "source_commit": "bcfe624567081d77e38f81a1c9e5bf41ae618a61",
   "source_branch": "integration/v5-pr53-pr56-card-visual-20261119",
   "source_prs": [
     53,
     56,
     57
   ],
-  "visual_reference": "PR56 three-card visual parity retained",
-  "interaction_reference": "PR53 one map and saved-star model; Nov20 approved manual map-confirm A flow",
+  "visual_reference": "PR56 approved full three-card parity, precise SVG grips and light route segment bubble",
+  "interaction_reference": "PR53 base plus approved A flow and 2026-11-20 screenshot feedback",
   "confirmed_interaction": "map pick -> 72px mini eyebrow confirm -> settings; add more -> mini eyebrow confirm -> ordering",
   "supported_rules": [
-    "no selected star persistent enlargement",
-    "no lines before order",
-    "route min 2 places",
-    "auto pop removed",
-    "right map tools only during map focus",
-    "segment bubble on route line",
-    "clear all selections rather than undo",
-    "no separate origin/destination fields",
-    "view route camera fits above card"
+    "search result matches saved bookmark -> one single saved yellow star, no duplicate POI",
+    "search POI matches saved within small geographic/name tolerance; preserves adjacent real POIs",
+    "map transition uses adaptive interrupted camera with one handoff spring",
+    "navigation chooser release pointer targets while exiting",
+    "map-picking pan/pinch not hijacked by bottom-space swipe detector",
+    "three functional map controls visible in map-focus, hidden in expanded cards",
+    "route order/view suppress map star cluster; safe camera fit at all card detents",
+    "route reorder rows follow finger, SVG handles visually centered",
+    "segment line highlights and bubble shows mode icon, real ETA/distance and per-leg navigation",
+    "view itinerary has no global navigation; route star opens existing full place card"
   ],
   "data_namespace": "private-travel-footprints-v5-pr53-review-20261119",
   "data_note": "isolated PR53 QA IndexedDB kept to preserve already chosen preview stars, never production DB",
   "production_modified": false,
   "real_iphone_safari_qa": "pending",
-  "pages_deployment": "source synced for current deploy",
+  "pages_deployment": "pending",
   "extra_fixes": [
     "route list card camera keeps selected stars visible",
     "point feedback animates only inner star so hit target never jumps",
     "MapLibre paint update deduplicated while in same mode"
-  ]
+  ],
+  "updated_at": "2026-11-20",
+  "new_behavior": "search single saved yellow star; adaptive interruptible POI and saved-place camera; route card pan/drag; navigation overlay touch-release; direct place card; individual-leg navigation and ETA",
+  "automated_browser_qa": "not run: browser service reported insufficient wallet balance; 33/33 static invariants pass"
 }

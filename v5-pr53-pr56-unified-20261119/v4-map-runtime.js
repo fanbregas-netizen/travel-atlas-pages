@@ -245,6 +245,13 @@
   }
   function showDestination(d){
     if(window.__atlasTripPicking)return;
+    const identity=window.FootprintPOIIdentity;
+    const saved=places.find(p=>p.starred!==false&&(
+      (d?.id&&p.poiId&&String(d.id)===String(p.poiId))||
+      identity?.identical?.({id:d.id,name:d.name,lat:d.lat,lng:d.lng},p)));
+    // One saved geographic identity: open its existing star card directly.
+    // Neither the search flow nor a map POI may mount a second marker.
+    if(saved){hideDestination();showPlace(String(saved.id),true);return}
     const moving=d.__poiTap?centerTappedPOI(d):
       (window.__atlasInteractionMode==='swipe-card'
        ?focusSelectedLocation(d):focusMapPlaceIfNeeded(d));
@@ -284,10 +291,10 @@
       card.classList.add('visible');
       const handoff=window.FootprintElasticHandoff;
       if(wasVisible){
-        // Keep one opaque card while its map and POI move: the old renewed
-        // spring faded title, category AND buttons to zero at midpoint.
-        handoff?.stop?.(card);
-        commitDestinationContent();
+        // Reuse the approved V5 spring handoff while the camera is moving.
+        // Keep one card mounted; fade/swap content at its natural midpoint.
+        if(handoff?.revealCard)handoff.revealCard(card,{renew:true,commit:commitDestinationContent});
+        else commitDestinationContent();
       }else if(handoff?.revealCard){
         handoff.revealCard(card,{renew:false,commit:commitDestinationContent});
       }else commitDestinationContent();
@@ -991,9 +998,30 @@
       }else if(map?.project)pt=map.project([lng,lat]);
     }catch(_){pt=null}
     const w=innerWidth,h=innerHeight;
+    const sheetTop=$('fpPlaceCard')?.getBoundingClientRect()?.top;
+    const visibleBottom=Math.min(Number.isFinite(sheetTop)&&sheetTop>0?sheetTop:h*.66,h-180);
+    const visualTargetY=95+Math.max(90,visibleBottom-95)*.49;
     if(pt&&Number.isFinite(pt.x)&&Number.isFinite(pt.y)
-       &&pt.x>38&&pt.x<w-38&&pt.y>95&&pt.y<Math.min(h*.68,h-240))return false;
-    setMapView(lat,lng,z,true,420);
+       &&Math.hypot(pt.x-w/2,pt.y-visualTargetY)<29)return false;
+    // A single interruptible camera owns POI-to-POI switching.
+    // Nearby points pan without zoom; intercity jumps have time to zoom out
+    // instead of the previous 420ms hard flyTo with card/overlay stutter.
+    if(isVector()&&vectorMap){
+      userHasMovedMap=true;
+      if(poiCenterOrigin)finishCenterPanVisuals();
+      vectorMap.stop();
+      const q=pt||vectorMap.project([lng,lat]);
+      const distance=Number.isFinite(q?.x)&&Number.isFinite(q?.y)
+        ?Math.hypot(q.x-w/2,q.y-h/2):w*4;
+      const shiftY=Math.min(h*.38,Math.max(18,h/2-visualTargetY));
+      const target={center:[lng,lat],zoom:z,offset:[0,-shiftY],
+        essential:true,easing:t=>t*t*(3-2*t)};
+      if(distance>Math.max(w,h)*3.5)
+        vectorMap.flyTo({...target,duration:Math.min(1120,Math.max(780,distance/24)),curve:1.12,speed:1.05});
+      else vectorMap.easeTo({...target,duration:Math.min(700,Math.max(390,distance*.47))});
+      return true;
+    }
+    setMapView(lat,lng,z,true,570);
     return true;
   }
   /* dock「总览」：收起面板后缩放到全部足迹 */
@@ -1060,7 +1088,7 @@
   const today=()=>new Date().toLocaleDateString('en-CA');
   function toast(t){$('toast').textContent=t;$('toast').classList.add('visible');clearTimeout(timer);timer=setTimeout(()=>$('toast').classList.remove('visible'),3000)}
   function pulseSavedStar(id){requestAnimationFrame(()=>{const el=document.querySelector('.atlas-bookmark-hit[data-place-id="'+id+'"],.star-pin[data-place-id="'+id+'"]');if(el){el.classList.add('atlas-star-pop');setTimeout(()=>el.classList.remove('atlas-star-pop'),700)}});try{navigator.vibrate?.(12)}catch(e){}}
-  async function database(){if(!('indexedDB' in window)){fallback=true;return}try{db=await new Promise((resolve,reject)=>{const r=indexedDB.open('private-travel-footprints-v5-pr53-review-20261119',1);const timeout=setTimeout(()=>reject(new Error('储存启动超时')),4000);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('places'))d.createObjectStore('places',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'})};r.onsuccess=()=>{clearTimeout(timeout);resolve(r.result)};r.onerror=()=>{clearTimeout(timeout);reject(r.error)}});}catch(e){fallback=true;try{const k='travel-storage-test';localStorage.setItem(k,'ok');localStorage.removeItem(k)}catch(err){storageIsTransient=true}toast(storageIsTransient?'当前浏览器无法长期保存，收藏后请导出备份':'本机备用储存已启用，建议定期备份')}}
+  async function database(){if(!('indexedDB' in window)){fallback=true;return}try{db=await new Promise((resolve,reject)=>{const r=indexedDB.open('private-travel-footprints-v1',1);const timeout=setTimeout(()=>reject(new Error('储存启动超时')),4000);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('places'))d.createObjectStore('places',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'})};r.onsuccess=()=>{clearTimeout(timeout);resolve(r.result)};r.onerror=()=>{clearTimeout(timeout);reject(r.error)}});}catch(e){fallback=true;try{const k='travel-storage-test';localStorage.setItem(k,'ok');localStorage.removeItem(k)}catch(err){storageIsTransient=true}toast(storageIsTransient?'当前浏览器无法长期保存，收藏后请导出备份':'本机备用储存已启用，建议定期备份')}}
   // IndexedDB request success is NOT a committed write. Confirm only when
   // the full transaction completes, so a quota/abort cannot look like a save.
   function txn(store,mode,fn){
@@ -1110,7 +1138,7 @@
       }catch(e){if(tx){try{tx.abort()}catch(_){}}reject(e)}
     });
   }
-  window.__atlasSavedPOIAnchors=()=>places.filter(p=>p.starred!==false&&!p.demo&&Number.isFinite(+p.lat)&&Number.isFinite(+p.lng)).map(p=>({id:String(p.id),poiId:String(p.poiId||''),title:String(p.title||''),lat:+p.lat,lng:+p.lng}));
+  window.__atlasSavedPOIAnchors=()=>places.filter(p=>p.starred!==false&&Number.isFinite(+p.lat)&&Number.isFinite(+p.lng)).map(p=>({id:String(p.id),poiId:String(p.poiId||''),title:String(p.title||''),lat:+p.lat,lng:+p.lng}));
   async function refresh(){places=(await allStored()).sort((a,b)=>(b.date||'').localeCompare(a.date||''));bmStarCache.forEach(el=>el.remove());bmStarCache.clear();amapStarCache.forEach(el=>el.remove());amapStarCache.clear();renderMarkers();renderList();if(isVector())renderVectorBookmarks();$('pinCount').textContent=places.filter(p=>p.starred!==false).length;$('sheetCount').textContent=places.filter(p=>p.starred!==false).length+' 处收藏';window.__atlasFirstStarGuide?.evaluate?.();document.dispatchEvent(new Event('atlas:saved-stars-changed'));}
   // Raster layers are intentionally simple and keyless. The user's photos/notes never leave IndexedDB.
   // CARTO changed its service policy in September 2026 and now requires an API key.
@@ -1813,7 +1841,7 @@
       return b;
     };
     const sweep=()=>{for(const [k,el] of bmStarCache){if(!seen.has(k)){el.remove();bmStarCache.delete(k)}}};
-    if(z>=11.5){
+    if(z>=11.5||window.__atlasTripPicking||window.FootprintUnifiedRoute?.state?.open){
       pane.querySelectorAll('.atlas-star-cluster').forEach(c=>c.remove());
       for(const it of items){const node=makeStar(it);if(node.parentNode!==pane)pane.append(node)}
       sweep();return;
@@ -1852,11 +1880,19 @@
   function showVectorSelection(place){
     if(!isVector())return;
     // Reuse the same visible V3 POI, never paint a duplicate selection marker.
+    const identity=window.FootprintPOIIdentity;
+    if(places.some(p=>p.starred!==false&&identity?.identical?.(
+      {id:place.id,name:place.name,lat:place.lat,lng:place.lng},p))){
+      vectorSelectionMarker?.remove();vectorSelectionMarker=null;return;
+    }
     const node=Array.from(document.querySelectorAll('#atlasPoiOverlay > .fp-poi')).find(el=>{
-      const near=Math.abs(Number(el.dataset.poiLat)-Number(place.lat))<.00009&&
-        Math.abs(Number(el.dataset.poiLng)-Number(place.lng))<.00009;
-      const id=String(place.id||'');
-      return near&&((!!id&&el.dataset.poiId===id)||el.dataset.poiName===String(place.name||''));
+      const same=identity?.samePlace?.(
+       {name:el.dataset.poiName,lat:Number(el.dataset.poiLat),lng:Number(el.dataset.poiLng)},
+       {name:place.name,lat:place.lat,lng:place.lng});
+      const near=Math.abs(Number(el.dataset.poiLat)-Number(place.lat))<.00016&&
+         Math.abs(Number(el.dataset.poiLng)-Number(place.lng))<.00016;
+      return same||(near&&(el.dataset.poiId===String(place.id||'')||
+         el.dataset.poiName===String(place.name||'')));
     });
     for(const el of document.querySelectorAll('#atlasPoiOverlay > .fp-poi.is-selected'))
       if(el!==node)el.classList.remove('is-selected','is-tapped');
@@ -2117,7 +2153,7 @@
       vectorMap.on('move',()=>{
         userHasMovedMap=true;
         if(window.__atlasPOICentering)syncCenterPanVisuals();
-        else scheduleVectorBookmarkRender();
+        else scheduleVectorBookmarkMotion();
         if(selectedId)relayoutMemoryOpen();
         // Stage1.29 already keeps V3 POI anchors with MapLibre via one rAF.
         // Do not erase every POI while the map pans (the visual flash).
@@ -2253,7 +2289,7 @@
   window.__atlasRoutesEntry.init();
   window.__atlasFirstStarGuide={evaluate(){try{const el=$('atlasFirstStar');if(!el)return;const done=localStorage.getItem('atlas-first-star-done')==='1';el.hidden=done||places.some(p=>p.starred!==false)}catch(e){}},dismiss(){try{localStorage.setItem('atlas-first-star-done','1')}catch(e){}const el=$('atlasFirstStar');if(el)el.hidden=true}};
   document.getElementById('atlasFirstStar')?.querySelector('.fs-close')?.addEventListener('click',()=>window.__atlasFirstStarGuide.dismiss());
-  window.__atlasFlowRefresh=async()=>{await refresh()}; window.__fpSearchCenter=()=>currentCenter(); window.__fpSearchSelect=(d)=>{const lat=Number(d.lat),lng=Number(d.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;closeSearchResults();setPicking(false);closeMemory();addSearchMarker(lat,lng,d.name||'地点');showDestination({name:d.name||'地点',lat,lng,address:d.address||'',id:d.id||'',category:d.category||'地点'})}; window.__atlasMobilePoiAPI={
+  window.__atlasFlowRefresh=async()=>{await refresh()}; window.__fpSearchCenter=()=>currentCenter(); window.__fpSearchSelect=(d)=>{const lat=Number(d.lat),lng=Number(d.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;closeSearchResults();setPicking(false);closeMemory();if(searchPin){removeMapItem(searchPin);searchPin=null}showDestination({name:d.name||'地点',lat,lng,address:d.address||'',id:d.id||'',category:d.category||'地点'})}; window.__atlasMobilePoiAPI={
  get map(){return map;},
  center:()=>currentCenter(),
  zoom:()=>currentZoom(),

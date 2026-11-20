@@ -15,7 +15,7 @@ const getMap=()=>window.__atlasPOIBridge?.vector?.()||null;
 const DATA={open:false,mode:'pick',panel:'half',places:[],routes:[],order:[],days:{},start:today(),end:datePlus(today(),2),title:'我的旅行路线',travel:'car',routeId:'',pending:[],busy:false,selected:'',savedView:false,dayView:0,pickMode:'list',origin:{type:'current'},dest:{type:'last'},legModes:{},history:[],endpointMap:null,modal:null,modalSeg:'',modalEndpoint:'',suggestion:null,mapFocus:false,returnToOrder:false};
 let db=null,map=null,routeRevision=0,activeRoads=new Map(),originalPaint=new Map(),tempPins=new Map(),sheetHeight=0,desiredHeight=0,velocity=0,frame=0,dragging=false,dragY=0,dragHeight=0,toastTimer=0,styleMap=null,styleListener=null,routeClickListener=null,observer=null,closing=false,exitTimeout=0;
 let sheetGesture=null,lastCameraFrame=0,cameraFrame=0,cameraTime=0,gestureToken=0;
-let routeSegmentListener=null,segmentPopup=null,focusSwipe=null;
+let routeSegmentListener=null,segmentPopup=null,selectedSegment='',focusSwipe=null;
 const shell=document.createElement('section');shell.id='fpUnifiedRoute';shell.hidden=true;shell.setAttribute('aria-label','足迹路线与地图');shell.innerHTML=
  '<section class="fp-route-sheet" aria-label="路线操作卡片"><div class="fp-route-grip" role="button" tabindex="0" aria-label="上滑展开、下滑收起路线卡片"></div><div class="fp-route-heading"><h2>路线规划</h2><button type="button" class="fp-route-close" data-command="exit" aria-label="保存草稿并退出路线">×</button></div><div class="fp-route-status"><span class="fp-route-step">1 / 3</span><span class="fp-route-gesture-hint" aria-hidden="true">上滑查看更多</span></div><div class="fp-route-body"></div><div class="fp-route-footer"></div></section><div class="fp-route-mini" aria-label="地图选点"><div class="fp-route-mini-grip" tabindex="0" role="button" aria-label="上拉展开选点卡片"></div><button type="button" class="fp-route-mini-confirm" data-command="map-confirm">确认 · 0处</button></div><div class="fp-route-toast" role="status" aria-live="polite"></div><div class="fp-route-dialog-backdrop" hidden><div class="fp-route-dialog" role="dialog" aria-modal="true" aria-label="路线操作"><div class="fp-route-dialog-head"><h3>路线设置</h3><button type="button" data-command="dismiss-dialog" aria-label="关闭设置弹层">×</button></div><div class="fp-route-dialog-content"></div><div class="fp-route-dialog-footer"></div></div></div>';
 document.body.append(shell);
@@ -207,8 +207,9 @@ function leaveMapFocus(expand=true){
 }
 function onFocusTouchStart(e){
  if(!DATA.mapFocus||e.touches.length!==1)return;
- const t=e.touches[0],h=viewportHeight();
- if(t.clientY<h-120||t.clientY>h-10)return;
+ const t=e.touches[0];
+ // Only the grip may trigger card reopen; map drag stays native.
+ if(!e.target.closest?.('.fp-route-mini-grip'))return;
  focusSwipe={identifier:t.identifier,x:t.clientX,y:t.clientY};
 }
 function onFocusTouchEnd(e){
@@ -219,7 +220,7 @@ function onFocusTouchEnd(e){
 document.addEventListener('touchstart',onFocusTouchStart,{capture:true,passive:true});
 document.addEventListener('touchend',onFocusTouchEnd,{capture:true,passive:true});
 document.addEventListener('touchcancel',()=>{focusSwipe=null},{capture:true,passive:true});
-const heightFor=which=>{const h=viewportHeight(),full=Math.max(370,Math.min(h*.72,h-220));return which==='peek'?Math.max(278,Math.min(358,h*.42,full-100)):which==='full'?full:Math.max(350,Math.min(full-75,h*.57))};
+const heightFor=which=>{const h=viewportHeight(),full=Math.max(300,Math.min(h*.62,h-290));return which==='peek'?Math.max(278,Math.min(358,h*.42,full-100)):which==='full'?full:Math.max(350,Math.min(full-75,h*.57))};
 function height(value){sheetHeight=Math.max(175,Math.min(heightFor('full')+26,value));ui.sheet.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.dataset.detent=DATA.panel;followSheetWithTools();}
 function spring(which){
  if(!['peek','half','full'].includes(which))return;
@@ -254,7 +255,7 @@ function listSaved(routes=DATA.routes){
 }
 function orderList(){
  return DATA.order.map((id,i)=>{const p=place(id);if(!p)return '';
- return '<div class="fp-route-reorder" data-stop="'+esc(id)+'"><span class="fp-route-index">'+(i+1)+'</span><span class="fp-route-name">'+esc(p.title||p.name||'地点')+'</span><button type="button" class="fp-route-day" data-command="day" data-id="'+esc(id)+'">D'+(DATA.days[id]||1)+'</button><button type="button" class="fp-route-grab" data-grab="'+esc(id)+'" aria-label="长按拖动调整站点顺序">☷</button></div>'
+ return '<div class="fp-route-reorder" data-stop="'+esc(id)+'"><span class="fp-route-index">'+(i+1)+'</span><span class="fp-route-name">'+esc(p.title||p.name||'地点')+'</span><button type="button" class="fp-route-day" data-command="day" data-id="'+esc(id)+'">D'+(DATA.days[id]||1)+'</button><button type="button" class="fp-route-grab" data-grab="'+esc(id)+'" aria-label="长按拖动调整站点顺序"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="currentColor"><circle cx="8" cy="6" r="1.65"/><circle cx="16" cy="6" r="1.65"/><circle cx="8" cy="12" r="1.65"/><circle cx="16" cy="12" r="1.65"/><circle cx="8" cy="18" r="1.65"/><circle cx="16" cy="18" r="1.65"/></g></svg></button></div>'
  }).join('');
 }
 function routeLegList(){
@@ -299,8 +300,8 @@ function body(){
  }
  if(DATA.mode==='order'){
   head('排列顺序','3 / 3');
-  ui.body.innerHTML='<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">03</span><strong>访问顺序</strong></div>'+
-  '<p class="fp-route-caption">长按右侧手柄拖动排序 · 点击 D 标签调整天数 · 地图同步更新编号</p>'+orderList()+
+  ui.body.innerHTML='<div class="fp-route-card fp-route-order-list">'+
+  '<p class="fp-route-caption">长按右侧拖动调整顺序 · 点击日期标签调整行程</p>'+orderList()+
   '<button type="button" class="fp-route-addmore" data-command="addmore">＋ 继续添加地点</button></div>'+
   '<div class="fp-route-recommendation">'+(DATA.suggestion?.revision===routeRevision?'<p>道路距离建议可减少约 '+DATA.suggestion.saving+'% 绕行（不代表实时路况）。</p>'+button('采用建议','adopt-suggestion',true):button('检查是否有更顺的顺序','suggest'))+'</div>'+
   '<p class="fp-route-caption">点击地图连线，查看或更改各段出行方式。</p>';
@@ -311,7 +312,7 @@ function body(){
   ui.body.innerHTML='<div class="fp-route-card"><div class="fp-route-cardhead"><span class="fp-route-index">✓</span><strong>'+esc(DATA.title)+'</strong><span class="fp-route-mode-label">'+n+' 地点</span></div>'+
   '<p class="fp-route-caption">'+esc(DATA.start)+' — '+esc(DATA.end)+' · '+esc(originName())+' → '+esc(destName())+'</p>'+
   previewDayFilter()+'<p class="fp-route-caption">点黄星查看地点，点连线查看或更改出行方式。</p></div>';
-  ui.footer.innerHTML=button('编辑路线','settings')+button('选择导航','navigate',true);return;
+  ui.footer.innerHTML=button('返回我的路线','saved')+button('编辑路线','settings',true);return;
  }
  if(DATA.mode==='detail'){
   const p=place(DATA.selected);
@@ -327,7 +328,7 @@ function body(){
     block('03','相关资料',refs?refs+' 条资料链接':'暂无资料')+
     block('04','附近地点',nearby?nearby+' 个附近的已记录地点':'暂无附近记录');
   }else ui.body.innerHTML='<p class="fp-route-empty">找不到这个地点</p>';
-  ui.footer.innerHTML=button('返回路线','view')+(p&&!p.pending?button('打开完整地点卡片','place-detail',true):'');return;
+  ui.footer.innerHTML=button('返回路线','view',true);return;
  }
 }
 function setMode(next,force=false){
@@ -367,9 +368,9 @@ function ensureLineLayers(){
  if(!map.getSource('fp-single-route'))map.addSource('fp-single-route',{type:'geojson',data:geo([])});
  const faded=['case',['==',['get','dim'],true],.18,1];
  const layers=[
- ['fp-single-outline',['==',['get','kind'],'road'],{'line-color':'#fffefa','line-width':9,'line-opacity':faded}],
- ['fp-single-road',['==',['get','kind'],'road'],{'line-color':'#3f6654','line-width':4.5,'line-opacity':faded}],
- ['fp-single-order',['==',['get','kind'],'sequence'],{'line-color':'#d9b56b','line-width':3,'line-opacity':['case',['==',['get','dim'],true],.16,.93],'line-dasharray':[1.1,1.4]}]
+ ['fp-single-outline',['==',['get','kind'],'road'],{'line-color':'#fffefa','line-width':['case',['get','selected'],11.5,9],'line-opacity':faded}],
+ ['fp-single-road',['==',['get','kind'],'road'],{'line-color':['case',['get','selected'],'#2c7359','#3f6654'],'line-width':['case',['get','selected'],6.4,4.5],'line-opacity':faded}],
+ ['fp-single-order',['==',['get','kind'],'sequence'],{'line-color':['case',['get','selected'],'#47785c','#d9b56b'],'line-width':['case',['get','selected'],5.2,3],'line-opacity':['case',['==',['get','dim'],true],.16,.93],'line-dasharray':[1.1,1.4]}]
  ];
  for(const [id,filter,paint] of layers)if(!map.getLayer(id))map.addLayer({id,type:'line',source:'fp-single-route',filter,paint,layout:{'line-cap':'round','line-join':'round'}});
  if(!routeSegmentListener&&map.on){
@@ -389,19 +390,42 @@ function showSegmentBubble(from,to,lngLat){
  segmentPopup?.remove();segmentPopup=null;
  const a=place(from),b=place(to);
  if(!a||!b)return;
- const key=legKey(a,b),mode=travelLabel(segmentMode(a,b));
- DATA.modalSeg=key;
+ const key=legKey(a,b),travel=segmentMode(a,b),mode=travelLabel(travel);
+ const glyph={car:'car-front',walk:'footprints',bike:'bike',transit:'bus-front'}[travel]||'car-front';
+ const glyphSVG={
+ car:'<path d="M5 17h14l-1-7H6zM7 10l2-4h6l2 4M7 17v2m10-2v2M8 13h2m4 0h2"/>',
+ walk:'<circle cx="13" cy="4" r="2"/><path d="m10 21 1-6-4-3 3-5 4 3 3 1m-3 0-2 4m-6 6 3-5"/>',
+ bike:'<circle cx="5" cy="17" r="4"/><circle cx="19" cy="17" r="4"/><path d="m5 17 5-9 4 9 5 0-5-9H9m6-3h3"/>',
+ transit:'<rect x="5" y="3" width="14" height="16" rx="3"/><path d="M5 12h14M8 21l2-2m6 0 2 2M9 7h6"/>'
+ }[travel]||'<circle cx="12" cy="12" r="7"/>';
+ const icon='<svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">'+glyphSVG+'</svg>';
+ DATA.modalSeg=key;selectedSegment=key;lines();
  if(!window.maplibregl?.Popup){dialogOpen('segment');return}
- const popup=new maplibregl.Popup({closeButton:false,closeOnClick:true,offset:14,maxWidth:'280px',className:'fp-route-segment-popup'})
-  .setLngLat(lngLat).setHTML('<div class="fp-route-line-bubble"><strong>'+esc(a.title||a.name)+' → '+esc(b.title||b.name)+'</strong><small>当前方式：'+esc(mode)+'</small><div class="fp-route-line-actions"><button type="button" data-segment-action="view">查看</button><button type="button" data-segment-action="edit">更改</button></div><div class="fp-route-line-detail" hidden></div></div>').addTo(map);
+ const html='<div class="fp-route-line-bubble"><div class="fp-route-line-title"><span class="fp-route-line-icon">'+icon+'</span><strong>'+esc(mode)+'</strong><button type="button" data-segment-action="edit" aria-label="更改交通方式">更改 ›</button></div>'+
+ '<small class="fp-route-line-points">'+esc(a.title||a.name)+' → '+esc(b.title||b.name)+'</small>'+
+ '<div class="fp-route-line-eta" role="status">正在计算道路用时…</div><button class="fp-route-line-navigate" type="button" data-segment-action="navigate">导航这一段</button></div>';
+ const popup=new maplibregl.Popup({closeButton:false,closeOnClick:true,offset:12,maxWidth:'280px',className:'fp-route-segment-popup'})
+  .setLngLat(lngLat).setHTML(html).addTo(map);
  segmentPopup=popup;
+ const updateEstimate=()=>{
+  const el=popup.getElement()?.querySelector('.fp-route-line-eta');if(!el)return;
+  const estimate=window.__fpLiveRouting?.peek?.(a,b,travel);
+  el.textContent=estimate?.label||'路段预计用时暂不可用';
+ };
+ const refresh=()=>{if(segmentPopup===popup)updateEstimate()};
+ document.addEventListener('fp:route-network-update',refresh);
+ popup.on('close',()=>{
+  document.removeEventListener('fp:route-network-update',refresh);
+  if(segmentPopup===popup)segmentPopup=null;
+  if(selectedSegment===key){selectedSegment='';lines()}
+ });
  popup.getElement()?.addEventListener('click',e=>{
   const btn=e.target.closest?.('[data-segment-action]');if(!btn)return;
   e.stopPropagation();e.preventDefault();
-  if(btn.dataset.segmentAction==='edit'){popup.remove();segmentPopup=null;dialogOpen('segment');return}
-  const detail=popup.getElement()?.querySelector('.fp-route-line-detail');
-  if(detail){detail.hidden=false;detail.textContent='第 '+(DATA.days[from]||1)+' 天 → 第 '+(DATA.days[to]||1)+' 天 · '+mode+' · 可点「更改」调整此段';}
+  if(btn.dataset.segmentAction==='edit'){popup.remove();DATA.modalSeg=key;dialogOpen('segment');return}
+  if(btn.dataset.segmentAction==='navigate'){popup.remove();window.__atlasOpenNavigation?.(b,{mode:travel,from:a});}
  });
+ updateEstimate();
 }
 function lines(){
  if(!DATA.open||!ensureLineLayers())return;
@@ -412,7 +436,7 @@ function lines(){
   const a=pts[i-1],b=pts[i],mode=segmentMode(a,b),key=mode+'|'+a.id+'|'+b.id;
   const hit=activeRoads.get(key);
   const kind=hit?.status==='ok'?'road':'sequence';
-  features.push({type:'Feature',properties:{kind,from:a.id,to:b.id,dim:DATA.mode==='view'&&DATA.dayView>0&&DATA.days[a.id]!==DATA.dayView&&DATA.days[b.id]!==DATA.dayView},geometry:{type:'LineString',coordinates:kind==='road'?hit.geometry:[[+a.lng,+a.lat],[+b.lng,+b.lat]]}});
+  features.push({type:'Feature',properties:{kind,from:a.id,to:b.id,selected:selectedSegment===legKey(a,b),dim:DATA.mode==='view'&&DATA.dayView>0&&DATA.days[a.id]!==DATA.dayView&&DATA.days[b.id]!==DATA.dayView},geometry:{type:'LineString',coordinates:kind==='road'?hit.geometry:[[+a.lng,+a.lat],[+b.lng,+b.lat]]}});
  }
  map.getSource('fp-single-route')?.setData(geo(features));
  if(pts.length>1){
@@ -478,7 +502,7 @@ function routeCoordinates(){
  return coordinates;
 }
 function routeCameraPadding(){
- const screen=viewportHeight(),occupied=DATA.mapFocus?0:sheetHeight,visible=Math.max(160,screen-occupied);
+ const screen=viewportHeight(),occupied=DATA.mapFocus?0:Math.max(sheetHeight,heightFor('full')+18),visible=Math.max(160,screen-occupied);
  return {top:Math.max(26,Math.min(82,visible*.18)),
   bottom:Math.min(screen-100,occupied+(DATA.mapFocus?18:16)+Math.min(26,visible*.11)),left:36,right:36};
 }
@@ -499,7 +523,7 @@ function queueRouteCamera(animate=false){
  if(animate){if(cameraFrame)cancelAnimationFrame(cameraFrame);cameraFrame=0;cameraTime=performance.now();updateRouteCamera(true);return}
  const now=performance.now();
  // At most ~7 camera reframes/sec during gestures, no WebGL canvas resizes.
- if(cameraFrame||now-cameraTime<140)return;
+ if(dragging||frame||cameraFrame||now-cameraTime<140)return;
  cameraTime=now;cameraFrame=requestAnimationFrame(()=>{cameraFrame=0;updateRouteCamera(false)});
 }
 function fit(){queueRouteCamera(true)}
@@ -539,6 +563,7 @@ function syncMapMode(){
  document.body.classList.toggle('fp-route-picking',DATA.mode==='pick'||!!DATA.endpointMap);
  // Planning keeps the original hand-drawn POIs tappable; preview quiets them.
  document.body.classList.toggle('fp-unified-route-preview',preview);
+ window.__atlasTripPicking=DATA.mode!=='view'&&DATA.mode!=='detail';
  quieter(DATA.mapFocus||preview);refreshStarLabels();temporaryMarkers();lines();
 }
 function starFeedback(id){
@@ -551,7 +576,7 @@ function selectStop(id){
  id=String(id);if(!DATA.open)return;
  const p=place(id);if(!p||!valid(p)||p.starred===false)return;
  starFeedback(id);
- if(['view','detail'].includes(DATA.mode)){DATA.selected=id;setMode('detail');return}
+ if(['view','detail'].includes(DATA.mode)){DATA.selected=id;window.__atlasPOIBridge?.selectSaved?.(id);return}
  if(DATA.mode!=='pick')return;
  const index=DATA.order.indexOf(id);
  // Tapping a numbered star acknowledges it without removing the stop.
@@ -702,43 +727,72 @@ shell.addEventListener('input',e=>{
  if(t.id==='fpUnifiedStart'){snapshot('调整开始日期');DATA.start=t.value}
  if(t.id==='fpUnifiedEnd'){snapshot('调整结束日期');DATA.end=t.value}
 });
-// Approved 11/18 ordering: a long handle drag, not desktop HTML5 DnD.
-let routeRowDrag=null;
+// Finger-coupled ordering: the dragged row follows the finger, while other
+// rows slide out of its way. Delay the DOM rebuild until visual settling.
+let routeRowDrag=null,routeCommitTimer=0;
+function clearDragRows(){
+ for(const row of ui.body.querySelectorAll('.fp-route-reorder')){
+  row.classList.remove('is-drop-target','is-drag-source');
+  row.style.removeProperty('transform');row.style.removeProperty('transition');
+ }
+}
 ui.body.addEventListener('pointerdown',e=>{
- const handle=e.target.closest?.('[data-grab]');if(!handle||e.isPrimary===false)return;
+ const handle=e.target.closest?.('[data-grab]');if(!handle||e.isPrimary===false||routeRowDrag)return;
+ if(routeCommitTimer){clearTimeout(routeCommitTimer);routeCommitTimer=0}
  const id=handle.dataset.grab,initial=DATA.order.indexOf(id);if(initial<0)return;
- routeRowDrag={pointerId:e.pointerId,id,initial,target:initial,y:e.clientY,started:e.timeStamp,moved:false,handle};
+ const rows=[...ui.body.querySelectorAll('.fp-route-reorder')],rects=rows.map(r=>r.getBoundingClientRect());
+ routeRowDrag={pointerId:e.pointerId,id,initial,target:initial,y:e.clientY,started:e.timeStamp,
+  moved:false,handle,rows,centers:rects.map(r=>(r.top+r.bottom)/2),rowHeight:rects[initial]?.height||62};
  handle.setPointerCapture?.(e.pointerId);
 },{passive:true});
 ui.body.addEventListener('pointermove',e=>{
  const g=routeRowDrag;if(!g||g.pointerId!==e.pointerId)return;
  const dy=e.clientY-g.y;
- if(!g.moved&&Math.abs(dy)<7)return;
+ if(!g.moved&&Math.abs(dy)<6)return;
  g.moved=true;e.preventDefault();
- const rows=[...ui.body.querySelectorAll('.fp-route-reorder')];
- const to=rows.reduce((i,r,n)=>{const b=r.getBoundingClientRect();return Math.abs(e.clientY-(b.top+b.bottom)/2)<Math.abs(e.clientY-(rows[i].getBoundingClientRect().top+rows[i].getBoundingClientRect().bottom)/2)?n:i},0);
- g.target=to;
- for(const [i,row] of rows.entries()){row.classList.toggle('is-drop-target',i===to);row.classList.toggle('is-drag-source',i===g.initial)}
+ const target=g.centers.reduce((best,mid,i)=>Math.abs(e.clientY-mid)<Math.abs(e.clientY-g.centers[best])?i:best,g.initial);
+ g.target=target;
+ for(const [i,row] of g.rows.entries()){
+  const source=i===g.initial;
+  row.classList.toggle('is-drag-source',source);
+  row.classList.toggle('is-drop-target',i===target&&!source);
+  if(source){row.style.transition='none';row.style.transform='translate3d(0,'+dy.toFixed(1)+'px,0)'}
+  else{
+   row.style.transition='transform 170ms cubic-bezier(.22,.74,.22,1)';
+   const shift=(target>g.initial&&i>g.initial&&i<=target)?-g.rowHeight:
+      (target<g.initial&&i>=target&&i<g.initial)?g.rowHeight:0;
+   row.style.transform=shift?'translate3d(0,'+shift.toFixed(1)+'px,0)':'translate3d(0,0,0)';
+  }
+ }
 },{passive:false});
-function finishRowDrag(e){
+function finishRowDrag(e,cancelled=false){
  const g=routeRowDrag;if(!g||g.pointerId!==e.pointerId)return;
  routeRowDrag=null;
- for(const row of ui.body.querySelectorAll('.fp-route-reorder'))row.classList.remove('is-drop-target','is-drag-source');
  try{g.handle.releasePointerCapture?.(e.pointerId)}catch(_){}
- if(!g.moved||g.initial===g.target)return;
- snapshot('调整访问顺序');
+ if(cancelled||!g.moved||g.initial===g.target){clearDragRows();return}
+ const endY=g.centers[g.target]-g.centers[g.initial];
+ const row=g.rows[g.initial];
+ row.style.transition='transform 175ms cubic-bezier(.22,.74,.22,1)';
+ row.style.transform='translate3d(0,'+endY.toFixed(1)+'px,0)';
  const ids=[...DATA.order];ids.splice(g.initial,1);ids.splice(g.target,0,g.id);
- DATA.order=ids;markChanged();body();syncMapMode();fit();hint('路线顺序已更新')
+ routeCommitTimer=setTimeout(()=>{
+  routeCommitTimer=0;
+  if(!DATA.open||DATA.mode!=='order')return;
+  snapshot('调整访问顺序');DATA.order=ids;markChanged();
+  clearDragRows();body();syncMapMode();
+  // A reorder changes the connections, not the geographic camera.
+  hint('路线顺序已更新');
+ },175);
 }
-ui.body.addEventListener('pointerup',finishRowDrag);
-ui.body.addEventListener('pointercancel',e=>{routeRowDrag=null;for(const row of ui.body.querySelectorAll('.fp-route-reorder'))row.classList.remove('is-drop-target','is-drag-source')});
+ui.body.addEventListener('pointerup',e=>finishRowDrag(e));
+ui.body.addEventListener('pointercancel',e=>finishRowDrag(e,true));
 ui.body.addEventListener('keydown',e=>{
  const handle=e.target.closest('[data-grab]');if(!handle||!['ArrowUp','ArrowDown'].includes(e.key))return;
  e.preventDefault();const i=DATA.order.indexOf(handle.dataset.grab),j=i+(e.key==='ArrowUp'?-1:1);
  if(j<0||j>=DATA.order.length)return;
  snapshot('调整访问顺序');[DATA.order[i],DATA.order[j]]=[DATA.order[j],DATA.order[i]];
- markChanged();body();syncMapMode();fit();
- ui.body.querySelectorAll('[data-grab]')[j]?.focus()
+ markChanged();body();syncMapMode();
+  ui.body.querySelectorAll('[data-grab]')[j]?.focus()
 });
 // Route and the accepted location card share one three-detent gesture language.
 // A gesture may begin on the grip, title/header, or unused card content.
@@ -851,7 +905,7 @@ function endFullScrollTouch(e,cancelled=false){
 ui.body.addEventListener('touchend',e=>endFullScrollTouch(e));
 ui.body.addEventListener('touchcancel',e=>endFullScrollTouch(e,true));
 function detachMap(){
- routeRevision++;activeRoads.clear();segmentPopup?.remove();segmentPopup=null;quieter(false);
+ routeRevision++;activeRoads.clear();segmentPopup?.remove();segmentPopup=null;selectedSegment='';quieter(false);
  if(map&&routeClickListener)map.off('click',routeClickListener);
  if(map&&routeSegmentListener){for(const layer of ['fp-single-road','fp-single-order'])try{map.off('click',layer,routeSegmentListener)}catch(_){}routeSegmentListener=null}
  if(styleMap&&styleListener)styleMap.off('style.load',styleListener);

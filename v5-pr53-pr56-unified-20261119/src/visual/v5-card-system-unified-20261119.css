@@ -717,3 +717,110 @@ html body #fpUnifiedRoute .fp-route-footer{
     column-gap:5px!important;
   }
 }
+
+
+/* 2026-11-20 | Real Safari polish: route/map touch ownership, restrained
+   road bubbles and precise controls. Preserve the accepted V5 card tokens. */
+body.fp-unified-route #atlasBookmarkOverlay,
+body.fp-route-map-focus #atlasBookmarkOverlay{
+ pointer-events:none!important;
+}
+body.fp-unified-route #atlasBookmarkOverlay .atlas-bookmark-hit,
+body.fp-unified-route #atlasBookmarkOverlay .atlas-star-cluster,
+body.fp-unified-route #atlasBookmarkOverlay .star-pin{
+ pointer-events:auto!important;
+ touch-action:manipulation!important;
+}
+body.fp-route-map-focus .map-controls #btnLayers,
+body.fp-route-map-focus .map-controls #layerMenu{
+ display:none!important;
+}
+/* Shared centered handles. Use the existing border/draw language, not a font
+   character with asymmetrical glyph metrics. */
+#fpUnifiedRoute .fp-route-reorder{
+ position:relative;
+ transform:translateZ(0);
+ border-radius:10px;
+ will-change:transform;
+}
+#fpUnifiedRoute .fp-route-reorder.is-drag-source{
+ z-index:5;
+ opacity:1!important;
+ background:rgba(255,254,249,.97)!important;
+ box-shadow:0 7px 20px rgba(31,57,42,.13);
+ border-radius:13px;
+}
+#fpUnifiedRoute .fp-route-reorder.is-drop-target{
+ background:rgba(223,234,222,.65)!important;
+}
+#fpUnifiedRoute .fp-route-reorder .fp-route-grab{
+ display:grid!important;place-items:center!important;
+ box-sizing:border-box!important;
+ min-width:44px!important;width:44px!important;
+ min-height:44px!important;height:44px!important;
+ padding:0!important;line-height:0!important;
+ color:#698073!important;
+}
+#fpUnifiedRoute .fp-route-reorder .fp-route-grab svg{
+ display:block!important;position:static!important;
+ width:22px;height:22px;
+ margin:0!important;transform:none!important;
+ pointer-events:none;
+}
+#fpUnifiedRoute .fp-route-order-list>.fp-route-caption:first-child{
+ margin:1px 0 8px!important;
+ line-height:1.45;
+ font-size:11px;
+}
+#fpUnifiedRoute .fp-route-order-list .fp-route-reorder:last-of-type{
+ border-bottom:0!important;
+}
+html body #fpUnifiedRoute .fp-route-grip,
+html body #fpPlaceCard .atlas-card-grip,
+html body #drawer .sheet-grab,
+html body #navigationChooser .fp-nav-grip{
+ justify-content:center!important;
+ align-items:center!important;
+}
+#fpUnifiedRoute .fp-route-line-bubble{
+ color:var(--fp-u-ink,#2b4233);
+ display:flex;flex-direction:column;gap:8px;
+ min-width:200px;max-width:255px;
+}
+body.fp-unified-route .fp-route-segment-popup .maplibregl-popup-content{
+ padding:11px 13px!important;
+ border-radius:17px!important;
+ border:1px solid rgba(215,226,215,.9)!important;
+ background:rgba(255,254,249,.90)!important;
+ -webkit-backdrop-filter:blur(16px) saturate(1.1)!important;
+ backdrop-filter:blur(16px) saturate(1.1)!important;
+ box-shadow:0 5px 19px rgba(31,53,40,.14)!important;
+}
+body.fp-unified-route .fp-route-segment-popup .maplibregl-popup-tip{
+ border-top-color:rgba(255,254,249,.90)!important;
+ border-bottom-color:rgba(255,254,249,.90)!important;
+}
+#fpUnifiedRoute .fp-route-segment-popup .maplibregl-popup-close-button{display:none}
+.fp-route-line-title{display:flex;align-items:center;gap:9px;min-height:32px}
+.fp-route-line-title strong{font-size:15px;font-weight:730;flex:1;min-width:0}
+.fp-route-line-icon{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:#e6ede4;color:#375a45}
+.fp-route-line-icon svg{width:21px;height:21px}
+.fp-route-line-title button{
+ border:0;background:none;color:#637e6c;font-size:11px;font-weight:670;
+ padding:6px 0 6px 8px;min-height:32px;white-space:nowrap;
+}
+.fp-route-line-points{font-size:11px;color:#7a8d80;line-height:1.4}
+.fp-route-line-eta{
+ border-top:1px solid rgba(202,216,202,.8);padding-top:9px;
+ font-size:12px;font-weight:650;color:#3c6350;line-height:1.5;
+}
+.fp-route-line-navigate{
+ align-self:flex-start;border:0;background:rgba(226,236,227,.84);
+ color:#365e48;font-size:11px;font-weight:650;
+ padding:7px 10px;border-radius:9px;min-height:32px;
+}
+.fp-route-line-navigate:active,
+.fp-route-line-title button:active{transform:scale(.97);opacity:.77}
+@media(prefers-reduced-motion:reduce){
+ #fpUnifiedRoute .fp-route-reorder{transition:none!important}
+}
