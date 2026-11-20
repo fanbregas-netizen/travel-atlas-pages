@@ -45,6 +45,23 @@ async function run(engine,kind){
    return result;
   });
   if(!seeded)return;
+  await attempt('V4 stores legacy saved route in separate plans database',async()=>{
+   const result=await page.evaluate(async()=>{
+    const open=indexedDB.open('travel-atlas-journeys-v1',1);
+    open.onupgradeneeded=()=>open.result.createObjectStore('plans',{keyPath:'id'});
+    const db=await new Promise((ok,fail)=>{open.onsuccess=()=>ok(open.result);open.onerror=()=>fail(open.error)});
+    const legacy={schema:'travel-atlas-journey-v1',id:'qa-legacy-r1',title:'旧版单日路线',
+      startDate:'2026-11-21',endDate:'2026-11-21',origin:'测试起点',destination:'测试终点',
+      stops:[{placeId:'qa-migration-stable-01',day:1,time:'09:00'}],updatedAt:'2026-11-20T12:00:00Z'};
+    await new Promise((ok,fail)=>{
+     const tx=db.transaction('plans','readwrite');
+     tx.objectStore('plans').put(legacy);
+     tx.oncomplete=ok;tx.onabort=()=>fail(tx.error);
+    });db.close();
+    return {id:legacy.id,database:'travel-atlas-journeys-v1',store:'plans'};
+   });
+   return result;
+  });
   await attempt('Raw V4 record preserved without namespaces',async()=>{
    const dbs=await page.evaluate(async()=>indexedDB.databases());
    assert(dbs.some(x=>x.name==='private-travel-footprints-v1'));
@@ -55,10 +72,11 @@ async function run(engine,kind){
    await page.waitForFunction(()=>window.FootprintMediaCore?.createRepository,{timeout:20000});
    const data=await page.evaluate(async()=>{
     const repo=window.FootprintMediaCore.createRepository(indexedDB);
-    const places=await repo.list();
-    return {namespace:window.__atlasPreviewNamespace,dbName:window.FootprintMediaCore.DB_NAME,legacyFound:places.some(x=>x.id==='qa-migration-stable-01')};
+    const places=await repo.list(),routes=await repo.listRoutes();
+    return {namespace:window.__atlasPreviewNamespace,dbName:window.FootprintMediaCore.DB_NAME,
+      legacyFound:places.some(x=>x.id==='qa-migration-stable-01'),legacyRouteFound:routes.some(x=>x.id==='qa-legacy-r1')};
    });
-   assert.equal(data.legacyFound,false);
+   assert.equal(data.legacyFound,false);assert.equal(data.legacyRouteFound,false);
    assert(data.namespace?.includes('atlas-v4-map-a-integration'));
    return data;
   });
@@ -114,6 +132,25 @@ async function run(engine,kind){
    return info;
   });
   if(!prod)return;
+  await attempt('Production-mode V5 imports V4 saved route exactly once (legacy remains)',async()=>{
+   const migrated=await page.evaluate(async()=>{
+    const repo=window.FootprintMediaCore.createRepository(indexedDB);
+    const first=await repo.listRoutes(),second=await repo.listRoutes();
+    const old=first.find(x=>x.id==='qa-legacy-r1');
+    const inLegacy=await new Promise((ok,fail)=>{
+     const r=indexedDB.open('travel-atlas-journeys-v1',1);
+     r.onerror=()=>fail(r.error);
+     r.onsuccess=()=>{const db=r.result,tx=db.transaction('plans','readonly'),q=tx.objectStore('plans').get('qa-legacy-r1');
+      q.onsuccess=()=>{const exists=!!q.result;db.close();ok(exists)};q.onerror=()=>fail(q.error)};
+    });
+    return {first:first.length,second:second.length,legacyTitle:old?.title,
+      stops:old?.stops?.length,oldDatabaseStillHasRoute:inLegacy};
+   });
+   assert.equal(migrated.first,1);assert.equal(migrated.second,1);
+   assert.equal(migrated.legacyTitle,'旧版单日路线');
+   assert.equal(migrated.stops,1);assert.equal(migrated.oldDatabaseStillHasRoute,true);
+   return migrated;
+  });
   await attempt('V5 can edit V4 data and V4 can read same record',async()=>{
    const saved=await page.evaluate(async()=>{
     const repo=window.FootprintMediaCore.createRepository(indexedDB);
