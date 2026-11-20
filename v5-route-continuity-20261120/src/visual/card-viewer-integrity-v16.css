@@ -1,0 +1,363 @@
+/* Footprint Map V4 .16 · Fix real controls, align the three native sheet
+   headers and make fullscreen viewer close targets predictable on iPhone.
+   No changes to the accepted physical-card spring, map engine or route logic. */
+:root{
+ --fp16-paper:#fffefa;
+ --fp16-ink:#293c31;
+ --fp16-sub:#7b897f;
+ --fp16-rule:#e3e9e2;
+ --fp16-sage:#f0f4ee;
+ --fp16-grip:#c5cfc6;
+ --fp16-head-pad:18px;
+ --fp16-head-title:23px;
+ --fp16-close-hit:44px;
+}
+/* CRITICAL: retired global edit-mode styles hide every subsection edit
+   button with opacity:0 and pointer-events:none. Each subsection now owns
+   its action, whether or not the parent card has an editing class. */
+body #fpPlaceCard .fp-block .fp-subheading > button.fp-subaction,
+body #fpPlaceCard .fp-block .fp-subheading > button.fp-section-edit{
+ opacity:1!important;
+ visibility:visible!important;
+ pointer-events:auto!important;
+ display:inline-flex!important;
+ justify-content:center!important;
+ align-items:center!important;
+ position:relative!important;
+ z-index:2!important;
+ min-width:44px!important;
+ min-height:36px!important;
+ cursor:pointer!important;
+ -webkit-tap-highlight-color:transparent;
+ touch-action:manipulation;
+}
+body #fpPlaceCard .fp-block .fp-subheading > button.fp-subaction:focus-visible{
+ outline:2px solid #a88e59!important;
+ outline-offset:2px!important;
+}
+body #fpPlaceCard .fp-inline-editor{
+ position:relative!important;
+ z-index:1!important;
+ opacity:1!important;
+ visibility:visible!important;
+ pointer-events:auto!important;
+}
+body #fpPlaceCard .fp-inline-editor :is(button,textarea,input){
+ pointer-events:auto!important;
+}
+body #fpPlaceCard .fp-inline-editor textarea:not(.fp-guide-editor textarea){
+ min-height:112px!important;
+ border-radius:13px!important;
+ border:1px solid var(--fp16-rule)!important;
+ background:#fcfdfa!important;
+ color:var(--fp16-ink)!important;
+ padding:13px!important;
+ font-size:16px!important;
+ line-height:1.6!important;
+}
+body #fpPlaceCard .fp-inline-editor .fp-inline-actions{
+ display:flex!important;
+ align-items:center!important;
+ gap:10px!important;
+ margin:6px 0 0!important;
+}
+body #fpPlaceCard .fp-inline-editor .fp-inline-actions button{
+ min-height:44px!important;
+ border-radius:12px!important;
+}
+/* Identical sheet grip and header identity across collection and detail. */
+body #drawer.fp30-detail .drawer-head{
+ background:var(--fp16-paper)!important;
+ border-bottom:1px solid var(--fp16-rule)!important;
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) 44px!important;
+ grid-template-rows:24px 48px!important;
+ row-gap:2px!important;
+ column-gap:8px!important;
+ padding:4px var(--fp16-head-pad) 11px!important;
+ margin:0!important;
+ align-items:center!important;
+ box-shadow:none!important;
+}
+body #drawer.fp30-detail .drawer-head .sheet-grab{
+ grid-column:1/-1!important;
+ grid-row:1!important;
+ top:auto!important;
+ position:relative!important;
+ width:100%!important;
+ height:24px!important;
+ min-height:24px!important;
+ margin:0!important;
+ padding:0!important;
+ display:grid!important;
+ place-items:center!important;
+ background:none!important;
+ border:0!important;
+}
+body #drawer.fp30-detail .drawer-head .sheet-grab::before{
+ content:""!important;
+ width:44px!important;
+ height:5px!important;
+ min-width:44px!important;
+ border-radius:999px!important;
+ background:var(--fp16-grip)!important;
+}
+body #drawer.fp30-detail .drawer-head h2{
+ grid-column:1!important;
+ grid-row:2!important;
+ display:flex!important;
+ flex-wrap:wrap!important;
+ gap:9px!important;
+ align-items:baseline!important;
+ margin:0!important;
+ padding:0!important;
+ min-width:0!important;
+ color:var(--fp16-ink)!important;
+ font-size:var(--fp16-head-title)!important;
+ font-weight:710!important;
+ letter-spacing:-.034em!important;
+ line-height:1.3!important;
+}
+body #drawer.fp30-detail .drawer-head .drawer-cn{
+ font-size:var(--fp16-head-title)!important;
+ font-weight:710!important;
+ color:var(--fp16-ink)!important;
+ letter-spacing:-.034em!important;
+ line-height:1.3!important;
+}
+body #drawer.fp30-detail .drawer-head #sheetCount{
+ font-size:12px!important;
+ font-weight:470!important;
+ color:var(--fp16-sub)!important;
+ margin:0!important;
+ white-space:nowrap!important;
+}
+body #drawer.fp30-detail .drawer-head #closeDrawer{
+ grid-column:2!important;grid-row:2!important;
+ justify-self:end!important;
+ align-self:center!important;
+ width:44px!important;height:44px!important;
+ min-width:44px!important;min-height:44px!important;
+ padding:0!important;margin:0!important;
+ background:transparent!important;border:0!important;
+ border-radius:12px!important;
+ box-shadow:none!important;
+ color:#78877d!important;
+ display:grid!important;place-items:center!important;
+}
+body #drawer.fp30-detail #spotList{
+ margin-top:0!important;
+ padding-top:13px!important;
+}
+body #drawer.fp30-detail #spotList .spotrow{
+ border:1px solid var(--fp16-rule)!important;
+ border-radius:18px!important;
+ background:var(--fp16-paper)!important;
+ box-shadow:none!important;
+}
+body #drawer.fp30-detail #spotList .spotrow strong{
+ color:var(--fp16-ink)!important;
+ font-size:15px!important;
+ font-weight:680!important;
+ line-height:1.45!important;
+}
+body #drawer.fp30-detail #spotList .spotrow small{
+ color:var(--fp16-sub)!important;
+ font-size:12px!important;
+ line-height:1.45!important;
+}
+body #fpPlaceCard .fp-card-header{
+ border-bottom:1px solid var(--fp16-rule)!important;
+ padding-top:32px!important;
+}
+body #fpPlaceCard .fp-card-header .fp-card-name{
+ color:var(--fp16-ink)!important;
+ font-weight:710!important;
+ letter-spacing:-.034em!important;
+}
+body #fpPlaceCard .fp-card-header > .fp-card-close{
+ color:#78877d!important;
+}
+body #fpPlaceCard .fp-block{
+ border-color:var(--fp16-rule)!important;
+ background:var(--fp16-paper)!important;
+}
+body #fpPlaceCard .fp-subheading .fp-section-label{
+ color:var(--fp16-ink)!important;
+}
+/* Fullscreen view has TWO legitimate owners: legacy #viewer from the
+   collection/media bubble, and #fpMediaViewer from the accepted place card.
+   Give both the same iOS safe-area inset and 44px touch target. */
+#viewer.photo-viewer .viewer-top{
+ position:absolute!important;
+ top:calc(env(safe-area-inset-top,0px) + 12px)!important;
+ left:max(16px,env(safe-area-inset-left,0px))!important;
+ right:max(16px,env(safe-area-inset-right,0px))!important;
+ height:44px!important;
+ min-height:44px!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:space-between!important;
+ gap:10px!important;
+ z-index:15!important;
+ pointer-events:none!important;
+}
+#viewer.photo-viewer .viewer-top #viewerTitle{
+ display:block!important;
+ flex:1!important;
+ min-width:0!important;
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+ white-space:nowrap!important;
+ font-size:13px!important;
+ font-weight:550!important;
+ line-height:1.4!important;
+ color:#f7f8f4!important;
+}
+#viewer.photo-viewer .viewer-top #closeViewer,
+#fpMediaViewer .fp-viewer-close{
+ box-sizing:border-box!important;
+ width:44px!important;
+ height:44px!important;
+ min-width:44px!important;min-height:44px!important;
+ max-width:44px!important;max-height:44px!important;
+ padding:0!important;margin:0!important;
+ display:grid!important;place-items:center!important;
+ position:relative!important;
+ font-size:0!important;
+ font-weight:400!important;
+ border:1px solid rgba(255,255,255,.18)!important;
+ border-radius:14px!important;
+ color:#fff!important;
+ background:rgba(41,47,44,.53)!important;
+ box-shadow:none!important;
+ text-shadow:none!important;
+ cursor:pointer!important;
+ touch-action:manipulation!important;
+ pointer-events:auto!important;
+ -webkit-tap-highlight-color:transparent;
+ transition:background .18s ease,scale .18s ease!important;
+}
+#fpMediaViewer .fp-viewer-close{
+ position:absolute!important;
+ top:calc(env(safe-area-inset-top,0px) + 12px)!important;
+ right:max(16px,env(safe-area-inset-right,0px))!important;
+ z-index:99!important;
+}
+#viewer.photo-viewer .viewer-top #closeViewer::before,
+#viewer.photo-viewer .viewer-top #closeViewer::after,
+#fpMediaViewer .fp-viewer-close::before,
+#fpMediaViewer .fp-viewer-close::after{
+ content:""!important;
+ position:absolute!important;
+ top:50%!important;left:50%!important;
+ width:19px!important;height:2px!important;
+ margin:0!important;
+ border:0!important;
+ border-radius:1px!important;
+ background:#fff!important;
+ color:#fff!important;
+ background-image:none!important;
+ -webkit-mask:none!important;mask:none!important;
+ transform-origin:center!important;
+ pointer-events:none!important;
+ display:block!important;
+}
+#viewer.photo-viewer .viewer-top #closeViewer::before,
+#fpMediaViewer .fp-viewer-close::before{
+ transform:translate(-50%,-50%) rotate(45deg)!important;
+}
+#viewer.photo-viewer .viewer-top #closeViewer::after,
+#fpMediaViewer .fp-viewer-close::after{
+ transform:translate(-50%,-50%) rotate(-45deg)!important;
+}
+#viewer.photo-viewer .viewer-top #closeViewer:active,
+#fpMediaViewer .fp-viewer-close:active{
+ background:rgba(82,94,84,.75)!important;
+ scale:.96!important;
+}
+#viewer.photo-viewer .viewer-top #closeViewer:focus-visible,
+#fpMediaViewer .fp-viewer-close:focus-visible{
+ outline:2px solid #f2cf73!important;
+ outline-offset:3px!important;
+}
+@media(max-width:390px){
+ :root{--fp16-head-pad:15px}
+ body #drawer.fp30-detail #spotList{padding-top:10px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #viewer.photo-viewer .viewer-top #closeViewer,
+ #fpMediaViewer .fp-viewer-close{transition:none!important}
+}
+
+/* Approved C V5 route-selection sheet: align title, supporting line, grip and
+   close hit target with the existing place/collection headers. Geometry only. */
+body.route-v5-live #rc-main #rc-grab{
+ padding:7px var(--fp16-head-pad) 12px!important;
+ background:var(--fp16-paper)!important;
+ border-bottom:1px solid var(--fp16-rule)!important;
+}
+body.route-v5-live #rc-main #rc-grab > .rc-handle,
+body.route-v5-live #rc-mini-grab > .rc-handle{
+ width:44px!important;height:5px!important;
+ background:var(--fp16-grip)!important;
+ border-radius:999px!important;
+ margin:0 auto 12px!important;
+}
+body.route-v5-live #rc-main #rc-grab > .rc-upper{
+ display:flex!important;
+ align-items:center!important;
+ justify-content:space-between!important;
+ gap:12px!important;
+ min-height:65px!important;
+ margin:0!important;
+}
+body.route-v5-live #rc-main #rc-grab .rc-upper > div{
+ flex:1!important;min-width:0!important;
+}
+body.route-v5-live #rc-main #rc-grab .rc-upper #rc-title{
+ margin:0 0 5px!important;
+ font-size:var(--fp16-head-title)!important;
+ font-weight:710!important;
+ letter-spacing:-.034em!important;
+ line-height:1.27!important;
+ color:var(--fp16-ink)!important;
+}
+body.route-v5-live #rc-main #rc-grab .rc-upper #rc-subtitle{
+ display:block!important;
+ color:var(--fp16-sub)!important;
+ font-size:12px!important;
+ font-weight:440!important;
+ line-height:1.45!important;
+ margin:0!important;
+}
+body.route-v5-live #rc-main #rc-grab .rc-upper button.rc-dismiss{
+ flex:0 0 44px!important;
+ width:44px!important;min-width:44px!important;max-width:44px!important;
+ height:44px!important;min-height:44px!important;max-height:44px!important;
+ margin:0!important;padding:0!important;
+ display:grid!important;place-items:center!important;
+ border:0!important;box-shadow:none!important;
+ border-radius:12px!important;
+ background:transparent!important;color:#78877d!important;
+ font-size:24px!important;font-weight:350!important;
+ line-height:1!important;
+ touch-action:manipulation!important;
+}
+body.route-v5-live #rc-mini #rc-mini-grab h3{
+ color:var(--fp16-ink)!important;
+ font-weight:710!important;
+ letter-spacing:-.034em!important;
+}
+/* Keep buttons in route selection and the persisted collection list visually
+   within the approved quiet sage and paper palette. */
+body.route-v5-live #rc-body .rc-stop-pick,
+body.route-v5-live #rc-body .rc-stop{
+ background:var(--fp16-paper)!important;
+ border:1px solid var(--fp16-rule)!important;
+ box-shadow:none!important;
+ border-radius:17px!important;
+}
+body.route-v5-live #rc-body .rc-tabs{
+ border-color:var(--fp16-rule)!important;
+}

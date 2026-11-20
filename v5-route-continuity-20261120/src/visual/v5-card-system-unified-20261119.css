@@ -1,0 +1,999 @@
+/*
+ * Footprint Map V5 · 2026-11-19 · one iPhone card visual language
+ * Reference: approved 长寿路 place card + latest PR53 route peek (15921b1).
+ * Presentation ONLY: no heights, transforms, snap points, scroll ownership,
+ * gestures, map camera, touch-action, DOM changes, or media lifecycle changes.
+ */
+:root{
+  --fp-u-paper:#fffefa;
+  --fp-u-ink:#293f33;
+  --fp-u-muted:#87988c;
+  --fp-u-line:#e0e6de;
+  --fp-u-soft:#f0f3ed;
+  --fp-u-accent:#3c5a47;
+  --fp-u-grip:#c7d0c7;
+  --fp-u-outer-radius:24px;
+  --fp-u-inner-radius:19px;
+  --fp-u-control-radius:13px;
+  --fp-u-shadow:0 7px 30px rgba(34,55,44,.20);
+  --fp-u-font:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+}
+/* Shared card materials. The last visual layer wins over V4-era colors
+   without changing any component's physical sheet or navigation motor. */
+:is(#fpPlaceCard,#destinationCard,#drawer,#fpSearchSheet,#fpUnifiedRoute .fp-route-sheet,#navigationChooser .nav-panel){
+  font-family:var(--fp-u-font)!important;
+  color:var(--fp-u-ink)!important;
+  background:var(--fp-u-paper)!important;
+  border-color:var(--fp-u-line)!important;
+}
+:is(#fpPlaceCard,#destinationCard,#drawer,#fpUnifiedRoute .fp-route-sheet,#navigationChooser .nav-panel){
+  border-radius:var(--fp-u-outer-radius)!important;
+  box-shadow:var(--fp-u-shadow)!important;
+}
+#fpPlaceCard{
+  border:1px solid var(--fp-u-line)!important;
+  bottom:calc(16px + env(safe-area-inset-bottom))!important;
+}
+/* Match the already approved route sheet: 12pt side and 16pt bottom.
+   Do NOT set height or transform; B V2 and physical-sheet scripts own both. */
+#drawer{
+  width:min(560px,calc(100vw - 24px))!important;
+  bottom:calc(16px + env(safe-area-inset-bottom))!important;
+  border:1px solid var(--fp-u-line)!important;
+  box-sizing:border-box!important;
+}
+#destinationCard{
+  width:min(560px,calc(100vw - 24px))!important;
+  max-width:560px!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:calc(16px + env(safe-area-inset-bottom))!important;
+  padding:18px 18px 17px!important;
+  border:1px solid var(--fp-u-line)!important;
+  box-sizing:border-box!important;
+}
+/* The live destination-selected state has a stronger V4 selector that
+   used translucent paper and 22px corners. Match the real route/place shell. */
+html body.destination-selected section#destinationCard.destination-card.visible,
+html body section#destinationCard.destination-card{
+  background:var(--fp-u-paper,#fffefa)!important;
+  background-color:#fffefa!important;
+  border-radius:24px!important;
+  border-color:var(--fp-u-line)!important;
+}
+/* The unified route sheet already owns these bounds; reinforce only the
+   common outer material. Keep the 354/608px detent values intact. */
+#fpUnifiedRoute .fp-route-sheet{
+  border:1px solid var(--fp-u-line)!important;
+}
+#navigationChooser .nav-panel{
+  left:max(12px,env(safe-area-inset-left))!important;
+  right:max(12px,env(safe-area-inset-right))!important;
+  bottom:calc(16px + env(safe-area-inset-bottom))!important;
+  width:auto!important;
+  max-width:560px!important;
+  margin-inline:auto!important;
+  border:1px solid var(--fp-u-line)!important;
+  box-sizing:border-box!important;
+}
+/* Header rhythm: one 44×5 central grip, one 24px title and one simple ×.
+   No new grip elements; retain the actual draggable elements and hit targets. */
+#fpPlaceCard .atlas-card-grip::before,
+#drawer .sheet-grab::before,
+#fpUnifiedRoute .fp-route-grip::before,
+#navigationChooser .fp-nav-grip::before{
+  width:44px!important;
+  height:5px!important;
+  border-radius:99px!important;
+  background:var(--fp-u-grip)!important;
+}
+#fpPlaceCard .fp-card-header,
+#drawer .drawer-head,
+#fpUnifiedRoute .fp-route-heading,
+#navigationChooser .fp-nav-title-row{
+  background:var(--fp-u-paper)!important;
+  color:var(--fp-u-ink)!important;
+}
+#fpPlaceCard .fp-card-header .fp-card-name,
+#drawer .drawer-head :is(h2,.drawer-cn),
+#destinationCard .destination-title,
+#fpUnifiedRoute .fp-route-heading h2,
+#navigationChooser .fp-nav-title-row h2{
+  color:var(--fp-u-ink)!important;
+  font-family:var(--fp-u-font)!important;
+  font-size:24px!important;
+  font-weight:740!important;
+  line-height:1.2!important;
+  letter-spacing:-.045em!important;
+}
+#fpPlaceCard .fp-card-header .fp-card-name,
+#fpUnifiedRoute .fp-route-heading h2,
+#drawer .drawer-head h2{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+#destinationCard .destination-title{padding-right:44px!important}
+body #destinationCard .destination-title,
+body.destination-selected #destinationCard .destination-title{
+  font-size:24px!important;
+  font-weight:740!important;
+  line-height:1.2!important;
+  letter-spacing:-.045em!important;
+}
+#destinationCard .destination-category,
+#drawer #sheetCount,
+#fpUnifiedRoute .fp-route-caption,
+#navigationChooser .nav-target{
+  color:var(--fp-u-muted)!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+}
+:is(#destinationClose,#closeDrawer,#fpPlaceCard .fp-card-close,#fpUnifiedRoute .fp-route-close,#closeNavigationChooser){
+  display:grid!important;
+  place-items:center!important;
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:12px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#718376!important;
+}
+#destinationClose{top:10px!important;right:12px!important}
+/* The original drawer has a pseudo X plus font-size:0. Restore the one
+   visible text X so every sheet uses the same 44px target / 25px glyph. */
+#drawer #closeDrawer::before{content:none!important;display:none!important}
+#destinationCard #destinationClose,
+#drawer #closeDrawer,
+#fpPlaceCard .fp-card-header .fp-card-close,
+#fpUnifiedRoute .fp-route-close,
+#navigationChooser #closeNavigationChooser{
+  font-family:var(--fp-u-font)!important;
+  font-size:25px!important;
+  font-weight:300!important;
+  line-height:1!important;
+}
+/* Legacy navigation button rules painted a broad grey bar under the real
+   draggable 44×5 grip. Keep that hit area transparent, as in place / route. */
+#navigationChooser .fp-nav-header{background:var(--fp-u-paper)!important}
+#navigationChooser .fp-nav-grip{
+  height:29px!important;
+  min-height:29px!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+#fpUnifiedRoute .fp-route-close{margin:0 -4px 0 0!important}
+/* A single inner spacing / card rhythm: 19px sections, 13px controls. */
+#fpPlaceCard .fp-card-scroll{background:var(--fp-u-paper)!important}
+#fpPlaceCard .fp-block,
+#fpUnifiedRoute .fp-route-card,
+#sheet-body .setting-block,
+.v12-route-sections .fp-block{
+  border:1px solid var(--fp-u-line)!important;
+  border-radius:var(--fp-u-inner-radius)!important;
+  background:#fff!important;
+  box-shadow:none!important;
+}
+#fpPlaceCard .fp-block,
+#fpUnifiedRoute .fp-route-card{
+  padding:13px 14px!important;
+  margin-bottom:11px!important;
+}
+#fpPlaceCard .fp-section-index,
+#fpUnifiedRoute .fp-route-index,
+.v12-route-sections .fp-section-index{
+  width:40px!important;min-width:40px!important;height:40px!important;
+  padding:0!important;
+  border-radius:13px!important;
+  background:var(--fp-u-soft)!important;
+  color:#91a398!important;
+  display:grid!important;place-items:center!important;
+  font-size:13px!important;font-weight:750!important;
+}
+#fpPlaceCard .fp-section-label,
+#fpUnifiedRoute .fp-route-cardhead strong,
+.v12-route-sections .fp-section-label{
+  color:var(--fp-u-ink)!important;
+  font-size:16px!important;
+  line-height:1.25!important;
+  font-weight:740!important;
+}
+#fpPlaceCard .fp-brief-text,
+#fpUnifiedRoute .fp-route-recommendation,
+.v12-route-sections .v12-body{
+  color:#596b5f!important;
+  font-size:14px!important;
+  line-height:1.68!important;
+}
+/* Control system. Keep existing visual roles and event handlers. */
+#destinationCard .destination-actions{gap:9px!important}
+#destinationCard .destination-actions button,
+#fpUnifiedRoute .fp-route-btn,
+#navigationChooser #navLinks a,
+#fpPlaceCard :is(.fp-subaction,.fp-guide-copy),
+#drawer .backuprow button{
+  min-height:44px!important;
+  border-radius:var(--fp-u-control-radius)!important;
+  box-shadow:none!important;
+  font-family:var(--fp-u-font)!important;
+  font-size:14px!important;
+  font-weight:700!important;
+}
+#destinationCard .destination-star,
+#fpUnifiedRoute .fp-route-primary,
+#sheet .button-primary{
+  background:var(--fp-u-accent)!important;
+  border-color:var(--fp-u-accent)!important;
+  color:#fff!important;
+}
+#destinationCard :is(.destination-route,.destination-unstar),
+#fpUnifiedRoute :is(.fp-route-btn,.fp-route-secondary):not(.fp-route-primary),
+#navigationChooser #navLinks a{
+  background:var(--fp-u-soft)!important;
+  border:1px solid var(--fp-u-line)!important;
+  color:var(--fp-u-ink)!important;
+}
+#destinationCard [hidden]{display:none!important}
+#fpUnifiedRoute .fp-route-step,
+#fpUnifiedRoute .fp-route-chip,
+#fpUnifiedRoute .fp-route-mode-label{
+  color:#617868!important;
+  background:#eef3ec!important;
+  border-color:var(--fp-u-line)!important;
+}
+#fpUnifiedRoute .fp-route-status,
+#fpUnifiedRoute .fp-route-footer{
+  border-color:var(--fp-u-line)!important;
+}
+#fpUnifiedRoute .fp-route-footer{background:var(--fp-u-paper)!important}
+#fpUnifiedRoute .fp-route-reorder{
+  border-bottom-color:var(--fp-u-line)!important;
+}
+#fpUnifiedRoute .fp-route-reorder button,
+#fpUnifiedRoute .fp-route-input{
+  border:1px solid var(--fp-u-line)!important;
+  border-radius:var(--fp-u-control-radius)!important;
+}
+/* 收藏首页 / 收藏地点 / 已存路线: one quiet list-card language. */
+#drawer .fp30-entry,
+#drawer #spotList .spotrow,
+#drawer #drawerRouteList .rs-row,
+#fpUnifiedRoute .v5-saved-route-entry{
+  border:1px solid var(--fp-u-line)!important;
+  border-radius:var(--fp-u-inner-radius)!important;
+  background:#fff!important;
+  box-shadow:none!important;
+  color:var(--fp-u-ink)!important;
+}
+#drawer :is(.fp30-entry strong,.spotrow strong,.rs-meta b){
+  color:var(--fp-u-ink)!important;
+  font-weight:720!important;
+}
+#drawer :is(.fp30-entry small,.spotrow small,.rs-meta span){
+  color:var(--fp-u-muted)!important;
+  line-height:1.5!important;
+}
+#drawer #fpvCollectionTabs{
+  background:var(--fp-u-soft)!important;
+  border-color:var(--fp-u-line)!important;
+}
+#drawer #fpvCollectionTabs .fpv-collection-indicator{background:#fff!important}
+/* Search remains an anchored search-history surface, not a second bottom
+   sheet. Unify paper, typography and rows WITHOUT moving the search Dock. */
+#fpSearchSheet{
+  background:var(--fp-u-paper)!important;
+  color:var(--fp-u-ink)!important;
+  border:1px solid var(--fp-u-line)!important;
+  border-radius:var(--fp-u-outer-radius)!important;
+  box-shadow:var(--fp-u-shadow)!important;
+}
+#fpSearchSheet .fp-search-body,
+#fpSearchSheet .fp-search-top{background:var(--fp-u-paper)!important}
+#fpSearchSheet .fp-search-row,
+#fpSearchSheet .fp-quick,
+#fpSearchSheet .fp-search-empty{
+  border-color:var(--fp-u-line)!important;
+  border-radius:15px!important;
+}
+#fpSearchSheet .fp-search-row strong{font-size:14px!important;font-weight:700!important;color:var(--fp-u-ink)!important}
+#fpSearchSheet .fp-search-row small,
+#fpSearchSheet .fp-search-label{font-size:12px!important;color:var(--fp-u-muted)!important}
+/* Editor, Brief and media retain their current full-screen/viewer semantics.
+   Only the editor modal's typography/material follows the shared system. */
+dialog.editor .editor-scroll,
+#shareNotice .share-card,
+.atlas-discard-dialog .atlas-discard-inner{
+  color:var(--fp-u-ink)!important;
+  background:var(--fp-u-paper)!important;
+  border-color:var(--fp-u-line)!important;
+  border-radius:var(--fp-u-outer-radius)!important;
+}
+dialog.editor #editorTitle,
+#shareNotice #sharedTitle,
+.atlas-discard-dialog h2{
+  color:var(--fp-u-ink)!important;
+  font-size:24px!important;
+  line-height:1.2!important;
+  letter-spacing:-.045em!important;
+}
+dialog.editor :is(.input,.area),
+#fpPlaceCard .fp-inline-editor :is(input,textarea){
+  border:1px solid var(--fp-u-line)!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  color:var(--fp-u-ink)!important;
+  font-size:16px!important;
+}
+#fpPlaceCard .fp-media-mosaic{border-radius:17px!important}
+#navigationChooser .fp-nav-title-row{border-bottom:1px solid var(--fp-u-line)!important}
+#navigationChooser .fp-nav-content{background:var(--fp-u-paper)!important}
+#navigationChooser #navLinks a{border-radius:15px!important}
+/* 375 / 390 / 430px: keep text wrapping inside controls, never narrow touch
+   targets or replace the route's real B-V2 rubber-band height controller. */
+@media(max-width:380px){
+  #fpPlaceCard .fp-card-header .fp-card-name,
+  #drawer .drawer-head :is(h2,.drawer-cn),
+  body #destinationCard .destination-title,
+  body.destination-selected #destinationCard .destination-title,
+  #fpUnifiedRoute .fp-route-heading h2{
+    font-size:23px!important;
+  }
+  #destinationCard{padding-inline:16px!important}
+  #fpUnifiedRoute .fp-route-card{padding:12px!important}
+}
+
+
+/* 2026-11-19 · Screenshot-specific final pass.
+ * Keep JS detents and gesture motors authoritative; this layer changes only
+ * card rhythm, not map transforms, Dock, video/PiP or user data. */
+:root {
+  --fp-u-inset:18px;
+  --fp-u-head-gap:8px;
+}
+/* The same title/action grammar as approved route; slightly less top padding
+ * buys a complete Brief entry within the unified route-sized peek. */
+body #fpPlaceCard .fp-card-header{
+  padding:29px var(--fp-u-inset) 12px!important;
+  grid-template-rows:minmax(44px,auto) 44px!important;
+  gap:var(--fp-u-head-gap) 8px!important;
+  border-bottom:1px solid var(--fp-u-line)!important;
+}
+body #fpPlaceCard .fp-card-header .fp-card-name{
+  font-size:24px!important;
+  font-weight:740!important;
+  line-height:1.2!important;
+}
+body #fpPlaceCard .fp-card-scroll{
+  min-height:0!important;
+  flex:1 1 auto!important;
+  overflow-y:auto!important;
+  padding:12px var(--fp-u-inset) 22px!important;
+}
+body #fpPlaceCard .fp-card-scroll>.fp-block:first-child{
+  margin-top:0!important;
+}
+body #fpPlaceCard .fp-block .fp-subheading{
+  margin-bottom:7px!important;
+}
+body #fpPlaceCard .fp-block .fp-subheading .fp-section-index{
+  width:36px!important;min-width:36px!important;height:36px!important;
+  border-radius:12px!important;
+}
+body #fpPlaceCard .fp-block .fp-subheading>.fp-subaction{
+  min-height:38px!important;height:38px!important;
+}
+body #fpPlaceCard .fp-card-header .fp-place-stage{
+  min-height:34px!important;
+}
+/* Real route CSS has a 29+62+48 header and 80px footer. Compact the
+ * static chrome, never change CSS --fp-route-height or the spring physics. */
+#fpUnifiedRoute .fp-route-grip{
+  height:25px!important;min-height:25px!important;
+}
+#fpUnifiedRoute .fp-route-heading{
+  min-height:54px!important;
+  padding:0 18px!important;
+}
+#fpUnifiedRoute .fp-route-heading h2{
+  font-size:24px!important;
+  line-height:1.2!important;
+}
+#fpUnifiedRoute .fp-route-status{
+  min-height:40px!important;
+  padding:0 18px 8px!important;
+  gap:8px!important;
+}
+#fpUnifiedRoute .fp-route-step{
+  min-height:29px!important;
+  padding:0 11px!important;
+}
+#fpUnifiedRoute .fp-route-body{
+  padding:11px 18px 14px!important;
+}
+#fpUnifiedRoute .fp-route-footer{
+  padding:10px 18px calc(11px + env(safe-area-inset-bottom))!important;
+}
+#fpUnifiedRoute .fp-route-card{
+  margin-bottom:10px!important;
+}
+#fpUnifiedRoute .fp-route-cardhead{
+  min-height:40px!important;
+}
+#fpUnifiedRoute .fp-route-card .fp-route-index{
+  width:38px!important;min-width:38px!important;
+  height:38px!important;min-height:38px!important;
+}
+#fpUnifiedRoute .fp-route-caption{
+  margin:6px 0!important;
+  line-height:1.55!important;
+}
+/* Preserve the shared grab handle, 24px heading and X baseline across
+ * collection modes. Avoid modifying the B05 pointer/touch hit regions. */
+body #drawer .drawer-head{
+  background:var(--fp-u-paper)!important;
+  border-bottom:1px solid var(--fp-u-line)!important;
+}
+body #drawer.fp30-detail .drawer-head{
+  grid-template-rows:25px 44px!important;
+  row-gap:4px!important;
+  padding:3px 18px 12px!important;
+  margin-bottom:0!important;
+}
+body #drawer.fp30-detail .drawer-head .sheet-grab{
+  margin:0!important;
+  min-height:25px!important;
+  height:25px!important;
+}
+body #drawer .drawer-head h2,
+body #drawer .drawer-head .drawer-cn{
+  font-size:24px!important;
+  line-height:1.2!important;
+  font-weight:740!important;
+}
+body #drawer #sheetCount{
+  font-size:12px!important;
+  font-weight:550!important;
+  color:var(--fp-u-muted)!important;
+  letter-spacing:0!important;
+}
+body #drawer.fp30-detail #spotList{
+  padding:13px 18px 16px!important;
+  margin:0!important;
+}
+body #drawer.fp30-detail #spotList .spotrow{
+  min-height:80px!important;
+}
+body #drawer.fp30-detail .backuprow{
+  margin:14px 18px 0!important;
+  gap:10px!important;
+}
+body #drawer.fp30-detail .footnote{
+  margin:8px 18px 18px!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+  color:var(--fp-u-muted)!important;
+}
+/* Tiny iPhone widths: preserve 44px hit areas and adequate readable text. */
+@media(max-width:380px){
+  :root{--fp-u-inset:16px}
+  #fpUnifiedRoute .fp-route-body{padding-inline:16px!important}
+  #fpUnifiedRoute .fp-route-heading,
+  #fpUnifiedRoute .fp-route-status,
+  #fpUnifiedRoute .fp-route-footer{padding-left:16px!important;padding-right:16px!important}
+}
+
+
+/* Old V4 detail-only surface had a stronger gray-beige selector.
+ * Match the approved porcelain paper for every visible collection state. */
+html body #drawer.drawer.fp30-detail,
+html body #drawer.drawer.fp30-detail.visible,
+html body #drawer.drawer.fp30-hub.visible{
+  background:#fffefa!important;
+  background-color:#fffefa!important;
+}
+
+
+/* V5.3 · 2026-11-19 · screenshot red-line acceptance.
+ * A SINGLE header row across saved place, collection and routes.
+ * Every divider spans exactly the sheet width; all first content frames
+ * begin 18px from the left/right card edge. Keep existing sheet engines.
+ */
+:root{
+  --fp-card-content-inset:18px;
+  --fp-card-header-grip-height:25px;
+  --fp-card-header-row-height:54px;
+}
+/* PLACE: one 25px grip band and ONE 54px title/actions/close row.
+   Star and navigation remain the same original click handlers/icons. */
+html body #fpPlaceCard .fp-card-header{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 96px 44px!important;
+  grid-template-rows:var(--fp-card-header-grip-height) var(--fp-card-header-row-height)!important;
+  align-items:center!important;
+  gap:0 8px!important;
+  padding:0 var(--fp-card-content-inset)!important;
+  margin:0!important;
+  min-height:80px!important;
+  border-bottom:1px solid var(--fp-u-line)!important;
+  background:var(--fp-u-paper)!important;
+  box-sizing:border-box!important;
+}
+html body #fpPlaceCard .fp-card-header .atlas-card-grip{
+  top:0!important;left:50%!important;
+  transform:translateX(-50%)!important;
+  width:92px!important;height:25px!important;min-height:25px!important;
+  grid-area:auto!important;
+  margin:0!important;padding:0!important;
+}
+html body #fpPlaceCard .fp-card-header .atlas-card-grip::before{
+  top:11px!important;
+}
+html body #fpPlaceCard .fp-card-header .fp-card-title-wrap{
+  display:contents!important;
+}
+html body #fpPlaceCard .fp-card-header .fp-card-name{
+  grid-column:1!important;grid-row:2!important;
+  align-self:center!important;
+  min-width:0!important;
+  font-size:24px!important;
+  line-height:1.2!important;
+  margin:0!important;padding:0!important;
+  white-space:normal!important;
+  display:-webkit-box!important;-webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+}
+html body #fpPlaceCard .fp-card-header .fp-card-location,
+html body #fpPlaceCard .fp-card-header .fp-place-stage{
+  display:none!important;
+}
+html body #fpPlaceCard .fp-card-header .fp-card-head-actions{
+  grid-column:2!important;grid-row:2!important;
+  align-self:center!important;justify-self:end!important;
+  width:96px!important;min-width:96px!important;
+  display:flex!important;align-items:center!important;
+  gap:8px!important;margin:0!important;padding:0!important;
+}
+html body #fpPlaceCard .fp-card-header .fp-card-head-actions>button{
+  flex:0 0 44px!important;
+  width:44px!important;height:44px!important;
+  min-width:44px!important;min-height:44px!important;
+  max-width:44px!important;max-height:44px!important;
+  margin:0!important;
+}
+html body #fpPlaceCard .fp-card-header>.fp-card-close{
+  grid-column:3!important;grid-row:2!important;
+  align-self:center!important;justify-self:end!important;
+  margin:0!important;
+}
+html body #fpPlaceCard .fp-card-scroll{
+  padding:12px var(--fp-card-content-inset) 22px!important;
+}
+html body #fpPlaceCard .fp-card-scroll>.fp-block{
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+/* Preserve the old stage/visited action but relocate it into the Brief
+   section BELOW the common header. It must not create a second header row. */
+html body #fpPlaceCard .fp-card-scroll .fp-place-stage{
+  display:inline-flex!important;
+  align-items:center!important;justify-content:center!important;
+  margin:10px 0 0!important;padding:6px 10px!important;
+  width:auto!important;max-width:100%!important;
+  min-height:34px!important;
+  border:1px solid var(--fp-u-line)!important;
+  border-radius:12px!important;
+  background:var(--fp-u-soft)!important;
+  color:#657969!important;
+  font-size:12px!important;font-weight:620!important;
+}
+/* COLLECTION: remove the legacy nested 21px + 18px horizontal indent.
+   Let header divider run FULL WIDTH and make each saved row match the
+   first route/place content frame (18px from card exterior). */
+html body #drawer.drawer.fp30-detail .drawer-head,
+html body #drawer.drawer.fp30-hub .drawer-head{
+  position:sticky!important;
+  top:0!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 44px!important;
+  grid-template-rows:var(--fp-card-header-grip-height) var(--fp-card-header-row-height)!important;
+  column-gap:8px!important;row-gap:0!important;
+  min-height:80px!important;
+  margin:0 -17px!important;
+  padding:0 var(--fp-card-content-inset)!important;
+  box-sizing:border-box!important;
+  border:0!important;
+  border-bottom:1px solid var(--fp-u-line)!important;
+  box-shadow:none!important;
+  background:var(--fp-u-paper)!important;
+}
+html body #drawer .drawer-head .sheet-grab{
+  grid-column:1/-1!important;grid-row:1!important;
+  height:25px!important;min-height:25px!important;
+  margin:0!important;padding:0!important;
+  width:100%!important;flex:none!important;
+  align-self:center!important;
+}
+html body #drawer .drawer-head .sheet-grab::before{
+  margin:0 auto!important;
+}
+html body #drawer .drawer-head h2{
+  grid-column:1!important;grid-row:2!important;
+  display:flex!important;align-items:center!important;
+  min-width:0!important;
+  gap:10px!important;
+  margin:0!important;
+  white-space:nowrap!important;
+  font-size:24px!important;
+}
+html body #drawer .drawer-head h2 .drawer-cn{
+  font-size:24px!important;
+  flex:0 1 auto!important;
+}
+html body #drawer .drawer-head h2 #sheetCount{
+  font-size:12px!important;
+  color:var(--fp-u-muted)!important;
+  font-weight:540!important;
+  flex:0 0 auto!important;
+}
+html body #drawer .drawer-head #closeDrawer{
+  grid-column:2!important;grid-row:2!important;
+  align-self:center!important;justify-self:end!important;
+  margin:0!important;
+}
+html body #drawer.drawer.fp30-detail #spotList,
+html body #drawer.drawer.fp30-route-pick #spotList{
+  box-sizing:border-box!important;
+  margin:0 -17px!important;
+  padding:12px var(--fp-card-content-inset) 16px!important;
+  width:auto!important;
+}
+html body #drawer.drawer.fp30-detail #spotList .spotrow,
+html body #drawer.drawer.fp30-route-pick #spotList .spotrow{
+  width:100%!important;
+  max-width:100%!important;
+  min-height:80px!important;
+  margin:0 0 10px!important;
+  box-sizing:border-box!important;
+  border-radius:var(--fp-u-inner-radius)!important;
+  border:1px solid var(--fp-u-line)!important;
+  box-shadow:none!important;
+}
+/* Make auxiliary collection actions use the same content rail. */
+html body #drawer.drawer.fp30-detail .backuprow,
+html body #drawer.drawer.fp30-detail .footnote{
+  margin-left:-3px!important;
+  margin-right:-3px!important;
+}
+/* ROUTE: remove redundant second-strip state ("0 条", "上滑查看更多",
+   1/3), which is represented already by the live content step.
+   The DIVIDER moves from the eliminated strip to the title row. */
+html body #fpUnifiedRoute .fp-route-grip{
+  height:var(--fp-card-header-grip-height)!important;
+  min-height:var(--fp-card-header-grip-height)!important;
+}
+html body #fpUnifiedRoute .fp-route-heading{
+  min-height:var(--fp-card-header-row-height)!important;
+  height:var(--fp-card-header-row-height)!important;
+  box-sizing:border-box!important;
+  padding:0 var(--fp-card-content-inset)!important;
+  margin:0!important;
+  border:0!important;
+  border-bottom:1px solid var(--fp-u-line)!important;
+}
+html body #fpUnifiedRoute .fp-route-status{
+  display:none!important;
+}
+html body #fpUnifiedRoute .fp-route-body{
+  padding:12px var(--fp-card-content-inset) 16px!important;
+}
+html body #fpUnifiedRoute .fp-route-body>.fp-route-card{
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  margin:0 0 10px!important;
+}
+html body #fpUnifiedRoute .fp-route-footer{
+  padding-left:var(--fp-card-content-inset)!important;
+  padding-right:var(--fp-card-content-inset)!important;
+}
+@media(max-width:380px){
+  :root{--fp-card-content-inset:16px}
+  html body #fpPlaceCard .fp-card-header{
+    grid-template-columns:minmax(0,1fr) 96px 44px!important;
+    column-gap:5px!important;
+  }
+  html body #drawer.drawer.fp30-detail .drawer-head,
+  html body #drawer.drawer.fp30-hub .drawer-head{
+    column-gap:5px!important;
+  }
+}
+
+
+/* 2026-11-20 | Real Safari polish: route/map touch ownership, restrained
+   road bubbles and precise controls. Preserve the accepted V5 card tokens. */
+body.fp-unified-route #atlasBookmarkOverlay,
+body.fp-route-map-focus #atlasBookmarkOverlay{
+ pointer-events:none!important;
+}
+body.fp-unified-route #atlasBookmarkOverlay .atlas-bookmark-hit,
+body.fp-unified-route #atlasBookmarkOverlay .atlas-star-cluster,
+body.fp-unified-route #atlasBookmarkOverlay .star-pin{
+ pointer-events:auto!important;
+ touch-action:manipulation!important;
+}
+body.fp-route-map-focus .map-controls #btnLayers,
+body.fp-route-map-focus .map-controls #layerMenu{
+ display:none!important;
+}
+/* Shared centered handles. Use the existing border/draw language, not a font
+   character with asymmetrical glyph metrics. */
+#fpUnifiedRoute .fp-route-reorder{
+ position:relative;
+ transform:translateZ(0);
+ border-radius:10px;
+ will-change:transform;
+}
+#fpUnifiedRoute .fp-route-reorder.is-drag-source{
+ z-index:5;
+ opacity:1!important;
+ background:rgba(255,254,249,.97)!important;
+ box-shadow:0 7px 20px rgba(31,57,42,.13);
+ border-radius:13px;
+}
+#fpUnifiedRoute .fp-route-reorder.is-drop-target{
+ background:rgba(223,234,222,.65)!important;
+}
+#fpUnifiedRoute .fp-route-reorder .fp-route-grab{
+ display:grid!important;place-items:center!important;
+ box-sizing:border-box!important;
+ min-width:44px!important;width:44px!important;
+ min-height:44px!important;height:44px!important;
+ padding:0!important;line-height:0!important;
+ color:#698073!important;
+}
+#fpUnifiedRoute .fp-route-reorder .fp-route-grab svg{
+ display:block!important;position:static!important;
+ width:22px;height:22px;
+ margin:0!important;transform:none!important;
+ pointer-events:none;
+}
+#fpUnifiedRoute .fp-route-order-list>.fp-route-caption:first-child{
+ margin:1px 0 8px!important;
+ line-height:1.45;
+ font-size:11px;
+}
+#fpUnifiedRoute .fp-route-order-list .fp-route-reorder:last-of-type{
+ border-bottom:0!important;
+}
+html body #fpUnifiedRoute .fp-route-grip,
+html body #fpPlaceCard .atlas-card-grip,
+html body #drawer .sheet-grab,
+html body #navigationChooser .fp-nav-grip{
+ justify-content:center!important;
+ align-items:center!important;
+}
+#fpUnifiedRoute .fp-route-line-bubble{
+ color:var(--fp-u-ink,#2b4233);
+ display:flex;flex-direction:column;gap:8px;
+ min-width:200px;max-width:255px;
+}
+body.fp-unified-route .fp-route-segment-popup .maplibregl-popup-content{
+ padding:11px 13px!important;
+ border-radius:17px!important;
+ border:1px solid rgba(215,226,215,.9)!important;
+ background:rgba(255,254,249,.90)!important;
+ -webkit-backdrop-filter:blur(16px) saturate(1.1)!important;
+ backdrop-filter:blur(16px) saturate(1.1)!important;
+ box-shadow:0 5px 19px rgba(31,53,40,.14)!important;
+}
+body.fp-unified-route .fp-route-segment-popup .maplibregl-popup-tip{
+ border-top-color:rgba(255,254,249,.90)!important;
+ border-bottom-color:rgba(255,254,249,.90)!important;
+}
+#fpUnifiedRoute .fp-route-segment-popup .maplibregl-popup-close-button{display:none}
+.fp-route-line-title{display:flex;align-items:center;gap:9px;min-height:32px}
+.fp-route-line-title strong{font-size:15px;font-weight:730;flex:1;min-width:0}
+.fp-route-line-icon{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:#e6ede4;color:#375a45}
+.fp-route-line-icon svg{width:21px;height:21px}
+.fp-route-line-title button{
+ border:0;background:none;color:#637e6c;font-size:11px;font-weight:670;
+ padding:6px 0 6px 8px;min-height:32px;white-space:nowrap;
+}
+.fp-route-line-points{font-size:11px;color:#7a8d80;line-height:1.4}
+.fp-route-line-eta{
+ border-top:1px solid rgba(202,216,202,.8);padding-top:9px;
+ font-size:12px;font-weight:650;color:#3c6350;line-height:1.5;
+}
+.fp-route-line-navigate{
+ align-self:flex-start;border:0;background:rgba(226,236,227,.84);
+ color:#365e48;font-size:11px;font-weight:650;
+ padding:7px 10px;border-radius:9px;min-height:32px;
+}
+.fp-route-line-navigate:active,
+.fp-route-line-title button:active{transform:scale(.97);opacity:.77}
+@media(prefers-reduced-motion:reduce){
+ #fpUnifiedRoute .fp-route-reorder{transition:none!important}
+}
+
+/* V5 single-card invariant: the obsolete memorySheet is never displayed. */
+html.fp-v5-single-place #memorySheet{display:none!important;visibility:hidden!important;pointer-events:none!important}
+html.fp-v5-single-place body.fp-unified-route.fp-place-open #fpPlaceCard{z-index:3600!important}
+html.fp-v5-single-place body.fp-unified-route.fp-place-open #fpUnifiedRoute .fp-route-sheet,
+html.fp-v5-single-place body.fp-unified-route.fp-place-open #fpUnifiedRoute .fp-route-mini{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+
+
+/* V5 2026-11-20 • single-state navigation and viewport-aware route bubble */
+#navigationChooser[hidden],
+#navigationChooser[aria-hidden="true"]:not(.visible){
+ display:none!important;
+ pointer-events:none!important;
+}
+#navigationChooser[data-nav-exiting="1"]{
+ pointer-events:none!important;
+}
+#navigationChooser[data-nav-exiting="1"] .nav-panel{
+ pointer-events:none!important;
+}
+#btnLocate.is-locating{
+ border-color:#7fa18c!important;
+ box-shadow:0 0 0 3px rgba(89,137,100,.12),0 4px 17px rgba(40,74,51,.16)!important;
+}
+#btnLocate.is-locating svg{animation:fp-locate-feedback .9s ease-in-out infinite}
+@keyframes fp-locate-feedback{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes fp-route-bubble-in{
+ from{opacity:0;transform:translate3d(0,9px,0) scale(.97)}
+ to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes fp-route-bubble-out{
+ from{opacity:1;transform:translate3d(0,0,0) scale(1)}
+ to{opacity:0;transform:translate3d(0,7px,0) scale(.975)}
+}
+body.fp-unified-route .fp-route-segment-popup .maplibregl-popup-content{
+ max-width:calc(100vw - 34px)!important;
+ animation:fp-route-bubble-in 240ms cubic-bezier(.18,.78,.28,1) both;
+ transform-origin:center bottom;
+ will-change:opacity,transform;
+}
+body.fp-unified-route .fp-route-segment-popup.is-closing .maplibregl-popup-content{
+ animation:fp-route-bubble-out 160ms cubic-bezier(.34,.02,.54,1) both!important;
+ pointer-events:none!important;
+}
+body.fp-unified-route .fp-route-segment-popup.is-hidden-for-space{
+ opacity:0!important;pointer-events:none!important;
+}
+body.fp-unified-route .fp-route-segment-popup.is-compact .maplibregl-popup-content{
+ padding:9px 11px!important;border-radius:14px!important;
+}
+.fp-route-segment-popup.is-compact .fp-route-line-bubble{gap:5px;min-width:0;max-width:200px}
+.fp-route-segment-popup.is-compact .fp-route-line-title{min-height:27px}
+.fp-route-segment-popup.is-compact .fp-route-line-icon{width:26px;height:26px}
+.fp-route-segment-popup.is-compact .fp-route-line-icon svg{width:18px;height:18px}
+.fp-route-segment-popup.is-compact .fp-route-line-points{display:none!important}
+.fp-route-segment-popup.is-compact .fp-route-line-eta{padding-top:6px;font-size:11px}
+.fp-route-segment-popup.is-compact .fp-route-line-navigate{min-height:27px;padding:5px 9px}
+@media(prefers-reduced-motion:reduce){
+ #btnLocate.is-locating svg,
+ body.fp-unified-route .fp-route-segment-popup .maplibregl-popup-content{
+  animation:none!important;will-change:auto!important;
+ }
+}
+
+/* Real visual width matches the placement engine's 210px collision box. */
+body.fp-unified-route .fp-route-segment-popup .fp-route-line-bubble{
+ min-width:0!important;width:182px!important;max-width:182px!important;gap:6px;
+}
+body.fp-unified-route .fp-route-segment-popup .maplibregl-popup-content{
+ width:auto!important;min-width:0!important;
+}
+body.fp-unified-route .fp-route-segment-popup.is-compact .fp-route-line-bubble{
+ width:174px!important;max-width:174px!important;gap:4px;
+}
+body.fp-unified-route .fp-route-segment-popup .fp-route-line-title{
+ gap:6px;min-width:0;
+}
+body.fp-unified-route .fp-route-segment-popup .fp-route-line-title strong{
+ font-size:14px!important;
+}
+
+
+/* Approved compact road label: a map-anchored dot, no pointer/tail.
+   First tap previews mode + real ETA; second tap reveals existing actions. */
+body.fp-unified-route .fp-route-segment-popup .maplibregl-popup-tip{display:none!important}
+body.fp-unified-route .fp-route-segment-popup .fp-route-line-bubble[hidden],
+body.fp-unified-route .fp-route-segment-popup .fp-route-segment-pill-button[hidden]{display:none!important}
+body.fp-unified-route .fp-route-segment-popup:not(.is-expanded) .maplibregl-popup-content{
+ padding:4px 7px!important;width:auto!important;min-width:0!important;
+ border-radius:18px!important;box-shadow:0 5px 16px rgba(29,57,43,.14)!important;
+ border:1px solid #dce6dd!important;transform-origin:center bottom;
+ animation:fp-route-pill-in 210ms cubic-bezier(.2,.75,.25,1) both!important
+}
+body.fp-unified-route .fp-route-segment-popup.is-expanded .maplibregl-popup-content{
+ animation:fp-route-pill-expand 190ms cubic-bezier(.2,.75,.25,1) both!important
+}
+body.fp-unified-route .fp-route-segment-popup.is-closing .maplibregl-popup-content{
+ animation:fp-route-pill-out 165ms ease-in both!important;pointer-events:none!important
+}
+body.fp-unified-route .fp-route-segment-popup .fp-route-segment-pill-button{
+ display:flex;align-items:center;justify-content:center;gap:5px;min-height:33px;
+ max-width:195px;width:max-content;border:0;background:transparent;color:#304b3d;
+ padding:3px 5px;font-family:inherit;font-size:12px;font-weight:650;white-space:nowrap;
+ cursor:pointer;-webkit-tap-highlight-color:transparent
+}
+.fp-route-segment-pill-button .fp-route-pill-icon{display:grid;place-items:center;color:#3f6654}
+.fp-route-segment-pill-button .fp-route-pill-icon svg{width:17px;height:17px}
+.fp-route-segment-pill-button .fp-route-pill-dot{color:#9daf9c}
+.fp-route-segment-pill-button .fp-route-pill-eta{font-variant-numeric:tabular-nums}
+.fp-route-segment-anchor.maplibregl-marker{
+ display:block;width:11px;height:11px;border-radius:50%;
+ background:#fffefa;border:2px solid #3b6b50;
+ box-shadow:0 0 0 3px rgba(255,254,250,.55);
+ pointer-events:none!important;animation:fp-route-dot-in 200ms ease-out both
+}
+@keyframes fp-route-pill-in{from{opacity:0;transform:translateY(5px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes fp-route-pill-expand{from{opacity:.84;transform:translateY(3px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes fp-route-pill-out{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(3px) scale(.96)}}
+@keyframes fp-route-dot-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){
+ body.fp-unified-route .fp-route-segment-popup .maplibregl-popup-content,
+ .fp-route-segment-anchor.maplibregl-marker{animation:none!important}
+}
+
+
+/* V5 route coherence: flattened saved-route list, no nested cards. */
+#fpUnifiedRoute .fp-route-saved-flat{
+ margin:0 16px 8px;overflow:hidden;background:#fffefa;
+ border:1px solid #dce5dc;border-radius:19px
+}
+#fpUnifiedRoute .fp-route-saved-row{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ width:100%;padding:15px 17px;border:0;border-bottom:1px solid #e7ece5;
+ border-radius:0;background:transparent;color:#2d493b;text-align:left;
+ font:inherit;-webkit-tap-highlight-color:transparent;cursor:pointer
+}
+#fpUnifiedRoute .fp-route-saved-row:last-child{border-bottom:0}
+#fpUnifiedRoute .fp-route-saved-row:active{background:#f1f5ef}
+#fpUnifiedRoute .fp-route-saved-copy{display:grid;gap:7px;min-width:0}
+#fpUnifiedRoute .fp-route-saved-copy strong{font-size:15px;font-weight:700;line-height:1.4}
+#fpUnifiedRoute .fp-route-saved-copy small{font-size:12px;color:#8a9c8e;line-height:1.4}
+#fpUnifiedRoute .fp-route-saved-arrow{font-size:24px;font-weight:400;color:#8b9e8c}
+#fpUnifiedRoute .fp-route-road-status{
+ margin:10px 18px 12px;color:#829688;font-size:11px;line-height:1.5
+}
+/* A selected star only opens this temporary action. Permanent collection unaffected. */
+.fp-route-selection-popup .maplibregl-popup-content{
+ padding:4px!important;background:#fffefa!important;border-radius:15px!important;
+ box-shadow:0 5px 17px rgba(26,51,37,.16)!important
+}
+.fp-route-selection-popup .maplibregl-popup-tip{display:none!important}
+.fp-route-selection-popup .fp-route-remove-selected{
+ display:block;white-space:nowrap;background:transparent;border:0;padding:9px 12px;
+ color:#365b45;font:600 13px/1.4 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+ cursor:pointer;-webkit-tap-highlight-color:transparent
+}
+
+
+/* V5 route-list and map continuity: one clearly selected route across card levels. */
+#fpUnifiedRoute .fp-route-saved-row.is-current{background:#f0f4ee}
+#fpUnifiedRoute .fp-route-saved-row.is-current:active{background:#e5eee4}
+#fpUnifiedRoute .fp-route-saved-copy{gap:5px}
+#fpUnifiedRoute .fp-route-saved-copy small{
+  display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;
+}
+#fpUnifiedRoute .fp-route-saved-active{
+  flex:none;align-self:center;font-size:10px;font-weight:650;
+  color:#5f826b;background:#e5ede3;padding:7px 8px;border-radius:10px;
+}
+#fpUnifiedRoute .fp-route-saved-flat{overflow:hidden}
+@media (max-width:390px){
+ #fpUnifiedRoute .fp-route-saved-active{font-size:9px;padding:6px 7px}
+}

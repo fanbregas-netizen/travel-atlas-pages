@@ -1,0 +1,28 @@
+{
+  "product": "Footprint Map V5",
+  "qa": "V5 single-route continuity: selected saved itinerary persists across list and detail",
+  "source_repo": "fanbregas-netizen/travel-atlas",
+  "source_commit": "55f55d0ddd186a885a2cc0c15492514d68c2951f",
+  "source_pr": 57,
+  "preview_directory": "v5-route-continuity-20261120",
+  "previous_preview": "v5-route-stages-20261120",
+  "production_root_modified": false,
+  "isolated_indexeddb_namespace": "private-travel-footprints-v5-pr53-review-20261119",
+  "fixes": [
+    "Saved route list highlights exactly one current map preview with route origin/destination, dates and stop count",
+    "Opening same saved itinerary does not reset route state, clear segment cache, or reinitialize MapLibre",
+    "Return from itinerary detail preserves active route ID, road geometry, numbered stars and camera",
+    "An empty map tap while listing saved routes does not unexpectedly exit the route subsystem",
+    "Reordering retains other valid directed road segments and safely accepts pending geometry",
+    "Exit clears route GeoJSON, temporary stop markers, bubble and numbering before sheet departure",
+    "Route stops never draw synthetic straight lines during actual road requests"
+  ],
+  "tests": {
+    "source_js_syntax": "passed",
+    "static_contract": "12/12",
+    "browser_smoke": "pending",
+    "real_iPhone_Safari": "pending"
+  },
+  "data_migration": "none in this revision; original PR57 bookmark/route data parity retained; records never deleted",
+  "formal_merge": false
+}

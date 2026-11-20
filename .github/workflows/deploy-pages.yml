@@ -99,6 +99,18 @@ jobs:
           grep -q 'route-stages-20261120' _site/v5-route-stages-20261120/index.html
           grep -q '99627256d8cd2cf7471a3d617c50b9dd26ccb547' _site/v5-route-stages-20261120/QA_BUILD.json
           grep -q 'fp-route-segment-pill-button' _site/v5-route-stages-20261120/src/route/route-single-map-v1.js
+          # PR57: actual V5 product, coherent selected route across saved list and detail.
+          # Copy only the new standalone snapshot; official root remains unchanged.
+          cp -R v5-route-continuity-20261120 _site/v5-route-continuity-20261120
+          test -s _site/v5-route-continuity-20261120/index.html
+          test -s _site/v5-route-continuity-20261120/QA_BUILD.json
+          test -s _site/v5-route-continuity-20261120/src/route/route-single-map-v1.js
+          test -s _site/v5-route-continuity-20261120/src/visual/v5-card-system-unified-20261119.css
+          grep -q 'route-continuity-20261120' _site/v5-route-continuity-20261120/index.html
+          grep -q '55f55d0ddd186a885a2cc0c15492514d68c2951f' _site/v5-route-continuity-20261120/QA_BUILD.json
+          grep -q "window.__fpStorageNamespace='private-travel-footprints-v5-pr53-review-20261119'" _site/v5-route-continuity-20261120/index.html
+          grep -q 'fp-route-saved-active' _site/v5-route-continuity-20261120/src/route/route-single-map-v1.js
+          node --check _site/v5-route-continuity-20261120/src/route/route-single-map-v1.js
           # V5 ROUTE STORYBOARD: interactive approval draft, no product files or user data.
           cp -R v5-route-storyboard-review-20261120 _site/v5-route-storyboard-review-20261120
           test -s _site/v5-route-storyboard-review-20261120/index.html
@@ -770,6 +782,21 @@ jobs:
         run: sleep 18
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify V5 continuous-route full product preview is live
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-route-continuity-20261120/'
+          for file in index.html QA_BUILD.json src/route/route-single-map-v1.js src/visual/v5-card-system-unified-20261119.css; do
+            curl -fsSL --retry 14 --retry-delay 4 --retry-all-errors --max-time 25 -H 'Cache-Control: no-cache' "${BASE}${file}?sha=${GITHUB_SHA}" -o /tmp/v5-route-continuity-check
+            test -s /tmp/v5-route-continuity-check
+            case "${file}" in
+              index.html) grep -q 'route-continuity-20261120' /tmp/v5-route-continuity-check ;;
+              QA_BUILD.json) grep -q '55f55d0ddd186a885a2cc0c15492514d68c2951f' /tmp/v5-route-continuity-check ;;
+              src/route/route-single-map-v1.js) grep -q 'function loadSaved(id)' /tmp/v5-route-continuity-check ;;
+            esac
+          done
+          echo 'V5 route continuity public HTTP 200 verified'
       - name: Verify standalone V5 step-by-step interactive route storyboard is public
         shell: bash
         run: |
