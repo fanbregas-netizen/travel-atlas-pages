@@ -129,7 +129,7 @@ jobs:
           test -s _site/v5-route-touch-elastic-20261120/src/visual/v5-card-system-unified-20261119.css
           grep -q 'fp-map-credits-menu-v2' _site/v5-route-touch-elastic-20261120/index.html
           grep -q 'route-tap-elastic-20261120' _site/v5-route-touch-elastic-20261120/index.html
-          grep -q '968e8d3b90ff8dc19651b79ddfb84d50c47150de' _site/v5-route-touch-elastic-20261120/QA_BUILD.json
+          grep -q '4de6a6bb04c7dfdffa6ae6f6fe3f799375b7d634' _site/v5-route-touch-elastic-20261120/QA_BUILD.json
           grep -q "window.__fpStorageNamespace='private-travel-footprints-v5-pr53-review-20261119'" _site/v5-route-touch-elastic-20261120/index.html
           grep -q "fp-single-hit" _site/v5-route-touch-elastic-20261120/src/route/route-single-map-v1.js
           node --check _site/v5-route-touch-elastic-20261120/src/route/route-single-map-v1.js
@@ -814,7 +814,7 @@ jobs:
             test -s /tmp/v5-route-touch
             case "${file}" in
               index.html) grep -q 'fp-map-credits-menu-v2' /tmp/v5-route-touch ;;
-              QA_BUILD.json) grep -q '968e8d3b90ff8dc19651b79ddfb84d50c47150de' /tmp/v5-route-touch ;;
+              QA_BUILD.json) grep -q '4de6a6bb04c7dfdffa6ae6f6fe3f799375b7d634' /tmp/v5-route-touch ;;
               src/route/route-single-map-v1.js) grep -q 'fp-single-selected-halo' /tmp/v5-route-touch ;;
             esac
           done

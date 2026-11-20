@@ -422,6 +422,9 @@ function ensureLineLayers(){
  if(!routeSegmentListener&&map.on){
   routeSegmentListener=e=>{
    if(!DATA.open||!['saved','order','view','detail'].includes(DATA.mode))return;
+   // General map fallback can dispatch before delegated layer click.
+   // Only open one popup for a single finger tap, never reset its animation.
+   if(Date.now()-lastSegmentTap<280)return;
    const f=e.features?.[0],from=f?.properties?.from,to=f?.properties?.to;
    if(!from||!to)return;
    e.originalEvent?.stopPropagation?.();
