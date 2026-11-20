@@ -1,0 +1,36 @@
+name: V5 RC1 frozen release smoke (WebKit + Chromium)
+on:
+  push:
+    branches:
+      - qa/v5-rc1-regression-20261120
+    paths:
+      - qa/v5-rc1/**
+      - .github/workflows/v5-rc1-regression.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rc1-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      RC_URL: https://fanbregas-netizen.github.io/travel-atlas-pages/v5-route-touch-elastic-20261120/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Chromium and WebKit for isolated QA
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium webkit --with-deps
+      - name: Exercise RC1 preview in mobile browsers
+        run: node qa/v5-rc1/smoke.cjs
+      - name: Upload screenshot and JSON evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-rc1-browser-evidence
+          path: qa/v5-rc1/evidence/
+          if-no-files-found: warn
+          retention-days: 14
