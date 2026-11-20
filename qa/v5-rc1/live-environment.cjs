@@ -128,26 +128,29 @@ async function browserQA(name,browserType,videoBytes){
    if(videoBytes)assert.equal(s.video,1);
    return JSON.stringify(s);
   });
-  await check(name,'gallery opens real saved photo, next switches to video',async()=>{
-   await page.evaluate(()=>window.__atlasPOIBridge.selectSaved('qa-env-a'));
-   const photoButton=page.locator('#memorySheet [data-action="photo"][data-id="qa-env-a"]').first();
-   await photoButton.waitFor({state:'attached',timeout:12500});
+  const galleryOpen=await check(name,'V5 real place card opens photo and navigates to video',async()=>{
+   await page.waitForFunction(()=>window.__footprintHome?.openSaved,{timeout:11000});
+   assert(await page.evaluate(()=>window.__footprintHome.openSaved('qa-env-a'))!==false);
+   const photoButton=page.locator('#fpPlaceCard .fp-media-mosaic [data-fp-media-index="0"]');
+   await photoButton.waitFor({state:'attached',timeout:12000});
    await photoButton.evaluate(el=>el.click());
-   await page.locator('#viewer.visible').waitFor({state:'visible',timeout:9000});
-   const before=await page.locator('#viewerCaption').innerText();
-   assert(before.startsWith('1 /'),'expected first gallery photo '+before);
-   await page.locator('#viewerNext').evaluate(el=>el.click());
-   const second=await page.locator('#viewerCaption').innerText();
-   if(videoBytes){assert(second.includes('视频'),'video was not selected '+second);
-    assert.equal(await page.locator('#viewerVideo').evaluate(el=>getComputedStyle(el).display!=='none'),true);}
-   return JSON.stringify({photo:before,second,videoVisible:videoBytes?true:false});
-  },'FAIL');
+   await page.locator('#fpMediaViewer[open]').waitFor({state:'visible',timeout:8000});
+   const before=await page.locator('#fpMediaViewer').getAttribute('data-item-index');
+   assert.equal(before,'0','expected first gallery photo index');
+   if(videoBytes){
+    await page.locator('#fpMediaViewer').focus();
+    await page.locator('#fpMediaViewer').press('ArrowRight');
+    await page.waitForFunction(()=>document.querySelector('#fpMediaViewer')?.dataset.itemIndex==='1',{timeout:6500});
+   }
+   return JSON.stringify({first:before,next:await page.locator('#fpMediaViewer').getAttribute('data-item-index'),hasVideoFixture:!!videoBytes});
+  });
   await snapshot('01-gallery-video');
-  if(videoBytes)await check(name,'video metadata and playback in actual product viewer',async()=>{
-   const info=await page.locator('#viewerVideo').evaluate(async v=>{
+  if(videoBytes&&galleryOpen)await check(name,'V5 video metadata and decoding in actual fullscreen viewer',async()=>{
+   await page.waitForFunction(()=>document.querySelector('#fpMediaViewer .fp-gallery-cell video')?.src,{timeout:8000});
+   const info=await page.locator('#fpMediaViewer .fp-gallery-cell video').first().evaluate(async v=>{
     let ev='';await new Promise(resolve=>{
      if(v.readyState>=1){resolve();return}
-     const t=setTimeout(()=>{ev='timeout';resolve()},6500);
+     const t=setTimeout(()=>{ev='timeout';resolve()},6000);
      v.addEventListener('loadedmetadata',()=>{clearTimeout(t);resolve()},{once:true});
      v.addEventListener('error',()=>{clearTimeout(t);ev='error';resolve()},{once:true});
     });
@@ -157,12 +160,11 @@ async function browserQA(name,browserType,videoBytes){
    assert(Number.isFinite(info.duration)&&info.duration>0);
    return JSON.stringify(info);
   },'BLOCKER');
-  await check(name,'gallery closes and video is stopped',async()=>{
-   await page.locator('#closeViewer').evaluate(el=>el.click());
-   await page.waitForFunction(()=>!document.querySelector('#viewer')?.classList.contains('visible'),{timeout:5000});
-   const v=await page.locator('#viewerVideo').evaluate(el=>({paused:el.paused,src:el.getAttribute('src')}));
-   assert(v.paused);assert.equal(v.src,null);
-   return JSON.stringify(v);
+  if(galleryOpen)await check(name,'V5 fullscreen gallery closes and releases the video decoder',async()=>{
+   await page.locator('#fpMediaViewer .fp-viewer-close').evaluate(el=>el.click());
+   await page.waitForFunction(()=>!document.querySelector('#fpMediaViewer'),null,{timeout:7000});
+   assert.equal(await page.locator('#fpMediaViewer video[src]').count(),0);
+   return 'V5 gallery closed and its transient video DOM disposed';
   });
   await snapshot('02-gallery-closed');
   // Test route provider outage separately. This app has a 15-min error cache,
