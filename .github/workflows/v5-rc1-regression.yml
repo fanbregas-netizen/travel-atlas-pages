@@ -41,6 +41,8 @@ jobs:
           test -s qa/v5-rc1/generated-video.webm
       - name: Real OSRM provider, media viewer and offline resilience
         run: node qa/v5-rc1/live-environment.cjs
+      - name: Frame-by-frame saved-route switching and rapid sheet reopen
+        run: node qa/v5-rc1/route-frames.cjs
       - name: Upload screenshot and JSON evidence
         if: always()
         uses: actions/upload-artifact@v4
