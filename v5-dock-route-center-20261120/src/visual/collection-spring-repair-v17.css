@@ -1,0 +1,69 @@
+/* Footprint Map .17 · restorative corrections only.
+   Do not replace the already-approved B05 kinetic sheet or media controllers. */
+body #drawer.fp30-detail .drawer-head,
+body #drawer.fp30-detail .drawer-head .sheet-grab{
+ touch-action:none!important;
+ -webkit-user-select:none!important;
+ user-select:none!important;
+}
+body #drawer.fp30-detail[data-collection-dragging="true"]{
+ transition:none!important;
+ will-change:height!important;
+}
+body #drawer.fp30-detail .drawer-head .sheet-grab{
+ cursor:grab!important;
+}
+body #drawer.fp30-detail #spotList .spotrow{
+ -webkit-tap-highlight-color:transparent;
+ /* Native taps remain valid; a deliberate vertical swipe hands the gesture
+    to B05 after a 10px dead zone rather than being discarded as a row tap. */
+ touch-action:manipulation;
+}
+body #drawer.fp30-detail #spotList{
+ margin:0!important;
+ padding-top:4px!important;
+}
+body #drawer.fp30-detail .drawer-head{
+ padding-bottom:9px!important;
+}
+body #drawer.fp30-detail .drawer-head h2{
+ font-size:23px!important;
+ font-weight:710!important;
+ letter-spacing:-.034em!important;
+}
+/* The photo viewer's close target must be easy to tap, but the visible icon
+   is a quiet 16px hairline X, not an oversized square/pictogram. */
+#viewer.photo-viewer .viewer-top #closeViewer,
+#fpMediaViewer .fp-viewer-close{
+ width:44px!important;
+ height:44px!important;
+ min-width:44px!important;
+ min-height:44px!important;
+ max-width:44px!important;
+ max-height:44px!important;
+ padding:0!important;
+ border:0!important;
+ border-radius:12px!important;
+ background:transparent!important;
+ box-shadow:none!important;
+ color:#f9faf7!important;
+ filter:none!important;
+ opacity:.86!important;
+}
+#viewer.photo-viewer .viewer-top #closeViewer::before,
+#viewer.photo-viewer .viewer-top #closeViewer::after,
+#fpMediaViewer .fp-viewer-close::before,
+#fpMediaViewer .fp-viewer-close::after{
+ width:16px!important;
+ height:1.6px!important;
+ border-radius:1px!important;
+ background:#f9faf7!important;
+ background-image:none!important;
+ -webkit-mask:none!important;
+ mask:none!important;
+}
+#viewer.photo-viewer .viewer-top #closeViewer:active,
+#fpMediaViewer .fp-viewer-close:active{
+ background:rgba(255,255,255,.10)!important;
+ opacity:1!important;
+}

@@ -1,0 +1,121 @@
+/* ============================================================
+   Footprint Map × Travel Atlas — V3 手绘图标系统
+   来源：Footprint_Map_Icon_System_V3 完整开发素材包（用户确认）
+   规范：viewBox 64 / 主线宽 3.4 / 墨色 #161616 / 已收藏黄 #F6CC3B
+   尺寸：工具条 24 · 气泡内 32 · 强调 40 · 触控热区 ≥44
+   实现：CSS mask，url 相对本 CSS 文件，两份部署（stage1/app）通用
+   ============================================================ */
+:root{--ic-ink:#161616;--ic-saved:#c9a227}
+.ic-b::before,.ic-a::after{content:'';display:inline-block;flex:none;
+  -webkit-mask-position:center;-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;
+  mask-position:center;mask-size:contain;mask-repeat:no-repeat;background:var(--ic-ink)}
+
+/* ---------- 通用小工具 ---------- */
+.ic16::before{width:16px;height:16px}
+.ic18::before{width:18px;height:18px}
+.ic20::before{width:20px;height:20px}
+.ic24::before{width:24px;height:24px}
+
+/* ---------- 主页 · 右侧圆形按钮栏（btnStars/btnLocate 由内联 SVG 注入，见 index.html） ---------- */
+#atlasJourneyEntry{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1}
+#atlasJourneyEntry::before{content:'';width:21px;height:21px;background:#544b32;
+  -webkit-mask:url('icons/17_route.svg') center/contain no-repeat;mask:url('icons/17_route.svg') center/contain no-repeat}
+
+/* ---------- 主页 · 底部悬浮 dock（探索附近 / 收藏 / 标记地点） ---------- */
+#quickNear,#quickStars,#quickPin{font-size:0!important}
+#quickNear::before,#quickStars::before,#quickPin::before{content:'';display:block;width:24px;height:24px;margin:auto;background:var(--ic-ink);
+  -webkit-mask-position:center;-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;
+  mask-position:center;mask-size:contain;mask-repeat:no-repeat}
+#quickNear{-webkit-mask-image:none}
+#quickNear::before{-webkit-mask-image:url('icons/10_nearby.svg');mask-image:url('icons/10_nearby.svg')}
+#quickStars::before{-webkit-mask-image:url('icons/03_star.svg');mask-image:url('icons/03_star.svg')}
+#quickPin::before{-webkit-mask-image:url('icons/16_add_place.svg');mask-image:url('icons/16_add_place.svg')}
+body.picking #quickPin::before{display:none}
+
+/* ---------- 主页 · 底部导航（地图 / 足迹 / 标记地点 / 备份） ---------- */
+#navMap,#navList,#navAdd,#navBackup{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;line-height:1}
+#navMap::before,#navList::before,#navAdd::before,#navBackup::before{content:'';display:block;width:20px;height:20px;background:var(--ic-ink);
+  -webkit-mask-position:center;-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;
+  mask-position:center;mask-size:contain;mask-repeat:no-repeat}
+#navMap::before{-webkit-mask-image:url('icons/01_map.svg');mask-image:url('icons/01_map.svg')}
+#navList::before{-webkit-mask-image:url('icons/05_footprints.svg');mask-image:url('icons/05_footprints.svg')}
+#navAdd::before{-webkit-mask-image:url('icons/16_add_place.svg');mask-image:url('icons/16_add_place.svg')}
+#navBackup::before{-webkit-mask-image:url('icons/28_upload.svg');mask-image:url('icons/28_upload.svg')}
+#navAdd .symbol{font-size:12px}
+
+/* ---------- 主页 · 搜索条（dock-go 的放大镜由内联 V3 SVG 注入，见 index.html） ---------- */
+
+/* ---------- 通用 · 关闭按钮 ---------- */
+#closeDrawer,#closeMemory,.atlas-close,#amapClose,#closeViewer,#closeShareNotice,
+.rs-close,.fs-close,#routeMapClose,#routeSearchClose,#routeLibraryClose,
+#closeBubble,#routeSaveClose,#addStopClose{font-size:0!important}
+#closeDrawer::before,#closeMemory::before,.atlas-close::before,#amapClose::before,#closeViewer::before,#closeShareNotice::before,
+.rs-close::before,.fs-close::before,#routeMapClose::before,#routeSearchClose::before,#routeLibraryClose::before,
+#closeBubble::before,#routeSaveClose::before,#addStopClose::before{content:'';display:block;width:16px;height:16px;margin:auto;background:currentColor;color:inherit;
+  -webkit-mask:url('icons/19_close.svg') center/contain no-repeat;mask:url('icons/19_close.svg') center/contain no-repeat}
+#closeDrawer,#closeMemory,.atlas-close,#amapClose,#closeViewer,#closeShareNotice,
+.rs-close,.fs-close,#routeMapClose,#routeSearchClose,#routeLibraryClose{color:#3b4544}
+#closeBubble{display:grid;place-items:center;line-height:1}
+
+/* ---------- 主页 · 路线三入口 & 我的路线 ---------- */
+#routeMapAction,#routeSearchAction,#routeSavedAction,#savedTripEntry{display:inline-flex;align-items:center;gap:5px}
+#routeMapAction::before,#routeSearchAction::before,#routeSavedAction::before,#savedTripEntry::before{content:'';display:inline-block;width:15px;height:15px;background:var(--ic-ink);
+  -webkit-mask-position:center;-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;
+  mask-position:center;mask-size:contain;mask-repeat:no-repeat}
+#routeMapAction::before{-webkit-mask-image:url('icons/16_add_place.svg');mask-image:url('icons/16_add_place.svg')}
+#routeSearchAction::before{-webkit-mask-image:url('icons/02_search.svg');mask-image:url('icons/02_search.svg')}
+#routeSavedAction::before,#savedTripEntry::before{-webkit-mask-image:url('icons/17_route.svg');mask-image:url('icons/17_route.svg')}
+
+/* ---------- 主页 · 记忆卡快捷条 & 目的地卡 ---------- */
+#memoryUpload,#memoryShare,#memoryRoute,#memoryUnstar,
+#destinationStar,#destinationNav,#destinationUnstar{display:inline-flex;align-items:center;gap:5px}
+#memoryUpload::before,#memoryShare::before,#memoryRoute::before,#memoryUnstar::before,
+#destinationStar::before,#destinationNav::before,#destinationUnstar::before{content:'';display:inline-block;width:15px;height:15px;background:currentColor;
+  -webkit-mask-position:center;-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;
+  mask-position:center;mask-size:contain;mask-repeat:no-repeat}
+#memoryUpload::before{-webkit-mask-image:url('icons/13_add_media.svg');mask-image:url('icons/13_add_media.svg')}
+#memoryShare::before{-webkit-mask-image:url('icons/15_share.svg');mask-image:url('icons/15_share.svg')}
+#memoryRoute::before,#destinationNav::before{-webkit-mask-image:url('icons/40_direction.svg');mask-image:url('icons/40_direction.svg')}
+#memoryUnstar::before,#destinationStar::before,#destinationUnstar::before{-webkit-mask-image:url('icons/03_star.svg');mask-image:url('icons/03_star.svg')}
+
+/* ---------- 主页 · 收藏列表 spotrow 封面占位 ---------- */
+.spotempty.spotempty-ic{font-size:0}
+.spotempty.spotempty-ic::before{content:'';display:block;width:26px;height:26px;background:#e8b23a;
+  -webkit-mask:url('icons/03_star.svg') center/contain no-repeat;mask:url('icons/03_star.svg') center/contain no-repeat}
+.spotempty.spotempty-vid::before{content:'';display:block;width:24px;height:24px;background:#8b9089;
+  -webkit-mask:url('icons/12_video.svg') center/contain no-repeat;mask:url('icons/12_video.svg') center/contain no-repeat}
+
+/* ---------- 路线视图 ---------- */
+.atlas-back span[aria-hidden]{display:none}
+.atlas-back::before{content:'';display:inline-block;width:17px;height:17px;background:var(--ic-ink);vertical-align:-3px;margin-right:2px;
+  -webkit-mask:url('icons/35_back.svg') center/contain no-repeat;mask:url('icons/35_back.svg') center/contain no-repeat}
+#viewAll span[aria-hidden]{display:none}
+#viewAll::before{content:'';display:block;width:20px;height:20px;background:var(--ic-ink);
+  -webkit-mask:url('icons/42_fit.svg') center/contain no-repeat;mask:url('icons/42_fit.svg') center/contain no-repeat}
+.empty-icon{font-size:0!important}
+.empty-icon::before{content:'';display:block;width:40px;height:40px;background:var(--ic-saved);
+  -webkit-mask:url('icons/03_star.svg') center/contain no-repeat;mask:url('icons/03_star.svg') center/contain no-repeat}
+#addStop,#saveRoute,#amapNavigate,#backToSource{display:inline-flex;align-items:center;gap:5px}
+#addStop::before,#saveRoute::before,#amapNavigate::before,#backToSource::before{content:'';display:inline-block;width:15px;height:15px;background:currentColor;
+  -webkit-mask-position:center;-webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;
+  mask-position:center;mask-size:contain;mask-repeat:no-repeat}
+#addStop::before{-webkit-mask-image:url('icons/16_add_place.svg');mask-image:url('icons/16_add_place.svg')}
+#saveRoute::before{-webkit-mask-image:url('icons/39_save_note.svg');mask-image:url('icons/39_save_note.svg')}
+#saveRoute span[aria-hidden]{display:none}
+#amapNavigate::before{-webkit-mask-image:url('icons/40_direction.svg');mask-image:url('icons/40_direction.svg')}
+#backToSource::before{-webkit-mask-image:url('icons/29_open_link.svg');mask-image:url('icons/29_open_link.svg')}
+.add-stop-foot a::before{content:'';display:inline-block;width:14px;height:14px;background:var(--ic-saved);vertical-align:-2px;margin-right:3px;
+  -webkit-mask:url('icons/active_04_star_saved.svg') center/contain no-repeat;mask:url('icons/active_04_star_saved.svg') center/contain no-repeat}
+
+/* ---------- 旅程规划页 ---------- */
+.back-link .back-arrow{display:none}
+.back-link::before{content:'';display:inline-block;width:16px;height:16px;background:var(--ic-ink);vertical-align:-3px;margin-right:3px;
+  -webkit-mask:url('icons/35_back.svg') center/contain no-repeat;mask:url('icons/35_back.svg') center/contain no-repeat}
+#copyPrompt,#aiCopy,#aiImport,.filelabel[for=importPlan]{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+#copyPrompt::before,#aiCopy::before{content:'';display:inline-block;width:15px;height:15px;background:currentColor;
+  -webkit-mask:url('icons/30_copy.svg') center/contain no-repeat;mask:url('icons/30_copy.svg') center/contain no-repeat}
+#aiImport::before,.filelabel[for=importPlan]::before{content:'';display:inline-block;width:15px;height:15px;background:currentColor;
+  -webkit-mask:url('icons/28_upload.svg') center/contain no-repeat;mask:url('icons/28_upload.svg') center/contain no-repeat}
+
+/* build.15 路线卡/合并底栏：图标已内嵌 img，停用 ::before 以免重影 */
+#routeMapAction::before,#routeSavedAction::before,#routeMapClose::before{display:none!important}

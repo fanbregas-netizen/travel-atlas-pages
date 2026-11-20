@@ -1,0 +1,29 @@
+{
+  "product": "Footprint Map V5",
+  "qa": "Navigation/Locate/Route-bubble P0-P1 2026-11-20",
+  "source_repo": "fanbregas-netizen/travel-atlas",
+  "source_commit": "081df2992d4479b665a7f271bad1110ea208dee3",
+  "source_pr": 57,
+  "preview_directory": "v5-nav-bubble-locate-20261120",
+  "previous_preview": "v5-data-camera-20261120",
+  "production_root_modified": false,
+  "isolated_indexeddb_namespace": "private-travel-footprints-v5-pr53-review-20261119",
+  "fixes": [
+    "One navigation chooser state machine; release all map hit targets at close, including pagehide/pageshow restore",
+    "Active Locate works during star-only map picking, preserves camera zoom and existing saved stars",
+    "Background GPS does not steal map view; denied location shows an explicit error",
+    "Selected road segment bubble chooses screen-space blank area beyond yellow stars, line geometry and sheet",
+    "Route bubble repositions as sheet slides or map camera moves; compact variant on a small screen",
+    "Bubble entrance and dismissal use V5 spring motion and restore selected line highlight",
+    "Avoid repeated MapLibre camera repaint after sheet settles; original full place card clears route bubble"
+  ],
+  "tests": {
+    "simulated_navigation_lifecycle": "7/7",
+    "simulated_active_geolocation": "6/6",
+    "sampled_narrow_view_collision": "4/4",
+    "source_syntax": "passed",
+    "real_iphone_safari_qa": "pending"
+  },
+  "data_migration": "none in this revision; original PR57 bookmark/route data parity retained; records never deleted",
+  "formal_merge": false
+}
