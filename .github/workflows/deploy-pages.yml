@@ -111,6 +111,16 @@ jobs:
           grep -q "window.__fpStorageNamespace='private-travel-footprints-v5-pr53-review-20261119'" _site/v5-route-continuity-20261120/index.html
           grep -q 'fp-route-saved-active' _site/v5-route-continuity-20261120/src/route/route-single-map-v1.js
           node --check _site/v5-route-continuity-20261120/src/route/route-single-map-v1.js
+          # Approved PR58 Dock and compact attribution on latest full integrated V5 product.
+          cp -R v5-home-dock-integrated-20261120 _site/v5-home-dock-integrated-20261120
+          test -s _site/v5-home-dock-integrated-20261120/index.html
+          test -s _site/v5-home-dock-integrated-20261120/QA_BUILD.json
+          test -s _site/v5-home-dock-integrated-20261120/src/route/route-single-map-v1.js
+          grep -q 'fp-route-dock-selection-v1' _site/v5-home-dock-integrated-20261120/index.html
+          grep -q 'fp-map-credits-compact-v1' _site/v5-home-dock-integrated-20261120/index.html
+          grep -q '6115267f7b7d017a93b327fec58279a65d38aee1' _site/v5-home-dock-integrated-20261120/QA_BUILD.json
+          grep -q "window.__fpStorageNamespace='private-travel-footprints-v5-pr53-review-20261119'" _site/v5-home-dock-integrated-20261120/index.html
+          node --check _site/v5-home-dock-integrated-20261120/src/route/route-single-map-v1.js
           # V5 ROUTE STORYBOARD: interactive approval draft, no product files or user data.
           cp -R v5-route-storyboard-review-20261120 _site/v5-route-storyboard-review-20261120
           test -s _site/v5-route-storyboard-review-20261120/index.html
@@ -782,6 +792,21 @@ jobs:
         run: sleep 18
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify integrated V5 Dock and compact map credits full-product preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-home-dock-integrated-20261120'
+          for file in index.html QA_BUILD.json src/route/route-single-map-v1.js; do
+            curl -fsSL --retry 12 --retry-delay 3 --retry-all-errors --max-time 25 -H 'Cache-Control: no-cache' "${BASE}/${file}?sha=${GITHUB_SHA}" -o /tmp/fp-dock-integrated
+            test -s /tmp/fp-dock-integrated
+            case "${file}" in
+              index.html) grep -q 'fp-map-credits-compact-v1' /tmp/fp-dock-integrated ;;
+              QA_BUILD.json) grep -q '6115267f7b7d017a93b327fec58279a65d38aee1' /tmp/fp-dock-integrated ;;
+              src/route/route-single-map-v1.js) grep -q 'function loadSaved(id)' /tmp/fp-dock-integrated ;;
+            esac
+          done
+          echo 'PASS integrated V5 home Dock preview is live and isolated'
       - name: Verify V5 continuous-route full product preview is live
         shell: bash
         run: |

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" aria-label="Nearby">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M31 10 C41 9 48 17 47 27 C46 36 39 41 31 51 C24 42 16 34 16 26 C16 16 23 10 31 10Z"/>
+  <circle cx="31" cy="26" r="6.1"/>
+  <path d="M15 47 C9 49 8 53 14 55 C22 59 41 59 50 55 C55 53 54 49 47 47" stroke-width="2.4"/>
+ </g>
+</svg>

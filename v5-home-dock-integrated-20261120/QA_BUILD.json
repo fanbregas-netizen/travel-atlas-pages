@@ -1,0 +1,24 @@
+{
+  "product": "Footprint Map V5",
+  "qa": "Approved PR58 homepage Dock merge into the latest V5 full product, plus compact licensed map attribution",
+  "source_repo": "fanbregas-netizen/travel-atlas",
+  "source_commit": "6115267f7b7d017a93b327fec58279a65d38aee1",
+  "source_pr": 57,
+  "preview_directory": "v5-home-dock-integrated-20261120",
+  "previous_preview": "v5-route-continuity-20261120",
+  "production_root_modified": false,
+  "isolated_indexeddb_namespace": "private-travel-footprints-v5-pr53-review-20261119",
+  "fixes": [
+    "Homepage Dock: 收藏 | 路线 | 总览, with exact PR58 icon SVGs and CSS active state",
+    "Collapsed MapLibre attribution into native clickable info icon; all OpenFreeMap / OpenMapTiles / OSM credits available on expansion",
+    "All route, map, media, user records and animations unchanged"
+  ],
+  "tests": {
+    "only_html_dock_and_attribution_styles": "pass",
+    "sw_cache_only": "pass",
+    "per_file_sha_same": "pending",
+    "mobile_safari": "pending"
+  },
+  "data_migration": "none in this revision; original PR57 bookmark/route data parity retained; records never deleted",
+  "formal_merge": false
+}
