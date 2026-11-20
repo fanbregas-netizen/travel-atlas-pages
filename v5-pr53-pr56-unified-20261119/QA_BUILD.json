@@ -2,7 +2,7 @@
   "product": "Footprint Map V5",
   "type": "isolated full-product iPhone Safari acceptance preview",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "65a6c077a46565c0f60e5e645a429a3808938400",
+  "source_commit": "fc05b740e5219c56b9c55e7414db0f9117105f41",
   "source_branch": "integration/v5-pr53-pr56-card-visual-20261119",
   "source_prs": [
     53,
@@ -52,7 +52,7 @@
   ],
   "version": "2026-11-20 data and camera consistency",
   "qa_database": "atlas-v4-map-a-integration-20261118-private-travel-footprints-v5-pr53-review-20261119",
-  "data_safety": "No deleteDatabase, store clear, route delete, overwrite or production change",
+  "data_safety": "No deletion of bookmarks, routes, photos, Brief or other user data. One-time metadata flag prevents reimport after intentional unstar.",
   "private_user_data": "stored in Safari on device, inaccessible for external server QA",
   "automated_tests": "17/17 static invariants and 9/9 in-memory behavior assertions (prior route camera and data logic)"
 }
