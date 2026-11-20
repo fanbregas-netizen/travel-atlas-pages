@@ -293,6 +293,7 @@ function drawRoad(){
  else if(anyExamples){$('routeStatus').hidden=false;$('routeStatus').innerHTML='<span class="demoLabel">演示线型 · 道路服务返回后替换</span>'}
 }
 function showBubble(){
+ if(state.popup==='selected'){renderPopoverSelected();return}
  if(state.popup!=='segment'){$('popover').hidden=true;$('popDot').hidden=true;return}
  var leg=pairs()[state.selectedLeg]||pairs()[0];
  if(!leg){state.popup=null;$('popover').hidden=true;$('popDot').hidden=true;return}
