@@ -85,6 +85,13 @@ jobs:
           node --check _site/v5-nav-bubble-locate-20261120/v4-map-runtime.js
           node --check _site/v5-nav-bubble-locate-20261120/src/route/route-single-map-v1.js
           node --check _site/v5-nav-bubble-locate-20261120/src/interaction/navigation-physical-sheet-v5.js
+          # PR58: publish only the isolated complete V5 Dock-order acceptance folder.
+          cp -R v5-dock-route-center-20261120 _site/v5-dock-route-center-20261120
+          test -s _site/v5-dock-route-center-20261120/index.html
+          test -s _site/v5-dock-route-center-20261120/journey.html
+          test -s _site/v5-dock-route-center-20261120/sw.js
+          grep -q '主导航：收藏、路线、总览' _site/v5-dock-route-center-20261120/index.html
+          node --check _site/v5-dock-route-center-20261120/src/route/route-single-map-v1.js
           test -s _site/v5-card-rhythm-20261119/index.html
           test -s _site/v5-card-rhythm-20261119/src/visual/v5-card-system-unified-20261119.css
           test -s _site/v5-card-rhythm-20261119/src/interaction/physical-sheet.js
