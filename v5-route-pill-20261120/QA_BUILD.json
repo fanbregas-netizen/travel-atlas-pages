@@ -1,0 +1,25 @@
+{
+  "product": "Footprint Map V5",
+  "qa": "Compact route-segment pill and anchor • 2026-11-20",
+  "source_repo": "fanbregas-netizen/travel-atlas",
+  "source_commit": "b766c4747813159812cc97688ea152496e28a02a",
+  "source_pr": 57,
+  "preview_directory": "v5-route-pill-20261120",
+  "previous_preview": "v5-nav-bubble-locate-20261120",
+  "production_root_modified": false,
+  "isolated_indexeddb_namespace": "private-travel-footprints-v5-pr53-review-20261119",
+  "fixes": [
+    "Selected road highlighter plus one map-anchored dot",
+    "Compact icon/mode/real-ETA label, without arrows or leader",
+    "Tap compact label to expand existing estimate, transport edit and navigation",
+    "Anchor and label follow map camera; closing removes both",
+    "No map renderer, route data schema, or production-root changes"
+  ],
+  "tests": {
+    "js_syntax": "passed",
+    "static_contract": "checked",
+    "real_iphone_safari_qa": "pending"
+  },
+  "data_migration": "none in this revision; original PR57 bookmark/route data parity retained; records never deleted",
+  "formal_merge": false
+}
