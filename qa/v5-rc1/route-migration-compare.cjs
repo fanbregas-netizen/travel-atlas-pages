@@ -3,7 +3,8 @@
 'use strict';
 const {chromium,webkit}=require('playwright');
 const fs=require('node:fs'),assert=require('node:assert/strict');
-const URL0='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-route-touch-elastic-20261120/';
+const ROOT='https://fanbregas-netizen.github.io/travel-atlas-pages/';
+const URL0=ROOT+'v5-route-touch-elastic-20261120/';
 const OUT='qa/v5-rc1/evidence/route-migration';
 fs.mkdirSync(OUT,{recursive:true});
 const candidate=fs.readFileSync('qa/v5-rc1/candidate-media-core.js','utf8');
@@ -17,7 +18,7 @@ async function run(engine,browserType,variant){
  const page=await ctx.newPage();
  try{
   // Establish correct origin without ever loading the current users' DB.
-  const r=await page.goto(URL0,{waitUntil:'domcontentloaded',timeout:45000});
+  const r=await page.goto(ROOT,{waitUntil:'domcontentloaded',timeout:45000});
   assert.equal(r.status(),200);
   await page.evaluate(async()=>{
    const open=(name,store)=>{
