@@ -1,0 +1,11 @@
+/* Stage1.34.1 only: preserves original visual language and data models. */
+[hidden]{display:none!important}
+.choice-day-label{margin:14px 2px 7px;color:#8b752f;font-size:12px;font-weight:800;letter-spacing:.04em}
+.journey-planning-explainer{padding:11px 13px;margin:11px 0 3px;background:#f5f5f0;border:1px solid #e6e6df;border-radius:13px;color:#68716a;font-size:12px;line-height:1.85}
+#undoProposal{margin-top:7px;background:#f5f5f2;color:#52615b;border-color:#e1e2dc}
+.card-links{display:flex!important;flex-wrap:wrap!important;gap:6px!important;white-space:normal!important;overflow:visible!important}
+.card-links a.route-source-link{display:inline-flex;align-items:center;min-height:32px;padding:6px 10px;border-radius:10px;border:1px solid #e5e6e1;background:#f7f8f4;color:#435651;text-decoration:none;font-weight:650;font-size:11px;max-width:100%;overflow-wrap:anywhere}
+.route-source-overflow{padding:6px 4px;color:#86908a;font-size:11px}
+.choice-controls button{min-width:32px;min-height:34px}
+@media(max-width:430px){.choice{align-items:flex-start;flex-wrap:wrap;gap:8px}.choice-body{flex:1;min-width:calc(100% - 48px)}.choice-controls{margin-left:30px;width:calc(100% - 30px);justify-content:space-between;gap:5px}.choice-controls button{min-width:36px;min-height:36px}.choice-controls .time-picker{max-width:105px!important;min-height:36px;font-size:12px}.day-picker{min-height:36px!important;font-size:12px}}
+@media(prefers-reduced-motion:reduce){.card-links a{transition:none!important}}

@@ -1,0 +1,28 @@
+{
+  "product": "Footprint Map V5",
+  "qa": "V5 route tap, full route, rubber sheet + relocated map data credits",
+  "source_repo": "fanbregas-netizen/travel-atlas",
+  "source_commit": "968e8d3b90ff8dc19651b79ddfb84d50c47150de",
+  "source_pr": 57,
+  "preview_directory": "v5-route-touch-elastic-20261120",
+  "previous_preview": "v5-home-dock-integrated-20261120",
+  "production_root_modified": false,
+  "isolated_indexeddb_namespace": "private-travel-footprints-v5-pr53-review-20261119",
+  "fixes": [
+    "Map attribution overlay removed; full MapLibre data credits moved to 我的收藏 > 地图数据来源",
+    "All saved, view and order route legs have a wider 32px tap target and nearest point fallback",
+    "Chosen road gets strong golden halo, white outline and thicker dark green selected line",
+    "Route layers recover when the map style graph is available, not only after map tiles stop loading",
+    "After all route segments return (including failed calls), camera fits all verified roads and stops",
+    "All route-sheet detents share gently underdamped elastic settling with release momentum",
+    "Existing yellow stars, PR58 Dock, lightweight segment detail, media and IndexedDB schema unchanged"
+  ],
+  "tests": {
+    "javascript_syntax": "passed",
+    "static_contract": "passed",
+    "iphone_safari_gestures": "pending",
+    "live_pages_200": "pending"
+  },
+  "data_migration": "none in this revision; original PR57 bookmark/route data parity retained; records never deleted",
+  "formal_merge": false
+}

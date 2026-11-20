@@ -121,6 +121,18 @@ jobs:
           grep -q '6115267f7b7d017a93b327fec58279a65d38aee1' _site/v5-home-dock-integrated-20261120/QA_BUILD.json
           grep -q "window.__fpStorageNamespace='private-travel-footprints-v5-pr53-review-20261119'" _site/v5-home-dock-integrated-20261120/index.html
           node --check _site/v5-home-dock-integrated-20261120/src/route/route-single-map-v1.js
+          # V5 route tap / full itinerary / three-detent rubber spring.
+          cp -R v5-route-touch-elastic-20261120 _site/v5-route-touch-elastic-20261120
+          test -s _site/v5-route-touch-elastic-20261120/index.html
+          test -s _site/v5-route-touch-elastic-20261120/QA_BUILD.json
+          test -s _site/v5-route-touch-elastic-20261120/src/route/route-single-map-v1.js
+          test -s _site/v5-route-touch-elastic-20261120/src/visual/v5-card-system-unified-20261119.css
+          grep -q 'fp-map-credits-menu-v2' _site/v5-route-touch-elastic-20261120/index.html
+          grep -q 'route-tap-elastic-20261120' _site/v5-route-touch-elastic-20261120/index.html
+          grep -q '968e8d3b90ff8dc19651b79ddfb84d50c47150de' _site/v5-route-touch-elastic-20261120/QA_BUILD.json
+          grep -q "window.__fpStorageNamespace='private-travel-footprints-v5-pr53-review-20261119'" _site/v5-route-touch-elastic-20261120/index.html
+          grep -q "fp-single-hit" _site/v5-route-touch-elastic-20261120/src/route/route-single-map-v1.js
+          node --check _site/v5-route-touch-elastic-20261120/src/route/route-single-map-v1.js
           # V5 ROUTE STORYBOARD: interactive approval draft, no product files or user data.
           cp -R v5-route-storyboard-review-20261120 _site/v5-route-storyboard-review-20261120
           test -s _site/v5-route-storyboard-review-20261120/index.html
@@ -792,6 +804,21 @@ jobs:
         run: sleep 18
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify V5 route touch and rubber spring complete product preview online
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://fanbregas-netizen.github.io/travel-atlas-pages/v5-route-touch-elastic-20261120'
+          for file in index.html QA_BUILD.json src/route/route-single-map-v1.js src/visual/v5-card-system-unified-20261119.css; do
+            curl -fsSL --retry 13 --retry-delay 4 --retry-all-errors --max-time 25 -H 'Cache-Control: no-cache' "${BASE}/${file}?sha=${GITHUB_SHA}" -o /tmp/v5-route-touch
+            test -s /tmp/v5-route-touch
+            case "${file}" in
+              index.html) grep -q 'fp-map-credits-menu-v2' /tmp/v5-route-touch ;;
+              QA_BUILD.json) grep -q '968e8d3b90ff8dc19651b79ddfb84d50c47150de' /tmp/v5-route-touch ;;
+              src/route/route-single-map-v1.js) grep -q 'fp-single-selected-halo' /tmp/v5-route-touch ;;
+            esac
+          done
+          echo 'PASS V5 route touch and elastic preview with full assets'
       - name: Verify integrated V5 Dock and compact map credits full-product preview
         shell: bash
         run: |
