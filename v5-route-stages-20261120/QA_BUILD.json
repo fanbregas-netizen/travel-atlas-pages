@@ -1,0 +1,27 @@
+{
+  "product": "Footprint Map V5",
+  "qa": "V5 stage coherence: saved route real roads, setting schematic, map remove, clean exit",
+  "source_repo": "fanbregas-netizen/travel-atlas",
+  "source_commit": "99627256d8cd2cf7471a3d617c50b9dd26ccb547",
+  "source_pr": 57,
+  "preview_directory": "v5-route-stages-20261120",
+  "previous_preview": "v5-route-pill-20261120",
+  "production_root_modified": false,
+  "isolated_indexeddb_namespace": "private-travel-footprints-v5-pr53-review-20261119",
+  "fixes": [
+    "Saved routes simplified to one-level rows; the map previews current saved real-road route",
+    "Picking has no connecting lines; settings alone uses dashed schematic, order and view only verified road geometries",
+    "No straight-line fallback during road provider errors; show honest loading/unavailable status",
+    "Tapping selected star presents an explicit reversible route-only removal action",
+    "Closing clears labels, road bubble and temporary marker before map state release",
+    "Preserve accepted pill animation, V5 physical sheets, single MapLibre canvas and QA IndexedDB namespace"
+  ],
+  "tests": {
+    "source_javascript_syntax": "passed",
+    "static_contract": "14/14",
+    "stage_renderer_simulation": "7/7",
+    "real_iphone_safari": "pending"
+  },
+  "data_migration": "none in this revision; original PR57 bookmark/route data parity retained; records never deleted",
+  "formal_merge": false
+}
