@@ -10,7 +10,7 @@
 #workspace{display:flex;justify-content:center;align-items:center;gap:30px;height:100dvh;padding:14px 20px}
 #device{width:min(390px,calc((100dvh - 28px)*.465));height:min(840px,calc(100dvh - 28px));flex:none;position:relative;border-radius:37px;border:8px solid #24372d;overflow:hidden;background:#4a6371;box-shadow:0 24px 80px #263b3040}
 #screen{position:absolute;inset:0;overflow:hidden;background:#506676;touch-action:pan-x pan-y}
-#map,#fallbackMap{position:absolute;inset:0;width:100%;height:100%}#map{z-index:1}#fallbackMap{z-index:0;overflow:hidden}#fallbackMap svg{width:100%;height:100%}
+#map,#fallbackMap{position:absolute;inset:0;width:100%;height:100%}#map{z-index:1;opacity:0;pointer-events:none;transition:opacity .3s ease}#map.tiles-ready{opacity:1;pointer-events:auto}#fallbackMap{z-index:0;overflow:hidden}#fallbackMap svg{width:100%;height:100%}
 #focusShade{position:absolute;inset:0;background:#52675a28;z-index:2;pointer-events:none;opacity:0;transition:opacity .25s}#screen.focus #focusShade{opacity:1}
 #roadLayer{position:absolute;inset:0;width:100%;height:100%;z-index:3;overflow:visible;pointer-events:none}#roadLayer path.hit{pointer-events:stroke;cursor:pointer}
 #stars{position:absolute;inset:0;z-index:4;pointer-events:none}
@@ -166,6 +166,7 @@ var state={step:0,plan:[],lastSaved:'a',selectedRoute:null,previewRule:'manual',
 var review={votes:{},notes:{}};
 try{var prior=JSON.parse(localStorage.getItem('fp-route-review-step-demo-20261120')||'{}');review.votes=prior.votes||{};review.notes=prior.notes||{};state.previewRule=prior.rule||'manual'}catch(e){}
 var map=null,mapReady=false,routeCache={},routeLoading={},frame=0,dragSheet=null,toastTimer;
+function liveMap(){return !!(mapReady&&map&&$('map').classList.contains('tiles-ready'))}
 var ROAD_EXAMPLES=[
  ['s','f',[[121.429,31.154],[121.446,31.13],[121.498,31.113],[121.529,31.07],[121.59,31.066],[121.601,31.007],[121.641,30.972],[121.667,30.919]]],
  ['f','n',[[121.667,30.919],[121.642,30.88],[121.604,30.833],[121.564,30.805],[121.505,30.83],[121.445,30.78],[121.417,30.7],[121.378,30.61],[121.33,30.48],[121.245,30.329]]],
@@ -210,12 +211,12 @@ function makeStar(n){
 }
 function mapArea(){return Math.max(220,$('screen').clientHeight-(sheetVisible()?($('sheet').getBoundingClientRect().height+24):state.step===4?70:90))}
 function project(p){
- if(mapReady&&map){var a=map.project([p.lon,p.lat]);return {x:a.x,y:a.y}}
+ if(liveMap()){var a=map.project([p.lon,p.lat]);return {x:a.x,y:a.y}}
  var sc=$('screen'),w=sc.clientWidth,area=mapArea();
  return {x:(p.x-.5)*w*state.zoom+w*.5+state.panX,y:(p.y-.5)*area*state.zoom+area*.5+state.panY};
 }
 function coord(v){
- if(mapReady&&map){var z=map.project(v);return {x:z.x,y:z.y}}
+ if(liveMap()){var z=map.project(v);return {x:z.x,y:z.y}}
  var a=pts.slice().sort(function(p,q){return Math.hypot(p.lon-v[0],p.lat-v[1])-Math.hypot(q.lon-v[0],q.lat-v[1])})[0];
  var b=pts.filter(function(p){return p!==a}).sort(function(p,q){return Math.hypot(p.lon-v[0],p.lat-v[1])-Math.hypot(q.lon-v[0],q.lat-v[1])})[0];
  var aa=project(a),bb=project(b),dx=b.lon-a.lon,dy=b.lat-a.lat,den=dx*dx+dy*dy,t=den?( (v[0]-a.lon)*dx+(v[1]-a.lat)*dy )/den:0;
@@ -228,6 +229,7 @@ function drawStars(){
   var at=project(p),button=elem('button','star');
   button.style.left=at.x+'px';button.style.top=at.y+'px';
   if(n===0&&numberedIds.length&&state.step!==0)button.classList.add('softer');
+  if(n>0&&[2,8].includes(state.step)&&state.day>0&&state.days[p.id]!==state.day)button.classList.add('softer');
   button.innerHTML=makeStar(n);button.setAttribute('aria-label',p.name+(n?'第'+n+'站':'收藏地点'));
   button.addEventListener('click',function(e){e.stopPropagation();onStar(p.id)});
   el.appendChild(button);
@@ -267,7 +269,7 @@ function fallbackRoad(a,b){
  return [[ax,ay],[ax+(bx-ax)*.25,ay+(by-ay)*.07],[ax+(bx-ax)*.42,ay+(by-ay)*.31],[ax+(bx-ax)*.65,ay+(by-ay)*.64],[bx,by]];
 }
 function drawRoad(){
- var mode=lineMode(),svg=$('roadLayer');svg.innerHTML='';svg.hidden=mode==='none';
+ var mode=lineMode(),svg=$('roadLayer');svg.innerHTML='';svg.toggleAttribute('hidden',mode==='none');
  $('routeStatus').hidden=true;
  if(mode==='none')return;
  var strokes=pairs(),anyExamples=false;
@@ -312,7 +314,7 @@ function showBubble(){
 }
 function positionMap(){if(frame)return;frame=requestAnimationFrame(function(){frame=0;drawStars();drawRoad();showBubble()})}
 function fit(animate){
- if(!mapReady||!map)return;
+ if(!liveMap())return;
  var ids=idList();
  if(ids.length===0){if(state.step===0){map.easeTo({center:[121.43,30.76],zoom:8.25,duration:animate?420:0})}return}
  var list=ids.map(point),lng=list.map(function(x){return x.lon}),lat=list.map(function(x){return x.lat});
@@ -343,7 +345,8 @@ function initMap(){
  if(!window.maplibregl)return;
  try{
   map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/bright',center:[121.43,30.76],zoom:8.25,attributionControl:false,dragRotate:false,pitchWithRotate:false,touchZoomRotate:true});
-  map.on('style.load',function(){mapReady=true;tintMap();fit(false);positionMap()});
+  map.on('style.load',function(){mapReady=true;tintMap();positionMap()});
+  map.on('idle',function(){tintMap();if(!map.areTilesLoaded?.())return;if(!$('map').classList.contains('tiles-ready')){$('map').classList.add('tiles-ready');fit(false);positionMap()}});
   map.on('move',positionMap);map.on('zoom',positionMap);
   map.on('click',function(){if(state.popup){state.popup=null;state.expandedSegment=false;positionMap()}});
  }catch(e){map=null;mapReady=false}
@@ -522,12 +525,12 @@ function action(type,target){
  if(type==='day'){state.day=+target.dataset.day;render();notify(state.day?'已选择 D'+state.day:'显示全部行程');return}
  if(type==='close-place'){state.place=null;renderPlace();return}
  if(type==='locate'){
-  if(mapReady){map.easeTo({center:[121.429,31.154],zoom:9,duration:420})}
+  if(liveMap()){map.easeTo({center:[121.429,31.154],zoom:9,duration:420})}
   else{state.panX=0;state.panY=0;state.zoom=1;positionMap()}
   notify('演示定位：上海南站');return;
  }
  if(type==='zoom-in'||type==='zoom-out'){
-  if(mapReady)map.easeTo({zoom:Math.max(5,Math.min(15,map.getZoom()+(type==='zoom-in'?1:-1))),duration:250});
+  if(liveMap())map.easeTo({zoom:Math.max(5,Math.min(15,map.getZoom()+(type==='zoom-in'?1:-1))),duration:250});
   else{state.zoom=Math.max(.8,Math.min(1.9,state.zoom*(type==='zoom-in'?1.2:.83)));positionMap()}
   return;
  }
@@ -564,7 +567,7 @@ $('searchResult').addEventListener('click',function(e){var b=e.target.closest('[
 var grip=$('grip'),head=$('sheetHead');
 function startDrag(e){if(!sheetVisible())return;if(e.target.closest('button,input,textarea,select'))return;dragSheet={start:e.clientY,base:$('sheet').getBoundingClientRect().height};$('sheet').classList.add('dragging');try{e.currentTarget.setPointerCapture(e.pointerId)}catch(err){}}
 var followDragFrame=0;
-function moveDrag(e){if(!dragSheet)return;var next=dragSheet.base+dragSheet.start-e.clientY,min=218,max=innerHeight*.78;if(next<min)next=min+(next-min)*.25;if(next>max)next=max+(next-max)*.25;$('sheet').style.height=next+'px';positionMap();if(mapReady&&!followDragFrame){followDragFrame=requestAnimationFrame(function(){followDragFrame=0;fit(false)})}}
+function moveDrag(e){if(!dragSheet)return;var next=dragSheet.base+dragSheet.start-e.clientY,min=218,max=innerHeight*.78;if(next<min)next=min+(next-min)*.25;if(next>max)next=max+(next-max)*.25;$('sheet').style.height=next+'px';positionMap();if(liveMap()&&!followDragFrame){followDragFrame=requestAnimationFrame(function(){followDragFrame=0;fit(false)})}}
 function endDrag(e){if(!dragSheet)return;var changed=dragSheet.base+dragSheet.start-e.clientY;dragSheet=null;$('sheet').classList.remove('dragging');
  var sizes=[302,Math.min(innerHeight*.56,490),Math.min(innerHeight*.77,670)];
  var i=sizes.reduce(function(best,x,k){return Math.abs(x-changed)<Math.abs(sizes[best]-changed)?k:best},0);
