@@ -43,6 +43,10 @@ jobs:
         run: node qa/v5-rc1/live-environment.cjs
       - name: Frame-by-frame saved-route switching and rapid sheet reopen
         run: node qa/v5-rc1/route-frames.cjs
+      - name: Compare isolated RC2 route candidate under the same frame audit
+        env:
+          RC2_CANDIDATE: qa/v5-rc1/rc2-route.js
+        run: node qa/v5-rc1/route-frames.cjs
       - name: Upload screenshot and JSON evidence
         if: always()
         uses: actions/upload-artifact@v4

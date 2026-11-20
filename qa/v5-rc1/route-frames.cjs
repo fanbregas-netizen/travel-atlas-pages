@@ -5,7 +5,8 @@
 const {chromium,webkit}=require('playwright');
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const ROOT=process.env.RC_URL||'https://fanbregas-netizen.github.io/travel-atlas-pages/v5-route-touch-elastic-20261120/';
-const OUT='qa/v5-rc1/evidence/route-frame';
+const candidate=process.env.RC2_CANDIDATE||'';
+const OUT=candidate?'qa/v5-rc1/evidence/route-frame-rc2':'qa/v5-rc1/evidence/route-frame';
 fs.mkdirSync(OUT,{recursive:true});
 const results=[];
 function report(engine,scenario,status,data){
@@ -112,6 +113,10 @@ async function run(name,browserType){
  catch(e){report(name,'launch','BLOCKED',e.message);return}
  const ctx=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,locale:'zh-CN'});
  const page=await ctx.newPage(),errors=[];
+ if(candidate){
+  const patch=fs.readFileSync(candidate,'utf8');
+  await page.route('**/src/route/route-single-map-v1.js*',r=>r.fulfill({status:200,contentType:'application/javascript',body:patch}));
+ }
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/routed-car/route/v1/driving/**',mock);
  const shot=async n=>{try{await page.screenshot({path:OUT+'/'+name+'-'+n+'.png',timeout:10000})}catch(e){report(name,'screenshot '+n,'BLOCKED',e.message)}};
@@ -191,6 +196,6 @@ async function run(name,browserType){
  fs.writeFileSync(OUT+'/frame-summary.json',JSON.stringify({rc1:'4de6a6bb04c7dfdffa6ae6f6fe3f799375b7d634',
    scenarios:'5 back-and-forth switches x WebKit + Chromium; 6 close/reopen x2',
    caveats:'MapLibre queryRenderedFeatures samples map screen content but are not physical iPhone pixels; road geometry mocked',results,total},null,2));
- console.log('V5 RC1 FRAMES '+JSON.stringify(total));
+ console.log((candidate?'V5 RC2 CANDIDATE FRAMES ':'V5 RC1 FRAMES ')+JSON.stringify(total));
  if(total.FAIL)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=2});
