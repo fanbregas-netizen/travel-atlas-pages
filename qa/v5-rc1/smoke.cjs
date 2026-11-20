@@ -73,9 +73,10 @@ async function browserRun(engine,type,width){
     await page.waitForTimeout(450);
     const drawer=await page.locator('#drawer').evaluate(n=>({className:n.className,hidden:n.hidden,display:getComputedStyle(n).display,rect:n.getBoundingClientRect().height}));
     assert(!drawer.hidden && drawer.display!=='none');
-    const el=page.locator('#fpMapDataCredits summary');
-    await el.click({force:true,timeout:6000});
-    assert(await page.locator('#fpMapDataCredits').evaluate(n=>n.open));
+    const details=page.locator('#fpMapDataCredits');
+    const initiallyOpen=await details.evaluate(n=>n.open);
+    if(!initiallyOpen)await page.locator('#fpMapDataCredits summary').click({force:true,timeout:6000});
+    assert(await details.evaluate(n=>n.open),'Credits details could not be expanded');
     return drawer.className;
   });
   await shot('02-collection');
