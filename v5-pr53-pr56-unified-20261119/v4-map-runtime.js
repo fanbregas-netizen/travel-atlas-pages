@@ -1334,7 +1334,10 @@
     if(!target){target=document.createElement('p');target.className='nav-target';panel.insertBefore(target,$('navLinks'))}
     target.textContent='前往 '+(place.title||place.name||'目的地');
     $('navLinks').replaceChildren();for(const [name,url] of links){const a=document.createElement('a');a.textContent=name;a.href=url;a.target='_blank';a.rel='noopener noreferrer';$('navLinks').append(a)}
-    $('navigationChooser').classList.add('visible');
+    // Reopening while the previous V3 sheet is still retracting must reverse
+    // that motor, not be ignored because .visible was never removed yet.
+    if(window.FootprintNavigationSheet?.open)window.FootprintNavigationSheet.open();
+    else $('navigationChooser').classList.add('visible');
   }
   window.__atlasOpenNavigation=openNavigation;
   function layoutMemoryAtlas(place){
