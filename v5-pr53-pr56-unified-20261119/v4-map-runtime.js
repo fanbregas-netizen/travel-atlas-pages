@@ -558,7 +558,12 @@
     const reveal=()=>{
       selectionRevealTimer=null;
       if(token!==selectionRevealToken||selectedId!==id)return;
-      document.dispatchEvent(new CustomEvent('atlas:memory-open',{detail:{id}}));
+      if(typeof window.__footprintHome?.openSaved==='function'){
+        Promise.resolve(window.__footprintHome.openSaved(id)).catch(error=>{
+          console.warn('[V5 place] open failed',error);
+          document.dispatchEvent(new CustomEvent('atlas:place-open-error',{detail:{id}}));
+        });
+      }else document.dispatchEvent(new CustomEvent('atlas:memory-open',{detail:{id}}));
     };
     // The card begins entering while the camera decelerates, not before the
     // selected point can be recognized. Avoid a forced delay for reduced motion.
@@ -1413,8 +1418,9 @@
     if(swipeCard)cueSavedPin(id);else pulseStar(id);
     for(const [key,m] of markers.entries())updateMarkerIcon(m,key===id);if(isOfficial()){paintOfficialBookmarks();if(window.__atlasInteractionMode==='swipe-card')updateOfficialSelectionPin(null);else updateOfficialSelectionPin({lat:+p.lat,lng:+p.lng,name:p.title||p.name||'已收藏地点'})}
     if(swipeCard){
-      $('memorySheet').classList.add('visible');
-      document.body.classList.add('memory-open');
+      // The legacy shell is empty in V5; never reveal it before the real card.
+      $('memorySheet').classList.remove('visible');
+      document.body.classList.remove('memory-open');
       scheduleSelectedDetail(id,cameraMoving);
       return;
     }

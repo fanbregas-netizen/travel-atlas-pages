@@ -224,10 +224,15 @@ async function readPlaces(){
  }
 }
 async function readPlace(id){
- try{return await repository().read(id)}catch(error){
-  if(window.__atlasPlaceStore)return (await window.__atlasPlaceStore.readAll()).find(place=>place.id===id)||null;
-  throw error;
- }
+ let item=null,failed=null;
+ try{item=await repository().read(id)}catch(error){failed=error}
+ if(item)return item;
+ try{const all=await window.__atlasPlaceStore?.readAll?.();
+  const found=Array.isArray(all)?all.find(p=>String(p.id)===String(id)):null;
+  if(found)return found;
+ }catch(error){failed=error}
+ if(failed)throw failed;
+ return null;
 }
 const mediaOf=p=>[...(Array.isArray(p.photos)?p.photos:[]).filter(x=>typeof x.src==='string'&&/^data:image\/(jpeg|png|webp);base64,/i.test(x.src)).map(x=>({...x,kind:'photo'})),...(Array.isArray(p.videos)?p.videos:[]).filter(x=>x.bytes||x.blob).map(x=>({...x,kind:'video'}))];
 const linksOf=p=>{const o=[...(Array.isArray(p.references)?p.references:[]),...(Array.isArray(p.guides)?p.guides:[])];if(p.url)o.push(p.url);if(p.link)o.push(p.link);const u=new Set();return o.map(x=>typeof x==='string'?{url:x,title:''}:{...x,url:x?.url||x?.link||'',title:x?.title||''}).filter(x=>{x.url=urlOf(x.url);if(!x.url||u.has(x.url))return false;u.add(x.url);return true})};
@@ -270,11 +275,25 @@ async function showPlaceCard(id){
  }
  activePlaceId=id;
  closeSearch();
- if(!await renderPlace(id)||revision!==selectionRevision||id!==activePlaceId)return;
+ let rendered=false;
+ try{rendered=await renderPlace(id)}catch(error){console.warn('[V5 place] render failed',error)}
+ if(revision!==selectionRevision||id!==activePlaceId)return false;
+ if(!rendered){
+  placeCard.replaceChildren();
+  const head=h('header','fp-card-header'),label=h('div','fp-card-title-wrap');
+  label.append(h('h2','fp-card-name','地点内容暂未载入'));
+  const exit=btn('×',()=>closePlace(),'fp-card-close');
+  exit.setAttribute('aria-label','关闭地点卡片');head.append(label,exit);
+  const content=h('div','fp-card-scroll');
+  content.append(h('p','fp-brief-text','收藏仍保存在本机。请重新打开地点；不会删除照片、文字或星标。'));
+  content.append(btn('重新读取',()=>{void showPlaceCard(id)},'fp-btn-primary'));
+  placeCard.append(head,content);
+ }
  placeCard.dataset.placeId=id;
  placeCard.hidden=false;
  window.__atlasSheetIntegration?.card.open(id);
  document.body.classList.add('fp-place-open');
+ return rendered;
 }
 async function renderPlace(id){const revision=++renderRevision;const p=await readPlace(id);if(!p||id!==activePlaceId||revision!==renderRevision)return false;const media=mediaOf(p);const keepReadingPosition=placeCard.dataset.placeId===id;
  const previousScroll=keepReadingPosition?(placeCard.querySelector('.fp-card-scroll')?.scrollTop||0):0;

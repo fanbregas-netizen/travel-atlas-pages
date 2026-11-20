@@ -824,3 +824,9 @@ body.fp-unified-route .fp-route-segment-popup .maplibregl-popup-tip{
 @media(prefers-reduced-motion:reduce){
  #fpUnifiedRoute .fp-route-reorder{transition:none!important}
 }
+
+/* V5 single-card invariant: the obsolete memorySheet is never displayed. */
+html.fp-v5-single-place #memorySheet{display:none!important;visibility:hidden!important;pointer-events:none!important}
+html.fp-v5-single-place body.fp-unified-route.fp-place-open #fpPlaceCard{z-index:3600!important}
+html.fp-v5-single-place body.fp-unified-route.fp-place-open #fpUnifiedRoute .fp-route-sheet,
+html.fp-v5-single-place body.fp-unified-route.fp-place-open #fpUnifiedRoute .fp-route-mini{opacity:0!important;visibility:hidden!important;pointer-events:none!important}

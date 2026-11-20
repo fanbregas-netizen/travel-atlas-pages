@@ -2,7 +2,7 @@
   "product": "Footprint Map V5",
   "type": "isolated full-product iPhone Safari acceptance preview",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "9b52bd9d759b8763e6e42b44a3df83076b049a27",
+  "source_commit": "b1187537dc7cabe8576938617632a103dad12427",
   "source_branch": "integration/v5-pr53-pr56-card-visual-20261119",
   "source_prs": [
     53,
@@ -28,7 +28,7 @@
   "data_note": "isolated PR53 QA IndexedDB kept to preserve already chosen preview stars, never production DB",
   "production_modified": false,
   "real_iphone_safari_qa": "pending",
-  "pages_deployment": "workflow updated to match current cache-bust script version; pending action deployment",
+  "pages_deployment": "new revision awaiting publish",
   "extra_fixes": [
     "route list card camera keeps selected stars visible",
     "point feedback animates only inner star so hit target never jumps",
@@ -37,5 +37,13 @@
   ],
   "updated_at": "2026-11-20",
   "new_behavior": "search single saved yellow star; adaptive interruptible POI and saved-place camera; route card pan/drag; navigation overlay touch-release; direct place card; individual-leg navigation and ETA",
-  "automated_browser_qa": "not run: browser service reported insufficient wallet balance; 33/33 static invariants pass"
+  "automated_browser_qa": "not run: browser service reported insufficient wallet balance; 33/33 static invariants pass",
+  "fix": "V5 saved-star card regression; direct one canonical #fpPlaceCard. Legacy #memorySheet never displayed",
+  "fixes": [
+    "removes unpopulated legacy memory sheet that blanked iPhone map",
+    "direct full saved-place card from real map id",
+    "fallback for empty media repository lookup via original map store",
+    "in-card retry instead of old empty buttons",
+    "retains V5 place card physical spring/media/Brief/backup and user's IndexedDB"
+  ]
 }
