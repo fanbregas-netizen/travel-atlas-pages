@@ -1068,6 +1068,7 @@ function finishClose(){
 function close(){
  if(!DATA.open||closing)return;
  preserveRouteDraft();DATA.mapFocus=false;document.body.classList.remove('fp-route-map-focus');
+ dismissSegmentPopup(true); // Clear the marker and popup immediately, before the 380ms sheet exit.
  modalClose();DATA.endpointMap=null;
  sheetGesture=null;dragging=false;ui.sheet.classList.remove('is-dragging');
  if(cameraFrame){cancelAnimationFrame(cameraFrame);cameraFrame=0}
