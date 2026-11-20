@@ -483,7 +483,7 @@ function routeCameraPadding(){
   bottom:Math.min(screen-100,occupied+(DATA.mapFocus?18:16)+Math.min(26,visible*.11)),left:36,right:36};
 }
 function updateRouteCamera(animate=true){
- if(!DATA.open||!map||['saved','pick'].includes(DATA.mode))return;
+ if(!DATA.open||!map||DATA.mode==='saved'||(DATA.mode==='pick'&&(DATA.mapFocus||DATA.pickMode==='map')))return;
  const pts=routeCoordinates();
  if(!pts.length)return; // Never move the map before the user selects a place.
  const padding=routeCameraPadding(),duration=animate?320:155;
@@ -495,7 +495,7 @@ function updateRouteCamera(animate=true){
  }catch(e){console.debug('[V5 route] map camera fit unavailable',e)}
 }
 function queueRouteCamera(animate=false){
- if(!DATA.open||!map||['saved','pick'].includes(DATA.mode)||DATA.order.length===0)return;
+ if(!DATA.open||!map||DATA.order.length===0||DATA.mode==='saved'||(DATA.mode==='pick'&&(DATA.mapFocus||DATA.pickMode==='map')))return;
  if(animate){if(cameraFrame)cancelAnimationFrame(cameraFrame);cameraFrame=0;cameraTime=performance.now();updateRouteCamera(true);return}
  const now=performance.now();
  // At most ~7 camera reframes/sec during gestures, no WebGL canvas resizes.
@@ -504,6 +504,8 @@ function queueRouteCamera(animate=false){
 }
 function fit(){queueRouteCamera(true)}
 function quieter(on){
+ if(on&&originalPaint.size)return;
+ if(!on&&!originalPaint.size)return;
  // MapLibre may be streaming tiles while its style layers already exist.
  // The approved V5 planner deliberately applies paint without waiting for
  // isStyleLoaded() to become true; otherwise preview never looks subdued.
@@ -541,7 +543,7 @@ function syncMapMode(){
 }
 function starFeedback(id){
  const b=[...document.querySelectorAll('#atlasBookmarkOverlay .atlas-bookmark-hit')].find(el=>String(el.dataset.placeId)===String(id));
- const target=b?.querySelector('svg')||b;
+ const target=b?.querySelector('svg,img')||[...(b?.children||[])].find(node=>!node.classList.contains('fp-route-stop-order'));
  if(!target?.animate)return;
  target.animate([{transform:'scale(1)'},{transform:'scale(1.12)'},{transform:'scale(1)'}],{duration:310,easing:'cubic-bezier(.2,.75,.2,1)'});
 }

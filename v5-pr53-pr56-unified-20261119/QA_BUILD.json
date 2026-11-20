@@ -2,7 +2,7 @@
   "product": "Footprint Map V5",
   "type": "isolated full-product iPhone Safari acceptance preview",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "06ce2c561a02cdaac7f26f293bd98beaa10d0741",
+  "source_commit": "b667d85ddfa5e58e23b31ab3bb5f864b02d410b5",
   "source_branch": "integration/v5-pr53-pr56-card-visual-20261119",
   "source_prs": [
     53,
@@ -27,5 +27,10 @@
   "data_note": "isolated PR53 QA IndexedDB kept to preserve already chosen preview stars, never production DB",
   "production_modified": false,
   "real_iphone_safari_qa": "pending",
-  "pages_deployment": "in progress"
+  "pages_deployment": "source synced for current deploy",
+  "extra_fixes": [
+    "route list card camera keeps selected stars visible",
+    "point feedback animates only inner star so hit target never jumps",
+    "MapLibre paint update deduplicated while in same mode"
+  ]
 }
