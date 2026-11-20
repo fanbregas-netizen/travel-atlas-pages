@@ -14,8 +14,8 @@ const datePlus=(value,n)=>{const d=new Date(value+'T12:00:00');d.setDate(d.getDa
 const getMap=()=>window.__atlasPOIBridge?.vector?.()||null;
 const DATA={open:false,mode:'pick',panel:'half',places:[],routes:[],order:[],days:{},start:today(),end:datePlus(today(),2),title:'我的旅行路线',travel:'car',routeId:'',pending:[],busy:false,selected:'',savedView:false,dayView:0,pickMode:'list',origin:{type:'current'},dest:{type:'last'},legModes:{},history:[],endpointMap:null,modal:null,modalSeg:'',modalEndpoint:'',suggestion:null,mapFocus:false,returnToOrder:false};
 let db=null,map=null,routeRevision=0,activeRoads=new Map(),originalPaint=new Map(),tempPins=new Map(),sheetHeight=0,desiredHeight=0,velocity=0,frame=0,dragging=false,dragY=0,dragHeight=0,toastTimer=0,styleMap=null,styleListener=null,routeClickListener=null,observer=null,closing=false,exitTimeout=0;
-let sheetGesture=null,lastCameraFrame=0,cameraFrame=0,cameraTime=0,gestureToken=0;
-let routeSegmentListener=null,segmentPopup=null,selectedSegment='',focusSwipe=null;
+let sheetGesture=null,lastCameraFrame=0,cameraFrame=0,cameraTime=0,cameraMoves=0,gestureToken=0;
+let routeSegmentListener=null,segmentPopup=null,selectedSegment='',focusSwipe=null,roadGeomEpoch=0,routeCoordsKey='',routeCoordsCached=[];
 const shell=document.createElement('section');shell.id='fpUnifiedRoute';shell.hidden=true;shell.setAttribute('aria-label','足迹路线与地图');shell.innerHTML=
  '<section class="fp-route-sheet" aria-label="路线操作卡片"><div class="fp-route-grip" role="button" tabindex="0" aria-label="上滑展开、下滑收起路线卡片"></div><div class="fp-route-heading"><h2>路线规划</h2><button type="button" class="fp-route-close" data-command="exit" aria-label="保存草稿并退出路线">×</button></div><div class="fp-route-status"><span class="fp-route-step">1 / 3</span><span class="fp-route-gesture-hint" aria-hidden="true">上滑查看更多</span></div><div class="fp-route-body"></div><div class="fp-route-footer"></div></section><div class="fp-route-mini" aria-label="地图选点"><div class="fp-route-mini-grip" tabindex="0" role="button" aria-label="上拉展开选点卡片"></div><button type="button" class="fp-route-mini-confirm" data-command="map-confirm">确认 · 0处</button></div><div class="fp-route-toast" role="status" aria-live="polite"></div><div class="fp-route-dialog-backdrop" hidden><div class="fp-route-dialog" role="dialog" aria-modal="true" aria-label="路线操作"><div class="fp-route-dialog-head"><h3>路线设置</h3><button type="button" data-command="dismiss-dialog" aria-label="关闭设置弹层">×</button></div><div class="fp-route-dialog-content"></div><div class="fp-route-dialog-footer"></div></div></div>';
 document.body.append(shell);
@@ -158,16 +158,20 @@ function restoreRouteDraft(){
   if(!raw)return false;
   const p=JSON.parse(raw);
   if(!p||!Array.isArray(p.order)||!p.order.length||Date.now()-p.savedAt>7*86400000)return false;
-  for(const item of p.pendingPlaces||[])if(valid(item)&&!place(item.id))DATA.places.push(item);
-  DATA.order=p.order.map(String).filter(id=>!!place(id));
+  // Never resurrect old non-starred temporary stops into a star-only route.
+  // Keep raw sessionStorage draft untouched for non-destructive recovery.
+  DATA.order=p.order.map(String).filter(id=>{
+   const saved=place(id);
+   return saved&&valid(saved)&&saved.starred!==false&&!saved.demo&&!saved.routeOnly;
+  });
   if(!DATA.order.length)return false;
-  DATA.mode=['pick','settings','order'].includes(p.mode)?p.mode:'pick';
+  DATA.mode=DATA.order.length<2?'pick':(['pick','settings','order'].includes(p.mode)?p.mode:'pick');
   DATA.days=p.days&&typeof p.days==='object'?p.days:{};
   DATA.origin=p.origin||{type:'current'};DATA.dest=p.dest||{type:'last'};
   DATA.legModes=p.legModes||{};DATA.start=p.start||today();
   DATA.end=p.end||datePlus(DATA.start,2);DATA.travel=p.travel||'car';
-  DATA.title=p.title||'我的旅行路线';DATA.routeId=p.routeId||'';
-  DATA.returnToOrder=!!p.returnToOrder;DATA.pickMode='map';return true;
+  DATA.title=p.title||'我的旅行路线';DATA.routeId=DATA.routes.some(r=>String(r.id)===String(p.routeId))?p.routeId:'';
+  DATA.returnToOrder=DATA.order.length>=2&&!!p.returnToOrder;DATA.pickMode='map';return true;
  }catch(_){return false}
 }
 function renderMini(){
@@ -221,18 +225,18 @@ document.addEventListener('touchstart',onFocusTouchStart,{capture:true,passive:t
 document.addEventListener('touchend',onFocusTouchEnd,{capture:true,passive:true});
 document.addEventListener('touchcancel',()=>{focusSwipe=null},{capture:true,passive:true});
 const heightFor=which=>{const h=viewportHeight(),full=Math.max(300,Math.min(h*.62,h-290));return which==='peek'?Math.max(278,Math.min(358,h*.42,full-100)):which==='full'?full:Math.max(350,Math.min(full-75,h*.57))};
-function height(value){sheetHeight=Math.max(175,Math.min(heightFor('full')+26,value));ui.sheet.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.dataset.detent=DATA.panel;followSheetWithTools();}
+function height(value){sheetHeight=Math.max(175,Math.min(heightFor('full')+26,value));ui.sheet.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.style.setProperty('--fp-route-height',sheetHeight.toFixed(2)+'px');shell.dataset.detent=DATA.panel;followSheetWithTools();queueRouteCamera(false);}
 function spring(which){
  if(!['peek','half','full'].includes(which))return;
  DATA.panel=which;desiredHeight=heightFor(which);cancelAnimationFrame(frame);frame=0;
  ui.sheet.classList.remove('is-dragging');
- if(matchMedia('(prefers-reduced-motion:reduce)').matches){height(desiredHeight);updateRouteCamera(true);return}
+ if(matchMedia('(prefers-reduced-motion:reduce)').matches){height(desiredHeight);updateRouteCamera(false);return}
  let tick=0,last=0;
  const move=now=>{
   const dt=Math.min(1.7,Math.max(.3,(last?now-last:16.7)/16.7));last=now;
   velocity=(velocity+(desiredHeight-sheetHeight)*.17*dt)*Math.pow(.72,dt);
-  height(sheetHeight+velocity*dt);queueRouteCamera(false);
-  if((Math.abs(desiredHeight-sheetHeight)<.55&&Math.abs(velocity)<.48)||++tick>95){height(desiredHeight);velocity=0;frame=0;updateRouteCamera(true);return}
+  height(sheetHeight+velocity*dt);
+  if((Math.abs(desiredHeight-sheetHeight)<.55&&Math.abs(velocity)<.48)||++tick>95){height(desiredHeight);velocity=0;frame=0;updateRouteCamera(false);return}
   frame=requestAnimationFrame(move)
  };
  frame=requestAnimationFrame(move)
@@ -447,7 +451,7 @@ function lines(){
    activeRoads.set(key,{status:'loading'});
    Promise.resolve(mode==='transit'?{status:'unavailable'}:request(a,b,mode)).then(hit=>{
     if(revision!==routeRevision||!DATA.open)return;
-    activeRoads.set(key,hit||{status:'error'});lines();if(hit?.status==='ok')queueRouteCamera(true)
+    activeRoads.set(key,hit||{status:'error'});roadGeomEpoch++;lines();if(hit?.status==='ok')queueRouteCamera(!(frame||dragging))
    }).catch(()=>{activeRoads.set(key,{status:'error'});if(revision===routeRevision)lines()});
   }
  }
@@ -492,41 +496,69 @@ async function suggestOrder(){
 }
 // Route geometry, not just stop markers, defines the map's visible bounds.
 function routeCoordinates(){
+ const key=routeRevision+'|'+roadGeomEpoch+'|'+DATA.order.join('|');
+ if(key===routeCoordsKey)return routeCoordsCached;
  const pts=effectiveWaypoints(),coordinates=pts.map(p=>[+p.lng,+p.lat]);
  for(let i=1;i<pts.length;i++){
   const a=pts[i-1],b=pts[i];
   const road=activeRoads.get(segmentMode(a,b)+'|'+a.id+'|'+b.id);
   if(road?.status!=='ok'||!Array.isArray(road.geometry))continue;
-  for(const coord of road.geometry)if(Array.isArray(coord)&&Number.isFinite(+coord[0])&&Number.isFinite(+coord[1]))coordinates.push([+coord[0],+coord[1]]);
+  for(const xy of road.geometry)
+   if(Array.isArray(xy)&&Number.isFinite(+xy[0])&&Number.isFinite(+xy[1]))coordinates.push([+xy[0],+xy[1]]);
  }
+ routeCoordsKey=key;routeCoordsCached=coordinates;
  return coordinates;
 }
 function routeCameraPadding(){
- const screen=viewportHeight(),occupied=DATA.mapFocus?0:Math.max(sheetHeight,heightFor('full')+18),visible=Math.max(160,screen-occupied);
- return {top:Math.max(26,Math.min(82,visible*.18)),
-  bottom:Math.min(screen-100,occupied+(DATA.mapFocus?18:16)+Math.min(26,visible*.11)),left:36,right:36};
+  // The real sheet height evolves continuously during swipe and spring.
+  const viewport=viewportHeight();
+  const occupied=DATA.mapFocus?0:Math.min(viewport-165,Math.max(0,sheetHeight));
+  const above=Math.max(165,viewport-occupied);
+  const top=Math.max(32,Math.min(68,above*.13));
+  const bottom=Math.max(24,Math.min(viewport-top-145,occupied+Math.min(30,above*.09)));
+  const horizontal=Math.min(44,Math.max(25,(window.innerWidth||390)*.09));
+  return {top,bottom,left:horizontal,right:horizontal};
 }
 function updateRouteCamera(animate=true){
  if(!DATA.open||!map||DATA.mode==='saved'||(DATA.mode==='pick'&&(DATA.mapFocus||DATA.pickMode==='map')))return;
- const pts=routeCoordinates();
- if(!pts.length)return; // Never move the map before the user selects a place.
- const padding=routeCameraPadding(),duration=animate?320:155;
+ const coords=routeCoordinates();
+ if(!coords.length)return;
+ const lng=coords.map(p=>p[0]),lat=coords.map(p=>p[1]);
+ const minLng=Math.min(...lng),maxLng=Math.max(...lng),minLat=Math.min(...lat),maxLat=Math.max(...lat);
+ const singular=coords.length===1||(minLng===maxLng&&minLat===maxLat);
+ const bounds=singular?[[minLng-.0012,minLat-.0012],[maxLng+.0012,maxLat+.0012]]:
+  [[minLng,minLat],[maxLng,maxLat]];
+ const padding=routeCameraPadding();
  try{
-  if(pts.length===1){const zoom=DATA.mapFocus?Math.min(15.25,Math.max(14.2,focusZoomAtEntry||map.getZoom?.()||14)+.3):Math.min(14.7,map.getZoom?.()||14);map.easeTo({center:pts[0],padding,zoom,duration,essential:true});return}
-  const lng=pts.map(p=>p[0]),lat=pts.map(p=>p[1]);
-  map.fitBounds([[Math.min(...lng),Math.min(...lat)],[Math.max(...lng),Math.max(...lat)]],
-   {padding,maxZoom:15.2,duration,essential:true});
- }catch(e){console.debug('[V5 route] map camera fit unavailable',e)}
+  if(typeof map.cameraForBounds==='function'){
+   const target=map.cameraForBounds(bounds,{padding,maxZoom:singular?14.8:15.2});
+   if(!target||!Number.isFinite(target.zoom)||!target.center)return;
+   if(animate){
+    map.easeTo({center:target.center,zoom:target.zoom,duration:360,essential:true,
+     easing:t=>t*t*(3-2*t)});
+   }else{
+    // Card and map camera update on one frame: no late secondary fit.
+    map.jumpTo({center:target.center,zoom:target.zoom});
+   }
+   cameraMoves++;
+  }else if(animate){
+   map.fitBounds(bounds,{padding,maxZoom:singular?14.8:15.2,duration:360,essential:true});
+   cameraMoves++;
+  }
+ }catch(e){console.warn('[V5 route camera] could not fit visible stars',e)}
 }
 function queueRouteCamera(animate=false){
- if(!DATA.open||!map||DATA.order.length===0||DATA.mode==='saved'||(DATA.mode==='pick'&&(DATA.mapFocus||DATA.pickMode==='map')))return;
- if(animate){if(cameraFrame)cancelAnimationFrame(cameraFrame);cameraFrame=0;cameraTime=performance.now();updateRouteCamera(true);return}
- const now=performance.now();
- // At most ~7 camera reframes/sec during gestures, no WebGL canvas resizes.
- if(dragging||frame||cameraFrame||now-cameraTime<140)return;
- cameraTime=now;cameraFrame=requestAnimationFrame(()=>{cameraFrame=0;updateRouteCamera(false)});
+ if(!DATA.open||!map||DATA.mode==='saved'||DATA.order.length===0||
+   (DATA.mode==='pick'&&(DATA.mapFocus||DATA.pickMode==='map')))return;
+ if(animate){
+  if(cameraFrame){cancelAnimationFrame(cameraFrame);cameraFrame=0}
+  updateRouteCamera(true);return;
+ }
+ // Never suppress frames during drag or while the card spring is active.
+ if(cameraFrame)return;
+ cameraFrame=requestAnimationFrame(()=>{cameraFrame=0;updateRouteCamera(false)});
 }
-function fit(){queueRouteCamera(true)}
+function fit(){queueRouteCamera(!(dragging||frame))}
 function quieter(on){
  if(on&&originalPaint.size)return;
  if(!on&&!originalPaint.size)return;
@@ -612,23 +644,32 @@ function onStarClick(e){
  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
  selectStop(p.id);
 }
+function routesWithExistingStars(routes=[]) {
+ // Historical routes stay stored; show only real, currently anchored journeys.
+ const stars=new Set(DATA.places.filter(p=>valid(p)&&p.starred!==false&&!p.demo&&!p.routeOnly).map(p=>String(p.id)));
+ return routes.filter(r=>{
+  if(r?.demo===true||r?.sample===true||r?.isDemo===true)return false;
+  const ids=routeRows(r);
+  return ids.length>=2&&new Set(ids).size>=2&&ids.every(id=>stars.has(id));
+ });
+}
 async function reload(){
  const r=repo();if(!r)throw Error('原产品路线存储尚未加载');
  const [all,routes]=await Promise.all([r.list(),r.listRoutes()]);
- DATA.places=all.filter(valid).map(p=>({...p,id:String(p.id)}));
- DATA.routes=routes||[];
+ DATA.places=(all||[]).filter(valid).map(p=>({...p,id:String(p.id)}));
+ DATA.routes=routesWithExistingStars(routes||[]);
 }
 function reset(){
- DATA.mapFocus=false;document.body.classList.remove('fp-route-map-focus');DATA.order=[];DATA.days={};DATA.suggestion=null;DATA.history=[];DATA.returnToOrder=false;DATA.pickMode='list';DATA.origin={type:'current'};DATA.dest={type:'last'};DATA.legModes={};DATA.endpointMap=null;DATA.modalEndpoint='';DATA.modal=null;DATA.dayView=0;modalClose();DATA.title='我的旅行路线';DATA.start=today();DATA.end=datePlus(DATA.start,2);DATA.travel='car';DATA.routeId='';DATA.selected='';DATA.pending=[];DATA.query='';
+ DATA.mapFocus=false;document.body.classList.remove('fp-route-map-focus');DATA.order=[];DATA.days={};DATA.suggestion=null;DATA.history=[];DATA.returnToOrder=false;DATA.pickMode='list';DATA.origin={type:'current'};DATA.dest={type:'last'};DATA.legModes={};DATA.endpointMap=null;DATA.modalEndpoint='';DATA.modal=null;DATA.dayView=0;modalClose();DATA.title='我的旅行路线';DATA.start=today();DATA.end=datePlus(DATA.start,2);DATA.travel='car';DATA.routeId='';DATA.selected='';DATA.pending=[];DATA.query='';DATA.mode='saved';
  activeRoads.clear();routeRevision++;
 }
 function loadSaved(id){
  const r=DATA.routes.find(x=>String(x.id)===String(id));
- if(!r){hint('这条路线尚未找到');return}
+ if(!r){setMode('saved',true);hint('路线所需收藏地点尚未恢复；已保存数据没有删除');return}
  reset();DATA.routeId=String(r.id);DATA.title=String(r.title||DATA.title);
  DATA.start=r.startDate||DATA.start;DATA.end=r.endDate||DATA.end;DATA.travel=r.transportMode||r.travelMode||'car';
  if(DATA.travel==='city')DATA.travel='transit';
- DATA.order=routeRows(r).filter(id=>!!place(id));DATA.days=Object.fromEntries((r.stops||[]).map(x=>[String(x.placeId||x.id),Number(x.day)||1]));DATA.origin=r.routeOrigin||{type:r.originPlaceId?'point':'current',id:r.originPlaceId};DATA.dest=r.routeDestination||{type:r.destinationPlaceId?'point':'last',id:r.destinationPlaceId};DATA.legModes=r.legModes&&typeof r.legModes==='object'?{...r.legModes}:{};
+ DATA.order=routeRows(r).filter(id=>{const p=place(id);return p&&p.starred!==false&&!p.demo&&!p.routeOnly;});DATA.days=Object.fromEntries((r.stops||[]).map(x=>[String(x.placeId||x.id),Number(x.day)||1]));DATA.origin=r.routeOrigin||{type:r.originPlaceId?'point':'current',id:r.originPlaceId};DATA.dest=r.routeDestination||{type:r.destinationPlaceId?'point':'last',id:r.destinationPlaceId};DATA.legModes=r.legModes&&typeof r.legModes==='object'?{...r.legModes}:{};
  DATA.selected='';setMode('view');fit();hint('已打开已保存路线');
 }
 async function save(){
@@ -643,7 +684,7 @@ async function save(){
   const old=DATA.routes.find(x=>String(x.id)===String(id))||{};
   const record={...old,id,title:DATA.title.trim()||'我的旅行路线',startDate:DATA.start,endDate:DATA.end,travelMode:DATA.travel==='transit'?'city':DATA.travel,transportMode:DATA.travel,stops,placeIds:[...DATA.order],routeOrigin:{type:'first'},routeDestination:{type:'last'},originPlaceId:null,destinationPlaceId:null,legModes:{...DATA.legModes},updatedAt:new Date().toISOString()};
   await r.saveRoute(record,{places:temp});clearRouteDraft();
-  DATA.routeId=id;DATA.history=[];DATA.routes=await r.listRoutes();
+  DATA.routeId=id;DATA.history=[];DATA.routes=routesWithExistingStars(await r.listRoutes());
   DATA.places=DATA.places.map(p=>temp.some(t=>t.id===p.id)?{...p,pending:false}:p);
   document.dispatchEvent(new CustomEvent('footprint:route-saved',{detail:{id,placeIds:[...DATA.order]}}));
   history.replaceState(null,'','./index.html?route='+encodeURIComponent(id));
@@ -905,6 +946,7 @@ function endFullScrollTouch(e,cancelled=false){
 ui.body.addEventListener('touchend',e=>endFullScrollTouch(e));
 ui.body.addEventListener('touchcancel',e=>endFullScrollTouch(e,true));
 function detachMap(){
+ window.__fpLiveRouting?.update?.([],[],DATA.travel,{});
  routeRevision++;activeRoads.clear();segmentPopup?.remove();segmentPopup=null;selectedSegment='';quieter(false);
  if(map&&routeClickListener)map.off('click',routeClickListener);
  if(map&&routeSegmentListener){for(const layer of ['fp-single-road','fp-single-order'])try{map.off('click',layer,routeSegmentListener)}catch(_){}routeSegmentListener=null}
@@ -953,6 +995,8 @@ async function open(savedId=''){
   await new Promise(resolve=>{let n=0;const poll=setInterval(()=>{if(getMap()||++n>22){clearInterval(poll);resolve()}},150)});
  }
  map=getMap();if(!map){console.warn('[V5 route] shared Map A renderer unavailable; no second map created');return false}
+ // Remove stale prototype route lines, never delete any stored route.
+ window.__fpLiveRouting?.update?.([],[],DATA.travel,{});
  try{await reload()}catch(e){console.warn('[V5 route] failed to load original data',e);return false}
  prepareMapTools();
  DATA.open=true;window.__atlasTripPicking=true;document.body.classList.add('fp-unified-route');
@@ -970,18 +1014,40 @@ async function open(savedId=''){
  const bookmark=$('atlasBookmarkOverlay');if(bookmark)observer.observe(bookmark,{childList:true,subtree:false});
  reset();
  if(savedId){loadSaved(savedId);if(new URLSearchParams(location.search).get('editRoute')==='1')setMode('pick',true)}else if(restoreRouteDraft())setMode(DATA.mode,true);else setMode('saved',true);
- spring('peek');
  document.dispatchEvent(new Event('footprint:route-mode-opened'));
  return true
 }
 window.addEventListener('resize',()=>{if(DATA.open)spring(DATA.panel)},{passive:true});
-document.addEventListener('atlas:saved-stars-changed',()=>{if(DATA.open)refreshStarLabels()});
+let starsRefreshTicket=0;
+ document.addEventListener('atlas:saved-stars-changed',()=>{
+  if(!DATA.open)return;
+  const ticket=++starsRefreshTicket;
+  void (async()=>{
+   try{
+    await reload();
+    if(!DATA.open||ticket!==starsRefreshTicket)return;
+    const existing=new Set(DATA.places.filter(p=>valid(p)&&p.starred!==false&&!p.demo&&!p.routeOnly).map(p=>String(p.id)));
+    const removed=DATA.order.some(id=>!existing.has(String(id)));
+    if(removed){
+     DATA.order=DATA.order.filter(id=>existing.has(String(id)));
+     markChanged();
+     if(DATA.mode==='view'||DATA.mode==='detail'){
+      DATA.routeId='';setMode('saved',true);
+      hint('部分收藏已变化，原路线已保留但暂不可查看');
+      return;
+     }
+     if(['settings','order'].includes(DATA.mode)&&DATA.order.length<2)setMode('pick',true);
+    }
+    body();syncMapMode();if(removed)queueRouteCamera(true);
+   }catch(e){console.warn('[V5 route] bookmark reconciliation unavailable',e)}
+  })();
+ });
 const initial=new URLSearchParams(location.search),deeplink=initial.get('route');
 if(deeplink||initial.get('openRoute')==='1')window.addEventListener('load',()=>{void open(deeplink||'')},{once:true});
 window.FootprintUnifiedRoute=Object.freeze({
  version:'V5 same Map A instance 20261119 — saved stars focus',
  open,close,enterMapFocus,leaveMapFocus,
- get state(){return {open:DATA.open,step:DATA.mode,order:[...DATA.order],routeId:DATA.routeId,selected:DATA.selected,mapFocus:DATA.mapFocus,panel:DATA.panel}},
+ get state(){return {open:DATA.open,step:DATA.mode,order:[...DATA.order],routeId:DATA.routeId,selected:DATA.selected,mapFocus:DATA.mapFocus,panel:DATA.panel,usableRoutes:DATA.routes.length,savedStars:DATA.places.filter(p=>p.starred!==false&&!p.demo&&!p.routeOnly).length,cameraMoves,cardHeight:Math.round(sheetHeight)}},
  get map(){return map},get savedCount(){return DATA.routes.length},
  get canvasCount(){return document.querySelectorAll('#atlasVectorMap canvas.maplibregl-canvas').length},
  get miniVisible(){return !!(DATA.open&&DATA.mapFocus)},

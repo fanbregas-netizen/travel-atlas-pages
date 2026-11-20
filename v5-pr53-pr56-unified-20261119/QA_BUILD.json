@@ -2,7 +2,7 @@
   "product": "Footprint Map V5",
   "type": "isolated full-product iPhone Safari acceptance preview",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_commit": "b1187537dc7cabe8576938617632a103dad12427",
+  "source_commit": "65a6c077a46565c0f60e5e645a429a3808938400",
   "source_branch": "integration/v5-pr53-pr56-card-visual-20261119",
   "source_prs": [
     53,
@@ -28,7 +28,7 @@
   "data_note": "isolated PR53 QA IndexedDB kept to preserve already chosen preview stars, never production DB",
   "production_modified": false,
   "real_iphone_safari_qa": "pending",
-  "pages_deployment": "new revision awaiting publish",
+  "pages_deployment": "pending",
   "extra_fixes": [
     "route list card camera keeps selected stars visible",
     "point feedback animates only inner star so hit target never jumps",
@@ -40,10 +40,19 @@
   "automated_browser_qa": "not run: browser service reported insufficient wallet balance; 33/33 static invariants pass",
   "fix": "V5 saved-star card regression; direct one canonical #fpPlaceCard. Legacy #memorySheet never displayed",
   "fixes": [
-    "removes unpopulated legacy memory sheet that blanked iPhone map",
-    "direct full saved-place card from real map id",
-    "fallback for empty media repository lookup via original map store",
-    "in-card retry instead of old empty buttons",
-    "retains V5 place card physical spring/media/Brief/backup and user's IndexedDB"
-  ]
+    "single preview IndexedDB for home yellow stars, media records and saved routes",
+    "non-destructive one-time migration of old preview yellow stars if unified DB has no visible stars",
+    "filter old/orphan/demo routes from usable saved routes without deleting raw records",
+    "collection saved-route count reflects currently visible real starred places",
+    "no phantom route draft restores non-starred pending stops",
+    "route camera computes center and zoom from real sheet height each frame during both swipe and settle",
+    "never block camera updates while user drags sheet, no second fit animation",
+    "memoize road geometry for realtime gesture performance",
+    "clear legacy route-only lines on route enter/exit without modifying saved routes"
+  ],
+  "version": "2026-11-20 data and camera consistency",
+  "qa_database": "atlas-v4-map-a-integration-20261118-private-travel-footprints-v5-pr53-review-20261119",
+  "data_safety": "No deleteDatabase, store clear, route delete, overwrite or production change",
+  "private_user_data": "stored in Safari on device, inaccessible for external server QA",
+  "automated_tests": "17/17 static invariants and 9/9 in-memory behavior assertions (prior route camera and data logic)"
 }

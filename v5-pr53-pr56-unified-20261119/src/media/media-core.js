@@ -1,7 +1,7 @@
 /* Footprint Map V4 / Media D.
  * Self-contained, opt-in media persistence core. No changes to map, sheet or
  * production bootstrapping. Load before calling window.FootprintMediaCore.
- * Retains IndexedDB v1: private-travel-footprints-v5-pr53-review-20261119/{places,meta}.
+ * Retains IndexedDB v1: private-travel-footprints-v1/{places,meta}.
  */
 (function(root, factory) {
   'use strict';
@@ -10,7 +10,7 @@
   else root.FootprintMediaCore = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function() {
   'use strict';
-  const DB_NAME = 'private-travel-footprints-v5-pr53-review-20261119';
+  const DB_NAME = (typeof globalThis!=='undefined'&&globalThis.__fpStorageNamespace)||'private-travel-footprints-v1';
   const MAX_BACKUP = 1024 * 1024 * 1024;
   const MAX_PLACES = 1000;
   const encoder = () => new TextEncoder();
@@ -382,12 +382,15 @@
     const routeKey=id=>'journey/'+id;
     const migrationKey='journeys-migrated-v1';
     async function migrateRoutes(){
+      // A QA workspace must never import historical prototype journeys from
+      // a different database, while preserving any existing preview records.
+      if(dbName!=='private-travel-footprints-v1')return;
       const migrated=await transaction('meta','readonly',(s,set)=>{
         const r=s.get(migrationKey);r.onsuccess=()=>set(!!r.result);
       });
       if(migrated)return;
       const legacy=await new Promise((resolve,reject)=>{
-        const r=idb.open('travel-atlas-journeys-v5-pr53-review-20261119',1);
+        const r=idb.open('travel-atlas-journeys-v1',1);
         r.onupgradeneeded=()=>r.result.createObjectStore('plans',{keyPath:'id'});
         r.onerror=()=>reject(r.error);
         r.onsuccess=()=>resolve(r.result);

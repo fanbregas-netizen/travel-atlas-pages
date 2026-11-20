@@ -1093,7 +1093,7 @@
   const today=()=>new Date().toLocaleDateString('en-CA');
   function toast(t){$('toast').textContent=t;$('toast').classList.add('visible');clearTimeout(timer);timer=setTimeout(()=>$('toast').classList.remove('visible'),3000)}
   function pulseSavedStar(id){requestAnimationFrame(()=>{const el=document.querySelector('.atlas-bookmark-hit[data-place-id="'+id+'"],.star-pin[data-place-id="'+id+'"]');if(el){el.classList.add('atlas-star-pop');setTimeout(()=>el.classList.remove('atlas-star-pop'),700)}});try{navigator.vibrate?.(12)}catch(e){}}
-  async function database(){if(!('indexedDB' in window)){fallback=true;return}try{db=await new Promise((resolve,reject)=>{const r=indexedDB.open('private-travel-footprints-v1',1);const timeout=setTimeout(()=>reject(new Error('储存启动超时')),4000);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('places'))d.createObjectStore('places',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'})};r.onsuccess=()=>{clearTimeout(timeout);resolve(r.result)};r.onerror=()=>{clearTimeout(timeout);reject(r.error)}});}catch(e){fallback=true;try{const k='travel-storage-test';localStorage.setItem(k,'ok');localStorage.removeItem(k)}catch(err){storageIsTransient=true}toast(storageIsTransient?'当前浏览器无法长期保存，收藏后请导出备份':'本机备用储存已启用，建议定期备份')}}
+  async function database(){if(!('indexedDB' in window)){fallback=true;return}try{db=await new Promise((resolve,reject)=>{const r=indexedDB.open(window.__fpStorageNamespace||'private-travel-footprints-v1',1);const timeout=setTimeout(()=>reject(new Error('储存启动超时')),4000);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('places'))d.createObjectStore('places',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'})};r.onsuccess=()=>{clearTimeout(timeout);resolve(r.result)};r.onerror=()=>{clearTimeout(timeout);reject(r.error)}});}catch(e){fallback=true;try{const k='travel-storage-test';localStorage.setItem(k,'ok');localStorage.removeItem(k)}catch(err){storageIsTransient=true}toast(storageIsTransient?'当前浏览器无法长期保存，收藏后请导出备份':'本机备用储存已启用，建议定期备份')}}
   // IndexedDB request success is NOT a committed write. Confirm only when
   // the full transaction completes, so a quota/abort cannot look like a save.
   function txn(store,mode,fn){
@@ -1112,6 +1112,48 @@
   function hydratePlace(p){return {...p,videos:(p.videos||[]).map(v=>{if(v?.blob instanceof Blob)return v;if(!v?.bytes)return v;const b=v.bytes;const data=b instanceof ArrayBuffer?b:ArrayBuffer.isView(b)?b:Array.isArray(b)?new Uint8Array(b):null;return data?{...v,blob:new Blob([data],{type:v.type||'video/mp4'})}:v})}}
   async function preparePlace(p){return {...p,videos:await Promise.all((p.videos||[]).map(async v=>{if(!(v?.blob instanceof Blob))return v;const bytes=await v.blob.arrayBuffer();const {blob,...rest}=v;return {...rest,bytes}}))}}
   async function allStored(){if(fallback){try{const value=JSON.parse(localStorage.getItem('travel-places')||'null');return (Array.isArray(value)?value:volatilePlaces).map(hydratePlace)}catch(e){return volatilePlaces.map(hydratePlace)}}return (await txn('places','readonly',s=>s.getAll())).map(hydratePlace)}
+  async function importLegacyPreviewStars(){
+    // One-time non-destructive bridge within the SAME private preview origin:
+    // old map stars lived in v1 while the PR53 media/route QA used another DB.
+    // Never overwrite an existing place, media attachment, Brief, or route.
+    // Never run in the formal product, or if the new QA already has stars.
+    if(!window.__fpStorageNamespace||!window.__atlasPreviewNamespace||fallback||!db)return;
+    try{
+      const current=await txn('places','readonly',store=>store.getAll());
+      if(current.some(p=>p?.starred!==false&&!p?.demo&&!p?.routeOnly))return;
+      const legacy=await new Promise((resolve,reject)=>{
+        const request=indexedDB.open('private-travel-footprints-v1',1);
+        request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('places'))
+          request.result.createObjectStore('places',{keyPath:'id'})};
+        request.onsuccess=()=>resolve(request.result);
+        request.onerror=()=>reject(request.error);
+      });
+      let oldPlaces=[];
+      try{
+        if(legacy.objectStoreNames.contains('places'))
+          oldPlaces=await new Promise((resolve,reject)=>{
+            const request=legacy.transaction('places','readonly').objectStore('places').getAll();
+            request.onsuccess=()=>resolve(request.result||[]);
+            request.onerror=()=>reject(request.error);
+          });
+      }finally{legacy.close()}
+      const stars=oldPlaces.filter(p=>p&&p.starred!==false&&!p.demo&&!p.routeOnly&&
+        typeof p.id==='string'&&p.id&&Number.isFinite(+p.lat)&&Number.isFinite(+p.lng));
+      if(!stars.length)return;
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction('places','readwrite'),store=tx.objectStore('places');
+        tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error);tx.onerror=()=>reject(tx.error);
+        for(const star of stars){
+          const find=store.get(star.id);
+          find.onsuccess=()=>{if(!find.result)store.add(star)};
+        }
+      });
+      console.info('[V5 QA] restored missing starred bookmarks from prior isolated map DB',stars.length);
+    }catch(error){
+      // Never block a product open if an older QA database is inaccessible.
+      console.warn('[V5 QA] optional bookmark bridge unavailable',error);
+    }
+  }
   async function getMeta(key){if(fallback){try{return JSON.parse(localStorage.getItem('travel-meta-'+key)||'null')||volatileMeta[key]||null}catch(e){return volatileMeta[key]||null}}return await txn('meta','readonly',s=>s.get(key))}
   async function setMeta(key,value){if(fallback){volatileMeta[key]={key,value};try{localStorage.setItem('travel-meta-'+key,JSON.stringify({key,value}))}catch(e){}return}return await txn('meta','readwrite',s=>s.put({key,value}))}
   async function upsert(place){const stored=await preparePlace(place);if(fallback){const a=[...(await allStored())],i=a.findIndex(p=>p.id===place.id);if(i<0)a.push(stored);else a[i]=stored;volatilePlaces=a;try{localStorage.setItem('travel-places',JSON.stringify(a))}catch(e){storageIsTransient=true;throw Error('本机存储失败，请导出备份')}return}await txn('places','readwrite',s=>s.put(stored))}
@@ -2189,6 +2231,7 @@
 
   async function init(){
     await database();
+    await importLegacyPreviewStars();
     const initFlag=await getMeta('initialized');
     if(!initFlag){await setMeta('initialized',true)}
     try{if(!window.AtlasServices?.staticHost)initMap();else document.body.classList.add('map-booting')}catch(err){console.error('地图组件启动失败:',err);showMapWarning('地图组件遇到问题，但不会影响你的收藏和照片，请在「足迹」中查看或导出备份。')}
@@ -2279,7 +2322,18 @@
   /* ── 我的路线入口：有已存路线 → 面板；无 → 直接进规划页 ── */
   window.__atlasRoutesEntry={
     db:null,
-    list(){return window.FootprintMediaCore.createRepository(indexedDB).listRoutes()},
+    async list(){
+      // The collection counter and V5 planner must agree: a stored journey
+      // whose yellow stars no longer exist is not a usable saved route.
+      const all=await window.FootprintMediaCore.createRepository(indexedDB).listRoutes();
+      const stars=new Set(places.filter(p=>p.starred!==false&&!p.demo&&!p.routeOnly).map(p=>String(p.id)));
+      return all.filter(r=>{
+        if(r?.demo===true||r?.sample===true||r?.isDemo===true)return false;
+        const rows=r?.stops?.length?r.stops:r?.selected?.length?r.selected:r?.placeIds||[];
+        const ids=rows.map(x=>typeof x==='string'?x:x?.placeId||x?.id).filter(Boolean).map(String);
+        return ids.length>=2&&new Set(ids).size>=2&&ids.every(id=>stars.has(id));
+      });
+    },
     async openFromMenu(){const plans=await this.list();this.render(plans);this.show(true)},
     render(plans){const sheet=$('atlasRoutesSheet'),list=sheet.querySelector('.rs-list');list.replaceChildren();
       for(const p of plans){const a=document.createElement('a');a.className='rs-row';a.href='./route-view.html?saved='+encodeURIComponent(p.id);
