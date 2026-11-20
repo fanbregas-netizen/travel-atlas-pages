@@ -1,0 +1,74 @@
+/* V12 visual parity, transplanted from the approved saved-place card reference.
+ * Source: Pages v4-visual-system-review-20261117/visual-review.css
+ * Deliberately excludes all V12 old-page #rvParity, card transforms, height,
+ * spring physics, map camera, route ordering and Dock visibility rules. */
+:root{--v12-paper:#fffefa;--v12-ink:#2b4033;--v12-line:#e2e9e1;--v12-soft:#f0f4ef;--v12-muted:#87998b;--v12-action:#314b3b;--v12-gold:#f1d98f}
+:is(#fpPlaceCard,#drawer,#fpSearchSheet,#destinationCard,dialog.editor,#sheet,#modal){font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;color:var(--v12-ink)}
+:is(#fpPlaceCard,#drawer,#fpSearchSheet,#destinationCard,dialog.editor){background-color:var(--v12-paper)}
+#fpPlaceCard .fp-card-name,#drawer .drawer-head h2,#destinationCard .destination-title,#fpSearchSheet .fp-search-title,#sheet-title,dialog.editor #editorTitle{font-size:24px;line-height:1.18;letter-spacing:-.045em;font-weight:720;color:var(--v12-ink)}
+#fpPlaceCard .fp-card-header,.drawer .drawer-head,#fpSearchSheet .fp-search-top,dialog.editor .edit-head{background:var(--v12-paper);border-bottom-color:var(--v12-line)}
+#drawer .drawer-head{padding-left:18px;padding-right:18px}
+#drawer .sheet-grab::before,#fpPlaceCard .atlas-card-grip::before,#sheet-handle{width:44px;height:5px;background:#c7d0c7;border-radius:99px}
+:is(#closeDrawer,#closeEditor,.fp-card-close,.fp-search-close,#sheet-close){min-width:44px;min-height:44px;border-radius:12px;box-shadow:none}
+#drawer #closeDrawer{font-size:0;line-height:0}
+#drawer #closeDrawer::before{width:16px;height:16px;display:block}
+#drawer .fp30-entry,#drawer #spotList .spotrow{background:var(--v12-paper);border-color:var(--v12-line);border-radius:19px}
+#drawer #spotList .spotrow strong{color:var(--v12-ink);font-size:15px;line-height:1.3}
+#drawer #spotList .spotrow small,#drawer .footnote{color:var(--v12-muted);font-size:12px;line-height:1.55}
+#fpPlaceCard .fp-card-scroll>.fp-block{border:1px solid var(--v12-line);border-radius:19px;box-shadow:none;background:#fff;padding:13px 14px}
+#fpPlaceCard .fp-subheading,.v12-route-sections .fp-subheading{min-height:44px;display:flex;align-items:center;gap:7px}
+#fpPlaceCard .fp-section-index,.v12-route-sections .fp-section-index{font-size:10px;font-weight:830;letter-spacing:.1em;color:var(--v12-muted)}
+#fpPlaceCard .fp-section-label,.v12-route-sections .fp-section-label{font-size:12px;font-weight:750;color:var(--v12-ink);line-height:1.35}
+#fpPlaceCard :is(.fp-subaction,.fp-guide-copy),.v12-route-sections .v12-action{min-width:44px;min-height:44px;border:1px solid var(--v12-line);border-radius:13px;background:var(--v12-soft);color:var(--v12-ink)}
+#fpPlaceCard .fp-subaction img,#fpPlaceCard .fp-card-head-actions img{width:22px;height:22px;object-fit:contain}
+#fpPlaceCard .fp-brief-text,.v12-route-sections .v12-body{font-size:14px;line-height:1.72;color:#4d5a50;overflow-wrap:anywhere;white-space:pre-wrap}
+#fpPlaceCard .fp-inline-editor{padding:12px 0 0;display:flex;flex-direction:column;gap:11px}
+#fpPlaceCard .fp-inline-editor :is(input,textarea),dialog.editor :is(.input,.area),.v12-route-sections :is(input,textarea){box-sizing:border-box;width:100%;font-size:16px;line-height:1.55;border:1px solid var(--v12-line);background:#fff;border-radius:14px;padding:12px 13px;color:var(--v12-ink)}
+#fpPlaceCard .fp-inline-editor textarea,.v12-route-sections textarea{min-height:112px;resize:vertical}
+#fpPlaceCard .fp-inline-editor input,.v12-route-sections input{min-height:44px}
+#fpPlaceCard .fp-inline-actions,.v12-route-sections .v12-actions{display:flex;gap:8px}
+#fpPlaceCard .fp-inline-actions>button,.v12-route-sections .v12-actions>button{flex:1;min-height:44px;border-radius:13px;font-size:14px;font-weight:680}
+#fpPlaceCard .fp-inline-actions>.fp-btn-primary,.v12-route-sections .v12-primary{background:var(--v12-action);border:1px solid var(--v12-action);color:white}
+#fpPlaceCard .fp-inline-actions>.fp-btn-muted,.v12-route-sections .v12-secondary{background:var(--v12-soft);border:1px solid var(--v12-line);color:var(--v12-ink)}
+#fpPlaceCard .fp-inline-editor :is(input,textarea):focus,.v12-route-sections :is(input,textarea):focus{outline:2px solid #819b86;outline-offset:1px}
+#fpSearchSheet .fp-search-bar{border-color:var(--v12-line);border-radius:14px}
+#fpSearchSheet .fp-search-row strong{font-size:15px;color:var(--v12-ink)}
+#fpSearchSheet .fp-search-label{font-size:12px;color:var(--v12-muted)}
+#fpMediaViewer :is(.media-caption,.media-meta){font-size:13px;line-height:1.6}
+#sheet{background:var(--v12-paper);border-color:var(--v12-line);border-top-left-radius:22px;border-top-right-radius:22px}
+#sheet-title-row{background:var(--v12-paper);border-bottom-color:var(--v12-line)}
+#sheet-title{font-size:24px;font-weight:720;letter-spacing:-.045em;line-height:1.18}
+#sheet-body .section-label,#sheet-body .summary-name{color:var(--v12-ink)}
+#sheet-body .caption,#sheet-body .summary-meta,#sheet-count{color:var(--v12-muted)}
+#sheet-body .setting-block,#sheet-body .place-row{border-color:var(--v12-line);border-radius:16px}
+#sheet-body :is(.input-field,.searchbox input){font-size:16px}
+#sheet-footer .button-primary{background:var(--v12-action)}
+#modal{background:var(--v12-paper);color:var(--v12-ink);border-color:var(--v12-line);border-radius:22px}
+#modal .modal-head{border-bottom-color:var(--v12-line)}
+/* Place bubble is a label for ONE existing route pin, never a new map pin.
+ * The existing V5 onMapPin() remains the only sheet state owner. */
+#v12-place-bubble{position:absolute;z-index:11;max-width:220px;min-width:174px;box-sizing:border-box;display:flex;align-items:center;gap:8px;transform:translate(-50%,-100%);padding:8px 10px;min-height:50px;border:1px solid var(--v12-line);border-radius:15px;background:var(--v12-paper);color:var(--v12-ink);box-shadow:0 8px 22px #243b3530;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#v12-place-bubble[hidden]{display:none}
+#v12-place-bubble img{width:27px;height:27px;flex:none;object-fit:contain}
+#v12-place-bubble .v12-bubble-text{flex:1;min-width:0;text-align:left;font-size:13px;font-weight:710;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#v12-place-bubble .v12-bubble-more{font-size:12px;color:var(--v12-muted)}
+.v12-route-sections{display:flex;flex-direction:column;gap:12px;padding-bottom:10px}
+.v12-route-sections .v12-summary{display:grid;gap:6px;padding:2px 1px 8px}
+.v12-route-sections .v12-summary h2{font-size:23px;line-height:1.2;letter-spacing:-.04em;font-weight:720;margin:0;color:var(--v12-ink)}
+.v12-route-sections .v12-summary .v12-meta{font-size:12px;line-height:1.5;color:var(--v12-muted)}
+.v12-route-sections .fp-block{box-sizing:border-box;background:#fff;border:1px solid var(--v12-line);border-radius:19px;padding:13px 14px;box-shadow:none}
+.v12-route-sections .fp-subheading{margin-bottom:8px}
+.v12-route-sections .fp-subheading .v12-action{margin-left:auto;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:680;padding:0 10px}
+.v12-route-sections .v12-empty{min-height:66px;box-sizing:border-box;border:1px dashed #dbe5dc;border-radius:14px;background:#f8faf7;color:var(--v12-muted);display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;padding:12px;line-height:1.6}
+.v12-route-sections .v12-media-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;overflow:hidden;border-radius:14px}
+.v12-route-sections .v12-media-tile{position:relative;border:0;min-height:80px;display:flex;align-items:center;justify-content:center;padding:0;overflow:hidden;background:var(--v12-soft)}
+.v12-route-sections .v12-media-tile:first-child{grid-column:span 2;grid-row:span 2;min-height:165px}
+.v12-route-sections .v12-media-tile:only-child{grid-column:1/-1}
+.v12-route-sections .v12-media-tile img{width:100%;height:100%;object-fit:cover}
+.v12-route-sections .v12-media-tile .v12-video-symbol{width:28px;height:28px;object-fit:contain}
+.v12-route-sections .v12-link-list,.v12-route-sections .v12-near-list{display:grid;gap:7px}
+.v12-route-sections .v12-link-list a,.v12-route-sections .v12-near-list a{display:block;min-height:44px;box-sizing:border-box;border:1px solid var(--v12-line);border-radius:13px;padding:11px 12px;background:#f8faf7;color:var(--v12-ink);font-size:12px;line-height:1.5;text-decoration:none;overflow-wrap:anywhere}
+.v12-route-sections .v12-hint{font-size:12px;line-height:1.6;color:var(--v12-muted)}
+.v12-route-sections :is(button,a):focus-visible,#v12-place-bubble:focus-visible{outline:2px solid #59765f;outline-offset:2px}
+@media(max-width:380px){.v12-route-sections .fp-block{padding:12px}.v12-route-sections .v12-summary h2{font-size:22px}}
+@media(prefers-reduced-motion:reduce){#v12-place-bubble{transition:none}}

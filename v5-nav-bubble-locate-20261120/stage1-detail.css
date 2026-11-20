@@ -1,0 +1,104 @@
+/* Footprint Map V4 · Stage1.26 | tactile detail, orbit geometry and reading rhythm.
+   Intentional additive layer: no changes to V3 hand-drawn assets, storage schema,
+   map renderer, independent SVG path generator, or route engine. */
+:root{
+  --fp26-ease:cubic-bezier(.22,.79,.26,1);
+  --fp26-touch:150ms;
+  --fp26-panel:330ms;
+}
+/* Make every card and the upright star share the EXACT same geometric center.
+   Stage1.25 kept two left-side cards relative to 50vw while the star and right
+   side were positioned at --orbit-cx. This restores uniform arrow clearance. */
+#atlasOrbit .orbit-bubble.tl{
+  left:calc(var(--orbit-cx) - var(--orbit-gap)/2 - var(--orbit-w)*var(--scale-tl))!important;
+  top:calc(var(--orbit-cy) - var(--orbit-gap)/2 - var(--orbit-h)*var(--scale-tl))!important;
+}
+#atlasOrbit .orbit-bubble.tr{
+  left:calc(var(--orbit-cx) + var(--orbit-gap)/2)!important;
+  top:calc(var(--orbit-cy) - var(--orbit-gap)/2 - var(--orbit-h)*var(--scale-tr))!important;
+}
+#atlasOrbit .orbit-bubble.bl{
+  left:calc(var(--orbit-cx) - var(--orbit-gap)/2 - var(--orbit-w)*var(--scale-bl))!important;
+  top:calc(var(--orbit-cy) + var(--orbit-gap)/2)!important;
+}
+#atlasOrbit .orbit-bubble.br{
+  left:calc(var(--orbit-cx) + var(--orbit-gap)/2)!important;
+  top:calc(var(--orbit-cy) + var(--orbit-gap)/2)!important;
+}
+/* Four independent vectors retain the approved hierarchy and common tail module. */
+#atlasOrbit .orbit-svg{filter:drop-shadow(0 10px 18px rgba(30,28,22,.14))}
+#atlasOrbit .orbit-kicker{display:flex;align-items:center;gap:5px;font-size:11px!important;letter-spacing:0!important;line-height:1.25!important;font-weight:650!important;color:#827b6f!important}
+#atlasOrbit .orbit-kicker-icon{width:14px;height:14px;opacity:.76}
+#atlasOrbit .orbit-title{font-weight:680!important;line-height:1.3!important;letter-spacing:-.025em!important;color:#282721}
+#atlasOrbit .orbit-note{font-size:12px;line-height:1.52!important;color:#625d53}
+#atlasOrbit .orbit-small{font-size:11px;line-height:1.48;color:#777166}
+#atlasOrbit .orbit-media-hero{background:#eeece5;border-radius:13px;min-height:48px}
+#atlasOrbit .orbit-media-placeholder{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;font-size:12px;font-weight:550;line-height:1.5;letter-spacing:0;color:#999180}
+#atlasOrbit .orbit-media-count{font-size:10px;border-radius:7px;background:rgba(39,38,31,.79);padding:5px 7px}
+#atlasOrbit .orbit-action{display:inline-flex;align-items:center;justify-content:center;min-height:36px!important;padding:7px 10px!important;font-size:11px!important;line-height:1.25!important;letter-spacing:0!important;background:#f6f2e8;border:1px solid #e5dfd1;color:#3e3930;border-radius:11px;transition:background var(--fp26-touch) ease,transform var(--fp26-touch) var(--fp26-ease)}
+#atlasOrbit .orbit-action:active{transform:scale(.965);background:#f0e8d6}
+#atlasOrbit .orbit-link{font-size:11px;line-height:1.35;min-height:35px;gap:5px}
+#atlasOrbit .orbit-near-list{scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#atlasOrbit .orbit-near-list::-webkit-scrollbar{display:none}
+#atlasOrbit .orbit-near-item{min-height:37px;align-items:center;gap:5px;padding-block:6px}
+#atlasOrbit .orbit-near-name{font-size:11px;line-height:1.4}
+#atlasOrbit .orbit-near-dist{font-size:10px}
+#atlasOrbit.is-open .orbit-bubble{animation:orbit26Enter .51s var(--fp26-ease) both!important}
+#atlasOrbit.is-open .orbit-content{animation:orbit26Content .33s .15s ease-out both!important}
+#atlasOrbit.is-open .orbit-center{animation:orbit26Star .36s var(--fp26-ease) both!important}
+#atlasOrbit.is-closing .orbit-bubble{animation-duration:.24s!important}
+@keyframes orbit26Enter{0%{opacity:0;transform:translate(var(--dx),var(--dy));filter:blur(1.5px)}100%{opacity:1;transform:translate(0,0);filter:none}}
+@keyframes orbit26Content{0%{opacity:0;transform:translateY(5px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes orbit26Star{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+/* Small phones: protect an 8pt outer margin while retaining photo as dominant. */
+@media(max-width:700px) and (orientation:portrait){
+  #atlasOrbit{--orbit-cx:47%;--scale-tr:1.10;--scale-bl:.93;--scale-tl:.88;--scale-br:1.04}
+  #atlasOrbit .orbit-content{padding:10px;gap:5px}
+  #atlasOrbit .orbit-bubble.tl .orbit-content{padding:9px;gap:4px}
+  #atlasOrbit .orbit-bubble.tl .orbit-title{font-size:12px!important}
+  #atlasOrbit .orbit-bubble.tl .orbit-note{font-size:11px!important;line-height:1.42!important;-webkit-line-clamp:3}
+  #atlasOrbit .orbit-bubble.tl .orbit-action{min-height:30px!important;padding:5px 7px!important;font-size:10px!important}
+  #atlasOrbit .orbit-bubble .orbit-kicker{font-size:11px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #atlasOrbit .orbit-bubble .orbit-kicker-icon{width:13px;height:13px}
+  #atlasOrbit .orbit-bubble .orbit-title{font-size:13px!important}
+  #atlasOrbit .orbit-bubble.tr .orbit-media-hero{min-height:42px}
+}
+@media(max-width:350px) and (orientation:portrait){
+  #atlasOrbit .orbit-content{padding:8px;gap:4px}
+  #atlasOrbit .orbit-kicker{font-size:10px!important}
+  #atlasOrbit .orbit-bubble.tl .orbit-title{font-size:11px!important}
+  #atlasOrbit .orbit-bubble .orbit-note{font-size:11px;line-height:1.4!important}
+  #atlasOrbit .orbit-action{padding:6px 7px!important}
+}
+/* Reader panels: consistent line rhythm, subtle separators and honest touch cues. */
+#spotList .spotrow{border:1px solid #e9e4d8!important;box-shadow:0 3px 11px rgba(36,32,22,.035)!important}
+#spotList .spotrow:focus-visible{outline:2px solid #b18a3b;outline-offset:3px}
+#spotList .spotrow small{line-height:1.55!important}
+#drawer .backuprow{margin-top:22px}
+#drawer .footnote{max-width:44ch;line-height:1.65!important}
+#editor .edit-head h2{line-height:1.2!important}
+#editor .field,#editor .atlas-stage-selector legend{letter-spacing:0!important}
+#editor #placeNote{line-height:1.65!important;resize:vertical;min-height:116px}
+#editor .editor-save-hint{max-width:46ch;margin-inline:auto}
+#editor .atlas-editor-more summary{transition:background var(--fp26-touch) ease}
+#editor .atlas-editor-more summary:active{background:#f3eee3}
+/* Suppress 300ms iOS tap ambiguity only on controls, never scroll surfaces. */
+#atlasOrbit button,#appDock button,#drawer button,#editor button,#fpPlaceCard button{touch-action:manipulation}
+/* User preference beats all nonessential entry/collapse effects. */
+@media(prefers-reduced-motion:reduce){
+ #atlasOrbit.is-open .orbit-bubble,#atlasOrbit.is-open .orbit-content,#atlasOrbit.is-open .orbit-center,
+ #atlasOrbit.is-closing .orbit-bubble{animation-duration:.01ms!important;animation-delay:0ms!important;filter:none!important}
+ #atlasOrbit .orbit-action,#editor .atlas-editor-more summary{transition-duration:.01ms!important}
+}
+/* The orbital view is a focused moment. Keep the map itself as context but
+   retire its loading badge, zoom stack and technical labels until dismissal. */
+body.atlas-orbit-active #atlasMapLoader,
+body.atlas-orbit-active .map-status,
+body.atlas-orbit-active #figureCaption,
+body.atlas-orbit-active #mapConnectionNote,
+body.atlas-orbit-active .map-controls{
+  opacity:0!important;pointer-events:none!important;
+  transition:opacity .16s ease!important;
+}
+
+@media(hover:none) and (pointer:coarse){#editor #placeNote{resize:none}}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" aria-label="Mountain">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M6 50 L22 25 L31 37 L41 15 L59 50"/>
+  <path d="M15 36 L22 40 L28 33 M35 27 L40 30 L47 26" stroke-width="2.1"/>
+ </g>
+</svg>

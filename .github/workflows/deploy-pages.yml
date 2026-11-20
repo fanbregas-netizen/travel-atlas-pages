@@ -75,6 +75,16 @@ jobs:
           node --check _site/v5-data-camera-20261120/v4-map-runtime.js
           node --check _site/v5-data-camera-20261120/src/media/media-core.js
           node --check _site/v5-data-camera-20261120/src/route/route-single-map-v1.js
+          # PR57 isolated V5 navigation/locate/bubble P0-P1; preserves original previews.
+          cp -R v5-nav-bubble-locate-20261120 _site/v5-nav-bubble-locate-20261120
+          test -s _site/v5-nav-bubble-locate-20261120/QA_BUILD.json
+          grep -q 'private-travel-footprints-v5-pr53-review-20261119' _site/v5-nav-bubble-locate-20261120/index.html
+          grep -q 'nav-safe-bubble-20261120' _site/v5-nav-bubble-locate-20261120/index.html
+          grep -q 'segmentBubbleLayout' _site/v5-nav-bubble-locate-20261120/src/route/route-single-map-v1.js
+          grep -q 'pageshow' _site/v5-nav-bubble-locate-20261120/src/interaction/navigation-physical-sheet-v5.js
+          node --check _site/v5-nav-bubble-locate-20261120/v4-map-runtime.js
+          node --check _site/v5-nav-bubble-locate-20261120/src/route/route-single-map-v1.js
+          node --check _site/v5-nav-bubble-locate-20261120/src/interaction/navigation-physical-sheet-v5.js
           test -s _site/v5-card-rhythm-20261119/index.html
           test -s _site/v5-card-rhythm-20261119/src/visual/v5-card-system-unified-20261119.css
           test -s _site/v5-card-rhythm-20261119/src/interaction/physical-sheet.js
