@@ -197,5 +197,5 @@ async function run(name,browserType){
    scenarios:'5 back-and-forth switches x WebKit + Chromium; 6 close/reopen x2',
    caveats:'MapLibre queryRenderedFeatures samples map screen content but are not physical iPhone pixels; road geometry mocked',results,total},null,2));
  console.log((candidate?'V5 RC2 CANDIDATE FRAMES ':'V5 RC1 FRAMES ')+JSON.stringify(total));
- if(total.FAIL)process.exitCode=1;
+ if(total.FAIL||(candidate&&results.some(x=>x.scenario==='frame-level route-switch summary'&&x.status==='OBSERVED')))process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=2});

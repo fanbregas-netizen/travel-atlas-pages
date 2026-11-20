@@ -1,0 +1,42 @@
+name: V5 RC2 isolated route-frame A/B comparison
+on:
+  push:
+    branches:
+      - qa/v5-rc1-regression-20261120
+    paths:
+      - qa/v5-rc1/route-frames.cjs
+      - qa/v5-rc1/rc2-route.js
+      - .github/workflows/v5-rc2-frame-compare.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      RC_URL: https://fanbregas-netizen.github.io/travel-atlas-pages/v5-route-touch-elastic-20261120/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install mobile WebKit and Chromium
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium webkit --with-deps
+      - name: Baseline RC1 route switching frames
+        run: node qa/v5-rc1/route-frames.cjs
+      - name: RC2 isolated candidate route switching frames
+        if: always()
+        env:
+          RC2_CANDIDATE: qa/v5-rc1/rc2-route.js
+        run: node qa/v5-rc1/route-frames.cjs
+      - name: Upload baseline and candidate rendered-frame evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-rc2-frame-comparison-evidence
+          path: qa/v5-rc1/evidence/
+          if-no-files-found: warn
+          retention-days: 14
