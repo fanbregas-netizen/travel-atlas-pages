@@ -177,7 +177,7 @@ async function run(engine,launcher){
    return JSON.stringify(await page.evaluate(async()=>{
     const lib=window.FootprintMediaCore,repo=lib.createRepository(indexedDB);
     const bytes=await repo.backup();assertNotNeeded();
-    function assertNotNeeded(){if((bytes.length||bytes.byteLength||0)<100)throw Error('Empty backup')}
+    function assertNotNeeded(){if((bytes.size||bytes.length||bytes.byteLength||0)<100)throw Error('Empty backup')}
     const parsed=await lib.readBackup(bytes);
     if(parsed.records.length!==3||parsed.routes.length!==2)throw Error('Backup not complete');
     const other=lib.createRepository(indexedDB,'rc1-import-test-only');
@@ -186,7 +186,7 @@ async function run(engine,launcher){
     if(p.length!==3||r.length!==2||p.find(x=>x.id==='qa-p1')?.photos?.length!==1)throw Error('Restore data mismatch');
     await other.restore(bytes,{conflict:'merge'});
     if((await other.list()).length!==3)throw Error('Merge duplicated places');
-    return {zipBytes:bytes.length||bytes.byteLength,places:p.length,routes:r.length,photos:1,idempotent:true};
+    return {zipBytes:bytes.size||bytes.length||bytes.byteLength,places:p.length,routes:r.length,photos:1,idempotent:true};
    }));
   });
   await screenshot('06-refreshed');
