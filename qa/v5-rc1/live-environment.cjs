@@ -45,8 +45,8 @@ async function testRealBackend(){
   await new Promise(resolve=>setTimeout(resolve,1550)); // Observe public endpoint rate limits.
  }
 }
-async function fill(page,videoBytes){
- return page.evaluate(async({places,routes,photo,videoB64})=>{
+async function fill(page,videoBytes,videoMime){
+ return page.evaluate(async({places,routes,photo,videoB64,videoMime})=>{
   const lib=window.FootprintMediaCore,repo=lib.createRepository(indexedDB);
   await repo.list();
   await new Promise((resolve,reject)=>{
@@ -64,11 +64,11 @@ async function fill(page,videoBytes){
   if(videoB64){
    const raw=atob(videoB64),bin=new Uint8Array(raw.length);
    for(let i=0;i<raw.length;i++)bin[i]=raw.charCodeAt(i);
-   await repo.addMedia('qa-env-a',[{kind:'video',name:'qa-only-h264.mp4',type:'video/mp4',bytes:bin.buffer}]);
+   await repo.addMedia('qa-env-a',[{kind:'video',name:videoMime==='video/webm'?'qa-only-vp8.webm':'qa-only-h264.mp4',type:videoMime,bytes:bin.buffer}]);
   }
   const p=(await repo.list()).find(x=>x.id==='qa-env-a');
   return {count:(await repo.list()).length,routes:(await repo.listRoutes()).length,photos:p.photos?.length||0,videos:p.videos?.length||0};
- },{places,routes,photo,videoB64:videoBytes?.toString('base64')||null});
+ },{places,routes,photo,videoB64:videoBytes?.toString('base64')||null,videoMime});
 }
 async function auditData(page){
  return page.evaluate(async()=>{
@@ -78,7 +78,7 @@ async function auditData(page){
   return {places:p.length,routes:r.length,photo:a?.photos?.length||0,video:a?.videos?.length||0,note:a?.note||''};
  });
 }
-async function browserQA(name,browserType,videoBytes){
+async function browserQA(name,browserType,videoBytes,videoMime){
  const launchArgs=name==='chromium'?['--no-sandbox','--autoplay-policy=no-user-gesture-required']:[];
  const browser=await browserType.launch({headless:true,args:launchArgs});
  const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,locale:'zh-CN'});
@@ -94,7 +94,7 @@ async function browserQA(name,browserType,videoBytes){
   });
   if(!ok)return;
   await check(name,'seed photo and actual video bytes (isolated)',async()=>{
-   const x=await fill(page,videoBytes);
+   const x=await fill(page,videoBytes,videoMime);
    assert.equal(x.count,2);assert.equal(x.routes,1);assert.equal(x.photos,1);
    if(videoBytes)assert.equal(x.videos,1);
    return JSON.stringify(x);
@@ -147,16 +147,16 @@ async function browserQA(name,browserType,videoBytes){
   await snapshot('01-gallery-video');
   if(videoBytes&&galleryOpen)await check(name,'V5 video metadata and decoding in actual fullscreen viewer',async()=>{
    await page.waitForFunction(()=>document.querySelector('#fpMediaViewer .fp-gallery-cell video')?.src,{timeout:8000});
-   const info=await page.locator('#fpMediaViewer .fp-gallery-cell video').first().evaluate(async v=>{
+   const info=await page.locator('#fpMediaViewer .fp-gallery-cell video').first().evaluate(async (v,mime)=>{
     let ev='';await new Promise(resolve=>{
      if(v.readyState>=1){resolve();return}
      const t=setTimeout(()=>{ev='timeout';resolve()},6000);
      v.addEventListener('loadedmetadata',()=>{clearTimeout(t);resolve()},{once:true});
      v.addEventListener('error',()=>{clearTimeout(t);ev='error';resolve()},{once:true});
     });
-    return {event:ev,ready:v.readyState,duration:v.duration,src:v.currentSrc?.slice(0,30)||'',error:v.error?.message,canPlay:v.canPlayType('video/mp4')};
-   });
-   if(info.ready<1)throw Error('MP4 cannot decode: '+JSON.stringify(info));
+    return {event:ev,ready:v.readyState,duration:v.duration,src:v.currentSrc?.slice(0,30)||'',error:v.error?.message,canPlay:v.canPlayType(mime)};
+   },videoMime);
+   if(info.ready<1)throw Error(videoMime+' cannot decode: '+JSON.stringify(info));
    assert(Number.isFinite(info.duration)&&info.duration>0);
    return JSON.stringify(info);
   },'BLOCKER');
@@ -204,12 +204,15 @@ async function browserQA(name,browserType,videoBytes){
 }
 (async()=>{
  await testRealBackend();
- const f='qa/v5-rc1/generated-video.mp4';
- const bytes=fs.existsSync(f)?fs.readFileSync(f):null;
- if(!bytes)note('media','generated H264 fixture','BLOCKED','ffmpeg fixture missing; actual media decode cannot be assessed');
- else note('media','generated H264 fixture','PASS',bytes.length+' bytes; generated solely for QA');
- await browserQA('chromium',chromium,bytes);
- await browserQA('webkit',webkit,bytes);
+ const mp4='qa/v5-rc1/generated-video.mp4',webm='qa/v5-rc1/generated-video.webm';
+ const mp4Bytes=fs.existsSync(mp4)?fs.readFileSync(mp4):null;
+ const webmBytes=fs.existsSync(webm)?fs.readFileSync(webm):null;
+ if(!mp4Bytes||!webmBytes)note('media','generated fixtures','BLOCKED','missing mp4 or WebM, decode verification incomplete');
+ else note('media','generated fixtures','PASS','H264 MP4 '+mp4Bytes.length+' bytes + VP8 WebM '+webmBytes.length+' bytes');
+ // Playwright's open-source Chromium may omit H264 decoding. The PRODUCT
+ // supports both MP4 and WebM; verify a supported codec in each browser.
+ await browserQA('chromium',chromium,webmBytes,'video/webm');
+ await browserQA('webkit',webkit,mp4Bytes,'video/mp4');
  const totals={};for(const x of list)totals[x.status]=(totals[x.status]||0)+1;
  fs.writeFileSync(OUT+'/summary.json',JSON.stringify({
   version:'V5 RC1 frozen 4de6a6bb04c7dfdffa6ae6f6fe3f799375b7d634',

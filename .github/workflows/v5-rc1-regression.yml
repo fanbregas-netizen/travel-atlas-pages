@@ -36,7 +36,9 @@ jobs:
             sudo apt-get install -y -qq ffmpeg
           fi
           ffmpeg -hide_banner -loglevel error -f lavfi -i 'color=c=green:size=96x96:rate=12:duration=1' -c:v libx264 -pix_fmt yuv420p -movflags +faststart -y qa/v5-rc1/generated-video.mp4
+          ffmpeg -hide_banner -loglevel error -f lavfi -i 'color=c=green:size=96x96:rate=12:duration=1' -c:v libvpx -b:v 200k -pix_fmt yuv420p -y qa/v5-rc1/generated-video.webm
           test -s qa/v5-rc1/generated-video.mp4
+          test -s qa/v5-rc1/generated-video.webm
       - name: Real OSRM provider, media viewer and offline resilience
         run: node qa/v5-rc1/live-environment.cjs
       - name: Upload screenshot and JSON evidence
