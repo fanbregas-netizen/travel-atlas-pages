@@ -19,7 +19,7 @@ const tested=async(engine,name,fn)=>{
 async function publicAssets(){
  for(const file of ['index.html','QA_BUILD.json','src/route/route-single-map-v1.js','src/visual/v5-card-system-unified-20261119.css']){
   await tested('HTTP',file,async()=>{
-   const response=await fetch(new URL(file+'?rc1-smoke='+Date.now(),URL),{headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(25000)});
+   const response=await fetch(new globalThis.URL(file+'?rc1-smoke='+Date.now(),URL),{headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(25000)});
    assert.equal(response.status,200,'HTTP status '+response.status);
    const text=await response.text();assert(text.length>300,file+' unexpectedly small');
    if(file==='QA_BUILD.json'){const j=JSON.parse(text);assert.equal(j.source_commit,'4de6a6bb04c7dfdffa6ae6f6fe3f799375b7d634');}
