@@ -3,7 +3,7 @@
   "edition": "2026-11-20 · shared data and coupled map camera",
   "source_repo": "fanbregas-netizen/travel-atlas",
   "source_pr": 57,
-  "source_commit": "65a6c077a46565c0f60e5e645a429a3808938400",
+  "source_commit": "fc05b740e5219c56b9c55e7414db0f9117105f41",
   "preview_directory": "v5-data-camera-20261120",
   "production_modified": false,
   "previous_qa_preserved": true,
@@ -15,5 +15,6 @@
   "saved_routes_migration": "disabled cross-prototype import only in isolated QA",
   "camera": "MapLibre cameraForBounds driven by live physical sheet height on swipe and spring frames; no canvas distortion or delayed refit",
   "checks": "9 functional camera/route tests passed, updated JavaScript source parses; live iPhone Safari gesture QA pending",
-  "release_note": "Full interactive product preview, PR53 one map, PR56 visuals and PR57 media retained"
+  "release_note": "v5-data-camera latest source with non-destructive one-time QA bookmark bridge",
+  "preview_star_migration": "guarded, one-time; never resurrect manually unstarred places or overwrite Brief/media"
 }

@@ -1119,8 +1119,14 @@
     // Never run in the formal product, or if the new QA already has stars.
     if(!window.__fpStorageNamespace||!window.__atlasPreviewNamespace||fallback||!db)return;
     try{
+      const stamp='qa-preview-star-bridge-v1';
+      const already=await txn('meta','readonly',store=>store.get(stamp));
+      if(already?.value===true)return;
+      const finishBridge=()=>txn('meta','readwrite',store=>
+        store.put({key:stamp,value:true,completedAt:new Date().toISOString()}));
       const current=await txn('places','readonly',store=>store.getAll());
-      if(current.some(p=>p?.starred!==false&&!p?.demo&&!p?.routeOnly))return;
+      // Do not resurrect manually unstarred points or overwrite real media.
+      if(current.some(p=>p&&!p.demo&&!p.routeOnly)){await finishBridge();return}
       const legacy=await new Promise((resolve,reject)=>{
         const request=indexedDB.open('private-travel-footprints-v1',1);
         request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('places'))
@@ -1139,7 +1145,7 @@
       }finally{legacy.close()}
       const stars=oldPlaces.filter(p=>p&&p.starred!==false&&!p.demo&&!p.routeOnly&&
         typeof p.id==='string'&&p.id&&Number.isFinite(+p.lat)&&Number.isFinite(+p.lng));
-      if(!stars.length)return;
+      if(!stars.length){await finishBridge();return}
       await new Promise((resolve,reject)=>{
         const tx=db.transaction('places','readwrite'),store=tx.objectStore('places');
         tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error);tx.onerror=()=>reject(tx.error);
@@ -1148,6 +1154,7 @@
           find.onsuccess=()=>{if(!find.result)store.add(star)};
         }
       });
+      await finishBridge();
       console.info('[V5 QA] restored missing starred bookmarks from prior isolated map DB',stars.length);
     }catch(error){
       // Never block a product open if an older QA database is inaccessible.
