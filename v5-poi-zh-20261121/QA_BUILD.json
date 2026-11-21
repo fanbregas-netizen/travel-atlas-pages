@@ -1,21 +1,28 @@
 {
-  "product": "Footprint Map V5",
-  "qa": "POI icon/text collision, Chinese preferred, icon mapping and Safari dock recovery",
+  "product": "Footprint Map V5 · 已确认完整整合",
   "source_repo": "fanbregas-netizen/travel-atlas",
-  "source_branch": "fix/v5-poi-text-zh-20261121",
-  "source_pr": 65,
-  "preview_directory": "v5-poi-zh-20261121",
-  "production_root_modified": false,
-  "storage_namespace": "fp-v5-poi-zh-qa-20261121-",
-  "real_iphone_safari_qa": "pending",
-  "road_service": "production gateway not configured; fail closed",
-  "test_scope": [
-    "live POI collision",
-    "source text language audit",
-    "22 SVG icon assets",
-    "23 category samples",
-    "dock restoration on BFCache"
+  "source_branch": "integration/v5-approved-complete-20261121",
+  "source_commit": "63ba489cce7df4d8fbc47478bf36bd5854fb99f7",
+  "product_base": "d0290846c91a28cfdd76ff5b92b5f4f3a8165823",
+  "included_fixes": [
+    "PR #65 POI collision/Chinese names/icon mapping",
+    "PR #66 route-place blurred legacy overlay",
+    "PR #67 navigation chooser over place sheet",
+    "Safari BFCache Dock recovery"
   ],
-  "data_migration": "none; QA namespace is separate from production",
-  "formal_launch": false
+  "approved_existing_features_preserved": [
+    "single V5 map",
+    "yellow saved star",
+    "three-detent cards",
+    "route planning and route previews",
+    "Brief/photo/video/media repository",
+    "Dock 收藏–路线–总览",
+    "existing preview road estimate adapter"
+  ],
+  "preview_only_road_service": "Production-grade routing backend is not authorized. Existing V5 preview routing adapter retained for acceptance only.",
+  "storage_namespace": "fp-v5-poi-zh-qa-20261121-",
+  "dedicated_worker_cache": "fp-v5-poi-zh-qa-20261121-v4",
+  "formal_site_root_unchanged": true,
+  "QA_real_iphone_safari": "User final iPhone touch testing pending",
+  "release_approval": false
 }
