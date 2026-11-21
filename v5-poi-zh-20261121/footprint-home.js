@@ -745,9 +745,11 @@ const iphoneGallery=(()=>{
   hideOrigin(s,tile);
   const duration=media?.tagName==='VIDEO'?340:410;
   if(reduced()){s.scrim.style.opacity='.93';if(media)media.style.opacity='1';chrome(s,1);return}
-  s.scrim.style.opacity='0';chrome(s,0);
+  // Dim at creation instead of leaving the backdrop transparent while WebKit
+  // defers compositor frames; the full fade still animates to .93.
+  s.scrim.style.opacity='.93';chrome(s,0);
   if(s.scrim.animate){
-   const fade=s.scrim.animate([{opacity:0},{opacity:.93}],{duration:duration-48,easing:'cubic-bezier(.2,.75,.2,1)',fill:'both'});
+   const fade=s.scrim.animate([{opacity:.22},{opacity:.93}],{duration:duration-48,easing:'cubic-bezier(.2,.75,.2,1)',fill:'both'});
    fade.finished.then(()=>{if(!s.closed)s.scrim.style.opacity='.93';fade.cancel()},()=>{});
   }else s.scrim.style.opacity='.93';
   if(media?.tagName==='VIDEO'){
@@ -956,7 +958,9 @@ const iphoneGallery=(()=>{
   closeButton.append(closeIcon);
   closeButton.setAttribute('aria-label','关闭全屏影像');
   const caption=h('div','fp-viewer-caption');
-  const scrim=h('div','fp-gallery-scrim');scrim.style.opacity='0';
+  const scrim=h('div','fp-gallery-scrim');scrim.style.opacity='.22';
+  // Do not expose chrome before the photo has begun its shared-element flight.
+  closeButton.style.opacity='0';caption.style.opacity='0';
   viewer.append(scrim,stage,closeButton,caption);
   document.body.append(viewer);
   try{viewer.showModal()}catch(_){viewer.setAttribute('open','')}
