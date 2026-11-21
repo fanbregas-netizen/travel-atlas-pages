@@ -1,0 +1,121 @@
+/* Footprint Map V5 — four-system quality pass.
+ * Only scoped layout/map material/POI icon rules; NO new controller,
+ * second map, Gallery, IndexedDB model, card spring or map transform. */
+html:not([data-fp-map-theme="bluegray-v18"]) #atlasVectorMap .maplibregl-canvas,
+body.vector-active:not(.atlas-remote-ready) #atlasVectorMap .maplibregl-canvas,
+html:not([data-fp-map-theme="bluegray-v18"]) #atlasMap .maplibregl-canvas{opacity:0!important}
+#atlasVectorMap .maplibregl-canvas,#atlasMap .maplibregl-canvas{
+ transition:opacity .16s ease;backface-visibility:hidden
+}
+#atlasMap{background:#485d6b!important}
+#atlasMap .maplibregl-canvas-container,#atlasMap .maplibregl-canvas{background-color:#485d6b}
+/* Offline-safe MapLibre core dimensions: the remote MapLibre stylesheet can
+ * finish late on Safari. A zero-height canvas-container would otherwise keep
+ * the map blank even when its JS renderer reports that tiles are loaded. */
+#atlasVectorMap{position:fixed!important;inset:0!important;width:100%!important;height:100vh!important;height:100dvh!important}
+#atlasVectorMap .maplibregl-canvas-container,#atlasMap .maplibregl-canvas-container{
+ position:absolute!important;inset:0!important;
+ width:100%!important;height:100%!important;overflow:hidden
+}
+#atlasVectorMap .maplibregl-canvas,#atlasMap .maplibregl-canvas{
+ position:absolute!important;top:0;left:0
+}
+/* If the approved palette asset is blocked, still show the reachable
+ * fallback map instead of leaving the entire canvas permanently hidden. */
+html[data-fp-map-theme="fallback-light"] body.vector-active.atlas-remote-ready #atlasVectorMap .maplibregl-canvas{opacity:1!important}
+/* The original stage1.29 renderer owns POI projection through an rAF on move. */
+body.vector-active #atlasPoiOverlay{opacity:1!important;visibility:visible}
+#stage #atlasMap{
+ position:absolute!important;inset:0!important;
+ width:100%!important;height:100%!important;transform:none!important
+}
+#stage #map,#stage #map-world{pointer-events:none!important}
+#stage #pins{pointer-events:none!important}
+#stage #pins .pin{pointer-events:auto!important}
+/* The star itself is the only route POI marker. Order attaches to that star. */
+#stage #pins .pin.fp-route-map-star{
+ width:48px!important;min-width:48px!important;height:48px!important;
+ border:0!important;background:transparent!important;
+ box-shadow:none!important;padding:0!important;border-radius:0!important;
+ transform:translate(-50%,-50%)!important;filter:none!important;scale:1;
+ display:grid!important;place-items:center!important;
+}
+#stage #pins .pin.fp-route-map-star .fp-route-poi-token{
+ display:grid;place-items:center;width:44px;height:44px;transform-origin:center center;will-change:auto
+}
+#stage #pins .pin.fp-route-map-star .fp-route-star-art{
+ width:38px;height:38px;display:block;object-fit:contain;filter:drop-shadow(0 2px 4px #34414925)
+}
+#stage #pins .pin.fp-route-map-star .fp-route-stop-order{
+ position:absolute;right:1px;bottom:1px;
+ min-width:17px;height:17px;display:grid;place-items:center;border-radius:50%;
+ font:750 10px/1 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+ background:#fffefa;color:#304c3a;border:1px solid #92ae9e;
+ box-shadow:0 1px 4px #233c3626
+}
+#stage #pins .pin.fp-route-map-star.focus,
+#stage #pins .pin.fp-route-map-star:focus-visible{z-index:21!important;outline:none!important}
+#stage #pins .pin.fp-route-map-star:focus-visible .fp-route-poi-token{
+ outline:2px solid #81a393;border-radius:12px
+}
+#stage #pins .pin.fp-route-map-star .day-tag,
+#stage #pins .pin.fp-route-map-star .number{display:none!important}
+/* V12 approved saved-place card geometry, also used on route sub-pages. */
+#stage .circle,#stage #sheet-close,#stage #modal-close{
+ width:44px;min-width:44px;height:44px;min-height:44px;border-radius:12px
+}
+#stage #sheet-handle{width:44px;height:5px;border-radius:999px}
+#stage #sheet-title{font-size:24px;line-height:1.18;font-weight:720;letter-spacing:-.045em}
+#stage #sheet-footer .button-primary,#stage #sheet-footer .button-outline{
+ min-height:44px;border-radius:13px;box-shadow:none
+}
+#stage #modal .modal-head{min-height:44px}
+#stage .calendar-grid .day,#stage .day-filter button{min-height:44px}
+#stage .option-row,#stage .endpoint-row{min-height:53px}
+#stage .drag-handle{min-width:44px;min-height:44px}
+@media(prefers-reduced-motion:reduce){
+ #atlasVectorMap .maplibregl-canvas,#atlasMap .maplibregl-canvas{transition:none}
+}
+
+/* The top route controls should mask underlying Chinese place labels, not let
+ * a second apparent text layer bleed through the semi-opaque button. */
+#stage #topbar .circle,#stage #topbar .top-pill{background:#fffefa!important;backdrop-filter:none!important}
+
+
+/* V5 2026-11-19: the LIVE product loads legacy-inline-cascade.css, not the
+   standalone stage1-29-ui.css. This final layer unifies selection dimensions
+   and suppresses the old pin-drop and teardrop pseudo-elements. */
+body.vector-active #atlasVectorMap .atlas-vector-selection.fp-vector-selection{
+  width:52px!important;height:52px!important;
+  display:grid!important;place-items:center!important;
+  pointer-events:none!important;filter:none!important;
+  animation:none!important;
+}
+body.vector-active #atlasVectorMap .atlas-vector-selection.fp-vector-selection::before,
+body.vector-active #atlasVectorMap .atlas-vector-selection.fp-vector-selection::after{
+  content:none!important;display:none!important;
+}
+body.vector-active #atlasVectorMap .fp-vector-selection .fp-vector-token{
+  display:grid!important;place-items:center!important;
+  width:31px!important;height:31px!important;
+  border-radius:12px!important;
+  background:rgba(248,250,248,.94)!important;
+  border:1px solid rgba(187,204,202,.7)!important;
+  box-shadow:0 3px 9px rgba(35,52,53,.17)!important;
+  animation:none!important;
+}
+body.vector-active #atlasVectorMap .fp-vector-selection .fp-vector-token img{
+  display:block;width:20px!important;height:20px!important;object-fit:contain;
+}
+
+/* V5 visible POI contract: reserve a 44pt touch target, not the previous
+   transparent 52pt neighbor interception box; active symbol scales itself. */
+body.vector-active #atlasPoiOverlay > .fp-poi{
+ width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;
+ overflow:visible!important;touch-action:manipulation;
+}
+body.vector-active #atlasPoiOverlay > .fp-poi.is-selected{z-index:160!important}
+body.vector-active #atlasPoiOverlay > .fp-poi.is-selected .fp-poi-token{
+ transform-origin:center center!important;
+ box-shadow:0 8px 22px rgba(33,61,61,.26)!important;
+}

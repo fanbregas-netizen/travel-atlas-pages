@@ -1,0 +1,28 @@
+/* 保留主页原有四个入口。旧路线菜单、旧站点挑选条和收藏页中的
+   第二套路线规划统一退役；已保存路线交由 C V5 卡片管理。 */
+body.fp-single-route-owner #dockRoutePop,
+body.fp-single-route-owner #atlasRoutesSheet,
+body.fp-single-route-owner #atlasRoutesVeil,
+body.fp-single-route-owner #tpBar,
+body.fp-single-route-owner .tp-bar,
+body.fp-single-route-owner .route-map-strip,
+body.fp-single-route-owner #routeMapStrip,
+body.fp-single-route-owner #routeMapAction,
+body.fp-single-route-owner #routeSearchAction,
+body.fp-single-route-owner #routeSavedAction,
+body.fp-single-route-owner #savedTripEntry,
+body.fp-single-route-owner #fp30Routes,
+body.fp-single-route-owner #fpvRoutesTab,
+body.fp-single-route-owner #fp30NewRoute,
+body.fp-single-route-owner #drawerRouteList,
+body.fp-single-route-owner #atlasJourneyEntry {display:none!important;pointer-events:none!important}
+body.fp-single-route-owner #dockRoute{touch-action:manipulation}
+/* 搜索、总览与收藏继续使用同一套 B/C V5 低过冲弹簧手感，
+   不叠加第二套全局点击动画。 */
+:root{--atlas-system-spring:cubic-bezier(.18,.94,.2,1);--atlas-system-paper:#fffefa;--atlas-system-ink:#304737;--atlas-system-line:#e4eadf}
+#fpSearchSheet,#drawer,#fpPlaceCard,#fpMediaViewer,#memorySheet{
+  color:var(--atlas-system-ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+#appDock .dock-btn:active{transform:scale(.965);transition:transform .17s var(--atlas-system-spring)}
+#drawer .drawer-head,#fpSearchSheet .fp-card-header,#fpPlaceCard .fp-card-header{touch-action:none}

@@ -1,0 +1,12 @@
+/* Stage1.31 — user-confirmed B: no map pan; bubbles radiate from selected place. */
+#atlasOrbit{--fp-bubble-safe-top:64px}
+#atlasOrbit .orbit-bubble{will-change:transform,opacity;contain:style;backface-visibility:hidden}
+#atlasOrbit .orbit-bubble .orbit-content{will-change:opacity}
+#atlasOrbit .orbit-bubble .orbit-svg{overflow:visible!important}
+#atlasOrbit .orbit-bubble .orbit-ref-media-tile{touch-action:manipulation}
+#atlasOrbit.is-closing .orbit-bubble{pointer-events:none!important}
+@media(prefers-reduced-motion:reduce){
+ #atlasOrbit .orbit-bubble,#atlasOrbit .orbit-bubble .orbit-content{transition:none!important;animation:none!important}
+}
+
+body.atlas-orbit-active #mapConnectionNote,body.atlas-orbit-active #mapError{display:none!important}

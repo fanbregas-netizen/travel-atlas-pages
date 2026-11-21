@@ -4,8 +4,8 @@
  const DB='private-travel-footprints-v1';
  const $=id=>document.getElementById(id);
  let root=null, panel=null, currentId='', viewer=null, videoUrls=[];
- let legacy=false;
- try{legacy=sessionStorage.getItem('atlas-popover-view')==='four'}catch{}
+ let legacy=true;
+ try{legacy=sessionStorage.getItem('atlas-popover-view')!=='collage'}catch{}
  window.__atlasPreferCollage=!legacy;
  const safeUrl=src=>{if(typeof src!=='string')return '';if(/^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(src))return src;try{const u=new URL(src);return ['https:','http:'].includes(u.protocol)?u.href:''}catch{return ''}};
  const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n};
@@ -33,7 +33,7 @@
  function render(place){panel.replaceChildren();clearVideos();
   const header=el('div','fp-collage-header'),title=el('div','fp-collage-title');title.append(el('span','fp-collage-kicker','FOOTPRINT MAP · MY PLACE'),el('h2','',place.title||place.name||'收藏地点'));
   const closeBtn=el('button','fp-collage-x','×');closeBtn.type='button';closeBtn.setAttribute('aria-label','关闭地点拼贴');closeBtn.onclick=close;header.append(title,closeBtn);panel.append(header);
-  const brief=el('div','fp-collage-brief');brief.append(el('span','fp-collage-section','01 / BRIEF · 为什么想去'),el('p','',place.note||place.brief||'还没有 Brief。可以先写下为什么想去这个地方。'));panel.append(brief);
+  const brief=el('div','fp-collage-brief');brief.append(el('span','fp-collage-section','01 / BRIEF · 为什么想去'),el('p','',String(place.note||place.brief||'').replace(/^原高德地址[：:][^\n]*\n?/,'').trim()||'还没有 Brief。可以先写下为什么想去这个地方。'));panel.append(brief);
   const grid=el('div','fp-collage-media'),media=[...num(place.photos).map(p=>({kind:'photo',src:safeUrl(p?.src)})).filter(p=>p.src),...num(place.videos).map(p=>({kind:'video',value:p}))];
   const mediaHead=el('div','fp-collage-section-row');mediaHead.append(el('span','fp-collage-section','02 / PHOTO & VIDEO · 旅行影像'),el('span','fp-collage-count',media.length+' 项'));panel.append(mediaHead);
   if(media.length){media.slice(0,7).forEach((item,i)=>{const tile=el('button','fp-collage-tile '+(i===0?'lead':''));tile.type='button';tile.setAttribute('aria-label','查看第 '+(i+1)+' 个媒体');if(item.kind==='photo'){const image=el('img');image.src=item.src;image.alt='旅行照片 '+(i+1);image.loading='lazy';tile.append(image)}else{tile.classList.add('video');tile.append(el('span','fp-play','▶'));const v=item.value;const bytes=v?.bytes;try{if(bytes){const blob=new Blob([bytes],{type:v.type||'video/mp4'});const url=URL.createObjectURL(blob);videoUrls.push(url);const vid=el('video');vid.muted=true;vid.playsInline=true;vid.preload='metadata';vid.src=url;tile.prepend(vid)}}catch{}}tile.onclick=()=>openMedia(i);grid.append(tile)});if(media.length>7)grid.append(el('span','fp-collage-more','＋'+(media.length-7)))}

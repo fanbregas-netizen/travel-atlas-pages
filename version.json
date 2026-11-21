@@ -1,0 +1,11 @@
+{
+  "version": "V5.1.0.20261122",
+  "base": "release/v5-production-candidate-20261120",
+  "date": "2026-11-22",
+  "interaction": "swipe-card",
+  "review": "正式发布准备：保留 V4 本地数据名称和完整 V5 体验；授权道路服务未接入时不显示虚构道路距离/ETA；真实 iPhone Safari 备份、上线后复核仍须完成。",
+  "route_system": "V5 approved three-step planner (only route UI)",
+  "route_entry": "主页 Dock「路线」进入单地图模式；旧 journey.html 仅保留回退深链",
+  "old_route_planner_removed": true,
+  "integrated_at": "2026-11-22"
+}

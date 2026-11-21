@@ -36,6 +36,10 @@ function run(){if(!window.maplibregl||!window.AtlasFigureGround||!window.AtlasRo
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
 })();
 </script>
+<link rel="stylesheet" href="./stage1-polish.css">
+<link rel="stylesheet" href="./stage1-finish.css">
+<link rel="stylesheet" href="./stage1-detail.css?v=stage126">
+<link rel="stylesheet" href="./stage1-32-design.css?v=132"/>
 </head><body>
 <div id="visualMap" aria-label="黑白建筑地图实时缩放预览"></div>
 <header><a class="back" href="./" aria-label="返回 Footprint Map">← 返回主页</a><div class="brand"><small>TRAVEL ATLAS / VISUAL REVIEW B</small><strong>建筑地图缩放过渡</strong></div></header>
@@ -48,4 +52,5 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <div class="modes"><button id="mode-far" class="active" type="button">远景·黑</button><button id="mode-mid" type="button">半透明过渡</button><button id="mode-near" type="button">近景·白</button></div>
 <footer>这是专门用于视觉审核的地图预览，地点坐标与建筑轮廓来自真实地图数据，不读取或修改你的收藏地点。</footer>
 </section>
+<script src="./stage1-32-ui.js?v=132"></script>
 </body></html>

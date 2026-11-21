@@ -1,0 +1,61 @@
+/* V4 Pages .13 | Motion continuity only. Keep accepted PR #15 geometry, typography
+   and original map/SVG coordinates. iPhone Safari 60Hz compositor paths. */
+@keyframes fp13SearchTopIn{
+  0%{opacity:.55;translate:0 6px;scale:.987}
+  70%{opacity:1;translate:0 -1px;scale:1.004}
+  100%{opacity:1;translate:0 0;scale:1}
+}
+@keyframes fp13SearchHistorySurface{
+  0%{scale:.975 0.92}
+  60%{scale:1.004 1.012}
+  100%{scale:1 1}
+}
+@keyframes fp13SearchHistoryContent{
+  0%{opacity:0;translate:0 -9px}
+  75%{opacity:1;translate:0 1px}
+  100%{opacity:1;translate:0 0}
+}
+/* The original top field becomes the editable original, never a duplicate sheet. */
+body.fp-search-open #fpSearchActiveTop:not([hidden]) .fp-search-bar{
+  animation:fp13SearchTopIn 290ms cubic-bezier(.19,.85,.22,1) both;
+  transform-origin:center center;
+}
+body.fp-search-open #fpSearchActiveTop:not([hidden]) .fp-search-cancel{
+  animation:fp13SearchTopIn 285ms 24ms cubic-bezier(.19,.85,.22,1) both;
+}
+/* Animate only standalone scale, not transform, because final visual CSS owns
+   horizontal centering and Safari keyboard/layout must never move the popup. */
+body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]:not([hidden]){
+  transform-origin:center top!important;
+  animation:fp13SearchHistorySurface 335ms cubic-bezier(.20,.77,.22,1) both!important;
+  backface-visibility:hidden;
+}
+body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]:not([hidden]) .fp-search-body{
+  animation:fp13SearchHistoryContent 315ms 28ms cubic-bezier(.16,.84,.24,1) both;
+  backface-visibility:hidden;
+}
+body #fpSearchSheet[data-search-layout="anchored"] .fp-search-row{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+body #fpSearchSheet[data-search-layout="anchored"] .fp-search-row:active{
+  scale:.993;
+  transition:scale 120ms ease-out;
+}
+/* Keep the geographic marker fixed. A warmed, cloned SVG alone scales and
+   animates its own paths; avoid allocating new layers on every map frame. */
+#atlasPoiOverlay .fp-poi .fp-poi-token{
+  backface-visibility:hidden;
+}
+#atlasPoiOverlay .fp-poi .fp-internal-poi-envelope.fp-internal-poi-animate{
+  transform-origin:center center;
+  will-change:scale;
+}
+@media(prefers-reduced-motion:reduce){
+  body.fp-search-open #fpSearchActiveTop:not([hidden]) .fp-search-bar,
+  body.fp-search-open #fpSearchActiveTop:not([hidden]) .fp-search-cancel,
+  body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]:not([hidden]),
+  body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]:not([hidden]) .fp-search-body{
+    animation:none!important;scale:1!important;translate:none!important;
+  }
+}
