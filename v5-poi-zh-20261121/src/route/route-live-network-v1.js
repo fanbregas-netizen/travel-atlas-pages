@@ -1,19 +1,13 @@
-/* Footprint Map V5 | Road network adapter. Explicit production configuration only.
-   Never use public demo endpoints, fabricate ETA, or attach credentials in the browser. */
+/* Footprint Map V4 | Road network service, review-safe adapter.
+   Public FOSSGIS OSRM endpoints are preview-only, rate-limited best-effort services.
+   Configure owned/contracted OSRM URLs before production. No fabricated ETA. */
 (()=>{'use strict';
 if(window.__fpLiveRouting)return;
-const configured=window.__fpRoutingEndpoints||{};
-function safeEndpoint(value){
- if(typeof value!=='string'||!value.trim())return '';
- try{
-  const u=new URL(value);
-  const denied=new Set(['routing.openstreetmap.de','router.project-osrm.org','test.project-osrm.org','localhost']);
-  if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash||
-     denied.has(u.hostname.toLowerCase())||!u.pathname.endsWith('/route/v1/driving/'))return '';
-  return u.href;
- }catch{return ''}
-}
-const endpoints={car:safeEndpoint(configured.car),walk:safeEndpoint(configured.walk),bike:safeEndpoint(configured.bike)};
+const endpoints=Object.assign({
+ car:'https://routing.openstreetmap.de/routed-car/route/v1/driving/',
+ walk:'https://routing.openstreetmap.de/routed-foot/route/v1/driving/',
+ bike:'https://routing.openstreetmap.de/routed-bike/route/v1/driving/'
+},window.__fpRoutingEndpoints||{});
 const cache=new Map(),pending=new Map();let queue=Promise.resolve(),lastRequest=0;
 let active=[],map=null,version=0,drawScheduled=false,matrix=null,matrixKey='',matrixLoading=null;
 const age=15*60*1000;
@@ -45,7 +39,6 @@ function get(a,b,mode){
 function peek(a,b,mode){
  if(mode==='transit')return {state:'external',label:'公交 · 查看换乘'};
  if(!valid(a)||!valid(b))return {state:'error',label:'地点缺少坐标'};
- if(!endpoints[mode])return {state:'error',label:'道路服务尚未连接'};
  const result=cache.get(key(a,b,mode));
  if(!result){get(a,b,mode);return {state:'loading',label:'正在计算道路用时'};}
  if(result.status!=='ok')return {state:'error',label:'暂无道路用时'};
@@ -136,7 +129,6 @@ function metric(a,b,mode){
  return Number.isFinite(meters)?meters/1000:null;
 }
 window.__fpLiveRouting={peek,link,amapLink,update,prepareMatrix,metric,get,
- get health(){return {configured:!!(endpoints.car&&endpoints.walk&&endpoints.bike),modes:Object.fromEntries(['car','walk','bike'].map(mode=>[mode,!!endpoints[mode]]))}},
  get state(){return {segments:active.length,network:active.map(s=>({a:s.a.id,b:s.b.id,mode:s.mode,status:peek(s.a,s.b,s.mode).state}))}}};
 document.addEventListener('atlas:route-stops-changed',scheduleDraw);
 let tries=0;(function attach(){const m=window.__atlasRV?.currentMap;if(m&&m!==map){map=m;map.on?.('styledata',scheduleDraw);map.on?.('load',scheduleDraw);scheduleDraw()}else if(++tries<100)setTimeout(attach,400)})();
