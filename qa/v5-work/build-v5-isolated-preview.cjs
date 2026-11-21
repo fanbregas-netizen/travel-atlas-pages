@@ -1,0 +1,32 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const source=path.resolve(process.argv[2]||'product'),out=path.resolve(process.argv[3]||'dist-v5-preview');
+if(fs.existsSync(out))throw Error('Output must not exist: '+out);
+fs.cpSync(source,out,{recursive:true,filter:p=>!path.basename(p).startsWith('__workqa')});
+const ns='fp-v5-rc2-work-20261121-';
+const bootstrap=`<script id="fp-work-preview-isolation">(()=>{'use strict';
+const ns=${JSON.stringify(ns)};
+const idb=IDBFactory.prototype,open=idb.open,del=idb.deleteDatabase;
+idb.open=function(n,...a){return open.call(this,ns+String(n),...a)};
+idb.deleteDatabase=function(n){return del.call(this,ns+String(n))};
+const s=Storage.prototype,get=s.getItem,set=s.setItem,remove=s.removeItem;
+s.getItem=function(k){return get.call(this,ns+String(k))};
+s.setItem=function(k,v){return set.call(this,ns+String(k),v)};
+s.removeItem=function(k){return remove.call(this,ns+String(k))};
+s.clear=function(){for(let i=this.length-1;i>=0;i--){const k=this.key(i);if(k&&k.startsWith(ns))remove.call(this,k)}};
+window.__fpWorkIsolation=ns;
+})();</script>`;
+for(const name of fs.readdirSync(out).filter(n=>n.endsWith('.html'))){
+ const file=path.join(out,name),s=fs.readFileSync(file,'utf8');
+ if(!/<head\b[^>]*>/i.test(s))throw Error('No head: '+name);
+ fs.writeFileSync(file,s.replace(/<head\b[^>]*>/i,m=>m+'\n'+bootstrap));
+}
+const swFile=path.join(out,'sw.js');let sw=fs.readFileSync(swFile,'utf8');
+sw=sw.replace(/const CACHE='[^']+';/,"const CACHE='fp-work-preview-shell-20261121-r2';");
+const start=sw.indexOf("self.addEventListener('activate'");const end=sw.indexOf("self.addEventListener('fetch'",start);
+if(start<0||end<0)throw Error('SW activation shape changed');
+sw=sw.slice(0,start)+"self.addEventListener('activate',event=>{event.waitUntil(self.clients.claim())});\n"+sw.slice(end);
+fs.writeFileSync(swFile,sw);
+const hashes={};function walk(dir){for(const d of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,d.name);if(d.isDirectory())walk(p);else hashes[path.relative(out,p)]=crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex')}}walk(out);
+fs.writeFileSync(path.join(out,'PREVIEW_BUILD.json'),JSON.stringify({version:'V5.RC2.20261121.1',source:'PR #63',namespace:ns,production:false,files:hashes},null,2)+'\n');
+console.log(JSON.stringify({output:out,files:Object.keys(hashes).length,namespace:ns}));

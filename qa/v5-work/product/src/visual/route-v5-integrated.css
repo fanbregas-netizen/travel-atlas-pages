@@ -1,0 +1,44 @@
+/* C V5 approved layout rhythm applied ONLY to real persisted route components.
+ * No fake places; no demo V5 state or extra map. */
+:root{--v5-route-ink:#304737;--v5-route-muted:#7e9580;--v5-route-paper:#fffefa;--v5-route-sage:#edf3e9;--v5-route-line:#e4eadf;--v5-route-gold:#edc654}
+body:has(#journey){background:#f6f8f3;color:var(--v5-route-ink)}
+body:has(#journey) :where(.topbar,.builder,.atlas-view){font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif}
+body:has(#journey) .topbar{background:rgba(255,254,250,.96);border-color:var(--v5-route-line)}
+body:has(#journey) .builder{background:#fffefa;border-color:var(--v5-route-line)}
+body:has(#journey) .builder h1,body:has(#journey) .atlas-heading h2{color:var(--v5-route-ink);font-weight:720;letter-spacing:-.04em}
+body:has(#journey) .block{border-top-color:var(--v5-route-line)}
+body:has(#journey) .block h2,body:has(#journey) .eyebrow{color:#75917a;letter-spacing:.06em;font-weight:730}
+body:has(#journey) :where(.place,.choice,.route-review-day){background:var(--v5-route-paper);border:1px solid var(--v5-route-line);border-radius:17px;box-shadow:none}
+body:has(#journey) .choice{min-height:60px;padding:10px;gap:10px;transition:transform .23s cubic-bezier(.2,1,.35,1),box-shadow .23s}
+body:has(#journey) .choice.is-dragging{background:#fff;box-shadow:0 16px 32px #1f422c27;border-color:#9abda0;transform:scale(1.015);z-index:2;position:relative}
+body:has(#journey) .choice.is-drop-target{background:#f0f8ec;border-color:#80ab84}
+body:has(#journey) .choice-index{width:33px;height:33px;border-radius:12px;background:#edf2e8;color:#527555}
+body:has(#journey) .choice-name{font-size:13px;font-weight:710;color:#395740}
+body:has(#journey) .choice-drag{width:36px;height:36px;min-width:36px;border-radius:12px;background:#e8f0e5;color:#54785b;touch-action:none}
+body:has(#journey) .choice-day-label{color:#6f9072;font-size:11px;font-weight:740}
+body:has(#journey) .day-picker{background:#f0f5ec;border-color:#dbe8d6;color:#426848;border-radius:11px;min-width:55px}
+body:has(#journey) .route-review{border-color:var(--v5-route-line);border-radius:18px}
+body:has(#journey) .journey{background:#fffefa;border:1px solid var(--v5-route-line);border-radius:24px;box-shadow:0 9px 40px rgba(26,43,35,.055)}
+body:has(#journey) .accent{background:#365f45;color:#fffefa;border-color:#365f45;box-shadow:none}
+body:has(#journey) .outline{border-color:#dce8d8;background:#f0f5ec;color:#426848}
+body:has(#journey) .block input:not([type=file]),body:has(#journey) .block select{background:#fffefa;border-color:var(--v5-route-line);border-radius:14px;font-size:16px;min-height:44px}
+body:has(#journey) .ai-dialog{background:var(--v5-route-paper);border-color:var(--v5-route-line);border-radius:24px}
+body:has(#journey) .route-caveat,body:has(#journey) .hint{color:#8ba18d;line-height:1.7}
+#stopBubble:not([hidden]){background:#fffefa;border:1px solid var(--v5-route-line);border-radius:23px;box-shadow:0 15px 42px #1b302d2a;color:var(--v5-route-ink)}
+#stopsDock{background:rgba(255,254,250,.95);border-color:var(--v5-route-line)}
+#stopRail .stop-chip{background:#fffefa;border-color:var(--v5-route-line);border-radius:16px;transition:background .18s,border-color .18s}
+#stopRail .stop-chip.active{background:#eff7eb;border-color:#8fba90}
+#rvDetail{background:#fffefa;border-color:var(--v5-route-line);border-radius:25px 25px 0 0;color:var(--v5-route-ink)}
+#rvDetail .rv-sec{border-color:var(--v5-route-line)}
+#rvDetail .rv-sec small{color:#8ca18d;letter-spacing:.06em}
+#rvDetail .grab{background:#cbd4c9}
+@media(max-width:700px){
+ body:has(#journey) .builder{padding:18px 17px 28px}
+ body:has(#journey) .layout{display:flex;flex-direction:column}
+ body:has(#journey) .atlas-view{padding:20px 14px 35px}
+ body:has(#journey) .journey{min-height:340px;padding:16px 11px}
+ body:has(#journey) .place-list,body:has(#journey) .chosen-list{max-height:none;overflow:visible}
+ body:has(#journey) .block input:not([type=file]),body:has(#journey) .block select{font-size:16px}
+ #stopBubble:not([hidden]){border-radius:24px 24px 0 0}
+}
+@media(prefers-reduced-motion:reduce){body:has(#journey) .choice{transition:none!important}}

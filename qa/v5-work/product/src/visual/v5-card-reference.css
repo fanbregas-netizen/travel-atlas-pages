@@ -1,0 +1,64 @@
+/* Approved iPhone "长寿路" card as the shared visual reference.
+   Never touch JS sheet physics, map camera or media viewer ownership. */
+:root{--fp-card-paper:#fffefa;--fp-card-ink:#293f33;--fp-card-line:#e0e6de;--fp-card-muted:#91a095;--fp-card-soft:#f0f3ed;--fp-card-action:#3c5a47}
+:is(#fpPlaceCard,#destinationCard,#drawer,#sheet,#modal,#navigationChooser .nav-panel,#fpSearchSheet){font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:var(--fp-card-ink);background:var(--fp-card-paper);border-color:var(--fp-card-line)}
+:is(#fpPlaceCard,#destinationCard,#drawer,#sheet,#navigationChooser .nav-panel){border-radius:30px 30px 0 0}
+#fpPlaceCard .fp-card-name,#destinationTitle,#drawer .drawer-head h2,#sheet-title,#navigationChooser .nav-panel h2{font-size:24px;font-weight:740;line-height:1.2;letter-spacing:-.045em;color:var(--fp-card-ink)}
+#fpPlaceCard .fp-block,.v12-route-sections .fp-block,#sheet-body .setting-block,#destinationCard .destination-body{border:1px solid var(--fp-card-line);border-radius:19px;background:#fff;box-shadow:none}
+#fpPlaceCard .fp-block,.v12-route-sections .fp-block{padding:13px 14px}
+#fpPlaceCard .fp-subheading,.v12-route-sections .fp-subheading{min-height:44px;gap:8px}
+#fpPlaceCard .fp-section-index,.v12-route-sections .fp-section-index{width:40px;height:40px;min-width:40px;border-radius:13px;display:grid;place-items:center;background:#f4f6f1;color:#a1b0a5;font-size:13px;font-weight:750}
+#fpPlaceCard .fp-section-label,.v12-route-sections .fp-section-label{font-size:16px;font-weight:740;color:var(--fp-card-ink);line-height:1.25}
+#fpPlaceCard .fp-brief-text,.v12-route-sections .v12-body{font-size:14px;line-height:1.65;color:#8b9b8f}
+#fpPlaceCard :is(.fp-subaction,.fp-guide-copy),.v12-route-sections .v12-action{min-height:44px;padding:0 14px;border:1px solid var(--fp-card-line);border-radius:14px;background:var(--fp-card-soft);color:#526c59;font-size:14px;font-weight:700;box-shadow:none}
+:is(#destinationClose,#closeDrawer,#sheet-close,#closeNavigationChooser,.fp-card-close){min-width:44px;min-height:44px;border-radius:12px;color:#6e8173;box-shadow:none}
+#destinationCard{box-shadow:0 -10px 28px #253a2920}
+#destinationCard .destination-category{font-size:12px;color:var(--fp-card-muted);line-height:1.6}
+#destinationCard button{min-height:44px;box-shadow:none}
+#navigationChooser{background:#17291f60;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+#navigationChooser .nav-panel{width:min(100%,540px);box-sizing:border-box;margin:0 auto;padding:18px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 32px #142b2026}
+#navigationChooser .nav-panel h2{margin:8px 0 20px}
+#navigationChooser #navLinks{display:grid;gap:9px}
+#navigationChooser #navLinks a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;border:1px solid var(--fp-card-line);border-radius:15px;background:#f9faf7;color:#324c3b;text-decoration:none;font-size:14px;font-weight:720;padding:13px 15px}
+#navigationChooser #navLinks a::after{content:"↗";color:#93a69a}
+#navigationChooser #closeNavigationChooser{width:100%;min-height:48px;margin-top:12px;border-radius:15px;border:1px solid var(--fp-card-line);color:#526958;background:var(--fp-card-soft)}
+#sheet #sheet-title-row{min-height:62px}
+#sheet #sheet-body{padding:13px 18px 18px}
+#sheet #sheet-footer{background:var(--fp-card-paper);border-top-color:var(--fp-card-line)}
+#sheet .button-primary{background:var(--fp-card-action);border:1px solid var(--fp-card-action);border-radius:14px;color:white;box-shadow:none}
+#sheet .button-outline{border-radius:14px;border-color:var(--fp-card-line);background:var(--fp-card-soft);color:var(--fp-card-ink)}
+#sheet .v5-saved-route-toggle{display:flex;width:100%;align-items:center;justify-content:space-between;margin:8px 0;padding:12px 14px;border:1px solid var(--fp-card-line);border-radius:15px;background:#f6f8f3;color:#425c4b;text-align:left;font-size:13px;font-weight:720;min-height:48px}
+#sheet .v5-saved-route-entry{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:13px 12px;margin:7px 0;background:#fff;border:1px solid var(--fp-card-line);border-radius:14px;text-align:left;color:var(--fp-card-ink);font-size:13px;min-height:52px}
+#sheet .v5-saved-route-entry small{font-size:11px;color:var(--fp-card-muted)}
+#sheet #v5-saved-route-list[hidden]{display:none}
+#stage[data-route-mode="preview"] #pins .fp-route-map-star{opacity:1!important}
+@media(max-width:380px){#fpPlaceCard .fp-block,.v12-route-sections .fp-block{padding:12px}#sheet #sheet-body{padding-left:16px;padding-right:16px}}
+
+#navigationChooser .nav-target{font-size:12px;line-height:1.55;color:#849789;margin:0 0 12px}
+
+
+/* Navigation uses the real B V3 physical motor and the SAME 长寿路 sheet grammar.
+   Map content never resizes or stretches beneath a moving card. */
+#navigationChooser .nav-panel[hidden]{display:none!important}
+#navigationChooser .nav-panel{
+ position:absolute!important;inset:auto 0 0!important;
+ display:flex;flex-direction:column;box-sizing:border-box;
+ width:min(100%,540px);height:260px;min-height:180px;
+ max-height:calc(100dvh - 22px);margin:0 auto!important;
+ padding:0!important;background:var(--fp-card-paper)!important;
+ border:1px solid var(--fp-card-line);border-bottom:0;
+ border-radius:30px 30px 0 0!important;overflow:hidden;
+ touch-action:pan-y;will-change:height,transform;
+ box-shadow:0 -13px 36px #213c3329
+}
+#navigationChooser .fp-nav-header{display:block;flex:0 0 auto;touch-action:none}
+#navigationChooser .fp-nav-grip{display:grid;place-items:center;height:29px;min-height:29px;width:100%;padding:0;border:0;background:transparent;color:transparent;touch-action:none;cursor:grab}
+#navigationChooser .fp-nav-grip:before{content:"";width:44px;height:5px;background:#c7d0c7;border-radius:99px}
+#navigationChooser .fp-nav-title-row{display:flex;gap:12px;align-items:center;min-height:58px;padding:0 20px 13px;border-bottom:1px solid var(--fp-card-line)}
+#navigationChooser .fp-nav-title-row h2{flex:1;margin:0;font-size:24px;font-weight:740;letter-spacing:-.045em;line-height:1.2;color:var(--fp-card-ink)}
+#navigationChooser #closeNavigationChooser{margin:0!important;min-width:44px;width:44px!important;height:44px!important;min-height:44px;padding:0;border:1px solid var(--fp-card-line);border-radius:12px;background:var(--fp-card-soft);color:#6e8173;font-size:23px;line-height:1}
+#navigationChooser .fp-nav-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:13px 20px calc(20px + env(safe-area-inset-bottom))}
+#navigationChooser .nav-target{font-size:13px;line-height:1.55;color:var(--fp-card-muted);margin:0 0 12px}
+#navigationChooser #navLinks{display:grid;gap:9px}
+#navigationChooser #navLinks a{min-height:52px;box-sizing:border-box}
+@media(prefers-reduced-motion:reduce){#navigationChooser .nav-panel{will-change:auto}}
