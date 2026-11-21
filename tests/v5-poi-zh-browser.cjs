@@ -82,6 +82,70 @@ async function inspectProduct(browser,kind,width){
   assert.equal(routePlaceGlass.vectorFilter,'none',kind+' V5 route map should not be blurred');
   assert.equal(routePlaceGlass.starsFilter,'none',kind+' route star overlay should not be blurred');
   console.log(JSON.stringify({kind,width,mode:'route-to-place-no-legacy-blur',result:'PASS',glass:routePlaceGlass}));
+  // Actual 2026-11-21 iPhone recording regression: a saved-place card is
+  // open above a route, and its header direction icon must show a *tappable*
+  // navigation chooser ABOVE the card, not a hidden sheet and blurred map.
+  await page.waitForFunction(()=>typeof window.__footprintHome?.openSaved==='function'&&
+   typeof window.__atlasOpenNavigation==='function'&&
+   Boolean(window.FootprintNavigationSheet?.open),null,{timeout:15000});
+  await page.evaluate(async()=>{
+   const p={id:'qa-route-nav-hit',title:'宁波工程学院前湾校区',lat:30.2401,lng:121.3097,
+    starred:true,stage:'plan',note:'导航功能测试',photos:[],videos:[],references:[]};
+   // Read-only mock store in this ephemeral browser context. No real IndexedDB
+   // or user data is ever overwritten, even inside the isolated QA namespace.
+   window.__atlasPlaceStore={readAll:async()=>[p]};
+   await window.__footprintHome.openSaved(p.id);
+   document.body.classList.add('fp-unified-route');
+  });
+  await page.waitForFunction(()=>!document.querySelector('#fpPlaceCard')?.hidden&&
+   !!document.querySelector('#fpPlaceCard .fp-place-navigation'),null,{timeout:8000});
+  await page.locator('#fpPlaceCard .fp-place-navigation').click();
+  await page.waitForFunction(()=>document.querySelector('#navigationChooser')?.classList.contains('visible')&&
+   !document.querySelector('#navigationChooser')?.hidden&&
+   document.querySelectorAll('#navLinks a').length>=2,null,{timeout:6500});
+  await page.waitForTimeout(950);
+  const nav=await page.evaluate(()=>{
+   const modal=document.querySelector('#navigationChooser');
+   const card=document.querySelector('#fpPlaceCard');
+   const a=document.querySelector('#navLinks a');
+   const rect=a.getBoundingClientRect();
+   const above=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
+   return {modalZ:parseInt(getComputedStyle(modal).zIndex)||0,
+    cardZ:parseInt(getComputedStyle(card).zIndex)||0,
+    modalVisible:getComputedStyle(modal).display!=='none',
+    navLinkAtTop:!!above?.closest('#navLinks'),
+    labels:[...document.querySelectorAll('#navLinks a')].map(x=>x.textContent),
+    amapUrl:a.href,cardVisible:!card.hidden}
+  });
+  assert(nav.modalVisible&&nav.cardVisible,kind+' navigation or original place card missing');
+  assert(nav.modalZ>nav.cardZ,kind+' navigation is below place card '+JSON.stringify(nav));
+  assert(nav.navLinkAtTop,kind+' navigation hit target hidden behind place card '+JSON.stringify(nav));
+  assert(nav.labels.some(x=>x.includes('高德'))&&nav.labels.some(x=>x.includes('Apple')),kind+' map app links missing');
+  assert(nav.amapUrl.startsWith('https://uri.amap.com/navigation?'),kind+' destination URI invalid');
+  await page.screenshot({path:path.join(evidence,kind+'-'+width+'-NAV-ABOVE-PLACE.png'),fullPage:false});
+  // Exercise a REAL pointer click, not dispatchEvent() which would bypass
+  // the very hit-testing bug reported on the user's iPhone.
+  await page.evaluate(()=>{
+   window.__qaNavigationClicked='';
+   document.querySelectorAll('#navLinks a').forEach(a=>
+    a.addEventListener('click',e=>{
+     e.preventDefault();window.__qaNavigationClicked=a.href;
+    },{capture:true,once:true})
+   )
+  });
+  await page.locator('#navLinks a').first().click({timeout:10000});
+  assert((await page.evaluate(()=>window.__qaNavigationClicked)).startsWith('https://uri.amap.com/navigation?'),
+   kind+' nav link did not receive the actual click');
+  await page.waitForTimeout(1050);
+  assert(await page.locator('#navigationChooser').isHidden(),kind+' chooser did not close after external map choice');
+  assert(await page.locator('#fpPlaceCard').isVisible(),kind+' returning from nav destroyed original place');
+  console.log(JSON.stringify({kind,width,mode:'real-saved-place-header-navigation-click',result:'PASS',navigation:nav}));
+  // Restore page state before other independent checks.
+  await page.evaluate(()=>{
+   window.__atlasClosePlace?.(true);
+   document.body.classList.remove('fp-unified-route','fp-place-open');
+  });
+
   const iconCategories=await page.evaluate(()=>Object.keys(window.AtlasPOIIcons?.icons||{}));
   assert.equal(iconCategories.length,22,kind+' icon catalog must retain 22 V3 categories');
   await page.screenshot({path:path.join(evidence,kind+'-'+width+'-real-v5-home.png'),fullPage:false});
