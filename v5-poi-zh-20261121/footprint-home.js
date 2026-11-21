@@ -492,6 +492,7 @@ async function addMedia(id,files){
  * Never tear down the modal between adjacent photos or videos. */
 const iphoneGallery=(()=>{
  const ease='cubic-bezier(.22,1,.36,1)';
+ const photoEase='cubic-bezier(.2,.82,.2,1)';
  let current=null;
  const reduced=()=>!!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -515,6 +516,10 @@ const iphoneGallery=(()=>{
    '#fpMediaViewer .fp-gallery-video-standby img{width:100%;height:100%;object-fit:contain}',
    '#fpMediaViewer .fp-gallery-video-icon{position:absolute;display:grid;place-items:center;width:52px;height:52px;background:rgba(0,0,0,.48);border-radius:50%;font-size:20px}',
    '#fpMediaViewer .fp-viewer-close{position:absolute!important;z-index:11!important;top:calc(env(safe-area-inset-top,0px) + 12px)!important;right:16px!important;transition:opacity .18s ease!important}',
+   // Override legacy [open] button typography and the v16 double pseudo X.
+   '#fpMediaViewer[open].fp-ios-gallery .fp-viewer-close{position:absolute!important;top:calc(env(safe-area-inset-top,0px) + 12px)!important;right:max(16px,env(safe-area-inset-right,0px))!important;z-index:99!important;display:grid!important;place-items:center!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;max-width:44px!important;max-height:44px!important;padding:0!important;font-size:0!important;line-height:0!important;background:rgba(41,47,44,.53)!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:14px!important;color:#fff!important}',
+   '#fpMediaViewer[open].fp-ios-gallery .fp-viewer-close::before,#fpMediaViewer[open].fp-ios-gallery .fp-viewer-close::after{content:none!important;display:none!important;background:none!important}',
+   '#fpMediaViewer[open].fp-ios-gallery .fp-viewer-close>.fp-close-svg{display:block!important;position:relative!important;width:21px!important;height:21px!important;min-width:21px!important;min-height:21px!important;color:#fff!important;pointer-events:none!important;flex:none!important;fill:none!important}',
    '#fpMediaViewer .fp-viewer-caption{position:absolute!important;z-index:9!important;left:24px!important;right:24px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 14px)!important;text-align:center!important;pointer-events:none!important;font-size:12px!important;line-height:1.55!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:rgba(255,255,255,.88)!important;transition:opacity .18s ease!important}',
    '#fpMediaViewer.fp-viewer-immersive .fp-viewer-close,#fpMediaViewer.fp-viewer-immersive .fp-viewer-caption{opacity:0!important;pointer-events:none!important}',
    '#fpMediaViewer .fp-gallery-ghost{position:fixed!important;z-index:12!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;pointer-events:none!important;object-fit:contain!important;transform-origin:center center;will-change:transform,opacity,border-radius}',
@@ -541,6 +546,15 @@ const iphoneGallery=(()=>{
   const tile=s.card?.querySelector('[data-fp-media-index="'+i+'"]');
   if(tile?.isConnected)return tile;
   return s.index===i&&s.firstOrigin?.isConnected?s.firstOrigin:null;
+ }
+ // Hide the source mosaic tile during shared-element photo animations;
+ // restore its original inline visibility when the dialog is removed.
+ function hideOrigin(s,tile){
+  if(!tile?.isConnected)return;
+  if(!s.hiddenOrigins.some(([n])=>n===tile)){
+   s.hiddenOrigins.push([tile,tile.style.visibility]);
+   tile.style.visibility='hidden';
+  }
  }
  function videoURL(s,i){
   if(s.urls.has(i))return s.urls.get(i);
@@ -662,6 +676,9 @@ const iphoneGallery=(()=>{
   });
   try{if(s.viewer.open)s.viewer.close()}catch(_){}
   s.viewer.remove();
+  for(const [tile,visibility] of s.hiddenOrigins||[])
+   if(tile?.isConnected)tile.style.visibility=visibility;
+  s.hiddenOrigins=[];
   for(const url of s.urls.values())URL.revokeObjectURL(url);
   if(current===s)current=null;
   for(const v of tileVideos)syncTilePlayback(v);
@@ -673,9 +690,10 @@ const iphoneGallery=(()=>{
   if(s.closing)return;
   s.closing=true;s.locked=true;s.viewer.dataset.gestureState='closing';
   if(s.gestureRAF){cancelAnimationFrame(s.gestureRAF);s.gestureRAF=0}
-  const media=mediaAt(s),duration=350; // 退出稍缓于进入，保留现有跟手曲线与原位收缩
+  const media=mediaAt(s),duration=mediaAt(s)?.tagName==='VIDEO'?350:425; // photo return matches iOS cadence
   const from=media?.getBoundingClientRect();
   const tile=original(s,s.index),to=tile?.getBoundingClientRect();
+  hideOrigin(s,tile);
   chrome(s,0);
   const alpha=freezeScrim(s);
   if(s.scrim.animate)try{
@@ -705,6 +723,7 @@ const iphoneGallery=(()=>{
    const deltaY=found?to.top+to.height/2-baseY:Math.min(210,s.width*.45);
    const destination='translate3d('+deltaX+'px,'+deltaY+'px,0) scale('+targetScale+')';
    const firstOpacity=Number.parseFloat(getComputedStyle(media).opacity)||1;
+   media.style.transition='none'; // prevent second CSS zoom during WAAPI return
    media.style.transform=pose==='none'?'none':pose;
    if(s.enterAnimation){try{s.enterAnimation.cancel()}catch(_){};s.enterAnimation=null}
    try{
@@ -712,7 +731,7 @@ const iphoneGallery=(()=>{
      {transform:pose==='none'?'none':pose,opacity:firstOpacity,borderRadius:'0px',offset:0},
      {transform:destination,opacity:1,borderRadius:'10px',offset:.78},
      {transform:destination,opacity:0,borderRadius:'10px',offset:1}
-    ],{duration,easing:ease,fill:'forwards'});
+    ],{duration,easing:photoEase,fill:'forwards'});
    }catch(_){}
   }else if(s.track.animate){
    try{s.track.animate([{opacity:1},{opacity:0}],{duration:duration-55,fill:'forwards'})}catch(_){}
@@ -723,11 +742,14 @@ const iphoneGallery=(()=>{
   if(s.closed)return;
   const media=mediaAt(s),tile=origin?.isConnected?origin:null;
   const start=tile?.getBoundingClientRect(),to=media?.getBoundingClientRect();
-  const duration=340;
+  hideOrigin(s,tile);
+  const duration=media?.tagName==='VIDEO'?340:410;
   if(reduced()){s.scrim.style.opacity='.93';if(media)media.style.opacity='1';chrome(s,1);return}
-  s.scrim.style.opacity='0';chrome(s,0);
+  // Dim at creation instead of leaving the backdrop transparent while WebKit
+  // defers compositor frames; the full fade still animates to .93.
+  s.scrim.style.opacity='.93';chrome(s,0);
   if(s.scrim.animate){
-   const fade=s.scrim.animate([{opacity:0},{opacity:.93}],{duration:290,easing:'ease-out',fill:'both'});
+   const fade=s.scrim.animate([{opacity:.22},{opacity:.93}],{duration:duration-48,easing:'cubic-bezier(.2,.75,.2,1)',fill:'both'});
    fade.finished.then(()=>{if(!s.closed)s.scrim.style.opacity='.93';fade.cancel()},()=>{});
   }else s.scrim.style.opacity='.93';
   if(media?.tagName==='VIDEO'){
@@ -744,14 +766,14 @@ const iphoneGallery=(()=>{
     {transform:valid?'translate3d('+dx+'px,'+dy+'px,0) scale('+fit+')':'none',
      opacity:valid?1:0,borderRadius:valid?'14px':'0px'},
     {transform:'none',opacity:1,borderRadius:'0px'}
-   ],{duration,easing:ease,fill:'both'});
+   ],{duration,easing:photoEase,fill:'both'});
    s.enterAnimation=opening;
    media.style.opacity='1';
    opening.finished.then(()=>{if(s.enterAnimation===opening){
     media.style.transform='none';opening.cancel();s.enterAnimation=null;
    }},()=>{});
   }else if(media)media.style.opacity='1';
-  setTimeout(()=>{if(!s.closed&&!s.closing)chrome(s,1)},300);
+  setTimeout(()=>{if(!s.closed&&!s.closing)chrome(s,1)},duration-44);
  }
 
  function settle(s){
@@ -921,15 +943,29 @@ const iphoneGallery=(()=>{
   viewer.dataset.mediaMotion='iphone-v5';viewer.dataset.gestureState='rest';viewer.dataset.itemIndex=String(index);
   const stage=h('div','fp-gallery-stage'),track=h('div','fp-gallery-track');
   stage.append(track);
-  const closeButton=btn('×',()=>close(false),'fp-viewer-close');
+  // One SVG cross. Legacy × text plus ::before/after made duplicate Xs.
+  const closeButton=btn('',()=>close(false),'fp-viewer-close');
+  const closeIcon=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  closeIcon.setAttribute('viewBox','0 0 24 24');
+  closeIcon.setAttribute('class','fp-close-svg');
+  closeIcon.setAttribute('aria-hidden','true');closeIcon.setAttribute('focusable','false');
+  for(const d of ['M5 5 L19 19','M19 5 L5 19']){
+   const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+   path.setAttribute('d',d);path.setAttribute('fill','none');
+   path.setAttribute('stroke','currentColor');path.setAttribute('stroke-width','2.5');
+   path.setAttribute('stroke-linecap','round');closeIcon.append(path);
+  }
+  closeButton.append(closeIcon);
   closeButton.setAttribute('aria-label','关闭全屏影像');
   const caption=h('div','fp-viewer-caption');
-  const scrim=h('div','fp-gallery-scrim');scrim.style.opacity='0';
+  const scrim=h('div','fp-gallery-scrim');scrim.style.opacity='.22';
+  // Do not expose chrome before the photo has begun its shared-element flight.
+  closeButton.style.opacity='0';caption.style.opacity='0';
   viewer.append(scrim,stage,closeButton,caption);
   document.body.append(viewer);
   try{viewer.showModal()}catch(_){viewer.setAttribute('open','')}
   if(window.matchMedia?.('(pointer:coarse)')?.matches)try{viewer.focus({preventScroll:true})}catch(_){}
-  const s={viewer,stage,track,scrim,closeButton,caption,items,index,firstOrigin:originTile,card:placeCard,urls:new Map(),width:0,cells:null,drag:null,locked:false,closed:false,closing:false,suppressClickUntil:0};
+  const s={viewer,stage,track,scrim,closeButton,caption,items,index,firstOrigin:originTile,card:placeCard,urls:new Map(),width:0,cells:null,drag:null,locked:false,closed:false,closing:false,suppressClickUntil:0,hiddenOrigins:[]};
   current=s;
   populate(s);
   if(!reduced()){const m=mediaAt(s);if(m)m.style.opacity='0'}
@@ -952,7 +988,16 @@ const iphoneGallery=(()=>{
    if(e.key==='Escape'){e.preventDefault();close(false)}
   });
   for(const v of tileVideos){try{v.pause()}catch(_){}}
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(current===s&&!s.closed)reveal(s,originTile)}));
+  // WebKit can defer nested rAF when opening a modal after an iOS sheet.
+  // Start once from the first stable frame, with an absolute 64ms fallback,
+  // so the photo and scrim never remain in their pre-entrance state.
+  const launchReveal=()=>{
+   if(s.revealStarted||current!==s||s.closed||s.closing)return;
+   s.revealStarted=true;s.viewer.dataset.photoEntrance='started';
+   reveal(s,originTile);
+  };
+  requestAnimationFrame(()=>requestAnimationFrame(launchReveal));
+  setTimeout(launchReveal,64);
  }
  return Object.freeze({open,close,getState:()=>current&&{itemIndex:current.index,gesture:current.viewer.dataset.gestureState,open:!current.closed,activeVideos:current.viewer.querySelectorAll('video[src]').length,blobUrls:current.urls.size}});
 })();
