@@ -984,7 +984,16 @@ const iphoneGallery=(()=>{
    if(e.key==='Escape'){e.preventDefault();close(false)}
   });
   for(const v of tileVideos){try{v.pause()}catch(_){}}
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(current===s&&!s.closed)reveal(s,originTile)}));
+  // WebKit can defer nested rAF when opening a modal after an iOS sheet.
+  // Start once from the first stable frame, with an absolute 64ms fallback,
+  // so the photo and scrim never remain in their pre-entrance state.
+  const launchReveal=()=>{
+   if(s.revealStarted||current!==s||s.closed||s.closing)return;
+   s.revealStarted=true;s.viewer.dataset.photoEntrance='started';
+   reveal(s,originTile);
+  };
+  requestAnimationFrame(()=>requestAnimationFrame(launchReveal));
+  setTimeout(launchReveal,64);
  }
  return Object.freeze({open,close,getState:()=>current&&{itemIndex:current.index,gesture:current.viewer.dataset.gestureState,open:!current.closed,activeVideos:current.viewer.querySelectorAll('video[src]').length,blobUrls:current.urls.size}});
 })();
