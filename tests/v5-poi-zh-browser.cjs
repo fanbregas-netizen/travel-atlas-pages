@@ -18,6 +18,7 @@ async function inspectProduct(browser,kind,width){
   const response=await page.goto(base,{waitUntil:'domcontentloaded',timeout:35000});
   assert.equal(response.status(),200,kind+' real QA HTML HTTP');
   await page.waitForTimeout(1800);
+  await page.waitForFunction(()=>Boolean(window.__atlasCardDockMotion?.sync),null,{timeout:12000});
   for(const selector of ['#fpTopSearch','#appDock','#dockStars','#dockMap','#dockRoute','#btnLocate','#btnZoomIn','#btnZoomOut'])
    assert(await page.locator(selector).count()===1,kind+' missing '+selector);
   assert(await page.locator('#appDock').isVisible(),kind+' bottom Dock should be visible at boot');
@@ -33,7 +34,9 @@ async function inspectProduct(browser,kind,width){
    document.body.classList.add('fp-unified-route','fp-route-map-focus');
    window.dispatchEvent(new Event('pageshow'));
   });
-  await page.waitForTimeout(650);
+  await page.waitForFunction(()=>!document.body.classList.contains('fp-unified-route')&&
+   !document.body.classList.contains('fp-route-map-focus'),null,{timeout:4000});
+  await page.waitForTimeout(150);
   const restored=await page.evaluate(()=>({
    dock:getComputedStyle(document.querySelector('#appDock')).visibility,
    top:getComputedStyle(document.querySelector('#fpTopSearch')).visibility,
