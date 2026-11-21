@@ -39,6 +39,17 @@ async function test(kind,engine,width){
    const photo=viewer?.querySelector('.fp-gallery-cell:nth-child(2) > img');
    return {state:viewer?.dataset.gestureState,activeMotion:photo?.getAnimations().some(a=>a.playState==='running')||false};
   });
+  const webkitMotionDiagnostics=await page.evaluate(()=>{
+   const dialog=document.getElementById('fpMediaViewer');
+   const image=dialog?.querySelector('.fp-gallery-cell:nth-child(2)>img');
+   const caption=dialog?.querySelector('.fp-viewer-caption');
+   const scrim=dialog?.querySelector('.fp-gallery-scrim');
+   const rect=image?.getBoundingClientRect();
+   return {reduced:matchMedia('(prefers-reduced-motion:reduce)').matches,photoAnimations:image?.getAnimations().length,
+    photoTransform:image&&getComputedStyle(image).transform,photoRect:rect&&{x:rect.x,y:rect.y,w:rect.width,h:rect.height},
+    captionOpacity:caption&&getComputedStyle(caption).opacity,scrimOpacity:scrim&&getComputedStyle(scrim).opacity};
+  });
+  await page.screenshot({path:path.join(dir,kind+'-'+width+'-open-midmotion.png')});
   await page.waitForTimeout(430); // accepted slower iOS image expansion
   const closeIcon=await page.evaluate(()=>{
    const b=document.querySelector('#fpMediaViewer .fp-viewer-close');
@@ -106,7 +117,7 @@ async function test(kind,engine,width){
   assert.equal(isolation.ns,'fp-v5-poi-zh-qa-20261121-');
   assert.equal(isolation.db,'private-travel-footprints-v5-poi-zh-qa-20261121');
   assert.equal(isolation.blocked,false);
-  console.log(JSON.stringify({engine:kind,width,status:'PASS',pinch:status.zoom,pan:panned.panX,closeIcon:'single SVG',photoOpenAnimation:during.activeMotion,import:isolation.ns}));
+  console.log(JSON.stringify({engine:kind,width,status:'PASS',pinch:status.zoom,pan:panned.panX,closeIcon:'single SVG',photoOpenAnimation:during.activeMotion,diagnostic:webkitMotionDiagnostics,import:isolation.ns}));
  }finally{await context.close();await browser.close()}
 }
 (async()=>{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]])
