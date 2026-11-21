@@ -1,0 +1,78 @@
+'use strict';
+/* Real Chromium/WebKit engines, synthetic multitouch events on the FULL
+ * isolated V5 product. No user browser profile, account, or data is touched. */
+const {chromium,webkit}=require('playwright');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const base='http://127.0.0.1:8765/v5-poi-zh-20261121/';
+const dir=path.resolve(__dirname,'../v5-photo-zoom-evidence');
+fs.mkdirSync(dir,{recursive:true});
+async function test(kind,engine,width){
+ const browser=await engine.launch({headless:true,args:kind==='chromium'?['--no-sandbox','--disable-dev-shm-usage']:[]});
+ const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2,serviceWorkers:'block'});
+ const page=await context.newPage();
+ try{
+  const r=await page.goto(base,{waitUntil:'domcontentloaded',timeout:35000});
+  assert.equal(r.status(),200);
+  await page.waitForFunction(()=>typeof window.__footprintHome?.openSaved==='function'&&
+   typeof window.__fpPhotoZoomV5?.getState==='function',null,{timeout:18000});
+  await page.evaluate(async()=>{
+   const c=document.createElement('canvas');c.width=800;c.height=600;
+   const x=c.getContext('2d');x.fillStyle='#cadad1';x.fillRect(0,0,800,600);
+   x.fillStyle='#405f59';x.fillRect(100,80,500,400);
+   const src=c.toDataURL('image/png');
+   const p={id:'qa-photo-zoom',title:'图片缩放验收点',lat:31.052,lng:121.507,
+    starred:true,stage:'plan',note:'',photos:[{name:'测试照片',src}],
+    videos:[],references:[]};
+   window.__atlasPlaceStore={readAll:async()=>[p]};
+   await window.__footprintHome.openSaved(p.id);
+  });
+  await page.waitForFunction(()=>!!document.querySelector('#fpPlaceCard [data-fp-media-index="0"]'),null,{timeout:8000});
+  await page.locator('#fpPlaceCard [data-fp-media-index="0"]').click();
+  await page.waitForFunction(()=>!!document.querySelector('#fpMediaViewer .fp-gallery-cell:nth-child(2) > img'),null,{timeout:9000});
+  await page.waitForTimeout(470); // approved thumbnail-to-fullscreen animation
+  await page.evaluate(()=>{
+   const img=document.querySelector('#fpMediaViewer .fp-gallery-cell:nth-child(2) > img');
+   const p=(id,x,y)=>new Touch({identifier:id,target:img,clientX:x,clientY:y,screenX:x,screenY:y,pageX:x,pageY:y});
+   const dispatch=(type,touches,changed=touches)=>img.dispatchEvent(new TouchEvent(type,{
+    bubbles:true,cancelable:true,composed:true,touches,targetTouches:touches,changedTouches:changed
+   }));
+   const a=p(0,140,310),b=p(1,250,310);
+   dispatch('touchstart',[a,b]);
+   const c=p(0,75,310),d=p(1,315,310);
+   dispatch('touchmove',[c,d],[c,d]);dispatch('touchend',[],[c,d]);
+  });
+  let status=await page.evaluate(()=>window.__fpPhotoZoomV5.getState());
+  assert(status.zoom>1.6,kind+' pinch did not zoom: '+JSON.stringify(status));
+  assert.equal(await page.locator('#fpMediaViewer').count(),1);
+  const item=await page.locator('#fpMediaViewer').getAttribute('data-item-index');
+  assert.equal(item,'0',kind+' pinch switched the slide');
+  await page.evaluate(()=>{
+   const img=document.querySelector('#fpMediaViewer .fp-gallery-cell:nth-child(2) > img');
+   const p=(x,y)=>new Touch({identifier:0,target:img,clientX:x,clientY:y,screenX:x,screenY:y,pageX:x,pageY:y});
+   const send=(type,ts,changed=ts)=>img.dispatchEvent(new TouchEvent(type,{
+    bubbles:true,cancelable:true,composed:true,touches:ts,targetTouches:ts,changedTouches:changed
+   }));
+   send('touchstart',[p(195,320)]);send('touchmove',[p(250,350)]);
+   send('touchend',[],[p(250,350)]);
+  });
+  const panned=await page.evaluate(()=>window.__fpPhotoZoomV5.getState());
+  assert.equal(panned.zoom,status.zoom,kind+' pan changed zoom');
+  await page.screenshot({path:path.join(dir,kind+'-'+width+'-photo-zoom.png')});
+  await page.locator('#fpMediaViewer .fp-viewer-close').click();
+  await page.waitForFunction(()=>!document.getElementById('fpMediaViewer'),null,{timeout:6000});
+  assert(await page.locator('#fpPlaceCard').isVisible(),kind+' photo close lost location card');
+  await page.goto(base+'amap-import.html',{waitUntil:'domcontentloaded'});
+  const isolation=await page.evaluate(()=>({
+   ns:window.__atlasPreviewNamespace,db:window.__fpStorageNamespace,blocked:window.__atlasImportPreviewBlocked===true
+  }));
+  assert.equal(isolation.ns,'fp-v5-poi-zh-qa-20261121-');
+  assert.equal(isolation.db,'private-travel-footprints-v5-poi-zh-qa-20261121');
+  assert.equal(isolation.blocked,false);
+  console.log(JSON.stringify({engine:kind,width,status:'PASS',pinch:status.zoom,pan:panned.panX,import:isolation.ns}));
+ }finally{await context.close();await browser.close()}
+}
+(async()=>{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]])
+ for(const width of [390,430])await test(name,engine,width)})()
+ .catch(e=>{console.error(e.stack||e);process.exitCode=1});
