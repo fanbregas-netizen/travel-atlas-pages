@@ -825,6 +825,32 @@ body.fp-unified-route .fp-route-segment-popup .maplibregl-popup-tip{
  #fpUnifiedRoute .fp-route-reorder{transition:none!important}
 }
 
+/* Route preview -> saved-place detail must never activate the old
+   V4 journal/collection glass behind the approved V5 physical sheet.
+   That old fullscreen backdrop blurs the road geometry and the underlying
+   route sheet, then visibly unblurs after returning from the place card.
+   Limit the rule to the V5 route context, not the regular collection. */
+html.fp-v5-single-place body.fp-unified-route #cover.screen-cover,
+html.fp-v5-single-place body.fp-unified-route #memorySheet.memory-atlas {
+ display:none!important;
+ visibility:hidden!important;
+ pointer-events:none!important;
+}
+html.fp-v5-single-place body.fp-unified-route #memorySheet.memory-atlas::before,
+html.fp-v5-single-place body.fp-unified-route #atlasOrbit .orbit-backdrop {
+ opacity:0!important;
+ background:transparent!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+}
+/* Neither the live map canvas nor its route line/stars should receive a
+   blur filter during route-to-place handoff. */
+html.fp-v5-single-place body.fp-unified-route.fp-place-open #atlasVectorMap,
+html.fp-v5-single-place body.fp-unified-route.fp-place-open #atlasBookmarkOverlay {
+ filter:none!important;
+ -webkit-filter:none!important;
+}
+
 /* V5 single-card invariant: the obsolete memorySheet is never displayed. */
 html.fp-v5-single-place #memorySheet{display:none!important;visibility:hidden!important;pointer-events:none!important}
 html.fp-v5-single-place body.fp-unified-route.fp-place-open #fpPlaceCard{z-index:3600!important}
