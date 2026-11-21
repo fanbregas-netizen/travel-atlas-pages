@@ -45,6 +45,43 @@ async function inspectProduct(browser,kind,width){
   }));
   assert(!restored.orphan&&!restored.mapFocus,kind+' orphan route CSS leaked '+JSON.stringify(restored));
   assert(restored.dock==='visible'&&restored.top==='visible',kind+' dock restoration failed '+JSON.stringify(restored));
+  // Video 2026-11-21: V4 full-screen glass must not blur the route map,
+  // numbered stars or underlying route sheet when the V5 place card opens.
+  // Exercise the actual complete-product stylesheet, not a standalone mock CSS.
+  const routePlaceGlass=await page.evaluate(()=>{
+   const cover=document.querySelector('#cover');
+   const legacy=document.querySelector('#memorySheet');
+   const map=document.querySelector('#atlasVectorMap');
+   const stars=document.querySelector('#atlasBookmarkOverlay');
+   if(!cover||!legacy||!map||!stars)return {missing:true};
+   const outside=document.body.classList.contains('fp-unified-route');
+   document.body.classList.add('fp-unified-route','fp-place-open');
+   cover.classList.add('visible');
+   legacy.classList.add('visible','journal-open');
+   const before=getComputedStyle(legacy,'::before');
+   const check={
+    isV5:document.documentElement.classList.contains('fp-v5-single-place'),
+    cover:getComputedStyle(cover).display,
+    memory:getComputedStyle(legacy).display,
+    pseudoOpacity:before.opacity,
+    pseudoBlur:before.backdropFilter||before.webkitBackdropFilter||'',
+    vectorFilter:getComputedStyle(map).filter,
+    starsFilter:getComputedStyle(stars).filter
+   };
+   cover.classList.remove('visible');
+   legacy.classList.remove('visible','journal-open');
+   document.body.classList.remove('fp-place-open');
+   if(!outside)document.body.classList.remove('fp-unified-route');
+   return check;
+  });
+  assert.equal(routePlaceGlass.isV5,true,kind+' missing V5 single card mode');
+  assert.equal(routePlaceGlass.cover,'none',kind+' legacy fullscreen cover still visible '+JSON.stringify(routePlaceGlass));
+  assert.equal(routePlaceGlass.memory,'none',kind+' retired memory journal still visible '+JSON.stringify(routePlaceGlass));
+  assert.equal(routePlaceGlass.pseudoOpacity,'0',kind+' legacy journal blur overlay not suppressed');
+  assert.equal(routePlaceGlass.pseudoBlur,'none',kind+' legacy journal backdrop blur still active');
+  assert.equal(routePlaceGlass.vectorFilter,'none',kind+' V5 route map should not be blurred');
+  assert.equal(routePlaceGlass.starsFilter,'none',kind+' route star overlay should not be blurred');
+  console.log(JSON.stringify({kind,width,mode:'route-to-place-no-legacy-blur',result:'PASS',glass:routePlaceGlass}));
   const iconCategories=await page.evaluate(()=>Object.keys(window.AtlasPOIIcons?.icons||{}));
   assert.equal(iconCategories.length,22,kind+' icon catalog must retain 22 V3 categories');
   await page.screenshot({path:path.join(evidence,kind+'-'+width+'-real-v5-home.png'),fullPage:false});
