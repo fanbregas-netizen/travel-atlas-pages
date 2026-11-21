@@ -124,10 +124,10 @@ async function test(kind,engine,width){
   const isolation=await page.evaluate(()=>({
    ns:window.__atlasPreviewNamespace,db:window.__fpStorageNamespace,blocked:window.__atlasImportPreviewBlocked===true
   }));
-  assert.equal(isolation.ns,'fp-v5-poi-zh-qa-20261121-');
-  assert.equal(isolation.db,'private-travel-footprints-v5-poi-zh-qa-20261121');
+  assert.equal(isolation.ns,undefined,kind+' root importer unexpectedly isolated');
+  assert.equal(isolation.db,undefined,kind+' root importer unexpectedly points to QA data');
   assert.equal(isolation.blocked,false);
-  console.log(JSON.stringify({engine:kind,width,status:'PASS',pinch:status.zoom,pan:panned.panX,closeIcon:'single SVG',photoOpenAnimation:during.activeMotion,diagnostic:webkitMotionDiagnostics,import:isolation.ns}));
+  console.log(JSON.stringify({engine:kind,width,status:'PASS',pinch:status.zoom,pan:panned.panX,closeIcon:'single SVG',photoOpenAnimation:during.activeMotion,diagnostic:webkitMotionDiagnostics,import:'production-v1'}));
  }finally{await context.close();await browser.close()}
 }
 (async()=>{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]])
