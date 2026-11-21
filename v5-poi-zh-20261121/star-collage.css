@@ -1,0 +1,40 @@
+/* Expanded star state only. The default Footprint Map V4 layout is unchanged. */
+#fpStarCollage[hidden],#fpReturnCollage[hidden]{display:none!important}
+#fpStarCollage{position:fixed;inset:0;z-index:1800;pointer-events:none;isolation:isolate;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC',sans-serif;color:#242722}
+#fpStarCollage *{box-sizing:border-box}
+.fp-collage-shade{position:absolute;inset:0;background:rgba(20,22,20,.13);border:0;pointer-events:auto;cursor:default;-webkit-backdrop-filter:blur(1.2px);backdrop-filter:blur(1.2px)}
+.fp-collage-card{position:absolute;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));width:min(432px,calc(100vw - 24px));max-height:min(635px,calc(100dvh - 145px));overflow:auto;overscroll-behavior:contain;padding:16px 17px 14px;border-radius:22px;background:rgba(255,255,253,.97);border:1px solid rgba(255,255,255,.9);box-shadow:0 16px 60px rgba(22,31,28,.22),0 0 0 1px rgba(51,52,40,.08);transform:translate(-50%,24px) scale(.975);opacity:0;transition:transform .44s cubic-bezier(.17,1.1,.3,1),opacity .26s ease;pointer-events:auto;scrollbar-width:thin;outline:none}
+#fpStarCollage.fp-visible .fp-collage-card{transform:translate(-50%,0) scale(1);opacity:1}
+.fp-collage-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.fp-collage-kicker,.fp-collage-section{font-size:11px;font-weight:800;letter-spacing:0;color:#948367;line-height:1.4}
+.fp-collage-title h2{font-size:21px;font-weight:800;letter-spacing:-.035em;line-height:1.15;margin:6px 0 10px;overflow-wrap:anywhere}
+.fp-collage-x{height:36px;width:36px;flex:0 0 36px;border:0;border-radius:0;background:transparent;color:#8a8577;font-size:26px;font-weight:300;cursor:pointer;line-height:1}
+.fp-collage-brief{border-block:1px solid #e8e7e1;padding:12px 0 13px}
+.fp-collage-brief p{font-size:12px;color:#393d3b;line-height:1.65;margin:6px 0 0;white-space:pre-wrap;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}
+.fp-collage-section-row{display:flex;justify-content:space-between;margin:13px 0 9px}
+.fp-collage-count{font-size:11px;color:#999}
+.fp-collage-media{display:grid;grid-template-columns:1.5fr 1fr 1fr;grid-template-rows:repeat(2,minmax(88px,115px));gap:5px;border-radius:14px;overflow:hidden;min-height:140px}
+.fp-collage-tile{position:relative;display:block;padding:0;border:0;min-height:0;background:#e2e5dd;overflow:hidden;cursor:pointer}
+.fp-collage-tile.lead{grid-row:span 2}
+.fp-collage-tile img,.fp-collage-tile video{width:100%;height:100%;object-fit:cover;display:block}
+.fp-collage-tile.video{background:#303a37;color:white}
+.fp-collage-tile.video .fp-play{position:absolute;left:50%;top:50%;z-index:2;transform:translate(-50%,-50%);font-size:25px;text-shadow:0 2px 10px #111}
+.fp-collage-more{align-self:center;text-align:center;font-size:12px;font-weight:700;color:#676962}
+.fp-collage-action{border:1px solid #e6e4dc;border-radius:10px;background:#f6f6f2;padding:9px 10px;color:#333e3b;font-size:11px;font-weight:700;min-height:36px;cursor:pointer}
+.fp-collage-empty{grid-column:span 3;grid-row:span 2;background:#f4f2eb;border:1px dashed #d8ccad;color:#75633f}
+.fp-collage-sources{padding:10px 0 6px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #e8e7e1}
+.fp-collage-sources .fp-collage-section{width:100%}
+.fp-collage-source{max-width:100%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;text-decoration:none;padding:6px 10px;border-radius:22px;background:#edf0ec;color:#4e605b;font-size:11px}
+.fp-collage-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.fp-collage-compare{margin-left:auto;color:#807557;background:#fffbea}
+body.atlas-collage-active #memorySheet{visibility:hidden!important;pointer-events:none!important}
+body.atlas-collage-active .map-controls{top:calc(96px + env(safe-area-inset-top))!important;bottom:auto!important;right:10px!important;transform:none!important;transition:top var(--atlas-dur-3) var(--atlas-ease-spring),right var(--atlas-dur-2) var(--atlas-ease)!important}
+body.atlas-collage-active .map-controls #btnZoomIn,body.atlas-collage-active .map-controls #btnZoomOut{display:none!important}
+body.atlas-collage-active #fpFlowLaunch{opacity:0!important;pointer-events:none!important}
+#fpReturnCollage{position:fixed;right:10px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:1720;padding:10px 13px;background:#f6e6a6;border:1px solid #fff4ca;border-radius:22px;color:#5a471b;box-shadow:0 7px 20px #0002;font-size:12px;font-weight:700;cursor:pointer}
+@media(min-width:740px){.fp-collage-card{left:auto;right:calc(30px + env(safe-area-inset-right));bottom:20px;transform:translateY(22px) scale(.975);max-height:min(670px,calc(100dvh - 65px))}#fpStarCollage.fp-visible .fp-collage-card{transform:translateY(0) scale(1)}}
+@media(max-height:710px){.fp-collage-card{max-height:calc(100dvh - 86px)}.fp-collage-media{grid-template-rows:repeat(2,75px)}.fp-collage-brief p{-webkit-line-clamp:2}}
+@media(prefers-reduced-motion:reduce){.fp-collage-card,.map-controls{transition:none!important}}
+/* Keep the primary map actions reachable above the temporary content overlay. */
+body.atlas-collage-active .map-controls{z-index:1810!important}
+body.atlas-collage-active .map-controls #atlasJourneyEntry{display:none!important}

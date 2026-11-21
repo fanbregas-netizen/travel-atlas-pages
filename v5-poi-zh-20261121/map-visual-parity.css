@@ -1,0 +1,238 @@
+/* Map-system-only V4 iPhone Safari acceptance.
+   The approved card geometry, C V5 gestures, and route order remain untouched. */
+#atlasPoiOverlay > .fp-poi { contain:layout style; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+#atlasPoiOverlay > .fp-poi .fp-poi-token { transform-origin:center; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+#atlasPoiOverlay > .fp-poi.is-selected .fp-poi-label { opacity:1; }
+#rc-map-pins .rc-pin.rc-choice-pin {
+  width:34px;height:34px;min-width:34px;min-height:34px;
+  display:grid;place-items:center;border-radius:50%;font-size:20px;line-height:1;
+  background:#fffefa;color:#c9ad79;border:1.7px solid #344149;
+  box-shadow:0 3px 11px #26392b24;transform:translate(-50%,-50%);
+  -webkit-tap-highlight-color:transparent;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.selected {
+  background:#fffefa;color:#c9ad79;border-color:#344149;
+  box-shadow:0 0 0 3px #eac76440,0 4px 13px #26392b25;
+}
+#rc-map-pins .rc-pin.rc-choice-pin[data-place-id^="live-map-"]{
+  font-size:19px;color:#355e45;background:#fffefa;border-color:#517356;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-map-pick-arrive {
+  animation:fp-map-arrival 490ms cubic-bezier(.22,.8,.25,1) both;
+}
+@keyframes fp-map-arrival {
+  0% { scale:.84;opacity:.7; }
+  48% { scale:1.115;opacity:1; }
+  75% { scale:.975; }
+  100% { scale:1;opacity:1; }
+}
+/* One sharp WebGL map surface, one stable geographic overlay; never fade the
+   vector canvas during a POI tap (that created perceived double contours). */
+#atlasVectorMap .maplibregl-canvas,
+#rc-live-map-canvas .maplibregl-canvas{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+#rc-map .rc-map-caption{pointer-events:none}
+@media(prefers-reduced-motion:reduce){
+ #rc-map-pins .rc-pin.rc-choice-pin.fp-map-pick-arrive{animation:none;scale:1}
+}
+
+/* Only the currently tapped POI remains above surrounding POI art after its
+   spring settles. No transform/scale or geographic coordinate is changed. */
+#atlasPoiOverlay > .fp-poi { z-index:0; }
+#atlasPoiOverlay > .fp-poi.is-selected { z-index:90 !important; }
+/* MapLibre-native selections live in their original Marker element, reparented
+   into this coordinate-identical top plane (never cloned). Keep the plane above
+   the 420 POI and 425 yellow-star layers, but below sheets and controls. */
+#atlasSelectedPoiTop {
+ position:fixed;inset:0;z-index:430;pointer-events:none;overflow:hidden;
+}
+#atlasSelectedPoiTop > .atlas-vector-selection {
+ z-index:1 !important;pointer-events:none;
+}
+
+/* C V5 planner: exact porcelain/green token language and original V3 icon art. */
+#rc-map{background:#f7f6f3!important}
+#rc-map .rc-map-caption span{background:rgba(255,254,250,.94);border-color:#b2c3b8a6;color:#405a4b;box-shadow:0 3px 13px #182b251a}
+#rc-map-pins .rc-pin.rc-choice-pin{width:48px;height:48px;min-width:48px;min-height:48px;border:0;background:transparent!important;border-radius:15px;box-shadow:none!important;display:grid;place-items:center;transform:translate(-50%,-50%);scale:1}
+#rc-map-pins .rc-pin.rc-choice-pin .fp-route-poi-art{width:32px;height:32px;display:block;object-fit:contain;border:1px solid #b0c6bc;border-radius:12px;padding:5px;background:#f8faf8f7;box-shadow:0 3px 9px #23343529}
+#rc-map-pins .rc-pin.rc-choice-pin.selected .fp-route-poi-art{background:#e8f1ea;border-color:#aabfba}
+#rc-map-pins .rc-pin.rc-choice-pin[data-route-only="1"] .fp-route-poi-art{border-color:#8ca99b}
+#rc-map-pins .rc-pin.rc-choice-pin:focus-visible{outline:2px solid #75969a;outline-offset:-3px}
+#rc-map-pins .rc-pin{z-index:2}
+#rc-map-pins .rc-pin.rc-current,#rc-map-pins .rc-pin.fp-route-tapped{z-index:16!important;scale:1.2}
+#rc-map-pins .rc-pin.fp-map-pick-arrive{animation:fp-route-poi-home-spring 490ms cubic-bezier(.19,.9,.28,1) both!important}
+@keyframes fp-route-poi-home-spring{0%{scale:1;opacity:1}32%{scale:1.42}61%{scale:1.12}81%{scale:1.24}100%{scale:1.2;opacity:1}}
+#rc-map .rc-route polyline{vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+/* Saved route detail: preserve numbered stops, unify map token materials. */
+#pinLayer .route-pin{z-index:1;filter:none}
+#pinLayer .route-pin .pin-body{background:#f8faf8f7;border:1.5px solid #aabfba;border-radius:14px;transform:rotate(0);box-shadow:0 3px 9px #2334352e;color:#314b3e}
+#pinLayer .route-pin .pin-body>span{transform:none;font-size:15px}
+#pinLayer .route-pin.active{z-index:24!important;scale:1.2;animation:fp-route-stop-pop 480ms cubic-bezier(.19,.9,.28,1) both}
+#pinLayer .route-pin.active .pin-body{background:#e8f1ea;color:#294938;border-color:#88a99a;outline:none;box-shadow:0 5px 16px #22413138}
+@keyframes fp-route-stop-pop{0%{scale:1}35%{scale:1.4}65%{scale:1.13}100%{scale:1.2}}
+@media(prefers-reduced-motion:reduce){#rc-map-pins .rc-pin.fp-map-pick-arrive,#pinLayer .route-pin.active{animation:none!important}}
+
+
+/* fp-route-stable-viewport-v11
+   iPhone route-planner map is a STABLE full-screen geographic canvas.
+   The confirmed C V5 spring sheet floats ABOVE that map. Never resize or
+   scale WebGL tiles when the sheet is dragged down/up. */
+body.rc-v3-on #rc-map {
+  position:absolute!important;
+  inset:0!important;
+  top:0!important;right:0!important;bottom:0!important;left:0!important;
+  width:100%!important;height:100%!important;max-height:none!important;
+  transform:none!important;transition:none!important;
+  overflow:hidden!important;isolation:isolate;
+}
+body.rc-v3-on #rc-live-map-canvas {
+  position:absolute!important;inset:0!important;
+  width:100%!important;height:100%!important;
+  transform:none!important;transition:none!important;
+  contain:layout paint;
+}
+body.rc-v3-on #rc-map .map-art{display:none!important}
+body.rc-v3-on #rc-map-pins,
+body.rc-v3-on #rc-map svg.rc-route{height:100%;width:100%}
+body.rc-v3-on #rc-main{
+  z-index:7; /* floating sheet above same unchanged map and POI plane */
+}
+body.rc-v3-on #rc-map.rc-map-picking .rc-map-caption {
+  display:none!important; /* keep map-select mode open and uncluttered */
+}
+body.rc-v3-on #rc-live-map-pick-hint {
+  top:calc(77px + env(safe-area-inset-top,0px));
+  left:14px;right:14px;
+  border-radius:16px;
+  padding:7px 8px 7px 13px;
+  font-size:12px;line-height:1.4;
+  background:#fffefaed;
+  box-shadow:0 3px 12px #263c2a22;
+}
+body.rc-v3-on .fp-system-switch {
+  display:none!important; /* review-only overlay is not route product UI */
+}
+body.rc-v3-on #rc-live-map-canvas .maplibregl-ctrl-bottom-right {
+  bottom:var(--fp-route-sheet-overlay,280px)!important;
+  right:8px!important;
+}
+body.rc-v3-on #rc-live-map-canvas .maplibregl-ctrl-attrib{
+  max-width:min(250px,calc(100vw - 35px));
+  font-size:9px;line-height:15px;
+  background:#fffefaee;
+  border-radius:10px;
+}
+@media(prefers-reduced-motion:reduce){
+  body.rc-v3-on #rc-map {transition:none!important}
+}
+
+
+/* v15: route map uses the identical hometown marker primitives.
+   Saved bookmarks are the ONE golden star from homepage; never a rounded
+   "add place" tile. Semantic POIs use the 31/20 V3 ink chip from homepage.
+   Blank-map picks use homepage's neutral selected-location pictogram. */
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-star{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+ width:48px;height:48px;display:grid;place-items:center;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-star svg{
+ width:40px;height:40px;display:block;
+ overflow:visible;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(35,52,53,.13));
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-star.selected svg{
+ filter:drop-shadow(0 4px 9px rgba(35,52,53,.2));
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-semantic .fp-route-home-token{
+ display:grid;place-items:center;width:31px;height:31px;
+ background:rgba(248,250,248,.94);border:1px solid rgba(187,204,202,.7);
+ border-radius:12px;box-shadow:0 3px 9px rgba(35,52,53,.17);
+ -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-semantic .fp-route-poi-art{
+ width:20px;height:20px;object-fit:contain;
+ padding:0;border:0;border-radius:0;box-shadow:none;background:none;
+ pointer-events:none;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-generic .fp-route-home-token,
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-semantic.fp-route-tapped .fp-route-home-token{
+ display:grid;place-items:center;width:42px;height:42px;
+ background:rgba(246,250,248,.96);border:1px solid #9bb5ae;
+ border-radius:15px;box-shadow:0 6px 16px rgba(36,56,60,.20);
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-generic .fp-route-poi-art,
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-semantic.fp-route-tapped .fp-route-poi-art{
+ width:26px;height:26px;object-fit:contain;
+ padding:0;border:0;box-shadow:none;background:none;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-semantic.selected .fp-route-home-token{
+ background:#e8f1ea;border-color:#aabfba;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-home-generic.selected .fp-route-home-token{
+ background:#e8f1ea;border-color:#aabfba;
+}
+#rc-map-pins .rc-pin.rc-choice-pin.fp-route-tapped{
+ z-index:16!important; /* never fall below unselected map POI labels */
+}
+@media (prefers-reduced-motion:reduce){
+ #rc-map-pins .rc-pin.fp-map-pick-arrive{animation:none!important}
+}
+
+
+/* v16 • Route map reuses the actual Stage1.29 homepage tile-sourced V3 POI
+   overlay. These are identical accepted home measurements; native MapLibre
+   colored glyphs are suppressed by that same homepage renderer. */
+body.rc-v3-on #rc-map #atlasPoiOverlay{
+ position:absolute;inset:0;z-index:3;
+ pointer-events:none;overflow:hidden;
+}
+body.rc-v3-on #rc-map #atlasPoiOverlay .fp-poi{
+ width:52px;min-width:52px;height:52px;min-height:52px;
+ position:absolute;transform:translate(-50%,-50%);
+ padding:0!important;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;gap:2px;background:transparent!important;
+ border:0!important;box-shadow:none!important;pointer-events:auto;
+ touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+ cursor:pointer;isolation:isolate;
+}
+body.rc-v3-on #rc-map #atlasPoiOverlay .fp-poi-token{
+ width:31px;height:31px;flex:none;border-radius:12px;
+ display:grid;place-items:center;background:rgba(248,250,248,.94);
+ border:1px solid rgba(187,204,202,.7);
+ box-shadow:0 3px 9px rgba(35,52,53,.17);
+ backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+ transition:transform .44s cubic-bezier(.16,1.18,.28,1),
+  box-shadow .35s ease,background .3s ease;
+}
+body.rc-v3-on #rc-map #atlasPoiOverlay .fp-poi-token img{
+ width:20px;height:20px;display:block;object-fit:contain;pointer-events:none;
+}
+body.rc-v3-on #rc-map #atlasPoiOverlay .fp-poi-label{
+ display:none!important; /* the approved home V3 map hides duplicate pills */
+}
+body.rc-v3-on #rc-map #atlasPoiOverlay .fp-poi.is-selected{
+ z-index:10!important;
+}
+body.rc-v3-on #rc-map #atlasPoiOverlay .fp-poi.is-selected .fp-poi-token{
+ background:#e8f1ea;border-color:#aabfba;
+ box-shadow:0 5px 19px rgba(41,72,77,.23);
+}
+body.rc-v3-on #rc-map #atlasPoiOverlay .fp-poi.is-tapped .fp-poi-token{
+ animation:fpPoiSpring .48s cubic-bezier(.19,.9,.28,1) both;
+}
+@keyframes fpPoiSpring{
+ 0%{transform:scale(1)}40%{transform:scale(1.27)}
+ 65%{transform:scale(.95)}100%{transform:scale(1)}
+}
+body.rc-v3-on #rc-map #atlasPoiOverlay .fp-poi:focus-visible{
+ outline:2px solid #75969a!important;outline-offset:0!important;
+ border-radius:13px;
+}
+@media(prefers-reduced-motion:reduce){
+ body.rc-v3-on #rc-map #atlasPoiOverlay .fp-poi.is-tapped .fp-poi-token{
+  animation:none!important;transform:scale(1.08)!important;
+ }
+}
+
+/* 2026-11-18: review-only badge must never cover the route map. */
+body.rc-v3-on .fp-system-switch,
+body.rc-v3-on .fp-system-panel,
+body.rc-v3-on .fp-system-veil{display:none!important;}
