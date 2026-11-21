@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" aria-label="Sea">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M7 23 C14 18 17 29 24 24 C31 18 35 28 42 24 C48 20 53 26 57 23"/>
+  <path d="M7 35 C13 31 17 41 24 36 C31 31 35 41 42 36 C48 32 53 39 57 35"/>
+  <path d="M12 47 C18 43 22 52 29 47 C35 43 39 52 45 47 C50 44 53 49 56 47"/>
+ </g>
+</svg>

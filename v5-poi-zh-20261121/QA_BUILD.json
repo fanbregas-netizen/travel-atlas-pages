@@ -1,0 +1,21 @@
+{
+  "product": "Footprint Map V5",
+  "qa": "POI icon/text collision, Chinese preferred, icon mapping and Safari dock recovery",
+  "source_repo": "fanbregas-netizen/travel-atlas",
+  "source_branch": "fix/v5-poi-text-zh-20261121",
+  "source_pr": 65,
+  "preview_directory": "v5-poi-zh-20261121",
+  "production_root_modified": false,
+  "storage_namespace": "fp-v5-poi-zh-qa-20261121-",
+  "real_iphone_safari_qa": "pending",
+  "road_service": "production gateway not configured; fail closed",
+  "test_scope": [
+    "live POI collision",
+    "source text language audit",
+    "22 SVG icon assets",
+    "23 category samples",
+    "dock restoration on BFCache"
+  ],
+  "data_migration": "none; QA namespace is separate from production",
+  "formal_launch": false
+}
