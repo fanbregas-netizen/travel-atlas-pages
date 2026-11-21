@@ -154,10 +154,13 @@ additions.observe(body,{childList:true});
 bind();sync();
 // WebKit does not promise a body class mutation when resuming from BFCache.
 // Re-evaluate the real route sheet and both approved docks on every return.
-window.addEventListener('pageshow',schedule,{passive:true});
-window.addEventListener('focus',schedule,{passive:true});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()},{passive:true});
-document.addEventListener('footprint:route-mode-closed',schedule,{passive:true});
+// Return from background/BFCache must repair a stale UI state synchronously:
+// WebKit can postpone requestAnimationFrame while the page is still resuming.
+function restoreOnResume(){queued=false;sync()}
+window.addEventListener('pageshow',restoreOnResume,{passive:true});
+window.addEventListener('focus',restoreOnResume,{passive:true});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreOnResume()},{passive:true});
+document.addEventListener('footprint:route-mode-closed',restoreOnResume,{passive:true});
 window.__atlasCardDockMotion={
  version:'paired-v2',
  sync, getState:()=>({...state,topAnimation:motion.top?'running':'none',bottomAnimation:motion.bottom?'running':'none'}),
