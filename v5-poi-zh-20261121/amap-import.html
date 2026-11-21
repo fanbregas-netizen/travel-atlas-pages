@@ -6,7 +6,7 @@
  // A Pages QA is the same origin as the live site. Never silently write
  // the live user's IndexedDB. Preview and product must use identical names.
  const parts=location.pathname.split('/').filter(Boolean);
- const slug=parts[0]==='travel-atlas-pages'&&parts[1]?.startsWith('v5-')?parts[1]:null;
+ const slug=parts.find(x=>x.startsWith('v5-'))||null;
  if(!slug)return;
  const config={
   'v5-poi-zh-20261121':{
