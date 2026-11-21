@@ -1,0 +1,52 @@
+name: V5 POI Chinese-label full-product WebKit Chromium QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v5-poi-zh-20261121/**'
+      - 'tests/v5-poi-zh-browser.cjs'
+      - '.github/workflows/v5-poi-zh-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify release-safe QA product and code syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'fp-v5-poi-zh-qa-20261121-' v5-poi-zh-20261121/index.html
+          grep -q 'fp-v5-poi-zh-qa-20261121-v1' v5-poi-zh-20261121/sw.js
+          test -s v5-poi-zh-20261121/src/map/poi-label-avoidance-v1.js
+          node --check v5-poi-zh-20261121/stage1-29-poi.js
+          node --check v5-poi-zh-20261121/src/interaction/paired-dock-motion-v2.js
+          node --check v5-poi-zh-20261121/src/map/shared-v4-map.js
+          node --check tests/v5-poi-zh-browser.cjs
+      - name: Install true browser engines
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps chromium webkit
+      - name: Start isolated V5 local web server
+        shell: bash
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/fp-v5-poi-zh-preview.log 2>&1 &
+          sleep 2
+          curl -fsS -o /dev/null http://127.0.0.1:8765/v5-poi-zh-20261121/index.html
+      - name: Test real product and POI-label layout in Chromium and WebKit
+        run: node tests/v5-poi-zh-browser.cjs
+      - name: Preserve actual browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-poi-zh-chromium-webkit-evidence
+          path: |
+            v5-poi-zh-20261121-browser-evidence/
+            /tmp/fp-v5-poi-zh-preview.log
+          if-no-files-found: warn
