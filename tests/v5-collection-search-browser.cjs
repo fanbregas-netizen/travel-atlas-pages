@@ -19,9 +19,11 @@ async function scenario(kind,engine,width){
   assert.equal(response.status(),200);
   await page.waitForFunction(()=>typeof window.__atlasPlaceStore?.readAll==='function'&&
    typeof window.__fpSavedSearchQA?.getState==='function',null,{timeout:20000});
+  await page.waitForFunction(async()=>{
+   try{return Array.isArray(await window.__atlasPlaceStore.readAll())}catch{return false}
+  },null,{timeout:12000});
   await page.evaluate(async()=>{
-   // Let the app create/upgrade its own database before adding fixture rows.
-   await window.__atlasPlaceStore.readAll();
+   // Browser storage is a fresh QA namespace, never a real user's collection.
    const named=[
     {title:'24氪·油馬咖啡',note:'想找时间和朋友喝咖啡'},
     {title:'1876新视觉',note:'设计展览'},
