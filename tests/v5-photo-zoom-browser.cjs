@@ -33,7 +33,7 @@ async function test(kind,engine,width){
   await page.waitForFunction(()=>!!document.querySelector('#fpMediaViewer .fp-gallery-cell:nth-child(2) > img'),null,{timeout:9000});
   // The real V5 modal must render a single SVG close icon (no text × and
   // no legacy pseudo X), and hide the originating mosaic tile during motion.
-  await page.waitForTimeout(80);
+  await page.waitForTimeout(120); // check mid-transition even if WebKit stalls nested rAF
   const during=await page.evaluate(()=>{
    const viewer=document.getElementById('fpMediaViewer');
    const photo=viewer?.querySelector('.fp-gallery-cell:nth-child(2) > img');
@@ -45,10 +45,13 @@ async function test(kind,engine,width){
    const caption=dialog?.querySelector('.fp-viewer-caption');
    const scrim=dialog?.querySelector('.fp-gallery-scrim');
    const rect=image?.getBoundingClientRect();
-   return {reduced:matchMedia('(prefers-reduced-motion:reduce)').matches,photoAnimations:image?.getAnimations().length,
+   return {started:dialog?.dataset.photoEntrance,reduced:matchMedia('(prefers-reduced-motion:reduce)').matches,photoAnimations:image?.getAnimations().length,
     photoTransform:image&&getComputedStyle(image).transform,photoRect:rect&&{x:rect.x,y:rect.y,w:rect.width,h:rect.height},
     captionOpacity:caption&&getComputedStyle(caption).opacity,scrimOpacity:scrim&&getComputedStyle(scrim).opacity};
   });
+  assert.equal(webkitMotionDiagnostics.started,'started',kind+' modal reveal was not initialized');
+  assert(Number(webkitMotionDiagnostics.scrimOpacity)>0.02,
+    kind+' modal backdrop stayed transparent during entrance '+JSON.stringify(webkitMotionDiagnostics));
   await page.screenshot({path:path.join(dir,kind+'-'+width+'-open-midmotion.png')});
   await page.waitForTimeout(430); // accepted slower iOS image expansion
   const closeIcon=await page.evaluate(()=>{
