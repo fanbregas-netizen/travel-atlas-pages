@@ -61,6 +61,7 @@ jobs:
         run: |
           node tests/v5-production-root-browser.cjs
           node tests/v5-production-photo-browser.cjs
+          node tests/v5-production-v4-migration-browser.cjs
       - name: Retain real browser evidence
         if: always()
         uses: actions/upload-artifact@v4
