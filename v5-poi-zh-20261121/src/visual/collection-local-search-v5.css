@@ -62,7 +62,7 @@
  background:#fffefa!important;color:#819387!important;
  text-align:center!important;font-size:14px!important;line-height:1.7!important;
 }
-#drawer #spotList .spotrow.fp-saved-search-miss{display:none!important}
+html body #drawer.drawer.fp30-detail #spotList .spotrow.fp-saved-search-miss{display:none!important}
 @media(max-width:380px){
  #drawer #fpSavedSearch{padding-left:16px!important;padding-right:16px!important}
 }
