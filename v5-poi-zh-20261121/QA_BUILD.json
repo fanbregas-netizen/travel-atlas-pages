@@ -21,13 +21,14 @@
   ],
   "preview_only_road_service": "Production-grade routing backend is not authorized. Existing V5 preview routing adapter retained for acceptance only.",
   "storage_namespace": "fp-v5-poi-zh-qa-20261121-",
-  "dedicated_worker_cache": "fp-v5-poi-zh-qa-20261121-v5",
+  "dedicated_worker_cache": "fp-v5-poi-zh-qa-20261121-v6",
   "formal_site_root_unchanged": true,
-  "QA_real_iphone_safari": "Pending user touch acceptance, no device access",
+  "QA_real_iphone_safari": "Automated WebKit and Chromium pending; physical iPhone user review required",
   "release_approval": false,
   "additional_unapproved_qa_features": [
     "PR #69 photo pinch/pan/double tap (Safari acceptance pending)",
-    "High-resolution map import uses matched QA database; actual AMap account sync not authorized"
+    "High-resolution map import uses matched QA database; actual AMap account sync not authorized",
+    "Single SVG fullscreen close (legacy double X removed), Photos-like shared thumbnail reveal/return, photo/source de-duplication"
   ],
   "media_zoom_source_branch": "fix/v5-media-zoom-amap-import-20261121"
 }
