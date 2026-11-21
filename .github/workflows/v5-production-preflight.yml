@@ -1,0 +1,73 @@
+name: Footprint V5 formal release gate — no public deployment
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'sw.js'
+      - 'version.json'
+      - 'routing-config.js'
+      - 'v4-map-runtime.js'
+      - 'src/**'
+      - 'footprint-home.js'
+      - 'manifest.webmanifest'
+      - 'tests/v5-production-*.cjs'
+      - '.github/V5_PRODUCTION_FILES_20261122.txt'
+      - '.github/workflows/v5-production-preflight.yml'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  formal-preflight:
+    name: formal-root-compatibility
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inspect complete V5 release pack without touching user data
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/v5-production-bundle.cjs
+          node --check v4-map-runtime.js
+          node --check footprint-home.js
+          node --check src/media/media-core.js
+          node --check src/route/route-single-map-v1.js
+          node --check src/route/route-live-network-v1.js
+          node --check routing-config.js
+          node --check sw.js
+      - name: Verify frozen pre-upgrade production commit exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin backup/v4-before-v5-final-20261122
+          test "$(git rev-parse FETCH_HEAD)" = '190c648f45346f96f7243d643f15eb8ea37cae75'
+          echo 'PASS fixed V4 root snapshot is available for whole-site revert'
+      - name: Install Chromium and WebKit in actual CI runner
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps chromium webkit
+      - name: Serve formal-root V5 locally — never publish it
+        shell: bash
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/v5-formal-root.log 2>&1 &
+          sleep 2
+          curl -fsS -o /dev/null http://127.0.0.1:8765/index.html
+      - name: Verify local legacy DB compatibility, 261 bookmarks, gallery motion
+        run: |
+          node tests/v5-production-root-browser.cjs
+          node tests/v5-production-photo-browser.cjs
+      - name: Retain real browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-formal-root-preflight-evidence
+          path: |
+            v5-production-search-evidence/
+            v5-production-photo-evidence/
+            /tmp/v5-formal-root.log
+          if-no-files-found: warn
