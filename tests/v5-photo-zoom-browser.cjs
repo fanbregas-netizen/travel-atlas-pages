@@ -1,5 +1,5 @@
 'use strict';
-/* Real Chromium/WebKit engines, synthetic multitouch events on the FULL
+/* Real Chromium/WebKit engines, cross-engine synthetic touch-structure events on the FULL
  * isolated V5 product. No user browser profile, account, or data is touched. */
 const {chromium,webkit}=require('playwright');
 const assert=require('node:assert/strict');
@@ -34,10 +34,15 @@ async function test(kind,engine,width){
   await page.waitForTimeout(470); // approved thumbnail-to-fullscreen animation
   await page.evaluate(()=>{
    const img=document.querySelector('#fpMediaViewer .fp-gallery-cell:nth-child(2) > img');
-   const p=(id,x,y)=>new Touch({identifier:id,target:img,clientX:x,clientY:y,screenX:x,screenY:y,pageX:x,pageY:y});
-   const dispatch=(type,touches,changed=touches)=>img.dispatchEvent(new TouchEvent(type,{
-    bubbles:true,cancelable:true,composed:true,touches,targetTouches:touches,changedTouches:changed
-   }));
+   const p=(id,x,y)=>({identifier:id,target:img,clientX:x,clientY:y});
+   const fire=(type,touches,changed=touches)=>{
+    const event=new Event(type,{bubbles:true,cancelable:true,composed:true});
+    Object.defineProperties(event,{
+     touches:{value:touches},targetTouches:{value:touches},changedTouches:{value:changed}
+    });
+    img.dispatchEvent(event);
+   };
+   const dispatch=fire;
    const a=p(0,140,310),b=p(1,250,310);
    dispatch('touchstart',[a,b]);
    const c=p(0,75,310),d=p(1,315,310);
@@ -50,10 +55,15 @@ async function test(kind,engine,width){
   assert.equal(item,'0',kind+' pinch switched the slide');
   await page.evaluate(()=>{
    const img=document.querySelector('#fpMediaViewer .fp-gallery-cell:nth-child(2) > img');
-   const p=(x,y)=>new Touch({identifier:0,target:img,clientX:x,clientY:y,screenX:x,screenY:y,pageX:x,pageY:y});
-   const send=(type,ts,changed=ts)=>img.dispatchEvent(new TouchEvent(type,{
-    bubbles:true,cancelable:true,composed:true,touches:ts,targetTouches:ts,changedTouches:changed
-   }));
+   const p=(x,y)=>({identifier:0,target:img,clientX:x,clientY:y});
+   const fire=(type,touches,changed=touches)=>{
+    const event=new Event(type,{bubbles:true,cancelable:true,composed:true});
+    Object.defineProperties(event,{
+     touches:{value:touches},targetTouches:{value:touches},changedTouches:{value:changed}
+    });
+    img.dispatchEvent(event);
+   };
+   const send=fire;
    send('touchstart',[p(195,320)]);send('touchmove',[p(250,350)]);
    send('touchend',[],[p(250,350)]);
   });
