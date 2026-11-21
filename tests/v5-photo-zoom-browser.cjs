@@ -31,7 +31,32 @@ async function test(kind,engine,width){
   await page.waitForFunction(()=>!!document.querySelector('#fpPlaceCard [data-fp-media-index="0"]'),null,{timeout:8000});
   await page.locator('#fpPlaceCard [data-fp-media-index="0"]').click();
   await page.waitForFunction(()=>!!document.querySelector('#fpMediaViewer .fp-gallery-cell:nth-child(2) > img'),null,{timeout:9000});
-  await page.waitForTimeout(470); // approved thumbnail-to-fullscreen animation
+  // The real V5 modal must render a single SVG close icon (no text × and
+  // no legacy pseudo X), and hide the originating mosaic tile during motion.
+  await page.waitForTimeout(80);
+  const during=await page.evaluate(()=>{
+   const viewer=document.getElementById('fpMediaViewer');
+   const photo=viewer?.querySelector('.fp-gallery-cell:nth-child(2) > img');
+   return {state:viewer?.dataset.gestureState,activeMotion:photo?.getAnimations().some(a=>a.playState==='running')||false};
+  });
+  await page.waitForTimeout(430); // accepted slower iOS image expansion
+  const closeIcon=await page.evaluate(()=>{
+   const b=document.querySelector('#fpMediaViewer .fp-viewer-close');
+   const origin=document.querySelector('#fpPlaceCard [data-fp-media-index="0"]');
+   const css=getComputedStyle(b),before=getComputedStyle(b,'::before'),after=getComputedStyle(b,'::after');
+   return {label:b?.getAttribute('aria-label'),text:b?.textContent?.trim(),svg:b?.querySelectorAll('svg.fp-close-svg').length,
+    strokes:b?.querySelectorAll('svg.fp-close-svg path').length,pseudoBefore:before.content,pseudoAfter:after.content,
+    width:css.width,height:css.height,display:css.display,font:css.fontSize,originHidden:origin?.style.visibility==='hidden'};
+  });
+  assert.equal(closeIcon.text,'',kind+' duplicate text close glyph');
+  assert.equal(closeIcon.svg,1,kind+' close SVG count');
+  assert.equal(closeIcon.strokes,2,kind+' close SVG must contain exactly two strokes');
+  assert.equal(closeIcon.pseudoBefore,'none',kind+' legacy ::before phantom X');
+  assert.equal(closeIcon.pseudoAfter,'none',kind+' legacy ::after phantom X');
+  assert.equal(closeIcon.font,'0px',kind+' legacy [open] restored X text');
+  assert.equal(closeIcon.width,'44px',kind+' photo close wrong hit target');
+  assert.equal(closeIcon.originHidden,true,kind+' original photo tile ghost during gallery open');
+  await page.screenshot({path:path.join(dir,kind+'-'+width+'-single-svg-close.png')});
   await page.evaluate(()=>{
    const img=document.querySelector('#fpMediaViewer .fp-gallery-cell:nth-child(2) > img');
    const p=(id,x,y)=>({identifier:id,target:img,clientX:x,clientY:y});
@@ -73,6 +98,7 @@ async function test(kind,engine,width){
   await page.locator('#fpMediaViewer .fp-viewer-close').click();
   await page.waitForFunction(()=>!document.getElementById('fpMediaViewer'),null,{timeout:6000});
   assert(await page.locator('#fpPlaceCard').isVisible(),kind+' photo close lost location card');
+  assert.equal(await page.locator('#fpPlaceCard [data-fp-media-index="0"]').evaluate(el=>el.style.visibility),'',kind+' photo tile not restored after closing');
   await page.goto(base+'amap-import.html',{waitUntil:'domcontentloaded'});
   const isolation=await page.evaluate(()=>({
    ns:window.__atlasPreviewNamespace,db:window.__fpStorageNamespace,blocked:window.__atlasImportPreviewBlocked===true
@@ -80,7 +106,7 @@ async function test(kind,engine,width){
   assert.equal(isolation.ns,'fp-v5-poi-zh-qa-20261121-');
   assert.equal(isolation.db,'private-travel-footprints-v5-poi-zh-qa-20261121');
   assert.equal(isolation.blocked,false);
-  console.log(JSON.stringify({engine:kind,width,status:'PASS',pinch:status.zoom,pan:panned.panX,import:isolation.ns}));
+  console.log(JSON.stringify({engine:kind,width,status:'PASS',pinch:status.zoom,pan:panned.panX,closeIcon:'single SVG',photoOpenAnimation:during.activeMotion,import:isolation.ns}));
  }finally{await context.close();await browser.close()}
 }
 (async()=>{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]])
