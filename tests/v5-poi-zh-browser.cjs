@@ -95,7 +95,12 @@ async function inspectProduct(browser,kind,width){
    // or user data is ever overwritten, even inside the isolated QA namespace.
    window.__atlasPlaceStore={readAll:async()=>[p]};
    await window.__footprintHome.openSaved(p.id);
-   document.body.classList.add('fp-unified-route');
+   // Keep the ACTUAL route shell present: the approved Dock controller
+   // removes fp-unified-route if it sees a hidden/orphaned route sheet.
+   const route=document.getElementById('fpUnifiedRoute');
+   if(!route)throw new Error('Missing V5 route shell');
+   route.hidden=false;
+   document.body.classList.add('fp-unified-route','fp-place-open');
   });
   await page.waitForFunction(()=>!document.querySelector('#fpPlaceCard')?.hidden&&
    !!document.querySelector('#fpPlaceCard .fp-place-navigation'),null,{timeout:8000});
@@ -115,9 +120,13 @@ async function inspectProduct(browser,kind,width){
     modalVisible:getComputedStyle(modal).display!=='none',
     navLinkAtTop:!!above?.closest('#navLinks'),
     labels:[...document.querySelectorAll('#navLinks a')].map(x=>x.textContent),
-    amapUrl:a.href,cardVisible:!card.hidden}
+    amapUrl:a.href,cardVisible:!card.hidden,
+    routeActive:document.body.classList.contains('fp-unified-route'),
+    placeActive:document.body.classList.contains('fp-place-open')}
   });
   assert(nav.modalVisible&&nav.cardVisible,kind+' navigation or original place card missing');
+  assert(nav.routeActive&&nav.placeActive,kind+' failed to reproduce full route/place card stack '+JSON.stringify(nav));
+  assert(nav.cardZ>=3600,kind+' V5 route-place z-index must be 3600+ '+JSON.stringify(nav));
   assert(nav.modalZ>nav.cardZ,kind+' navigation is below place card '+JSON.stringify(nav));
   assert(nav.navLinkAtTop,kind+' navigation hit target hidden behind place card '+JSON.stringify(nav));
   assert(nav.labels.some(x=>x.includes('高德'))&&nav.labels.some(x=>x.includes('Apple')),kind+' map app links missing');
@@ -143,6 +152,8 @@ async function inspectProduct(browser,kind,width){
   // Restore page state before other independent checks.
   await page.evaluate(()=>{
    window.__atlasClosePlace?.(true);
+   const route=document.getElementById('fpUnifiedRoute');
+   if(route)route.hidden=true;
    document.body.classList.remove('fp-unified-route','fp-place-open');
   });
 
