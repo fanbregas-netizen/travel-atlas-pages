@@ -1,0 +1,91 @@
+name: V5 Work RC2 isolated tests and preview
+on:
+  push:
+    branches: [preview/v5-work-rc2-20261121]
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/checkout@v4
+        with:
+          ref: 83a101dffc7fbdf2ac3ba26bc3013389afbeba02
+          path: __v4_backup
+          persist-credentials: false
+      - run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+          node qa/v5-work/build-v5-isolated-preview.cjs qa/v5-work/product qa/v5-work/preview
+          node qa/v5-work/browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v5-work-rc2-browser-evidence
+          path: qa/v5-work/evidence/
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v5-work-isolated-preview
+          path: qa/v5-work/preview/
+  preview:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          repository: fanbregas-netizen/travel-atlas-pages
+          run-id: 44716396292
+          name: github-pages
+          github-token: ${{ github.token }}
+          path: baseline
+      - uses: actions/download-artifact@v4
+        with:
+          name: v5-work-isolated-preview
+          path: isolated
+      - name: Preserve every existing published file; add only isolated RC2
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/fanbregas-netizen/travel-atlas-pages/git/ref/heads/main --jq .object.sha)" = 83a101dffc7fbdf2ac3ba26bc3013389afbeba02
+          mkdir _site
+          tar -xf baseline/artifact.tar -C _site
+          (cd _site && find . -type f -print0 | sort -z | xargs -0 sha256sum) > original.sha256
+          test ! -e _site/v5-work-rc2-20261121
+          cp -R isolated _site/v5-work-rc2-20261121
+          (cd _site && sha256sum -c ../original.sha256) > preserved-files.txt
+          cmp index.html _site/index.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v5-work-root-preservation
+          path: |
+            original.sha256
+            preserved-files.txt
+          retention-days: 30
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4
+        id: deploy
+      - name: Verify independent URL
+        run: |
+          curl -fsSL --retry 6 --retry-delay 5 --retry-all-errors 'https://fanbregas-netizen.github.io/travel-atlas-pages/v5-work-rc2-20261121/version.json' | tee preview-version.json
+          grep -q 'V5.RC2.20261121.1' preview-version.json

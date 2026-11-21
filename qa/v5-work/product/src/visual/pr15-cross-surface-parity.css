@@ -1,0 +1,1433 @@
+/*
+ * C Visual approved source compatibility only.
+ * The authoritative original is feature/visual:iphone-v4-polish.css (PR #15).
+ * This file maps its declared tokens to product surfaces that PR #15 did
+ * not yet name: destination preview, memory/media and approved C V5 route.
+ * No geometry, motion, map, media handlers, star assets or DOM ownership.
+ */
+:root{
+  --fpv-approved-ink:var(--fpv-ink,#27342f);
+  --fpv-approved-paper:var(--fpv-paper,#fffefa);
+  --fpv-approved-line:var(--fpv-line,#e5e7df);
+  --fpv-approved-secondary:var(--fpv-secondary,#69746e);
+  --fpv-approved-gold:var(--fpv-gold,#b59a62);
+}
+:where(#destinationCard,#memorySheet,#fpMediaViewer,#rc-shell,#rc-main,#rc-mini){
+  font-family:var(--fpv-type,-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif);
+  -webkit-font-smoothing:antialiased;
+  color:var(--fpv-approved-ink);
+}
+#destinationCard{
+  background:var(--fpv-approved-paper)!important;
+  border-color:var(--fpv-approved-line)!important;
+  color:var(--fpv-approved-ink)!important;
+  box-shadow:var(--fpv-shadow-sheet)!important;
+}
+#destinationCard .destination-title{
+  color:var(--fpv-approved-ink)!important;
+  font-size:clamp(20px,5.2vw,23px)!important;
+  font-weight:700!important;
+  line-height:1.32!important;
+  letter-spacing:-.033em!important;
+}
+#destinationCard .destination-category{
+  color:var(--fpv-approved-secondary)!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+}
+#destinationCard .destination-actions button{
+  border-radius:13px!important;
+  min-height:44px!important;
+  font-size:12px!important;
+  font-weight:650!important;
+}
+#memorySheet,#fpMediaViewer{
+  background:var(--fpv-approved-paper)!important;
+  color:var(--fpv-approved-ink)!important;
+}
+#memorySheet :is(.memory-note,.memo-text),
+#fpMediaViewer :is(.media-caption,.media-meta){
+  color:var(--fpv-approved-secondary)!important;
+}
+body.route-v5-live{
+  --rc-ink:var(--fpv-approved-ink);
+  --rc-text:#4b5750;
+  --rc-quiet:var(--fpv-approved-secondary);
+  --rc-paper:var(--fpv-approved-paper);
+  --rc-sage:#edf1e9;
+  --rc-line:var(--fpv-approved-line);
+  --rc-gold:var(--fpv-approved-gold);
+  background:#f8f9f5;
+}
+body.route-v5-live :is(#rc-main,#rc-mini){
+  background:var(--rc-paper)!important;
+  color:var(--rc-ink)!important;
+  box-shadow:var(--fpv-shadow-sheet)!important;
+}
+body.route-v5-live .rc-upper h2{
+  font-size:clamp(20px,5.2vw,23px)!important;
+  font-weight:700!important;
+  line-height:1.32!important;
+  color:var(--rc-ink)!important;
+  letter-spacing:-.033em!important;
+}
+body.route-v5-live :is(.rc-upper .rc-byline,.rc-note,.rc-fineprint){
+  color:var(--rc-quiet)!important;
+  line-height:1.65!important;
+}
+body.route-v5-live :is(.rc-stop,.rc-choice){
+  background:var(--rc-paper)!important;
+  border-color:var(--rc-line)!important;
+  box-shadow:none!important;
+}
+body.route-v5-live :is(.rc-primary,.rc-soft){
+  min-height:44px;
+  border-radius:13px!important;
+  font-size:12px!important;
+  font-weight:650!important;
+}
+body.route-v5-live .rc-soft{
+  background:#edf1e9!important;
+  color:#47564f!important;
+}
+body.route-v5-live #rc-live-note :is(a,span){
+  background:var(--rc-paper)!important;
+  border-color:var(--rc-line)!important;
+  box-shadow:var(--fpv-shadow-control)!important;
+  color:var(--rc-ink)!important;
+}
+@media(max-width:375px){
+  body.route-v5-live #rc-body{padding-inline:15px!important;}
+}
+
+/* Source-level parity check found stronger legacy #drawer.fp30-detail and
+   #appDock.app-dock rules. Reassert PR15's EXACT visual values, not a redesign. */
+#drawer.fp30-detail {
+  background:#f8f9f5!important;
+  color:var(--fpv-ink)!important;
+}
+#drawer.fp30-detail .drawer-head h2,
+#drawer.fp30-detail .drawer-cn {
+  color:var(--fpv-ink)!important;
+  font-size:20px!important;
+  font-weight:700!important;
+  letter-spacing:-.03em!important;
+}
+#drawer.fp30-detail #spotList .spotrow {
+  background:var(--fpv-paper)!important;
+  border-color:var(--fpv-line)!important;
+  border-radius:17px!important;
+  box-shadow:0 3px 12px rgba(29,43,34,.045)!important;
+}
+#drawer.fp30-detail #spotList .spotrow strong {
+  color:var(--fpv-ink)!important;
+  font-weight:680!important;
+  letter-spacing:-.02em!important;
+}
+#drawer.fp30-detail #spotList .spotrow small {
+  color:var(--fpv-secondary)!important;
+  line-height:1.55!important;
+}
+#appDock.app-dock .dock-btn img {
+  width:23px!important;
+  block-size:23px!important;
+  object-fit:contain!important;
+}
+#appDock.app-dock .dock-btn span {
+  color:#47564f!important;
+  font-size:11px!important;
+  font-weight:620!important;
+  letter-spacing:-.012em!important;
+  line-height:1.3!important;
+}
+
+/*
+ * Visual correction, Nov 16: restore original separately styled map buttons.
+ * Do not touch map-controls top/right/bottom/width/gap/radius or icon artwork.
+ * These are secondary map actions, never a Dock.
+ * With foreground content visible, hide the existing icons together.
+ */
+body:is(.fp-place-open,.fp-search-open,.memory-open,.destination-selected)
+  .map-controls,
+body:has(#drawer.visible) .map-controls,
+body:has(#editor[open]) .map-controls,
+body:has(#fpMediaViewer:not([hidden])) .map-controls {
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+/* Keep normal map browsing and explicit map picking under legacy positioning. */
+
+
+/*
+ * C VISUAL WHOLE-PRODUCT PARITY · 2026-11-16
+ * One set of user-approved PR #15 tokens applied to the existing screens.
+ * This is not another icon system, another card motor or another route UI.
+ *
+ * 1) Map/home chrome — typography only. Four approved Dock entries stay put.
+ * 2) Search and empty state — clear hierarchy and consistent rows.
+ * 3) Place card — header / Brief / media / actions use the same spacing rhythm.
+ * 4) Collections — reduce the oversized blank area and nested visual weight.
+ * 5) Editor, modal, memory/media, preview — same paper/ink/line treatment.
+ * 6) Routes — alignment is finished in route-precision-20261115.css.
+ */
+:root {
+ --c-v4-title:22px; --c-v4-row:15px; --c-v4-body:14px;
+ --c-v4-caption:12px; --c-v4-meta:11px;
+ --c-v4-line-height:1.6; --c-v4-row-gap:10px;
+}
+:where(#searchDock,#appDock,#fpSearchSheet,#fpPlaceCard,#drawer,#editor,
+       #memorySheet,#destinationCard,#atlasDiscardDialog,
+       #atlasDeleteDialog,#atlasUnstarDialog) {
+  font-family:var(--fpv-type)!important;
+  -webkit-font-smoothing:antialiased;
+}
+#searchDock .searchbox input {
+  font-size:16px!important;
+  font-weight:450!important;
+  color:var(--fpv-ink)!important;
+  letter-spacing:0!important;
+}
+#searchDock .searchbox input::placeholder {
+  color:var(--fpv-tertiary)!important;
+  opacity:1!important;
+}
+#appDock.app-dock .dock-btn span {
+  font-size:11px!important;
+  color:#47564f!important;
+  font-weight:620!important;
+  line-height:1.3!important;
+}
+#appDock.app-dock .dock-btn img {
+  object-fit:contain!important;
+}
+
+/* Search: input/header remain visually connected, results are one scan path. */
+body #fpSearchSheet .fp-search-top {
+  background:var(--fpv-paper)!important;
+  border-bottom:1px solid var(--fpv-line)!important;
+  box-shadow:none!important;
+}
+body #fpSearchSheet .fp-search-head {margin-bottom:9px!important}
+body #fpSearchSheet .fp-search-head h2 {
+  font-size:var(--c-v4-title)!important;
+  line-height:1.3!important;
+  font-weight:700!important;
+  letter-spacing:-.035em!important;
+  color:var(--fpv-ink)!important;
+}
+body #fpSearchSheet .fp-search-bar{
+  background:#f5f6f1!important;
+  border:1px solid var(--fpv-line)!important;
+  border-radius:15px!important;
+  box-shadow:none!important;
+}
+body #fpSearchSheet #fpSearchField{
+  font-size:16px!important;
+  color:var(--fpv-ink)!important;
+  letter-spacing:0!important;
+}
+body #fpSearchSheet #fpSearchField::placeholder{
+  color:var(--fpv-tertiary)!important;opacity:1!important;
+}
+body #fpSearchSheet .fp-search-body {
+  background:var(--fpv-paper)!important;
+  box-shadow:none!important;
+}
+body #fpSearchSheet .fp-search-label{
+  color:#867957!important;
+  font-size:var(--c-v4-meta)!important;
+  letter-spacing:.015em!important;
+  font-weight:650!important;
+}
+body #fpSearchSheet :is(.fp-search-row,.fp-search-suggestion) {
+  min-height:66px!important;
+  margin-block:3px!important;
+  padding:9px 10px!important;
+  gap:11px!important;
+  border:1px solid var(--fpv-line)!important;
+  border-radius:13px!important;
+  background:var(--fpv-paper)!important;
+  box-shadow:none!important;
+}
+body #fpSearchSheet :is(.fp-row-main strong,.fp-search-row strong) {
+  color:var(--fpv-ink)!important;
+  font-size:var(--c-v4-row)!important;
+  line-height:1.35!important;
+  font-weight:680!important;
+  letter-spacing:-.023em!important;
+}
+body #fpSearchSheet :is(.fp-row-main small,.fp-search-row small){
+  color:var(--fpv-secondary)!important;
+  font-size:var(--c-v4-caption)!important;
+  line-height:1.5!important;
+}
+body #fpSearchSheet .fp-quick {
+  min-height:69px!important;
+  border:1px solid var(--fpv-line)!important;
+  background:var(--fpv-surface)!important;
+  border-radius:14px!important;
+  box-shadow:none!important;
+}
+body #fpSearchSheet .fp-search-empty {
+  margin:8px 0!important;
+  padding:15px 12px!important;
+  color:var(--fpv-secondary)!important;
+  background:var(--fpv-surface)!important;
+  border:1px solid var(--fpv-line)!important;
+  border-radius:13px!important;
+  line-height:1.65!important;
+  font-size:13px!important;
+}
+
+/* Location: PR15's three detents, actual approved card shape and V3 art remain. */
+body #fpPlaceCard .fp-card-header{
+  background:var(--fpv-paper)!important;
+  padding:13px 18px 11px!important;
+  gap:var(--fpv-space-3)!important;
+  border-color:var(--fpv-line)!important;
+}
+body #fpPlaceCard .fp-card-name {
+  font-size:clamp(20px,5.2vw,23px)!important;
+  line-height:1.32!important;
+  font-weight:700!important;
+  letter-spacing:-.033em!important;
+  color:var(--fpv-ink)!important;
+}
+body #fpPlaceCard .fp-card-location {
+  font-size:var(--c-v4-caption)!important;
+  line-height:1.5!important;
+  color:var(--fpv-secondary)!important;
+}
+body #fpPlaceCard .fp-card-scroll{
+  background:var(--fpv-paper)!important;
+  padding:0 18px 18px!important;
+}
+body #fpPlaceCard .fp-block {
+  padding:14px 15px!important;
+  border:1px solid var(--fpv-line)!important;
+  border-radius:17px!important;
+  background:var(--fpv-paper)!important;
+  box-shadow:none!important;
+}
+body #fpPlaceCard .fp-subheading{margin:13px 0 8px!important}
+body #fpPlaceCard .fp-subheading :is(label,strong){
+  font-size:var(--c-v4-meta)!important;
+  font-weight:650!important;
+  line-height:1.4!important;
+  letter-spacing:.055em!important;
+  color:#837550!important;
+}
+body #fpPlaceCard .fp-brief-text{
+  font-size:var(--c-v4-body)!important;
+  font-weight:420!important;
+  line-height:1.72!important;
+  letter-spacing:0!important;
+  color:#4b5750!important;
+}
+body #fpPlaceCard .fp-card-footer{
+  background:var(--fpv-paper)!important;
+  border-color:var(--fpv-line)!important;
+  gap:8px!important;
+  box-shadow:none!important;
+}
+body #fpPlaceCard .fp-card-chip{
+  min-height:44px!important;
+  border-radius:13px!important;
+  color:var(--fpv-ink)!important;
+  font-size:12px!important;
+  font-weight:650!important;
+  box-shadow:none!important;
+}
+body #fpPlaceCard .fp-media-mosaic {
+  border-radius:var(--fpv-radius-tile)!important;
+  overflow:hidden!important;
+}
+
+/* Collection: body/header/filter/result row should read as one sheet.
+   Do not hide working tab controls or change their actions. */
+body #drawer.fp30-detail {
+  background:var(--fpv-surface)!important;
+  color:var(--fpv-ink)!important;
+}
+body #drawer.fp30-detail .drawer-head {
+  background:var(--fpv-surface)!important;
+  border-color:var(--fpv-line)!important;
+  box-shadow:0 1px 0 var(--fpv-line)!important;
+}
+body #drawer.fp30-detail .drawer-head h2,
+body #drawer.fp30-detail .drawer-cn{
+  font-size:21px!important;
+  line-height:1.3!important;
+  font-weight:700!important;
+  letter-spacing:-.035em!important;
+  color:var(--fpv-ink)!important;
+}
+body #drawer.fp30-detail #sheetCount {
+  color:var(--fpv-secondary)!important;
+  font-size:11px!important;
+  font-weight:480!important;
+  white-space:nowrap!important;
+}
+body #drawer.fp30-detail #fpvCollectionTabs {
+  margin:9px 17px 9px!important;
+  padding:4px!important;
+  border-radius:15px!important;
+  border:1px solid var(--fpv-line)!important;
+  background:#eef1ea!important;
+  box-shadow:none!important;
+}
+body #drawer.fp30-detail #fpvCollectionTabs .fpv-collection-tab {
+  min-height:41px!important;
+  border-radius:11px!important;
+  font-size:12px!important;
+  font-weight:650!important;
+  color:#627469!important;
+}
+body #drawer.fp30-detail #fpvCollectionTabs .fpv-collection-tab[aria-selected="true"]{
+  color:var(--fpv-ink)!important;
+}
+body #drawer.fp30-detail #spotList {
+  margin:0!important;
+  padding:4px 17px 18px!important;
+}
+body #drawer.fp30-detail #spotList .spotrow{
+  min-height:82px!important;
+  margin:7px 0!important;
+  padding:10px 11px!important;
+  gap:11px!important;
+  border:1px solid var(--fpv-line)!important;
+  background:var(--fpv-paper)!important;
+  border-radius:16px!important;
+  box-shadow:0 2px 9px rgba(29,43,34,.045)!important;
+}
+body #drawer.fp30-detail #spotList .spotrow strong{
+  color:var(--fpv-ink)!important;
+  font-size:15px!important;
+  line-height:1.35!important;
+  font-weight:680!important;
+  letter-spacing:-.02em!important;
+}
+body #drawer.fp30-detail #spotList .spotrow small{
+  color:var(--fpv-secondary)!important;
+  font-size:12px!important;
+  line-height:1.5!important;
+  letter-spacing:0!important;
+}
+body #drawer.fp30-detail #drawerRouteList .rs-row{
+  background:var(--fpv-paper)!important;
+  border:1px solid var(--fpv-line)!important;
+  border-radius:16px!important;
+  box-shadow:0 2px 9px rgba(29,43,34,.045)!important;
+}
+body #drawer.fp30-detail .atlas-empty-places.atlas-empty-c {
+  text-align:left!important;
+  color:var(--fpv-ink)!important;
+}
+body #drawer.fp30-detail .atlas-empty-places.atlas-empty-c p{
+  color:var(--fpv-secondary)!important;
+  font-size:13px!important;
+  line-height:1.65!important;
+}
+body #drawer.fp30-detail .atlas-empty-places.atlas-empty-c .atlas-empty-actions button{
+  border-radius:13px!important;
+  font-size:13px!important;
+  font-weight:650!important;
+  box-shadow:none!important;
+}
+body #drawer.fp30-detail .fp30-detail-head h3{
+  color:var(--fpv-ink)!important;
+  font-size:17px!important;
+  letter-spacing:-.025em!important;
+  font-weight:690!important;
+}
+
+/* Search selection preview, editing, memory and modal surfaces.
+   Shared tonal and typographic hierarchy, unchanged action wiring. */
+body #destinationCard.destination-card{
+  background:var(--fpv-paper)!important;
+  color:var(--fpv-ink)!important;
+  border:1px solid var(--fpv-line)!important;
+  border-radius:var(--fpv-radius-panel)!important;
+  box-shadow:var(--fpv-shadow-sheet)!important;
+}
+body #destinationCard .destination-title{
+  color:var(--fpv-ink)!important;
+  font-size:clamp(20px,5.2vw,23px)!important;
+  line-height:1.32!important;
+  font-weight:700!important;
+  letter-spacing:-.033em!important;
+}
+body #destinationCard .destination-category{
+  color:var(--fpv-secondary)!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+}
+body #destinationCard .destination-actions{gap:8px!important}
+body #destinationCard .destination-actions button{
+  min-height:44px!important;
+  border-radius:13px!important;
+  font-size:12px!important;
+  font-weight:650!important;
+  box-shadow:none!important;
+}
+body #editor.editor{
+  background:var(--fpv-paper)!important;
+  color:var(--fpv-ink)!important;
+  border-color:var(--fpv-line)!important;
+}
+/* Screenshot-reported editor close error: the previous first-focus button
+   inherited a stage-wide focus outline and was not aligned with its title.
+   Constrain the real button, not a decorative replacement or extra overlay. */
+body #editor .edit-head{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 44px!important;
+  column-gap:12px!important;
+  align-items:start!important;
+}
+body #editor .edit-head > div{min-width:0!important}
+body #editor .edit-head #closeEditor{
+  box-sizing:border-box!important;
+  display:grid!important;
+  place-items:center!important;
+  justify-self:end!important;
+  align-self:start!important;
+  flex:none!important;
+  width:44px!important;height:44px!important;
+  min-width:44px!important;min-height:44px!important;
+  max-width:44px!important;max-height:44px!important;
+  margin:12px 0 0!important;padding:0!important;
+  border:0!important;border-radius:12px!important;
+  background:transparent!important;box-shadow:none!important;
+  color:var(--fpv-secondary)!important;
+  font-size:23px!important;font-weight:350!important;line-height:1!important;
+}
+body #editor #editorTitle:focus{outline:none!important}
+/* Keep a visible focus indicator for genuine keyboard Tab navigation. */
+body #editor .edit-head #closeEditor:focus-visible{
+  outline:2px solid var(--fpv-secondary)!important;
+  outline-offset:2px!important;
+}
+body #editor .edit-head h2{
+  color:var(--fpv-ink)!important;
+  font-size:22px!important;
+  font-weight:700!important;
+  line-height:1.3!important;
+  letter-spacing:-.033em!important;
+}
+body #editor .editor-eyebrow {
+  color:var(--fpv-tertiary)!important;
+  font-size:10px!important;
+  letter-spacing:.04em!important;
+}
+body #editor .edit-sub {
+  font-size:12px!important;
+  line-height:1.5!important;
+  color:var(--fpv-secondary)!important;
+}
+body #editor :is(.field,.atlas-stage-selector legend){
+  font-size:12px!important;
+  font-weight:650!important;
+  line-height:1.45!important;
+  color:var(--fpv-ink)!important;
+}
+body #editor :is(.input,.area,input,textarea){
+  font-size:16px!important;
+  line-height:1.5!important;
+  color:var(--fpv-ink)!important;
+  border-color:var(--fpv-line)!important;
+}
+body #memorySheet .memory-note {
+  color:var(--fpv-ink)!important;
+  line-height:1.72!important;
+  font-family:var(--fpv-type)!important;
+}
+body #memorySheet .memory-quickbar button{
+  min-height:44px!important;
+  border-radius:13px!important;
+  border-color:var(--fpv-line)!important;
+  font-size:12px!important;
+  font-weight:650!important;
+}
+body #fpMediaViewer .fp-viewer-caption {
+  font-family:var(--fpv-type)!important;
+  color:#e5e7df!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+  font-weight:450!important;
+}
+body :is(#atlasDiscardDialog,#atlasDeleteDialog,#atlasUnstarDialog) .atlas-discard-inner{
+  background:var(--fpv-paper)!important;
+  border-color:var(--fpv-line)!important;
+  color:var(--fpv-ink)!important;
+  box-shadow:var(--fpv-shadow-sheet)!important;
+}
+body :is(#atlasDiscardDialog,#atlasDeleteDialog,#atlasUnstarDialog)
+  .atlas-discard-inner h2 {
+  font-size:20px!important;
+  line-height:1.35!important;
+  font-weight:700!important;
+  letter-spacing:-.025em!important;
+  color:var(--fpv-ink)!important;
+}
+@media(max-width:375px){
+  body #fpSearchSheet :is(.fp-search-row,.fp-search-suggestion){
+    padding-inline:8px!important;
+  }
+  body #drawer.fp30-detail #spotList{
+    padding-inline:13px!important;
+  }
+  body #fpPlaceCard .fp-card-scroll{
+    padding-inline:15px!important;
+  }
+}
+
+
+/*
+ * Screenshot-specific corrections | Nov 16 | audited across sibling screens.
+ * Keep PR15 visual tokens and original gesture owners. These selectors correct
+ * actual controls and dynamic DOM, rather than adding a new design system.
+ */
+
+/* One grip, centered; one close control, without the oversized painted tile. */
+body #fpSearchSheet .fp-search-top{
+  position:relative!important;
+  padding:36px 17px 13px!important;
+}
+body #fpSearchSheet .fp-search-grip,
+body #fpSearchSheet .fp-search-grip[data-atlas-grip]{
+  position:absolute!important;
+  top:3px!important;
+  left:50%!important;
+  right:auto!important;
+  width:88px!important;
+  height:31px!important;
+  min-width:88px!important;
+  min-height:31px!important;
+  margin:0!important;
+  padding:0!important;
+  transform:translateX(-50%)!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  z-index:3!important;
+}
+body #fpSearchSheet .fp-search-grip::before{
+  content:""!important;
+  position:absolute!important;
+  top:13px!important;left:50%!important;
+  width:42px!important;height:5px!important;
+  margin:0!important;
+  transform:translateX(-50%)!important;
+  border-radius:8px!important;
+  background:#c7cfc6!important;
+}
+body #fpSearchSheet .fp-search-head{
+  min-height:44px!important;
+  margin:0 0 11px!important;
+  gap:12px!important;
+}
+body #fpSearchSheet .fp-search-head h2{
+  font-size:21px!important;
+  font-weight:700!important;
+  line-height:1.3!important;
+}
+body #fpSearchSheet .fp-search-eyebrow{display:none!important}
+body #fpSearchSheet .fp-search-close,
+body #fpPlaceCard .fp-card-close{
+  flex:0 0 44px!important;
+  width:44px!important;height:44px!important;
+  min-width:44px!important;min-height:44px!important;
+  margin:0!important;padding:0!important;
+  display:grid!important;place-items:center!important;
+  background:transparent!important;
+  border:0!important;box-shadow:none!important;
+  border-radius:12px!important;
+  color:#77857a!important;
+  font-size:24px!important;font-weight:350!important;
+  line-height:1!important;
+}
+
+/* Place header: action buttons belong to one secondary control row.
+   Keep the real yellow starred action and existing editing callbacks. */
+body #fpPlaceCard .fp-card-header{
+  align-items:flex-start!important;
+  gap:8px!important;
+  padding:13px 17px 11px!important;
+}
+body #fpPlaceCard .fp-card-title-wrap{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  padding-right:0!important;
+}
+body #fpPlaceCard .fp-card-name{
+  overflow-wrap:anywhere!important;
+  font-size:clamp(20px,5.2vw,23px)!important;
+  line-height:1.3!important;
+}
+body #fpPlaceCard .fp-place-stage{
+  min-height:28px!important;
+  height:auto!important;
+  margin:8px 0 0!important;
+  padding:4px 10px!important;
+  border:1px solid #e5dcc5!important;
+  border-radius:999px!important;
+  background:var(--fpv-gold-wash)!important;
+  color:#826f48!important;
+  box-shadow:none!important;
+  font-size:11px!important;
+  font-weight:650!important;
+  line-height:1.4!important;
+  letter-spacing:0!important;
+  white-space:nowrap!important;
+}
+body #fpPlaceCard .fp-card-head-actions{
+  /* Preserve the approved four-track parent grid: three buttons occupy row 2. */
+  grid-column:2 / -1!important;
+  grid-row:2!important;
+  justify-self:end!important;
+  align-self:center!important;
+  flex:0 0 auto!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:2px!important;
+  min-width:0!important;
+}
+body #fpPlaceCard .fp-card-head-actions > button{
+  flex:0 0 44px!important;
+  width:44px!important;height:44px!important;
+  min-width:44px!important;min-height:44px!important;
+  margin:0!important;padding:0!important;
+  display:grid!important;place-items:center!important;
+  box-shadow:none!important;
+}
+body #fpPlaceCard .fp-card-head-actions .fp-unstar-btn{
+  border:1px solid #e5d7b7!important;
+  border-radius:13px!important;
+  background:var(--fpv-gold-wash)!important;
+}
+body #fpPlaceCard .fp-card-head-actions .fp-unstar-btn img{
+  width:19px!important;height:19px!important;object-fit:contain!important;
+}
+body #fpPlaceCard .fp-card-head-actions .fp-edit-toggle{
+  border:0!important;
+  background:transparent!important;
+  color:#526557!important;
+  border-radius:12px!important;
+  font-size:12px!important;
+  font-weight:650!important;
+}
+body #fpPlaceCard .fp-card-head-actions .fp-card-close{
+  border:0!important;
+  background:transparent!important;
+  color:#77857a!important;
+}
+
+/* An empty media section needs ONE call to action, not plus + heading link
+   + dashed enclosure + explanatory paragraphs + another button. */
+body #fpPlaceCard .fp-media-empty{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  min-height:56px!important;
+  margin:2px 0 0!important;
+  padding:6px 0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+body #fpPlaceCard .fp-media-empty .fp-empty-text{
+  flex:1!important;
+  min-width:0!important;
+  color:var(--fpv-secondary)!important;
+  font-size:12px!important;
+  font-weight:450!important;
+  line-height:1.5!important;
+}
+body #fpPlaceCard .fp-media-empty .fp-btn-primary{
+  flex:0 0 auto!important;
+  min-height:42px!important;
+  padding:9px 13px!important;
+  margin:0!important;
+  border:1px solid #dce6d9!important;
+  border-radius:12px!important;
+  background:#edf1e9!important;
+  color:#405c49!important;
+  box-shadow:none!important;
+  font-size:12px!important;
+  font-weight:650!important;
+}
+body #fpPlaceCard .fp-social-empty,
+body #fpPlaceCard .fp-brief-text.is-empty{
+  color:var(--fpv-tertiary)!important;
+  font-size:12px!important;
+  line-height:1.6!important;
+}
+body #fpPlaceCard .fp-block{
+  padding:13px 14px!important;
+}
+body #fpPlaceCard .fp-subheading{
+  margin:7px 0 9px!important;
+}
+body #fpPlaceCard .fp-section-index{
+  opacity:.73!important;
+}
+body #fpPlaceCard .fp-card-scroll{
+  padding:0 17px 18px!important;
+}
+
+/* Collection: the single visible "收藏地点" segment (because C V5 owns
+   routes in its own Dock) is not a useful choice. Remove only that bar when
+   the single-route-owner state is active. Leave all content and actions. */
+body.fp-single-route-owner #drawer.fp30-detail #fpvCollectionTabs{
+  display:none!important;
+}
+body #drawer.fp30-detail .drawer-head{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 44px!important;
+  grid-template-rows:21px 44px!important;
+  column-gap:8px!important;
+  row-gap:1px!important;
+  align-items:center!important;
+  min-height:0!important;
+  margin:0 0 10px!important;
+  padding:5px 17px 9px!important;
+  border-bottom:1px solid var(--fpv-line)!important;
+  background:var(--fpv-paper)!important;
+}
+body #drawer.fp30-detail .drawer-head .sheet-grab{
+  position:relative!important;
+  grid-column:1/-1!important;grid-row:1!important;
+  display:grid!important;place-items:center!important;
+  top:auto!important;left:auto!important;right:auto!important;
+  width:100%!important;height:21px!important;min-height:21px!important;
+  margin:0!important;padding:0!important;
+  background:transparent!important;
+  border:0!important;box-shadow:none!important;
+}
+body #drawer.fp30-detail .drawer-head .sheet-grab::before{
+  content:""!important;
+  position:static!important;
+  display:block!important;
+  width:42px!important;height:5px!important;
+  margin:0!important;
+  border-radius:8px!important;
+  background:#c7cfc6!important;
+}
+body #drawer.fp30-detail .drawer-head h2{
+  grid-column:1!important;grid-row:2!important;
+  align-self:center!important;
+  margin:0!important;
+  padding:0!important;
+  font-size:21px!important;
+  font-weight:700!important;
+  line-height:1.3!important;
+}
+body #drawer.fp30-detail #closeDrawer{
+  grid-column:2!important;grid-row:2!important;
+  display:grid!important;place-items:center!important;
+  width:44px!important;height:44px!important;
+  min-width:44px!important;min-height:44px!important;
+  margin:0!important;padding:0!important;
+  border:0!important;border-radius:12px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#78867a!important;
+}
+body #drawer.fp30-detail #closeDrawer::before{
+  width:16px!important;height:16px!important;
+}
+body #drawer.fp30-detail #spotList{
+  min-height:0!important;
+  margin:0!important;
+  padding:2px 17px 12px!important;
+}
+body #drawer.fp30-detail #spotList .spotrow{
+  margin:5px 0!important;
+  min-height:76px!important;
+  padding:9px 10px!important;
+}
+body #drawer.fp30-detail .backuprow{
+  margin:10px 17px 4px!important;
+  padding:0!important;
+  gap:9px!important;
+}
+body #drawer.fp30-detail .backuprow button{
+  min-height:42px!important;
+  background:var(--fpv-surface)!important;
+  color:#627267!important;
+  border:1px solid var(--fpv-line)!important;
+  border-radius:12px!important;
+  box-shadow:none!important;
+  font-size:12px!important;
+  font-weight:600!important;
+}
+body #drawer.fp30-detail .footnote{
+  margin:5px 17px 14px!important;
+  padding:0!important;
+  color:var(--fpv-tertiary)!important;
+  font-size:11px!important;
+  line-height:1.55!important;
+}
+
+/* Destination preview: the one primary action is short and calm.
+   Yellow remains reserved for the original single geographic star. */
+body #destinationCard #destinationStar{
+  background:#304b3b!important;
+  color:var(--fpv-paper)!important;
+  border:1px solid #304b3b!important;
+  border-radius:13px!important;
+  box-shadow:none!important;
+  font-weight:660!important;
+  letter-spacing:0!important;
+}
+body #destinationCard #destinationStar::before,
+body #destinationCard #destinationStar::after{
+  content:none!important;
+}
+body #destinationCard #destinationNav{
+  background:#f1f3ed!important;
+  color:#4a5d50!important;
+  border:1px solid var(--fpv-line)!important;
+  border-radius:13px!important;
+  box-shadow:none!important;
+}
+body #destinationCard .destination-actions{
+  gap:8px!important;
+}
+body #destinationCard .destination-close{
+  width:44px!important;height:44px!important;
+  min-width:44px!important;min-height:44px!important;
+  background:transparent!important;
+  border:0!important;box-shadow:none!important;
+  border-radius:12px!important;
+  color:#78867a!important;
+  font-size:24px!important;
+}
+@media(max-width:375px){
+  body #fpPlaceCard .fp-card-header{padding-inline:13px!important}
+  body #fpPlaceCard .fp-card-head-actions{gap:0!important}
+  body #fpPlaceCard .fp-card-head-actions > button{
+    width:40px!important;min-width:40px!important;
+    flex-basis:40px!important;
+  }
+  body #drawer.fp30-detail .drawer-head{padding-inline:13px!important}
+  body #fpSearchSheet .fp-search-top{padding-inline:13px!important}
+}
+
+/* Home navigation contract | 2026-11-16.
+   Top search is the EXISTING #dockSearch, not a second search engine.
+   The existing Dock now owns only collection, overview and the approved route. */
+body #fpTopSearch{
+ position:fixed!important;z-index:1300!important;
+ top:calc(12px + env(safe-area-inset-top))!important;
+ left:max(15px,env(safe-area-inset-left))!important;
+ width:min(390px,calc(100vw - 94px))!important;
+ margin:0!important;padding:0!important;
+ transition:opacity .16s ease,visibility .16s ease!important;
+}
+body #fpTopSearch #dockSearch{
+ display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ align-items:center!important;justify-content:flex-start!important;
+ box-sizing:border-box!important;width:100%!important;height:52px!important;
+ min-height:52px!important;min-width:0!important;gap:11px!important;
+ padding:0 17px!important;margin:0!important;
+ background:rgba(255,254,250,.97)!important;
+ border:1px solid var(--fpv-line)!important;border-radius:18px!important;
+ box-shadow:var(--fpv-shadow-control)!important;
+ color:var(--fpv-secondary)!important;
+ font-family:var(--fpv-type)!important;text-align:left!important;
+ touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+ transition:transform .18s cubic-bezier(.18,.94,.2,1),background .18s ease!important;
+}
+body #fpTopSearch #dockSearch img{
+ display:block!important;flex:0 0 22px!important;width:22px!important;height:22px!important;
+ object-fit:contain!important;
+}
+body #fpTopSearch #dockSearch span{
+ display:block!important;flex:1!important;min-width:0!important;
+ overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+ color:var(--fpv-secondary)!important;font-size:14px!important;
+ font-weight:550!important;letter-spacing:0!important;line-height:1.3!important;
+}
+body #fpTopSearch #dockSearch:active{transform:scale(.986)!important;background:#f5f6f1!important}
+body #fpTopSearch #dockSearch:focus-visible{outline:2px solid #b88f37!important;outline-offset:2px!important}
+body #appDock.app-dock{
+ width:min(288px,calc(100vw - 72px))!important;
+ min-height:64px!important;
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ align-items:center!important;gap:2px!important;padding:5px!important;
+ transform-origin:center center!important;will-change:auto!important;
+}
+body #appDock.app-dock > .dock-btn{
+ width:100%!important;min-width:0!important;max-width:none!important;
+ min-height:54px!important;height:54px!important;
+ justify-self:stretch!important;
+}
+/* Retire the legacy left-to-right Search Dock mask; the Search trigger is on top. */
+body.fp34-searching.fp-search-open #appDock,
+body.fp-search-open #appDock{
+ animation:none!important;opacity:0!important;visibility:hidden!important;
+ pointer-events:none!important;clip-path:none!important;
+}
+body.fp34-search-returning #appDock{animation:none!important;clip-path:none!important}
+body.fp34-searching.fp-search-open #fpSearchSheet{animation:none!important}
+body:is(.fp-search-open,.fp-place-open,.memory-open,.destination-selected) #fpTopSearch,
+body:has(#drawer.visible) #fpTopSearch,
+body:has(#editor[open]) #fpTopSearch{
+ opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+}
+@media(max-width:375px){
+ body #fpTopSearch{width:calc(100vw - 86px)!important;left:12px!important}
+ body #fpTopSearch #dockSearch{padding-inline:13px!important}
+ body #appDock.app-dock{width:min(288px,calc(100vw - 48px))!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body #fpTopSearch,body #fpTopSearch #dockSearch{transition:none!important}
+}
+
+/* Interactive iPhone search | one existing AtlasServices search engine.
+   The live #fpSearchField form moves from the physical sheet to the top
+   input portal while the real results remain in the B search sheet. */
+body #fpSearchActiveTop[hidden]{display:none!important}
+body #fpSearchActiveTop{
+ position:fixed!important;
+ z-index:1600!important;
+ top:calc(12px + env(safe-area-inset-top))!important;
+ left:max(15px,env(safe-area-inset-left))!important;
+ right:max(15px,env(safe-area-inset-right))!important;
+ width:auto!important;max-width:570px!important;
+ margin:0 auto!important;padding:0!important;
+ display:flex!important;flex-direction:row!important;
+ align-items:center!important;gap:8px!important;
+ min-height:52px!important;
+ font-family:var(--fpv-type)!important;
+}
+body #fpSearchActiveTop .fp-search-bar{
+ flex:1 1 auto!important;display:flex!important;align-items:center!important;
+ min-width:0!important;width:auto!important;
+ height:52px!important;min-height:52px!important;
+ padding:0 13px!important;margin:0!important;gap:10px!important;
+ border:1px solid var(--fpv-line)!important;
+ border-radius:18px!important;background:var(--fpv-paper)!important;
+ box-shadow:var(--fpv-shadow-control)!important;
+ transform:none!important;overflow:hidden!important;
+}
+body #fpSearchActiveTop .fp-magnify{
+ flex:0 0 22px!important;display:grid!important;place-items:center!important;
+ width:22px!important;height:22px!important;font-size:0!important;line-height:1!important;
+ color:var(--fpv-ink)!important;
+}
+body #fpSearchActiveTop .fp-magnify img{
+ width:22px!important;height:22px!important;object-fit:contain!important;
+}
+body #fpSearchActiveTop #fpSearchField{
+ flex:1 1 auto!important;min-width:0!important;width:100%!important;
+ height:44px!important;min-height:44px!important;
+ padding:0!important;margin:0!important;
+ font-size:16px!important;line-height:1.35!important;
+ color:var(--fpv-ink)!important;background:transparent!important;
+ border:0!important;outline:0!important;box-shadow:none!important;
+ font-weight:450!important;text-align:left!important;
+}
+body #fpSearchActiveTop #fpSearchField::placeholder{
+ color:var(--fpv-tertiary)!important;opacity:1!important;
+}
+body #fpSearchActiveTop .fp-search-clear{
+ flex:0 0 32px!important;width:32px!important;height:40px!important;
+ min-width:32px!important;min-height:40px!important;
+ display:grid!important;place-items:center!important;
+ background:transparent!important;border:0!important;
+ color:var(--fpv-secondary)!important;font-size:22px!important;
+}
+body #fpSearchActiveTop .fp-search-clear[hidden]{display:none!important}
+body #fpSearchActiveTop .fp-search-cancel{
+ flex:0 0 auto!important;min-width:44px!important;min-height:48px!important;
+ height:48px!important;padding:0 3px!important;
+ border:0!important;background:transparent!important;
+ box-shadow:none!important;border-radius:10px!important;
+ color:var(--fpv-ink)!important;font-size:14px!important;
+ font-weight:600!important;line-height:1!important;
+ font-family:var(--fpv-type)!important;
+ touch-action:manipulation!important;
+}
+body #fpSearchActiveTop .fp-search-cancel:focus-visible{
+ outline:2px solid #b88f37!important;outline-offset:2px!important;
+}
+body.fp-search-open #fpSearchSheet{
+ left:12px!important;right:12px!important;bottom:var(--fp-keyboard)!important;
+ width:auto!important;max-width:570px!important;
+ margin-inline:auto!important;
+ border:1px solid var(--fpv-line)!important;
+ border-radius:24px!important;background:var(--fpv-paper)!important;
+ box-shadow:var(--fpv-shadow-sheet)!important;
+ overflow:hidden!important;
+}
+body.fp-search-open #fpSearchSheet .fp-search-top{
+ padding:30px 17px 12px!important;border-bottom:1px solid var(--fpv-line)!important;
+}
+body.fp-search-open #fpSearchSheet .fp-search-head{
+ margin:0!important;min-height:39px!important;
+}
+body.fp-search-open #fpSearchSheet .fp-search-head h2{
+ font-size:19px!important;font-weight:690!important;
+}
+body.fp-search-open #fpSearchSheet .fp-search-close{
+ /* Retain the programmatic close owner for physical gestures, but show
+    the one explicit top-right Cancel action to the user. */
+ display:none!important;
+}
+body.fp-search-open #fpSearchSheet .fp-search-grip,
+body.fp-search-open #fpSearchSheet .fp-search-grip[data-atlas-grip]{
+ top:0!important;height:29px!important;
+}
+body.fp-search-open #fpSearchSheet .fp-search-body{
+ padding:5px 17px calc(16px + env(safe-area-inset-bottom))!important;
+}
+body.fp-search-open #fpSearchVeil{
+ background:rgba(25,36,28,.11)!important;backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+}
+body.fp-search-open #fpTopSearch{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+@media(max-width:375px){
+ body #fpSearchActiveTop{left:12px!important;right:12px!important;gap:5px!important}
+ body #fpSearchActiveTop .fp-search-bar{padding-inline:11px!important}
+ body #fpSearchActiveTop .fp-search-cancel{font-size:13px!important}
+ body.fp-search-open #fpSearchSheet{left:9px!important;right:9px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body #fpSearchActiveTop,body #fpSearchActiveTop .fp-search-bar{
+  transition:none!important;animation:none!important;
+ }
+}
+
+
+/* iPhone search and selected-place choreography | Nov 16 recording
+   One centered entry; compact under-field results rather than a keyboard-
+   obstructed bottom panel. No second search service or draggable search shell. */
+body #fpTopSearch{
+ left:50%!important;right:auto!important;
+ width:min(342px,calc(100vw - 92px))!important;
+ max-width:342px!important;
+ transform:translateX(-50%)!important;
+}
+body #fpTopSearch #dockSearch{
+ min-height:50px!important;height:50px!important;
+ border-radius:17px!important;padding-inline:15px!important;
+}
+body #fpTopSearch #dockSearch span{
+ font-size:13px!important;line-height:20px!important;
+ font-weight:540!important;
+}
+body #fpSearchActiveTop{
+ left:50%!important;right:auto!important;
+ width:min(385px,calc(100vw - 24px))!important;
+ max-width:385px!important;
+ transform:translateX(-50%)!important;
+}
+body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]{
+ position:fixed!important;
+ top:calc(75px + env(safe-area-inset-top))!important;
+ bottom:auto!important;left:50%!important;right:auto!important;
+ width:min(362px,calc(100vw - 28px))!important;
+ max-width:362px!important;
+ height:auto!important;min-height:0!important;
+ max-height:min(365px,calc(var(--fp-vh,100dvh) - 105px - env(safe-area-inset-top)))!important;
+ padding:0!important;margin:0!important;
+ border:1px solid var(--fpv-line)!important;
+ border-radius:18px!important;background:var(--fpv-paper)!important;
+ box-shadow:0 12px 32px rgba(28,44,35,.16)!important;
+ transform:translateX(-50%)!important;
+ opacity:1!important;
+ transition:opacity .17s ease!important;
+ overflow:hidden!important;overscroll-behavior:contain!important;
+ z-index:1550!important;
+}
+body.fp-search-open #fpSearchSheet[data-search-layout="anchored"] .fp-search-top{
+ display:none!important;
+}
+body.fp-search-open #fpSearchSheet[data-search-layout="anchored"] .fp-search-body{
+ flex:0 1 auto!important;
+ min-height:0!important;
+ max-height:min(345px,calc(var(--fp-vh,100dvh) - 110px - env(safe-area-inset-top)))!important;
+ padding:8px 12px 11px!important;
+ overflow-y:auto!important;
+ overscroll-behavior:contain!important;
+ -webkit-overflow-scrolling:touch;
+}
+body #fpSearchSheet .fp-history-head{
+ display:flex!important;align-items:center!important;
+ justify-content:space-between!important;gap:10px!important;
+ padding:3px 8px 5px!important;
+}
+body #fpSearchSheet .fp-history-head strong{
+ font-size:12px!important;font-weight:680!important;
+ color:var(--fpv-secondary)!important;letter-spacing:0!important;
+}
+body #fpSearchSheet .fp-history-clear{
+ min-width:44px!important;height:35px!important;
+ border:0!important;background:transparent!important;
+ box-shadow:none!important;color:var(--fpv-secondary)!important;
+ font-size:12px!important;font-weight:520!important;
+}
+body #fpSearchSheet .fp-search-body .fp-search-row{
+ min-height:51px!important;
+ gap:10px!important;padding:6px 7px!important;
+ border-bottom:1px solid var(--fpv-line)!important;
+}
+body #fpSearchSheet .fp-search-body .fp-row-icon{
+ width:33px!important;height:33px!important;
+ border-radius:10px!important;font-size:16px!important;
+ background:#f1f3ed!important;
+}
+body #fpSearchSheet .fp-search-body .fp-row-main strong{
+ font-size:13px!important;font-weight:630!important;
+}
+body #fpSearchSheet .fp-search-body .fp-search-empty{
+ margin:4px 3px!important;padding:11px 8px!important;
+ font-size:13px!important;line-height:1.5!important;
+ color:var(--fpv-secondary)!important;
+}
+/* Animate the INNER drawing only. The map owns all marker positioning;
+   transforms on its georeferenced outer node would cause drift/ghosting. */
+#atlasBookmarkOverlay .atlas-bookmark-hit.fp-selection-current,
+.star-pin.fp-selection-current{
+ z-index:40!important;
+}
+#atlasBookmarkOverlay .atlas-bookmark-hit.fp-selection-current svg,
+.star-pin.fp-selection-current svg{
+ transform:scale(1.19)!important;
+ transform-origin:center center!important;
+ filter:drop-shadow(0 3px 6px rgba(57,52,28,.22))!important;
+}
+#atlasBookmarkOverlay .atlas-bookmark-hit.fp-pin-cue svg,
+.star-pin.fp-pin-cue svg{
+ animation:fpSelectedStarHop .91s cubic-bezier(.18,.84,.26,1) both!important;
+}
+@keyframes fpSelectedStarHop{
+ 0%{transform:scale(.92) translateY(0) rotate(-16deg)}
+ 27%{transform:scale(1.31) translateY(-8px) rotate(12deg)}
+ 51%{transform:scale(1.13) translateY(1px) rotate(-8deg)}
+ 73%{transform:scale(1.25) translateY(-4px) rotate(5deg)}
+ 100%{transform:scale(1.19) translateY(0) rotate(0)}
+}
+#atlasBookmarkOverlay .atlas-bookmark-hit.fp-pin-cue::after,
+.star-pin.fp-pin-cue::after{
+ content:"";position:absolute;inset:3px;display:block;
+ border:1.5px solid rgba(190,155,75,.7);border-radius:50%;
+ pointer-events:none;animation:fpSelectedHalo .68s ease-out both!important;
+}
+@keyframes fpSelectedHalo{
+ from{opacity:.7;transform:scale(.55)}
+ to{opacity:0;transform:scale(1.85)}
+}
+.fp-poi-selection-cue .fp-vector-token{
+ animation:fpSelectedPoiArrival .67s cubic-bezier(.16,.91,.21,1) both!important;
+ transform-origin:50% 83%!important;
+}
+@keyframes fpSelectedPoiArrival{
+ 0%{transform:scale(.78) translateY(8px);opacity:.7}
+ 55%{transform:scale(1.22) translateY(-6px);opacity:1}
+ 78%{transform:scale(.97) translateY(1px)}
+ 100%{transform:scale(1.08) translateY(0);opacity:1}
+}
+.fp-poi-selection-cue.fp-water-selection .fp-vector-token img{
+ animation:fpSelectedWaterRipple 1.05s ease-in-out 2 both!important;
+ transform-origin:center!important;
+}
+@keyframes fpSelectedWaterRipple{
+ 0%,100%{transform:translate3d(0,0,0) rotate(0)}
+ 24%{transform:translate3d(2px,-2px,0) rotate(5deg)}
+ 51%{transform:translate3d(-2px,1px,0) rotate(-4deg)}
+ 76%{transform:translate3d(2px,-1px,0) rotate(3deg)}
+}
+.amap-select-pin{
+ animation:fpSelectedPoiArrival .67s cubic-bezier(.16,.91,.21,1) both;
+ transform-origin:50% 82%!important;
+}
+@media(max-width:375px){
+ body #fpTopSearch{width:calc(100vw - 94px)!important}
+ body #fpSearchActiveTop{width:calc(100vw - 18px)!important}
+ body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]{
+  width:calc(100vw - 22px)!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #atlasBookmarkOverlay .atlas-bookmark-hit.fp-pin-cue svg,
+ .star-pin.fp-pin-cue svg,
+ #atlasBookmarkOverlay .atlas-bookmark-hit.fp-pin-cue::after,
+ .star-pin.fp-pin-cue::after,
+ .fp-poi-selection-cue .fp-vector-token,
+ .fp-poi-selection-cue.fp-water-selection .fp-vector-token img,
+ .amap-select-pin{
+  animation:none!important;
+ }
+ body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]{
+  transition:none!important;
+ }
+}
+
+
+/* V4 accepted SVG parts, live map only | motion-9.
+   Georeferenced map marker never moves/scales. ONLY icon interior animates.
+   One shared return: 1.00 -> 1.10 -> 1.00. */
+@keyframes fpInternalPinScaleReturn {
+  0%   {scale:1}
+  42%  {scale:1.10}
+  72%  {scale:1.045}
+  100% {scale:1}
+}
+#atlasPoiOverlay .fp-poi.is-tapped .fp-poi-token,
+#atlasPoiOverlay .fp-poi.is-selected .fp-poi-token,
+.fp-poi-selection-cue .fp-vector-token,
+.fp-poi-selection-cue.fp-water-selection .fp-vector-token img {
+  animation:none!important;
+  transform:none!important;
+}
+#atlasPoiOverlay .fp-poi.is-selected .fp-poi-token {
+  scale:1!important;
+}
+.fp-poi-selection-cue,.fp-vector-selection{
+  animation:none!important;
+}
+/* The token holder stays stationary while this INNER shell moves. */
+.fp-internal-poi-envelope{
+  display:grid!important;
+  width:100%;height:100%;place-items:center!important;
+  scale:1;
+  transform-origin:50% 50%;
+  pointer-events:none!important;
+  contain:layout style;
+}
+.fp-internal-poi-envelope.fp-internal-poi-animate{
+  animation:fpInternalPinScaleReturn 560ms cubic-bezier(.22,.77,.20,1) both!important;
+}
+.fp-internal-poi-svg{
+  width:26px!important;height:26px!important;
+  max-width:100%;max-height:100%;
+  display:block!important;
+  overflow:visible;
+  pointer-events:none!important;
+}
+#atlasPoiOverlay .fp-poi-token .fp-internal-poi-svg{
+  width:20px!important;height:20px!important;
+}
+.fp-official-poi-icon{
+  width:54px;height:58px;display:grid;place-items:center;
+  pointer-events:none;position:relative;
+}
+.fp-official-poi-icon .fp-vector-token{
+  display:grid;place-items:center;
+  width:44px;height:44px;border-radius:14px;
+  background:rgba(255,254,250,.96);
+  border:1px solid rgba(160,182,170,.65);
+  box-shadow:0 6px 15px rgba(42,55,43,.16);
+}
+.fp-official-poi-icon .fp-vector-token > img{
+  width:26px;height:26px;object-fit:contain;
+}
+/* Older selected-star rule left SVG permanently 1.19x. Restore 1x. */
+body #atlasBookmarkOverlay .atlas-bookmark-hit.fp-selection-current svg,
+body #atlasBookmarkOverlay .atlas-bookmark-hit.selected svg,
+body .star-pin.fp-selection-current svg,
+body .star-pin.selected svg{
+  transform:none!important;
+  scale:1;
+}
+body #atlasBookmarkOverlay .atlas-bookmark-hit.fp-pin-cue svg,
+body .star-pin.fp-pin-cue svg{animation:none!important}
+body #atlasBookmarkOverlay .atlas-bookmark-hit::after,
+body .star-pin::after{pointer-events:none!important}
+body #atlasBookmarkOverlay .atlas-bookmark-hit svg.fp-internal-star-animate,
+body .star-pin svg.fp-internal-star-animate{
+  transform:none!important;
+  animation:fpInternalPinScaleReturn 560ms cubic-bezier(.22,.77,.20,1) both!important;
+  transform-origin:50% 50%!important;
+}
+@media(prefers-reduced-motion:reduce){
+  .fp-internal-poi-envelope.fp-internal-poi-animate,
+  body #atlasBookmarkOverlay .atlas-bookmark-hit svg.fp-internal-star-animate,
+  body .star-pin svg.fp-internal-star-animate{
+    animation:none!important;scale:1!important;
+  }
+}
+
+/* MapLibre fallback: retain georeferenced marker transform, replace only
+   the INSIDE legacy teardrop by the same reviewed V3 POI artwork. */
+.atlas-light-selection-pin.fp-fallback-motion-poi{
+ width:48px!important;height:48px!important;
+ display:grid!important;place-items:center!important;
+ filter:none!important;animation:none!important;
+ background:transparent!important;
+}
+.atlas-light-selection-pin.fp-fallback-motion-poi::before,
+.atlas-light-selection-pin.fp-fallback-motion-poi::after{
+ display:none!important;content:none!important;
+}
+.atlas-light-selection-pin.fp-fallback-motion-poi .fp-vector-token{
+ width:42px;height:42px;display:grid;place-items:center;
+ border:1px solid #a7bdae;background:rgba(255,254,250,.96);
+ border-radius:14px;box-shadow:0 4px 14px rgba(36,56,44,.16);
+}
+.atlas-light-selection-pin.fp-fallback-motion-poi .fp-vector-token img{
+ width:26px;height:26px;
+}
+
+
+/* True unified search axis for Pages/iPhone: collapsed field, active field
+   and short history card share the SAME horizontal origin and outer width.
+   The cancel action lives INSIDE the active field, not as a shifting sibling. */
+body #fpTopSearch,
+body #fpSearchActiveTop{
+ left:50%!important;right:auto!important;
+ width:min(342px,calc(100vw - 40px))!important;
+ max-width:342px!important;
+ transform:translateX(-50%)!important;
+ margin:0!important;
+}
+body #fpSearchActiveTop{
+ gap:0!important;
+}
+body #fpSearchActiveTop .fp-search-bar{
+ flex:1 1 100%!important;
+ width:100%!important;
+ max-width:100%!important;
+ padding-inline:15px 67px!important;
+}
+body #fpSearchActiveTop .fp-search-cancel{
+ position:absolute!important;
+ top:2px!important;right:7px!important;z-index:3!important;
+ min-width:44px!important;max-width:54px!important;
+ width:54px!important;height:48px!important;
+ display:grid!important;place-items:center!important;
+ margin:0!important;
+}
+body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]{
+ left:50%!important;right:auto!important;
+ width:min(342px,calc(100vw - 40px))!important;
+ max-width:342px!important;
+ transform:translateX(-50%)!important;
+}
+@media(max-width:375px){
+ body #fpTopSearch,body #fpSearchActiveTop,
+ body.fp-search-open #fpSearchSheet[data-search-layout="anchored"]{
+  width:calc(100vw - 36px)!important;
+ }
+ body #fpSearchActiveTop .fp-search-bar{
+  padding-inline:13px 62px!important;
+ }
+}
+
+/* Search state must be visually singular. An empty recent-history panel has
+   nothing to display; CSS [hidden] wins over old sheet display overrides. */
+body #fpSearchSheet[hidden]{
+ display:none!important;visibility:hidden!important;
+ opacity:0!important;pointer-events:none!important;
+}
+body.fp-search-open #atlasFirstStar{
+ display:none!important;pointer-events:none!important;
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" aria-label="Route">
+ <g fill="none" stroke="#161616" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="14" cy="47" r="5.5"/>
+  <path d="M20 46 C30 44 20 26 33 26 C44 26 39 16 47 15" stroke-dasharray="3 6" stroke-width="3"/>
+  <path d="M45 9 L54 14 L45 20"/>
+ </g>
+</svg>
