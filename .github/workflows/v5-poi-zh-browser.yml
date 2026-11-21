@@ -30,7 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           grep -q 'fp-v5-poi-zh-qa-20261121-' v5-poi-zh-20261121/index.html
-          grep -q 'fp-v5-poi-zh-qa-20261121-v5' v5-poi-zh-20261121/sw.js
+          grep -q 'fp-v5-poi-zh-qa-20261121-v6' v5-poi-zh-20261121/sw.js
           test -s v5-poi-zh-20261121/src/map/poi-label-avoidance-v1.js
           test -s v5-poi-zh-20261121/src/media/photo-zoom-v5.js
           node --check v5-poi-zh-20261121/src/media/photo-zoom-v5.js
