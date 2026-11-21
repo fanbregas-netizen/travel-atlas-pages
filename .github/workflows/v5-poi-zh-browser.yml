@@ -5,6 +5,13 @@ on:
     paths:
       - 'v5-poi-zh-20261121/**'
       - 'tests/v5-poi-zh-browser.cjs'
+      - 'tests/v5-photo-zoom-browser.cjs'
+      - '.github/workflows/v5-poi-zh-browser.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'v5-poi-zh-20261121/**'
+      - 'tests/v5-photo-zoom-browser.cjs'
       - '.github/workflows/v5-poi-zh-browser.yml'
   workflow_dispatch:
 permissions:
@@ -23,8 +30,10 @@ jobs:
         run: |
           set -euo pipefail
           grep -q 'fp-v5-poi-zh-qa-20261121-' v5-poi-zh-20261121/index.html
-          grep -q 'fp-v5-poi-zh-qa-20261121-v4' v5-poi-zh-20261121/sw.js
+          grep -q 'fp-v5-poi-zh-qa-20261121-v5' v5-poi-zh-20261121/sw.js
           test -s v5-poi-zh-20261121/src/map/poi-label-avoidance-v1.js
+          test -s v5-poi-zh-20261121/src/media/photo-zoom-v5.js
+          node --check v5-poi-zh-20261121/src/media/photo-zoom-v5.js
           node --check v5-poi-zh-20261121/stage1-29-poi.js
           node --check v5-poi-zh-20261121/src/interaction/paired-dock-motion-v2.js
           node --check v5-poi-zh-20261121/src/map/shared-v4-map.js
@@ -40,7 +49,9 @@ jobs:
           sleep 2
           curl -fsS -o /dev/null http://127.0.0.1:8765/v5-poi-zh-20261121/index.html
       - name: Test real product and POI-label layout in Chromium and WebKit
-        run: node tests/v5-poi-zh-browser.cjs
+        run: |
+          node tests/v5-poi-zh-browser.cjs
+          node tests/v5-photo-zoom-browser.cjs
       - name: Preserve actual browser screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -48,5 +59,6 @@ jobs:
           name: v5-poi-zh-chromium-webkit-evidence
           path: |
             v5-poi-zh-20261121-browser-evidence/
+            v5-photo-zoom-evidence/
             /tmp/fp-v5-poi-zh-preview.log
           if-no-files-found: warn
