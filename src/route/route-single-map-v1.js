@@ -979,7 +979,7 @@ function command(type,target){
   const next=DATA.returnToOrder?'order':'settings';setMode(next);if(next==='order')fit();return;
  }
  if(type==='addmore'){DATA.returnToOrder=true;DATA.pickMode='map';setMode('pick');enterMapFocus();return}
- if(type==='pickmode'){DATA.pickMode=target.dataset.value==='map'?'map':'list';body();if(DATA.pickMode==='map')enterMapFocus();else spring('half');return}
+ if(type==='pickmode'){DATA.pickMode=target.dataset.value==='map'?'map':'list';body();if(DATA.pickMode==='map')enterMapFocus();else{syncMapMode();spring('half')}return}
  if(type==='endpoint'){DATA.modalEndpoint=target.dataset.value;dialogOpen(DATA.modalEndpoint);return}
  if(type==='endpoint-choice'){chooseEndpoint(target.dataset.value);return}
  if(type==='endpoint-select'){endpointSet(target.dataset.id);return}
