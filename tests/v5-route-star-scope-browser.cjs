@@ -96,5 +96,5 @@ async function run(name,engine,width){
  }finally{await context.close();await browser.close()}
 }
 (async()=>{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]])
- for(const width of [390,430])await run(name,engine,width)})
+ for(const width of [390,430])await run(name,engine,width)})()
  .catch(e=>{console.error(e.stack||e);process.exitCode=1});
