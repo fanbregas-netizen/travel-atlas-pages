@@ -79,6 +79,13 @@ async function run(name,engine,width){
   await page.waitForFunction(()=>window.__fpRouteStarScope?.allowAll===true);
   await page.waitForFunction(()=>document.querySelectorAll('#atlasBookmarkOverlay .atlas-bookmark-hit').length>100);
   const picking=await page.locator('#atlasBookmarkOverlay .atlas-bookmark-hit').count();
+  // Choosing "地图选点" slides the card offscreen by design. Restore it
+  // through its approved mini-grip before tapping the collection-list tab.
+  if(await page.evaluate(()=>window.FootprintUnifiedRoute.state.mapFocus)){
+   await page.evaluate(()=>window.FootprintUnifiedRoute.leaveMapFocus());
+   await page.waitForFunction(()=>!window.FootprintUnifiedRoute.state.mapFocus);
+   await page.waitForTimeout(430);
+  }
   await page.locator('#fpUnifiedRoute [data-command="pickmode"][data-value="list"]').click();
   await page.waitForFunction(()=>window.__fpRouteStarScope?.allowAll===false);
   await page.waitForFunction(()=>document.querySelectorAll('#atlasBookmarkOverlay .atlas-bookmark-hit').length===2);
