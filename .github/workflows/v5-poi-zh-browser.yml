@@ -31,11 +31,14 @@ jobs:
         run: |
           set -euo pipefail
           grep -q 'fp-v5-poi-zh-qa-20261121-' v5-poi-zh-20261121/index.html
-          grep -q 'fp-v5-poi-zh-qa-20261121-v9' v5-poi-zh-20261121/sw.js
+          grep -q 'fp-v5-poi-zh-qa-20261121-v10' v5-poi-zh-20261121/sw.js
           test -s v5-poi-zh-20261121/src/map/poi-label-avoidance-v1.js
           test -s v5-poi-zh-20261121/src/media/photo-zoom-v5.js
           node --check v5-poi-zh-20261121/src/media/photo-zoom-v5.js
           node --check v5-poi-zh-20261121/src/interaction/collection-local-search-v5.js
+          node --check v5-poi-zh-20261121/v4-map-runtime.js
+          node --check v5-poi-zh-20261121/src/route/route-single-map-v1.js
+          node --check tests/v5-qa-route-star-scope-browser.cjs
           node --check tests/v5-collection-search-browser.cjs
           node --check v5-poi-zh-20261121/stage1-29-poi.js
           node --check v5-poi-zh-20261121/src/interaction/paired-dock-motion-v2.js
@@ -56,6 +59,7 @@ jobs:
           node tests/v5-poi-zh-browser.cjs
           node tests/v5-photo-zoom-browser.cjs
           node tests/v5-collection-search-browser.cjs
+          node tests/v5-qa-route-star-scope-browser.cjs
       - name: Preserve actual browser screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -65,5 +69,6 @@ jobs:
             v5-poi-zh-20261121-browser-evidence/
             v5-photo-zoom-evidence/
             v5-collection-search-evidence/
+            v5-qa-route-star-scope-evidence/
             /tmp/fp-v5-poi-zh-preview.log
           if-no-files-found: warn

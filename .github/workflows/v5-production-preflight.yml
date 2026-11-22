@@ -13,6 +13,8 @@ on:
       - 'manifest.webmanifest'
       - 'tests/v5-production-*.cjs'
       - 'tests/v5-route-star-scope-browser.cjs'
+      - 'tests/v5-qa-route-star-scope-browser.cjs'
+      - 'v5-poi-zh-20261121/**'
       - '.github/V5_PRODUCTION_FILES_20261122.txt'
       - '.github/workflows/v5-production-preflight.yml'
       - '.github/workflows/deploy-pages.yml'
@@ -64,6 +66,8 @@ jobs:
           node tests/v5-production-photo-browser.cjs
           node tests/v5-production-v4-migration-browser.cjs
           node tests/v5-route-star-scope-browser.cjs
+          node tests/v5-collection-search-browser.cjs
+          node tests/v5-qa-route-star-scope-browser.cjs
       - name: Retain real browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -73,5 +77,7 @@ jobs:
             v5-production-search-evidence/
             v5-production-photo-evidence/
             v5-route-star-scope-evidence/
+            v5-collection-search-evidence/
+            v5-qa-route-star-scope-evidence/
             /tmp/v5-formal-root.log
           if-no-files-found: warn
