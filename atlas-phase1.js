@@ -4,7 +4,7 @@ const $=id=>document.getElementById(id);
 const states=['peek','half','full'];
 const handlers=new WeakSet();const observedNodes=new WeakSet();
 const current=node=>Math.max(0,states.indexOf(node.dataset.atlasSnap||'peek'));
-function setSnap(node,index){const next=Math.max(0,Math.min(2,index));node.dataset.atlasSnap=states[next];node.querySelector('[data-atlas-grip]')?.setAttribute('aria-valuenow',String(next+1));}
+function setSnap(node,index){const next=Math.max(0,Math.min(2,index));node.dataset.atlasSnap=states[next];node.querySelector('[data-atlas-grip]')?.setAttribute('aria-valuenow',String(next+1));if(node.id==='fpPlaceCard'){const pid=node.dataset.placeId;clearTimeout(node.__atlasSnapRf);node.__atlasSnapRf=setTimeout(()=>{if(pid&&node.dataset.placeId===pid&&!node.hidden)window.__atlasReframeForCollage?.(pid)},380)}}
 function closeSheet(node){if(node.id==='fpSearchSheet')node.querySelector('.fp-search-close')?.click();else if(node.id==='fpPlaceCard')node.querySelector('.fp-card-close')?.click();}
 function install(node,selector,initial){
  if(!node)return;let grip=node.querySelector(selector);
@@ -15,7 +15,7 @@ function install(node,selector,initial){
  let start=null,dragging=false;
  grip.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;start={y:e.clientY,x:e.clientX,id:e.pointerId,time:performance.now(),height:node.getBoundingClientRect().height};dragging=false;try{grip.setPointerCapture(e.pointerId)}catch(_){}});
  grip.addEventListener('pointermove',e=>{if(!start||start.id!==e.pointerId)return;const dy=e.clientY-start.y;if(Math.abs(dy)>6)dragging=true;if(!dragging)return;node.dataset.atlasDragging='true';const limit=Math.max(320,window.visualViewport?.height||innerHeight),low=node.id==='fpSearchSheet'?limit*.28:limit*.34;node.style.setProperty('height',Math.round(Math.max(low,Math.min(limit-15,start.height-dy)))+'px','important')});
- grip.addEventListener('pointerup',e=>{if(!start)return;const dy=e.clientY-start.y,elapsed=Math.max(1,performance.now()-start.time);start=null;node.style.removeProperty('height');delete node.dataset.atlasDragging;if(Math.abs(dy)<28)return;const direction=dy<0?1:-1;const jump=Math.abs(dy)>148||Math.abs(dy/elapsed)>1.55?2:1;const next=current(node)+direction*jump;if(next<0)closeSheet(node);else setSnap(node,next)});
+ grip.addEventListener('pointerup',e=>{if(!start)return;const dy=e.clientY-start.y,elapsed=Math.max(1,performance.now()-start.time);start=null;node.style.removeProperty('height');delete node.dataset.atlasDragging;if(Math.abs(dy)<28)return;const direction=dy<0?1:-1;const jump=Math.abs(dy)>260||Math.abs(dy/elapsed)>1.55?2:1;const next=current(node)+direction*jump;if(next<0)closeSheet(node);else setSnap(node,next)});
  grip.addEventListener('pointercancel',()=>{start=null;node.style.removeProperty('height');delete node.dataset.atlasDragging});
  grip.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();const next=current(node)+(e.key==='ArrowUp'?1:-1);if(next<0)closeSheet(node);else setSnap(node,next)}else if(e.key==='Escape'){e.preventDefault();closeSheet(node)}});
  // A gesture starting at the top of the scroll container can open the sheet,
@@ -28,7 +28,7 @@ function install(node,selector,initial){
 }
 function viewPort(){const v=window.visualViewport;if(!v)return;const update=()=>{const height=Math.max(300,v.height),kb=Math.max(0,innerHeight-v.height-v.offsetTop);document.documentElement.style.setProperty('--atlas-visible-height',height+'px');document.documentElement.style.setProperty('--atlas-keyboard-bottom',kb+'px');const search=$('fpSearchSheet');if(search&&!search.hidden&&kb>100)setSnap(search,2)};
  v.addEventListener('resize',update,{passive:true});v.addEventListener('scroll',update,{passive:true});update()}
-function setup(){install($('fpSearchSheet'),'.fp-search-grip','half');install($('fpPlaceCard'),'.atlas-card-grip','peek');}
-function init(){setup();new MutationObserver(()=>{setup()}).observe(document.body,{childList:true,subtree:true});viewPort();window.AtlasPhase1={version:'V4-mobile-sheets-final-20261103',setSnap}}
+function setup(){install($('fpSearchSheet'),'.fp-search-grip','half');install($('fpPlaceCard'),'.atlas-card-grip','half');}
+function init(){setup();new MutationObserver(()=>{setup()}).observe(document.body,{childList:true,subtree:true});viewPort();window.AtlasPhase1={version:'V4-mobile-sheets-a1-20261103',setSnap}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

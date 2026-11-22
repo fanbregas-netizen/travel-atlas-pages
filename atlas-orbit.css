@@ -15,16 +15,16 @@
 #atlasOrbit .orbit-svg path{fill:rgba(250,249,245,.98);stroke:#fff;stroke-width:1.8;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 #atlasOrbit .orbit-content{position:absolute;inset:0;padding:clamp(11px,1.7vw,19px);display:flex;flex-direction:column;min-width:0;gap:8px;opacity:0;overflow:hidden}
 #atlasOrbit.is-open .orbit-content{animation:orbitContent .36s .19s ease-out both}
-#atlasOrbit .orbit-kicker{font-size:9px;line-height:1.2;letter-spacing:.12em;color:#8a8070;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#atlasOrbit .orbit-kicker{font-size:11px;line-height:1.2;letter-spacing:0;color:#8a8070;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #atlasOrbit .orbit-title{font-size:clamp(13px,1.6vw,19px);line-height:1.28;letter-spacing:-.04em;font-weight:700;margin:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 #atlasOrbit .orbit-note{font-size:clamp(10px,1.1vw,13px);line-height:1.54;color:#605f59;white-space:pre-line;overflow-wrap:anywhere;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;flex:1;margin:0}
-#atlasOrbit .orbit-small{font-size:10px;line-height:1.4;color:#77746d;margin:0;overflow:hidden;text-overflow:ellipsis}
-#atlasOrbit .orbit-action{margin-top:auto;align-self:flex-start;padding:6px 10px;border:1px solid #ded9cd;background:#f1efe8;color:#39372f;border-radius:7px;font:inherit;font-size:11px;font-weight:650;line-height:1.1;cursor:pointer;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
+#atlasOrbit .orbit-small{font-size:11px;line-height:1.4;color:#77746d;margin:0;overflow:hidden;text-overflow:ellipsis}
+#atlasOrbit .orbit-action{margin-top:auto;align-self:flex-start;padding:6px 10px;border:1px solid #ded9cd;background:#f1efe8;color:#39372f;border-radius:10px;font:inherit;font-size:11px;font-weight:650;line-height:1.1;cursor:pointer;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
 #atlasOrbit .orbit-action:active{transform:scale(.97)}
-#atlasOrbit .orbit-media-hero{position:relative;flex:1;min-height:0;width:100%;border:0;border-radius:9px;background:#e8e5dc;overflow:hidden;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+#atlasOrbit .orbit-media-hero{position:relative;flex:1;min-height:0;width:100%;border:0;border-radius:10px;background:#e8e5dc;overflow:hidden;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
 #atlasOrbit .orbit-media-hero img{width:100%;height:100%;object-fit:cover;display:block}
 #atlasOrbit .orbit-media-placeholder{font-family:var(--signature,'Bradley Hand',cursive);font-size:20px;line-height:1.1;color:#9c9584;text-align:center;padding:14px;white-space:pre-line}
-#atlasOrbit .orbit-media-count{position:absolute;right:7px;bottom:7px;padding:4px 6px;background:#282820c9;border-radius:4px;color:#fff;font-size:9px;line-height:1.2}
+#atlasOrbit .orbit-media-count{position:absolute;right:7px;bottom:7px;padding:4px 6px;background:#282820c9;border-radius:4px;color:#fff;font-size:11px;line-height:1.2}
 #atlasOrbit .orbit-links{display:flex;flex-direction:column;gap:7px;flex:1;min-height:0;overflow:auto;scrollbar-width:none}
 #atlasOrbit .orbit-links::-webkit-scrollbar{display:none}
 #atlasOrbit .orbit-link{display:flex;align-items:center;justify-content:space-between;min-height:29px;gap:7px;text-decoration:none;border-bottom:1px solid #ded9d0;color:#393b35;font-size:clamp(10px,1.1vw,12px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
@@ -32,12 +32,12 @@
 #atlasOrbit .orbit-near-list{display:flex;flex-direction:column;gap:2px;min-height:0;overflow:auto;scrollbar-width:thin;flex:1}
 #atlasOrbit .orbit-near-item{width:100%;border:0;background:transparent;border-bottom:1px solid #e7e3da;padding:5px 0;text-align:left;display:flex;gap:5px;align-items:baseline;justify-content:space-between;font:inherit;color:#3e3b36;cursor:pointer}
 #atlasOrbit .orbit-near-name{font-size:clamp(10px,1.05vw,12px);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:calc(100% - 35px)}
-#atlasOrbit .orbit-near-dist{font-size:9px;color:#989288;flex:none;white-space:nowrap}
+#atlasOrbit .orbit-near-dist{font-size:11px;color:#989288;flex:none;white-space:nowrap}
 body.atlas-orbit-active #memorySheet.memory-atlas{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
 @keyframes orbitGrow{0%{opacity:0;transform:translate(var(--dx),var(--dy));filter:blur(4px)}57%{opacity:1;transform:translate(-1px,-1px);filter:blur(0)}100%{opacity:1;transform:translate(0,0);filter:blur(0)}}
 @keyframes orbitContent{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 @keyframes orbitStar{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}65%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
-@media(max-width:700px){#atlasOrbit{--orbit-gap:96px;--orbit-w:calc((100vw - 26px - var(--orbit-gap))/2);--orbit-h:clamp(145px,21dvh,190px)}#atlasOrbit .orbit-bubble{max-width:none}#atlasOrbit .orbit-content{padding:11px;gap:6px}#atlasOrbit .orbit-kicker{font-size:8px}#atlasOrbit .orbit-title{font-size:13px}#atlasOrbit .orbit-center{width:44px;height:44px;font-size:23px}}
+@media(max-width:700px){#atlasOrbit{--orbit-gap:96px;--orbit-w:calc((100vw - 26px - var(--orbit-gap))/2);--orbit-h:clamp(145px,21dvh,190px)}#atlasOrbit .orbit-bubble{max-width:none}#atlasOrbit .orbit-content{padding:11px;gap:6px}#atlasOrbit .orbit-kicker{font-size:11px}#atlasOrbit .orbit-title{font-size:12px}#atlasOrbit .orbit-center{width:44px;height:44px;font-size:23px}}
 @media(max-width:370px){#atlasOrbit{--orbit-gap:92px;--orbit-h:clamp(138px,21dvh,168px)}#atlasOrbit .orbit-content{padding:10px}#atlasOrbit .orbit-near-item{padding:4px 0}}
 @media(max-height:620px){#atlasOrbit{--orbit-h:clamp(105px,calc((100dvh - 120px - var(--orbit-gap))/2),150px)}}
 @media(prefers-reduced-motion:reduce){#atlasOrbit.is-open .orbit-center,#atlasOrbit.is-open .orbit-bubble,#atlasOrbit.is-open .orbit-content{animation:none;opacity:1;filter:none;transform:none}#atlasOrbit.is-open .orbit-center{transform:translate(-50%,-50%)}}
@@ -49,8 +49,8 @@ body.atlas-orbit-active #memorySheet.memory-atlas{opacity:0!important;visibility
 #atlasOrbit .orbit-bubble{will-change:transform,opacity}
 #atlasOrbit.is-open .orbit-bubble{animation:orbitGrowPolished .7s cubic-bezier(.18,1.12,.26,1) both}
 #atlasOrbit.is-open .orbit-content{animation:orbitContent .32s .23s cubic-bezier(.2,.8,.2,1) both}
-#atlasOrbit .orbit-action{border-color:#dedbd3;background:#f4f2ed;border-radius:9px;min-height:30px}
-#atlasOrbit .orbit-media-hero{border-radius:12px;background:#ebe9e2}
+#atlasOrbit .orbit-action{border-color:#dedbd3;background:#f4f2ed;border-radius:10px;min-height:30px}
+#atlasOrbit .orbit-media-hero{border-radius:14px;background:#ebe9e2}
 #atlasOrbit .orbit-link{min-height:32px}
 @keyframes orbitGrowPolished{0%{opacity:0;transform:translate(var(--dx),var(--dy));filter:blur(3px)}62%{opacity:1;transform:translate(-1px,-1px);filter:blur(0)}82%{transform:translate(1px,1px)}100%{opacity:1;transform:translate(0,0);filter:none}}
 @media(prefers-reduced-motion:reduce){#atlasOrbit.is-open .orbit-bubble{animation:none;opacity:1;transform:none;filter:none}}
@@ -168,7 +168,7 @@ body.atlas-orbit-active #memorySheet.memory-atlas{opacity:0!important;visibility
  position:absolute;z-index:5;top:0;left:0;right:0;
  padding:calc(env(safe-area-inset-top) + 20px) 19px 22px;
  background:linear-gradient(180deg,rgba(0,0,0,.6),transparent);
- font-size:13px;font-weight:600;letter-spacing:.025em;
+ font-size:12px;font-weight:600;letter-spacing:.025em;
 }
 #viewer .viewer-close{
  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.18);
@@ -188,7 +188,7 @@ body.atlas-orbit-active #memorySheet.memory-atlas{opacity:0!important;visibility
  display:flex;flex-direction:column;gap:9px;min-height:112px;
 }
 #viewer .atlas-film-label{
- color:rgba(255,255,255,.72);font-size:9px;letter-spacing:.19em;font-weight:700;
+ color:rgba(255,255,255,.72);font-size:11px;letter-spacing:0;font-weight:700;
  padding-left:4px;position:relative;align-self:flex-start;
 }
 #viewer .atlas-film-label:after{
@@ -204,14 +204,14 @@ body.atlas-orbit-active #memorySheet.memory-atlas{opacity:0!important;visibility
 #viewer .atlas-film-list::-webkit-scrollbar{display:none}
 #viewer .atlas-film-item{
  flex:0 0 47px;width:47px;height:57px;background:#292929;border:0;
- border-radius:7px;overflow:hidden;padding:0;cursor:pointer;opacity:.57;
+ border-radius:10px;overflow:hidden;padding:0;cursor:pointer;opacity:.57;
  box-shadow:0 0 0 1px rgba(255,255,255,.14);
  transform:scale(.91);transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .3s ease,box-shadow .3s ease;
  scroll-snap-align:center;display:grid;place-items:center;
 }
 #viewer .atlas-film-item img{width:100%;height:100%;object-fit:cover}
 #viewer .atlas-film-item.is-current{opacity:1;transform:scale(1);box-shadow:0 0 0 2px #faf9f4,0 7px 24px #0007}
-#viewer .atlas-film-video{font-size:19px;color:#fff}
+#viewer .atlas-film-video{font-size:20px;color:#fff}
 #viewer .atlas-gallery-hint{
  position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top) + 77px);
  z-index:3;text-align:center;pointer-events:none;
@@ -254,10 +254,10 @@ body.atlas-orbit-active #memorySheet.memory-atlas{opacity:0!important;visibility
 /* Screenshot QA polish: preserve readable Brief and balanced empty media tile on narrow phones. */
 @media(max-width:700px){
  #atlasOrbit .orbit-bubble.tl .orbit-content{gap:4px}
- #atlasOrbit .orbit-bubble.tl .orbit-action{min-height:28px;padding:5px 8px;font-size:10px}
- #atlasOrbit .orbit-bubble.tl .orbit-note{font-size:10px;line-height:1.35;-webkit-line-clamp:3}
+ #atlasOrbit .orbit-bubble.tl .orbit-action{min-height:28px;padding:5px 8px;font-size:11px}
+ #atlasOrbit .orbit-bubble.tl .orbit-note{font-size:11px;line-height:1.35;-webkit-line-clamp:3}
  #atlasOrbit .orbit-media-placeholder{font-size:clamp(12px,3.3vw,16px);padding:8px;line-height:1.15}
- #atlasOrbit .orbit-bubble.bl .orbit-action{font-size:10px;min-height:28px}
+ #atlasOrbit .orbit-bubble.bl .orbit-action{font-size:11px;min-height:28px}
 }
 
 /* Final mobile legibility: prevent the compact Brief from sacrificing its action,
@@ -274,10 +274,10 @@ body.atlas-orbit-active #memorySheet.memory-atlas{opacity:0!important;visibility
 }
 @media(max-width:370px){
  #atlasOrbit .orbit-bubble.tl .orbit-content{padding:8px}
- #atlasOrbit .orbit-bubble.tl .orbit-kicker{font-size:7px}
+ #atlasOrbit .orbit-bubble.tl .orbit-kicker{font-size:11px}
  #atlasOrbit .orbit-bubble.tl .orbit-note{-webkit-line-clamp:2}
  #atlasOrbit .orbit-near-item{gap:3px}
- #atlasOrbit .orbit-near-dist{font-size:8px}
+ #atlasOrbit .orbit-near-dist{font-size:11px}
 }
 
 /* Unified tactile language: the map star and the orbit center belong to one system. */
@@ -303,7 +303,7 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
 .map-local-marker.star-pin[data-rank="1"]{--atlas-marker-scale:.8}
 .map-local-marker.star-pin[data-rank="3"]{--atlas-marker-scale:1.2}
 .map-local-marker.star-pin.selected{--atlas-marker-scale:1.12}
-.map-local-marker.star-pin.atlas-photo-location-pin{width:54px!important;height:58px!important;padding:4px;background:#fff;border:2px solid #fff;border-radius:12px;box-shadow:0 4px 18px #0003;transform:translate(-50%,calc(-100% - 9px))!important}
+.map-local-marker.star-pin.atlas-photo-location-pin{width:54px!important;height:58px!important;padding:4px;background:#fff;border:2px solid #fff;border-radius:14px;box-shadow:0 4px 18px #0003;transform:translate(-50%,calc(-100% - 9px))!important}
 /* Increase compact-phone hit areas without changing the four-card composition. */
 #atlasOrbit .orbit-bubble .orbit-action{min-height:36px}
 #atlasOrbit .orbit-near-item{min-height:36px}
@@ -313,10 +313,10 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  #atlasOrbit{--orbit-gap:70px;--orbit-w:min(240px,calc((100vw - 28px - var(--orbit-gap))/2));--orbit-h:max(68px,calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px - var(--orbit-gap))/2))}
  #atlasOrbit .orbit-center{width:38px;height:38px}
  #atlasOrbit .orbit-content{padding:6px 9px;gap:3px;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
- #atlasOrbit .orbit-kicker{font-size:8px}
+ #atlasOrbit .orbit-kicker{font-size:11px}
  #atlasOrbit .orbit-title{font-size:11px;line-height:1.15;-webkit-line-clamp:1}
- #atlasOrbit .orbit-note{font-size:9px;line-height:1.2;-webkit-line-clamp:2}
- #atlasOrbit .orbit-action{min-height:25px;padding:3px 7px;font-size:9px}
+ #atlasOrbit .orbit-note{font-size:11px;line-height:1.2;-webkit-line-clamp:2}
+ #atlasOrbit .orbit-action{min-height:25px;padding:3px 7px;font-size:11px}
  #atlasOrbit .orbit-near-item{min-height:23px;padding:2px 0}
  #atlasOrbit .orbit-links{gap:2px}
  #atlasOrbit .orbit-link{min-height:22px}
@@ -331,7 +331,7 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
 @media (max-width:350px) and (orientation:portrait){
  #atlasOrbit{--orbit-gap:82px}
  #atlasOrbit .orbit-content{padding:7px;gap:3px}
- #atlasOrbit .orbit-kicker{font-size:7px;letter-spacing:.04em}
+ #atlasOrbit .orbit-kicker{font-size:11px;letter-spacing:.04em}
  #atlasOrbit .orbit-center{width:40px;height:40px}
 }
 
@@ -379,9 +379,9 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  #atlasOrbit .orbit-bubble .orbit-content{gap:5px}
  #atlasOrbit .orbit-bubble .orbit-title{font-size:clamp(12px,3.35vw,14px);line-height:1.3;letter-spacing:-.025em;flex-shrink:0}
  #atlasOrbit .orbit-bubble.tl .orbit-title{font-size:clamp(11px,3.1vw,13px)}
- #atlasOrbit .orbit-bubble .orbit-kicker{font-size:8px;line-height:1.3;letter-spacing:.045em;white-space:normal;overflow-wrap:anywhere}
+ #atlasOrbit .orbit-bubble .orbit-kicker{font-size:11px;line-height:1.3;letter-spacing:.045em;white-space:normal;overflow-wrap:anywhere}
  #atlasOrbit .orbit-bubble .orbit-note{font-size:11px;line-height:1.43}
- #atlasOrbit .orbit-bubble .orbit-action{font-size:10px;line-height:1.25;white-space:normal;text-align:left;flex-shrink:0}
+ #atlasOrbit .orbit-bubble .orbit-action{font-size:11px;line-height:1.25;white-space:normal;text-align:left;flex-shrink:0}
  #atlasOrbit .orbit-bubble .orbit-links{flex:1 1 auto;min-height:0}
  #atlasOrbit .orbit-bubble .orbit-link{overflow-wrap:anywhere}
  #atlasOrbit .orbit-bubble.tr .orbit-media-hero{min-height:36px}
@@ -454,7 +454,7 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  transform:translate(-50%,calc(-100% - 9px))!important;
  transform-origin:50% 100%;
  overflow:visible;
- border-radius:12px;
+ border-radius:14px;
 }
 .map-local-marker.star-pin.atlas-photo-location-pin::after{
  content:"";position:absolute;left:50%;bottom:-8px;width:12px;height:12px;
@@ -463,7 +463,7 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  border-radius:0 0 2px 0;z-index:0;pointer-events:none;
 }
 .map-local-marker.star-pin.atlas-photo-location-pin img{
- display:block;width:100%;height:100%;object-fit:cover;border-radius:8px;
+ display:block;width:100%;height:100%;object-fit:cover;border-radius:10px;
 }
 
 /* Ensure the photograph paints above the white locator-tail diamond. */
@@ -534,9 +534,9 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  --orbit-lower-w:calc(45vw - 44px);--orbit-lower-h:calc(var(--orbit-media-h)*.82)}
  #atlasOrbit .orbit-content,#atlasOrbit .orbit-bubble.tl .orbit-content{padding:10px;gap:6px}
  #atlasOrbit .orbit-bubble .orbit-title{font-size:14px;line-height:1.3}
- #atlasOrbit .orbit-bubble.tl .orbit-title{font-size:13px}
+ #atlasOrbit .orbit-bubble.tl .orbit-title{font-size:12px}
  #atlasOrbit .orbit-bubble .orbit-note{font-size:12px;line-height:1.45}
- #atlasOrbit .orbit-bubble .orbit-kicker{font-size:8px;line-height:1.35;white-space:normal}
+ #atlasOrbit .orbit-bubble .orbit-kicker{font-size:11px;line-height:1.35;white-space:normal}
  #atlasOrbit .orbit-bubble .orbit-action{font-size:11px;min-height:36px;padding:6px 8px}
  #atlasOrbit .orbit-bubble.tl .orbit-note{flex:1 1 auto;-webkit-line-clamp:3}
  #atlasOrbit .orbit-center svg{width:38px;height:38px}
@@ -552,3 +552,34 @@ body.atlas-orbit-active .star-pin.selected{opacity:0!important;pointer-events:no
  #atlasOrbit{--orbit-unit:7;--orbit-gap:56px;--orbit-cx:50%;--orbit-media-w:min(280px,calc((100vw - 88px)/2));--orbit-media-h:calc((100dvh - 88px)/2);--orbit-brief-w:calc(var(--orbit-media-w)*.74);--orbit-brief-h:calc(var(--orbit-media-h)*.84);--orbit-lower-w:calc(var(--orbit-media-w)*.88);--orbit-lower-h:calc(var(--orbit-media-h)*.9)}
  #atlasOrbit .orbit-content{padding:8px;gap:4px}
 }
+
+/* V4.Stage2 · 2026-11-06 · 非对称四象构图（右上影像最大、左上 Brief 最小、其余中等）+ kicker 图标 */
+#atlasOrbit{--scale-tl:.85;--scale-tr:1.16;--scale-bl:.98;--scale-br:1.05}
+#atlasOrbit .orbit-bubble.tl{width:calc(var(--orbit-w)*var(--scale-tl));height:calc(var(--orbit-h)*var(--scale-tl));left:calc(50% - var(--orbit-gap)/2 - var(--orbit-w)*var(--scale-tl));top:calc(50% - var(--orbit-gap)/2 - var(--orbit-h)*var(--scale-tl))}
+#atlasOrbit .orbit-bubble.tr{width:calc(var(--orbit-w)*var(--scale-tr));height:calc(var(--orbit-h)*var(--scale-tr));top:calc(50% - var(--orbit-gap)/2 - var(--orbit-h)*var(--scale-tr))}
+#atlasOrbit .orbit-bubble.bl{width:calc(var(--orbit-w)*var(--scale-bl));height:calc(var(--orbit-h)*var(--scale-bl));left:calc(50% - var(--orbit-gap)/2 - var(--orbit-w)*var(--scale-bl))}
+#atlasOrbit .orbit-bubble.br{width:calc(var(--orbit-w)*var(--scale-br));height:calc(var(--orbit-h)*var(--scale-br))}
+#atlasOrbit .orbit-kicker{display:flex;align-items:center;gap:5px}
+#atlasOrbit .orbit-kicker-icon{width:13px;height:13px;flex:none;opacity:.72}
+@media(max-width:700px){#atlasOrbit{--scale-tr:1.12;--scale-tl:.88}}
+@media(max-height:620px){#atlasOrbit{--scale-tr:1.08;--scale-tl:.9}}
+
+/* Stage1.34.6 · ONE real map star and one coherent four-way constellation. */
+#atlasOrbit .orbit-center{display:none!important;pointer-events:none!important}
+body.atlas-orbit-active #atlasBookmarkOverlay{z-index:1452!important;pointer-events:none!important}
+body.atlas-orbit-active #atlasBookmarkOverlay .atlas-bookmark-hit:not(.selected),
+body.atlas-orbit-active #atlasBookmarkOverlay .atlas-star-cluster{opacity:.2!important;pointer-events:none!important}
+body.atlas-orbit-active #atlasBookmarkOverlay .atlas-bookmark-hit.selected{
+  opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+  scale:1!important;rotate:0deg!important;z-index:8!important
+}
+body.atlas-orbit-active #atlasBookmarkOverlay .atlas-bookmark-hit.selected svg{
+  transform:scale(1.02)!important;filter:drop-shadow(0 2px 4px rgba(45,35,12,.25))!important
+}
+body.atlas-orbit-active .star-pin.selected{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+.star-pin.atlas-star-pop,.atlas-bookmark-hit.atlas-star-pop{
+  animation:atlasStarTapSubtle .24s cubic-bezier(.2,.85,.25,1) both!important;
+  transform-origin:center!important
+}
+@keyframes atlasStarTapSubtle{0%{scale:1;rotate:0deg}55%{scale:1.08;rotate:0deg}100%{scale:1;rotate:0deg}}
+#atlasOrbit .orbit-svg path{stroke:#fff!important;stroke-width:2!important;stroke-linejoin:round!important}

@@ -1,0 +1,68 @@
+/* V5 收藏搜索 · match the existing porcelain cards and green-gray icon set.
+ * The 80px title/grip, dock, and three-detent physical-sheet motor are unchanged.
+ */
+#drawer #fpSavedSearch[hidden],#drawer #fpSavedSearchMeta[hidden],
+#drawer #fpSavedSearchEmpty[hidden],#drawer #fpSavedSearchClear[hidden]{
+ display:none!important;
+}
+#drawer #fpSavedSearch{
+ position:sticky!important;
+ top:79px!important;
+ z-index:5!important;
+ box-sizing:border-box!important;
+ margin:0 -17px!important;
+ padding:12px var(--fp-card-content-inset,18px) 8px!important;
+ background:#fffefa!important;
+}
+#drawer #fpSavedSearch .fp-saved-field{
+ display:flex!important;align-items:center!important;gap:10px!important;
+ box-sizing:border-box!important;
+ height:49px!important;min-height:49px!important;
+ width:100%!important;
+ padding:0 7px 0 16px!important;
+ border:1px solid #dfe6df!important;border-radius:16px!important;
+ background:#f3f5f1!important;
+ color:#40574c!important;
+}
+#drawer #fpSavedSearch .fp-saved-magnifier{
+ width:19px!important;height:19px!important;flex:0 0 19px!important;
+ fill:none!important;stroke:#7d9286!important;stroke-width:1.8!important;
+ stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#drawer #fpSavedSearchInput{
+ display:block!important;flex:1 1 auto!important;min-width:0!important;
+ height:44px!important;min-height:44px!important;
+ margin:0!important;padding:0!important;
+ border:0!important;outline:0!important;box-shadow:none!important;
+ background:transparent!important;color:#30463c!important;
+ font:500 16px/1.4 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif!important;
+ -webkit-appearance:none!important;appearance:none!important;
+}
+#drawer #fpSavedSearchInput::placeholder{color:#96a49a!important;opacity:1!important}
+#drawer #fpSavedSearchInput::-webkit-search-cancel-button{display:none!important}
+#drawer #fpSavedSearchClear{
+ flex:0 0 44px!important;width:44px!important;height:44px!important;
+ padding:0!important;margin:0!important;
+ border:0!important;border-radius:12px!important;background:transparent!important;
+ color:#778d80!important;font-size:12px!important;font-weight:650!important;
+ box-shadow:none!important;
+}
+#drawer #fpSavedSearch .fp-saved-field:focus-within{
+ border-color:#b8cbbb!important;background:#f7f9f5!important;
+}
+#drawer #fpSavedSearchMeta{
+ margin:8px 2px 0!important;
+ font-size:12px!important;line-height:1.35!important;
+ color:#7b9281!important;
+}
+#drawer #fpSavedSearchEmpty{
+ margin:18px var(--fp-card-content-inset,18px)!important;
+ padding:28px 16px!important;
+ border:1px solid #e2e8e1!important;border-radius:18px!important;
+ background:#fffefa!important;color:#819387!important;
+ text-align:center!important;font-size:14px!important;line-height:1.7!important;
+}
+html body #drawer.drawer.fp30-detail #spotList .spotrow.fp-saved-search-miss{display:none!important}
+@media(max-width:380px){
+ #drawer #fpSavedSearch{padding-left:16px!important;padding-right:16px!important}
+}
