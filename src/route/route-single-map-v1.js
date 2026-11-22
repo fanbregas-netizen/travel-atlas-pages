@@ -784,8 +784,26 @@ function quieter(on){
  }
  if(!on)originalPaint.clear();
 }
+let routeStarSignature='';
+function syncRouteStarScope(){
+ // In an existing/saved route and during settings/order, render ONLY stops.
+ // Other bookmarks are needed temporarily only for explicit map picking.
+ const allowAll=DATA.mode==='pick'&&(DATA.pickMode==='map'||DATA.mapFocus||!!DATA.endpointMap);
+ const ids=new Set(displayWaypoints().map(p=>String(p.id)));
+ const signature=String(allowAll)+'|'+[...ids].sort().join('|');
+ if(routeStarSignature===signature)return;
+ routeStarSignature=signature;
+ window.__fpRouteStarScope={allowAll,ids};
+ document.dispatchEvent(new Event('fp:route-star-scope'));
+}
+function clearRouteStarScope(){
+ routeStarSignature='';
+ delete window.__fpRouteStarScope;
+ document.dispatchEvent(new Event('fp:route-star-scope'));
+}
 function syncMapMode(){
  if(!DATA.open)return;
+ syncRouteStarScope();
  const preview=['saved','view','detail'].includes(DATA.mode);
  shell.dataset.routeMode=preview?'preview':'planning';
  document.body.classList.toggle('fp-route-picking',DATA.mode==='pick'||!!DATA.endpointMap);
@@ -1200,7 +1218,7 @@ function detachMap(){
  if(styleMap&&styleListener)styleMap.off('style.load',styleListener);
  styleMap=null;styleListener=null;routeClickListener=null;
  if(map?.getLayer){for(const id of ['fp-single-hit','fp-single-order','fp-single-road','fp-single-outline','fp-single-selected-halo'])if(map.getLayer(id))try{map.removeLayer(id)}catch(_){}if(map.getSource('fp-single-route'))try{map.removeSource('fp-single-route')}catch(_){}}
- for(const p of tempPins.values())p.remove();tempPins.clear();clearStarLabels();map=null;
+ for(const p of tempPins.values())p.remove();tempPins.clear();clearStarLabels();clearRouteStarScope();map=null;
 }
 function finishClose(){
  if(exitTimeout){clearTimeout(exitTimeout);exitTimeout=0}
