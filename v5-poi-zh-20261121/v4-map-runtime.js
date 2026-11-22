@@ -602,14 +602,25 @@
       if(isOfficial())renderBookmarkOverlay();
     });
   }
+  // The active route owns its visible bookmarks. Do not draw (or move each
+  // frame) 261 unrelated stars behind a route that contains only five stops.
+  // Outside route mode every bookmark keeps its original map behavior.
+  function routeStarAllowed(p){
+    const scope=window.__fpRouteStarScope;
+    return !scope||scope.allowAll||scope.ids?.has(String(p.id));
+  }
   function renderBookmarkOverlay(){
     if(officialBookmarkFrame){cancelAnimationFrame(officialBookmarkFrame);officialBookmarkFrame=0;}
     const pane=$('atlasBookmarkOverlay');if(!pane)return;
     if(!isOfficial()||!officialSDK||!officialMap)return;
     const zoom=officialMap.getZoom();
-    if(zoom<11.5&&!window.__atlasTripPicking)return;
+    if(zoom<11.5&&!window.__atlasTripPicking&&!window.__fpRouteStarScope){
+      for(const [id,el] of amapStarCache){el.remove();amapStarCache.delete(id)}
+      return;
+    }
     const seen=new Set();
-    for(const p of places.filter(x=>x.starred!==false)){
+    for(const p of places){
+      if(p.starred===false||!routeStarAllowed(p))continue;
       const xy=wgsToGcj(+p.lng,+p.lat);
       let point;try{point=officialMap.lngLatToContainer(new officialSDK.LngLat(xy[0],xy[1]))}catch(e){continue}
       const x=Number(point?.getX?.()??point?.x),y=Number(point?.getY?.()??point?.y);
@@ -1878,6 +1889,12 @@
       }
     });
   }
+  document.addEventListener('fp:route-star-scope',()=>{
+    // One render at each *route state transition*, not per swipe frame.
+    // The existing MapLibre canvas, card spring and local database are intact.
+    if(isVector())renderVectorBookmarks();
+    else if(isOfficial())renderBookmarkOverlay();
+  });
   function renderVectorBookmarks(){
     if(vectorBookmarkFrame){cancelAnimationFrame(vectorBookmarkFrame);vectorBookmarkFrame=0}
     if(!isVector())return;
@@ -1888,7 +1905,8 @@
     const starScale=Math.min(1.12,Math.max(0.72,Math.pow(1.14,z-13.8)));
     const STAR_SVG='<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3.7 25.2 13.5 36.1 15.2 28.3 23 30.1 34 20 28.7 9.9 34 11.7 23 3.9 15.2 14.8 13.5Z" fill="#D7B36E" stroke="#344149" stroke-width="2.2" stroke-linejoin="round"/></svg>';
     const items=[];
-    for(const p of places.filter(x=>x.starred!==false)){
+    for(const p of places){
+      if(p.starred===false||!routeStarAllowed(p))continue;
       let xy;try{xy=vectorMap.project([+p.lng,+p.lat])}catch(e){continue}
       if(xy.x<0||xy.y<0||xy.x>rect.width||xy.y>rect.height)continue;
       items.push({p,x:xy.x,y:xy.y,rank:Math.max(1,Math.min(3,Number(p.rank)||2))});
