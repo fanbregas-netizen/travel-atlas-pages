@@ -33,7 +33,7 @@ assert(config.includes("ROAD_PROXY_ORIGIN = ''"),'road proxy must fail closed un
 assert(route.includes('safeEndpoint(configured.car)'),'road adapter must reject missing proxy');
 assert(!route.includes("car:'https://routing.openstreetmap.de/"),'public OSRM demonstration service is not licensed');
 assert(!/car:\s*['"]https:\/\//.test(route),'no browser-shipped provider defaults');
-assert(sw.includes("footprint-v5-production-20261122-v1"),'production SW cache version');
+assert(sw.includes("footprint-v5-production-20261122-v2"),'production SW cache version');
 assert(!/indexedDB\.deleteDatabase|localStorage\.clear\(\)/.test(sw),'SW may never clear local user data');
 assert(html.includes("navigator.serviceWorker.register('./sw.js'"),'root SW registration');
 const assetBlock=(sw.match(/const ASSETS=\[([\s\S]*?)\];/)||[])[1];
