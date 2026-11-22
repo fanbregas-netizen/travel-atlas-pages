@@ -365,7 +365,7 @@ jobs:
             done < .github/V5_PRODUCTION_FILES_20261122.txt
             cp .github/V5_PRODUCTION_FILES_20261122.txt _site/V5_RELEASE_FILES.txt
             grep -q 'V5.1.0.20261122' _site/index.html
-            grep -q 'footprint-v5-production-20261122-v1' _site/sw.js
+            grep -q 'footprint-v5-production-20261122-v2' _site/sw.js
             grep -q 'private-travel-footprints-v1' _site/src/media/media-core.js
             test -s _site/routing-config.js
             node --check _site/src/route/route-live-network-v1.js
@@ -596,7 +596,7 @@ jobs:
               index.html) grep -q 'V5.1.0.20261122' /tmp/v5-release-asset
                           ! grep -Eq 'window.__fpStorageNamespace[[:space:]]*=|window.__atlasPreviewNamespace[[:space:]]*=' /tmp/v5-release-asset ;;
               version.json) grep -q '"version": "V5.1.0.20261122"' /tmp/v5-release-asset ;;
-              sw.js) grep -q 'footprint-v5-production-20261122-v1' /tmp/v5-release-asset ;;
+              sw.js) grep -q 'footprint-v5-production-20261122-v2' /tmp/v5-release-asset ;;
               routing-config.js) grep -q "ROAD_PROXY_ORIGIN = ''" /tmp/v5-release-asset ;;
               src/media/media-core.js) grep -q 'private-travel-footprints-v1' /tmp/v5-release-asset ;;
               src/interaction/collection-local-search-v5.js) grep -q 'fpSavedSearch' /tmp/v5-release-asset ;;
