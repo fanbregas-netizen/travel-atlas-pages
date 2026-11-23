@@ -1,0 +1,9 @@
+Footprint Map V5 · 独立空白录屏版
+
+基于 2026-11-23 已确认的完整 V5 收藏搜索 + 路线仅显示当前站点验收版本（公共 PR #19）；保留全部地图、Dock、三档卡片、照片和视频。
+
+首次访问本目录，收藏与保存路线均为空。通过 `__fpStorageNamespace` 和 `IDBFactory`/`Storage` 前缀隔离所有新增演示数据；未调用 deleteDatabase、clear 或数据库迁移，不会删除用户正式站或原 QA 的收藏/路线。
+
+专属 Service Worker 限制在本目录内，专属缓存名 `fp-v5-recording-clean-20261123-v1`。请只在本目录录屏。地图中的普通 POI 仍显示，未移除地图底图及地点类型标识。录屏时如果在本目录新建收藏或路线，这些仅保存为演示数据，下次访问可继续看见。
+
+入口：https://fanbregas-netizen.github.io/travel-atlas-pages/v5-recording-clean-20261123/

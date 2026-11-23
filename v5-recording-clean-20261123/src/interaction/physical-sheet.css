@@ -1,0 +1,10 @@
+/* Physical V3 movement from Interaction B final approved sandbox. */
+#fpPlaceCard[data-atlas-physical-sheet]{
+  animation:none!important;transition:none!important;
+  will-change:height,transform,opacity;backface-visibility:hidden;
+  contain:layout paint;
+}
+#fpPlaceCard[data-atlas-physical-sheet] .fp-card-header{touch-action:none;cursor:grab}
+#fpPlaceCard[data-atlas-physical-sheet][data-atlas-dragging] .fp-card-header{cursor:grabbing}
+#fpPlaceCard[data-atlas-physical-sheet] .fp-card-scroll{overscroll-behavior:contain}
+@media(prefers-reduced-motion:reduce){#fpPlaceCard[data-atlas-physical-sheet]{will-change:auto}}

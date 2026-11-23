@@ -1,0 +1,45 @@
+/* Stage1.34 · focus fixes: user-approved structure, no visual redesign. */
+:root{--fp34-spring:cubic-bezier(.20,.85,.25,1)}
+/* Route picker is a normal-flow row between the drawer header and list, never a sticky overlay. */
+#drawer .tp-bar.tp-docked{position:relative!important;top:auto!important;bottom:auto!important;left:auto!important;transform:none!important;z-index:5!important;
+ display:grid!important;grid-template-columns:52px minmax(0,1fr) 46px 38px 38px!important;gap:5px!important;align-items:center!important;
+ box-sizing:border-box!important;min-width:0!important;width:100%!important;margin:0 0 16px!important;padding:7px!important;
+ border:0!important;border-radius:17px!important;background:#fafbf9!important;box-shadow:0 3px 13px rgba(31,50,50,.065)!important}
+#drawer .tp-bar.tp-docked>*{min-width:0!important;max-width:100%!important;height:40px!important;min-height:40px!important;box-sizing:border-box!important;padding:0 4px!important;border:0!important;border-radius:12px!important}
+#drawer .tp-bar.tp-docked #tpDates{padding:0 2px!important}
+#drawer .tp-bar.tp-docked #tpOD{padding:0 8px!important;overflow:hidden!important}
+#drawer .tp-bar.tp-docked #tpODTxt{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px!important;font-weight:560!important}
+#drawer .tp-bar.tp-docked #tpCount{font-size:12px!important}
+#drawer .tp-bar.tp-docked #tpGo,#drawer .tp-bar.tp-docked #tpX{width:38px!important;justify-self:stretch!important;display:grid!important;place-items:center!important}
+#drawer .tp-bar.tp-docked #tpDatesTxt,#drawer .tp-bar.tp-docked #tpCountTxt{font-size:11px!important;white-space:nowrap}
+#drawer.fp30-route-pick #spotList{padding-top:0!important;margin-top:2px!important}
+@media(max-width:355px){#drawer .tp-bar.tp-docked{grid-template-columns:54px minmax(0,1fr) 44px!important;grid-template-rows:38px 38px!important;gap:6px!important}
+ #drawer .tp-bar.tp-docked #tpDates{grid-row:1;grid-column:1}#drawer .tp-bar.tp-docked #tpOD{grid-row:1;grid-column:2/4}
+ #drawer .tp-bar.tp-docked #tpCount{grid-row:2;grid-column:1}#drawer .tp-bar.tp-docked #tpGo{grid-row:2;grid-column:2;justify-self:end!important;width:44px!important}#drawer .tp-bar.tp-docked #tpX{grid-row:2;grid-column:3;width:44px!important}}
+/* All saved locations, independent of media/rank/zoom, use the very same upright star. */
+#atlasBookmarkOverlay .atlas-bookmark-hit,.star-pin{width:46px!important;height:46px!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ border:0!important;background:transparent!important;box-shadow:none!important;filter:drop-shadow(0 2px 3px rgba(40,48,44,.18))!important;
+ color:#C9AD79!important;transform-origin:50% 50%!important;}
+#atlasBookmarkOverlay .atlas-bookmark-hit svg,.star-pin svg{width:40px!important;height:40px!important;max-width:none!important;max-height:none!important}
+#atlasBookmarkOverlay .atlas-bookmark-hit.selected svg,.star-pin.selected svg{transform:scale(1.17)!important;filter:drop-shadow(0 2px 6px rgba(76,77,59,.22))!important}
+.star-pin.selected:before{display:none!important;content:none!important}
+#atlasBookmarkOverlay .atlas-bookmark-hit[data-rank] {font-size:34px!important}
+#atlasBookmarkOverlay .atlas-bookmark-hit.atlas-photo-location-pin,.star-pin.atlas-photo-location-pin{background:transparent!important;width:46px!important;height:46px!important;transform:translate(-50%,-50%)!important}
+/* No animations on positioned/maplibre parent: animate inner SVG only. */
+#atlasBookmarkOverlay .atlas-bookmark-hit.atlas-star-pop svg,.star-pin.atlas-star-pop svg{animation:fp34SavedPulse .43s cubic-bezier(.17,.95,.27,1)!important}
+@keyframes fp34SavedPulse{0%{transform:scale(1)}33%{transform:scale(1.24) rotate(-3deg)}60%{transform:scale(1.10) rotate(1.5deg)}100%{transform:scale(1.17) rotate(0)}}
+/* POI semantics: use crisp icons for trusted types; native text stays visible. */
+#atlasPoiOverlay .fp-poi-token{border:0!important;box-shadow:0 3px 10px rgba(39,57,59,.12)!important;background:rgba(250,251,249,.94)!important}
+#atlasPoiOverlay .fp-poi-label{display:none!important}
+/* Search dock: icon shifts left, bar retracts to its left edge and grows into one search field. */
+#appDock{transform-origin:left center!important;will-change:clip-path,opacity!important}
+body.fp34-searching.fp-search-open #appDock{opacity:1!important;visibility:visible!important;pointer-events:none!important;
+ transform:translateX(-50%)!important;animation:fp34DockRetract .27s cubic-bezier(.42,0,.72,.42) both!important}
+body.fp34-searching.fp-search-open #appDock #dockSearch img{animation:fp34IconNudge .19s ease both!important}
+body.fp34-searching.fp-search-open #fpSearchSheet{animation:fp34SearchGrow .37s .14s var(--fp34-spring) both!important;transform-origin:left bottom!important}
+body.fp34-search-returning #appDock{animation:fp34DockReturn .33s var(--fp34-spring) both!important}
+@keyframes fp34IconNudge{from{transform:translateX(0)}to{transform:translateX(-5px)}}
+@keyframes fp34DockRetract{0%{clip-path:inset(0 0 0 0 round 22px);opacity:1}68%{clip-path:inset(0 72% 0 0 round 22px);opacity:1}100%{clip-path:inset(0 72% 0 0 round 22px);opacity:0}}
+@keyframes fp34SearchGrow{0%{clip-path:inset(0 72% 0 0 round 22px);opacity:.82}100%{clip-path:inset(0 0 0 0 round 22px);opacity:1}}
+@keyframes fp34DockReturn{0%{clip-path:inset(0 72% 0 0 round 22px);opacity:.82}100%{clip-path:inset(0 0 0 0 round 22px);opacity:1}}
+@media(prefers-reduced-motion:reduce){body.fp34-searching.fp-search-open #appDock,body.fp34-searching.fp-search-open #fpSearchSheet,body.fp34-search-returning #appDock,#atlasBookmarkOverlay .atlas-bookmark-hit.atlas-star-pop svg,.star-pin.atlas-star-pop svg{animation:none!important}}
