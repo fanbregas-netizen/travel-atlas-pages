@@ -28,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           grep -q 'private-travel-footprints-v5-recording-clean-20261123' v5-recording-clean-20261123/index.html
-          grep -q 'fp-v5-recording-clean-20261123-v2' v5-recording-clean-20261123/sw.js
+          grep -q 'fp-v5-recording-clean-20261123-v3' v5-recording-clean-20261123/sw.js
           grep -q 'removeMedia' v5-recording-clean-20261123/footprint-home.js
           grep -q 'image/gif' v5-recording-clean-20261123/src/media/media-core.js
           node --check v5-recording-clean-20261123/footprint-home.js
