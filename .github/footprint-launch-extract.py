@@ -9,7 +9,7 @@ src=Path('.github/footprint-launch-source')
 parts=sorted(src.glob('part_*.txt'))
 assert len(parts)==19, f'Expected 19 parts, got {len(parts)}'
 raw=''.join(p.read_text(encoding='utf-8') for p in parts)
-assert sha256(raw.encode('utf-8')).hexdigest()=='ff68287a6e43173c4233498a0bb4f11e1e04d5d27969951d07698218a90b112d'
+assert sha256(raw.encode('utf-8')).hexdigest()=='cb1729b6ae6684000cb74cfa776caaf0b413ffd26b202d130a656513488d298e'
 root=Path('_site/footprint-launch-20261123')
 assets=root/'assets'
 assets.mkdir(parents=True,exist_ok=True)
