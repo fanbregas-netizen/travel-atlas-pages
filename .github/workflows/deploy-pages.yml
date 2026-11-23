@@ -637,3 +637,18 @@ jobs:
           curl -fsSL --retry 12 --retry-delay 3 --retry-all-errors --max-time 24 "${BASE}/v5-poi-zh-20261121/index.html?release=${GITHUB_SHA}" -o /tmp/v5-qa-intact
           grep -q 'fp-qa-storage-contract' /tmp/v5-qa-intact
           echo 'PASS: official V5 root, safe roads, preserved V4 DB and independent V5 QA'
+      - name: Verify LIVE Footprint Map launch site and video
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://fanbregas-netizen.github.io/travel-atlas-pages/footprint-launch-20261123'
+          curl -fsSL --retry 18 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}/index.html?verify=${GITHUB_SHA}" -o /tmp/footprint-launch-live.html
+          grep -q 'Footprint Map · 产品发布' /tmp/footprint-launch-live.html
+          grep -q 'id="launch-video"' /tmp/footprint-launch-live.html
+          grep -q 'data-page="map"' /tmp/footprint-launch-live.html
+          grep -q 'data-page="route"' /tmp/footprint-launch-live.html
+          VIDEO=$(grep -oE 'assets/[a-f0-9]{16}[.]mp4' /tmp/footprint-launch-live.html | head -1)
+          test -n "$VIDEO"
+          curl -fsSIL --retry 18 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}/${VIDEO}?verify=${GITHUB_SHA}" -o /tmp/footprint-launch-video-head.txt
+          grep -qi 'content-type: video/mp4' /tmp/footprint-launch-video-head.txt
+          echo 'PASS: launch website and playable MP4 available at public HTTPS URL'
