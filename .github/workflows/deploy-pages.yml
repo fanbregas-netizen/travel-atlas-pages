@@ -37,6 +37,12 @@ jobs:
           mkdir -p _site
           # Independent V5 POI/Chinese-label QA; copy only an isolated directory.
           cp -R v5-poi-zh-20261121 _site/v5-poi-zh-20261121
+          # Standalone V5 brand splash on actual approved QA product; never replace production root.
+          cp -R v5-brand-splash-20261123 _site/v5-brand-splash-20261123
+          test -s _site/v5-brand-splash-20261123/index.html
+          test -s _site/v5-brand-splash-20261123/footprint-orbit.svg
+          grep -q 'v5-poi-zh-20261121/' _site/v5-brand-splash-20261123/index.html
+          grep -q '__atlasMapHealth' _site/v5-brand-splash-20261123/index.html
           test -s _site/v5-poi-zh-20261121/index.html
           test -s _site/v5-poi-zh-20261121/src/map/poi-label-avoidance-v1.js
           test -s _site/v5-poi-zh-20261121/stage1-29-poi.js
