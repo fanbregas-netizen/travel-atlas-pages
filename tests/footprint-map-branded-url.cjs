@@ -26,8 +26,13 @@ async function check(label,engine){
   for(const path of links){const response=await page.request.get(origin+path);assert.equal(response.status(),200,path)}
   assert.match(await (await page.request.get(origin+'/footprint-map/sw.js')).text(),/footprint-map-branded-/);
   assert.doesNotMatch(await (await page.request.get(origin+'/sw.js')).text(),/footprint-map-branded-/);
-  const routes=await page.goto(origin+'/footprint-map/journey.html',{waitUntil:'domcontentloaded'});
-  assert.equal(routes.status(),200);assert.match(await page.title(),/Footprint Map/);
+  // Both route shells redirect in their first <head>; inspecting the served
+  // HTML avoids racing Playwright's navigation context in iOS/WebKit.
+  const routes=await page.request.get(origin+'/footprint-map/journey.html');
+  assert.equal(routes.status(),200);
+  const journeyHtml=await routes.text();
+  assert.match(journeyHtml,/<title>Footprint Map · 路线<\/title>/);
+  assert.match(journeyHtml,/new URL\('\.\/index\.html',location\.href\)/);
   // route-view.html intentionally calls location.replace('./index.html');
   // inspect its real served HTML: WebKit Playwright may interrupt page.goto
   // when the route shell redirects in its initial <head>.
