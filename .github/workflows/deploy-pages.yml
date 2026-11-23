@@ -607,6 +607,28 @@ jobs:
           test -s _site/footprint-launch-20261123/style.css
           test -n "$(find _site/footprint-launch-20261123/assets -name '*.mp4' -print -quit)"
           cmp index.html _site/index.html
+      - name: Append map-first product launch enhancements
+        shell: bash
+        run: |
+          set -euo pipefail
+          SITE='_site/footprint-launch-20261123'
+          test -s "$SITE/index.html"
+          cp .github/footprint-launch-enhancements/launch-v2.js "$SITE/launch-v2.js"
+          cp .github/footprint-launch-enhancements/launch-v2.css "$SITE/launch-v2.css"
+          node --check "$SITE/launch-v2.js"
+          python3 - <<'PYSITE'
+          from pathlib import Path
+          p=Path('_site/footprint-launch-20261123/index.html')
+          s=p.read_text()
+          assert 'src="site.js"' in s and 'href="style.css"' in s
+          assert 'data-page="map"' in s and 'data-page="content"' in s
+          assert 'launch-v2.js' not in s and 'launch-v2.css' not in s
+          s=s.replace('<link rel="stylesheet" href="style.css">','<link rel="stylesheet" href="style.css">\n  <link rel="stylesheet" href="launch-v2.css">',1)
+          s=s.replace('<script src="site.js" defer></script>','<script src="site.js" defer></script>\n  <script src="launch-v2.js" defer></script>',1)
+          p.write_text(s)
+          assert 'launch-v2.css' in s and 'launch-v2.js' in s
+          PYSITE
+          cmp index.html _site/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
