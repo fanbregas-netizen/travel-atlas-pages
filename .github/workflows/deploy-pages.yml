@@ -728,9 +728,11 @@ jobs:
           test -n "$VIDEO"
           curl -fsSIL --retry 18 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}/${VIDEO}?verify=${GITHUB_SHA}" -o /tmp/footprint-launch-video-head.txt
           grep -qi 'content-type: video/mp4' /tmp/footprint-launch-video-head.txt
-          for asset in map-details-v3.js map-details-v3.css; do
+          for asset in map-inspector-v4.js map-inspector-v4.css showcase-bluegray-source.js; do
             curl -fsSL --retry 12 --retry-delay 3 --retry-all-errors --max-time 24 "${BASE}/${asset}?verify=${GITHUB_SHA}" -o /tmp/footprint-detail-asset
             test -s /tmp/footprint-detail-asset
           done
-          grep -q 'map-details-v3.js' /tmp/footprint-launch-live.html
+          grep -q 'map-inspector-v4.js' /tmp/footprint-launch-live.html
+          grep -q 'showcase-bluegray-source.js' /tmp/footprint-launch-live.html
+          ! grep -q 'src="map-details-v3.js"' /tmp/footprint-launch-live.html
           echo 'PASS: launch website and playable MP4 available at public HTTPS URL'
