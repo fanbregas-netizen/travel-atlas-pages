@@ -20,8 +20,8 @@
     "existing preview road estimate adapter"
   ],
   "preview_only_road_service": "Production-grade routing backend is not authorized. Existing V5 preview routing adapter retained for acceptance only.",
-  "storage_namespace": "fp-v5-poi-zh-qa-20261121-",
-  "dedicated_worker_cache": "fp-v5-poi-zh-qa-20261121-v9",
+  "storage_namespace": "fp-v5-recording-clean-20261123-",
+  "dedicated_worker_cache": "fp-v5-recording-clean-20261123-v1",
   "formal_site_root_unchanged": true,
   "QA_real_iphone_safari": "Automated browser verification pending; user iPhone touch acceptance pending",
   "release_approval": false,
@@ -31,5 +31,7 @@
     "Single SVG fullscreen close (legacy double X removed), Photos-like shared thumbnail reveal/return, photo/source de-duplication",
     "Instant local collection search across 261 saved places by title, full note and address; no storage mutations"
   ],
-  "media_zoom_source_branch": "fix/v5-media-zoom-amap-import-20261121"
+  "media_zoom_source_branch": "fix/v5-media-zoom-amap-import-20261121",
+  "recording_mode": "独立空白录屏：第一次访问时 0 收藏、0 路线；所有新增演示数据仅写入独立命名空间；不自动清除正式数据",
+  "source_approved_url": "https://fanbregas-netizen.github.io/travel-atlas-pages/v5-poi-zh-20261121/"
 }

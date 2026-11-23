@@ -37,6 +37,12 @@ jobs:
           mkdir -p _site
           # Independent V5 POI/Chinese-label QA; copy only an isolated directory.
           cp -R v5-poi-zh-20261121 _site/v5-poi-zh-20261121
+          # Separate recording-only V5: isolated storage, own SW scope; root is untouched.
+          cp -R v5-recording-clean-20261123 _site/v5-recording-clean-20261123
+          test -s _site/v5-recording-clean-20261123/index.html
+          test -s _site/v5-recording-clean-20261123/src/route/route-single-map-v1.js
+          grep -q 'fp-v5-recording-clean-20261123-' _site/v5-recording-clean-20261123/index.html
+          grep -q 'fp-v5-recording-clean-20261123-v1' _site/v5-recording-clean-20261123/sw.js
           # Standalone V5 brand splash on actual approved QA product; never replace production root.
           cp -R v5-brand-splash-20261123 _site/v5-brand-splash-20261123
           test -s _site/v5-brand-splash-20261123/index.html
