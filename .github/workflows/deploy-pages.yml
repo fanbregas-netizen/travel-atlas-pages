@@ -598,6 +598,13 @@ jobs:
           echo '802c1a04d1260f8fefba63c0cb2dffe1f5d98898b39ba081675b6c20958e8b78  _site/footprint-map-launch/assets/demo.mp4' | sha256sum -c -
           grep -q 'assets/demo.mp4' _site/footprint-map-launch/index.html
           cmp index.html _site/index.html
+      - name: Install independent Footprint launch showcase
+        shell: bash
+        run: |
+          python3 .github/footprint-launch-extract.py
+          test -s _site/footprint-launch-20261123/index.html
+          test -n "$(find _site/footprint-launch-20261123/assets -name '*.mp4' -print -quit)"
+          cmp index.html _site/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
