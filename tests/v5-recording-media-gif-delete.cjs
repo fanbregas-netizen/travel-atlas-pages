@@ -52,8 +52,9 @@ async function run(name,engine){
    const p=await repo.read('gif-media-qa'),zip=await repo.backup(),parsed=await c.readBackup(zip);
    const gif=p.photos.find(x=>x.name==='two-frame.gif'),png=p.photos.find(x=>x.name==='still.png');
    return {gifSrc:gif?.src,pngSrc:png?.src,zipGif:parsed.records[0].photos.find(x=>x.name==='two-frame.gif')?.src,
-     photos:p.photos.length,brief:p.note};
+     photos:p.photos.length,brief:p.note,debug:p.photos.map(x=>({name:x.name,prefix:String(x.src).slice(0,50),size:x.src?.length}))};
   });
+  console.log(name+' media-upload-debug '+JSON.stringify(before.debug));
   assert.equal(before.gifSrc,'data:image/gif;base64,'+gif64);
   assert.equal(before.zipGif,before.gifSrc);
   assert(before.pngSrc?.startsWith('data:image/png;base64,'));
