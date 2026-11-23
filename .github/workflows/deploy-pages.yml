@@ -629,59 +629,6 @@ jobs:
           assert 'launch-v2.css' in s and 'launch-v2.js' in s
           PYSITE
           cmp index.html _site/index.html
-      - name: Add real-map closeups to chapter 03 (isolated showcase only)
-        shell: bash
-        run: |
-          set -euo pipefail
-          SITE='_site/footprint-launch-20261123'
-          cp .github/footprint-launch-enhancements/map-details-v3.js "$SITE/map-details-v3.js"
-          cp .github/footprint-launch-enhancements/map-details-v3.css "$SITE/map-details-v3.css"
-          node --check "$SITE/map-details-v3.js"
-          python3 - <<'PYDETAIL'
-          from pathlib import Path
-          p=Path('_site/footprint-launch-20261123/index.html')
-          s=p.read_text(encoding='utf-8')
-          assert 'launch-v2.js' in s and 'launch-v2.css' in s
-          assert 'map-details-v3' not in s
-          assert 'data-page="system"' in s
-          s=s.replace('</head>', '  <link rel="stylesheet" href="map-details-v3.css">\n  <script src="map-details-v3.js" defer></script>\n</head>', 1)
-          p.write_text(s,encoding='utf-8')
-          assert 'map-details-v3.css' in s and 'map-details-v3.js' in s
-          for img in ['actual-map.webp','actual-route.webp','phone_02.webp','phone_11.webp']:
-              assert (p.parent/'assets'/img).is_file(), img
-          for icon in ['21_mountain.svg','26_lake.svg','47_coffee.svg','45_museum.svg']:
-              assert (p.parent/'assets/icons'/icon).is_file(), icon
-          PYDETAIL
-          cmp index.html _site/index.html
-      # Restore full, source-measured visual specs and add live scale-aware map,
-      # only inside the independent product-release showcase (not V5 root).
-      - name: Restore original dimensions and live map zoom detail
-        shell: bash
-        run: |
-          set -euo pipefail
-          SITE='_site/footprint-launch-20261123'
-          cp .github/footprint-launch-enhancements/map-inspector-v4.js "$SITE/map-inspector-v4.js"
-          cp .github/footprint-launch-enhancements/map-inspector-v4.css "$SITE/map-inspector-v4.css"
-          cp map-home-bluegray-v18.js "$SITE/showcase-bluegray-source.js"
-          node --check "$SITE/map-inspector-v4.js"
-          node --check "$SITE/showcase-bluegray-source.js"
-          python3 - <<'PYSCALES'
-          from pathlib import Path
-          p=Path('_site/footprint-launch-20261123/index.html')
-          s=p.read_text(encoding='utf-8')
-          assert 'map-details-v3.js' in s and 'map-details-v3.css' in s
-          assert 'data-page="system"' in s
-          s=s.replace('  <link rel="stylesheet" href="map-details-v3.css">\n','',1)
-          s=s.replace('  <script src="map-details-v3.js" defer></script>\n','',1)
-          s=s.replace('</head>','  <link rel="stylesheet" href="map-inspector-v4.css">\n  <script src="showcase-bluegray-source.js" defer></script>\n  <script src="map-inspector-v4.js" defer></script>\n</head>',1)
-          p.write_text(s,encoding='utf-8')
-          assert 'map-inspector-v4.js' in s and 'map-inspector-v4.css' in s
-          assert 'showcase-bluegray-source.js' in s
-          assert 'map-details-v3.js' not in s
-          for asset in ['actual-map.webp','actual-route.webp','phone_02.webp','phone_04.webp']:
-              assert (p.parent/'assets'/asset).is_file(),asset
-          PYSCALES
-          cmp index.html _site/index.html
       - name: Build complete Footprint Map branded URL without changing existing Pages root
         shell: bash
         run: |
@@ -741,12 +688,15 @@ jobs:
           test -n "$VIDEO"
           curl -fsSIL --retry 18 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}/${VIDEO}?verify=${GITHUB_SHA}" -o /tmp/footprint-launch-video-head.txt
           grep -qi 'content-type: video/mp4' /tmp/footprint-launch-video-head.txt
-          for asset in map-inspector-v4.js map-inspector-v4.css showcase-bluegray-source.js; do
-            curl -fsSL --retry 12 --retry-delay 3 --retry-all-errors --max-time 24 "${BASE}/${asset}?verify=${GITHUB_SHA}" -o /tmp/footprint-detail-asset
-            test -s /tmp/footprint-detail-asset
+          # V2 is the user's approved, simpler launch design (PR #31).
+          # It keeps the original map-first gallery and external travel guide links.
+          for asset in launch-v2.js launch-v2.css; do
+            curl -fsSL --retry 12 --retry-delay 3 --retry-all-errors --max-time 24 "${BASE}/${asset}?verify=${GITHUB_SHA}" -o /tmp/footprint-v2-asset
+            test -s /tmp/footprint-v2-asset
           done
-          grep -q 'map-inspector-v4.js' /tmp/footprint-launch-live.html
-          grep -q 'showcase-bluegray-source.js' /tmp/footprint-launch-live.html
+          grep -q 'launch-v2.js' /tmp/footprint-launch-live.html
+          grep -q 'launch-v2.css' /tmp/footprint-launch-live.html
+          ! grep -q 'src="map-inspector-v4.js"' /tmp/footprint-launch-live.html
           ! grep -q 'src="map-details-v3.js"' /tmp/footprint-launch-live.html
           echo 'PASS: launch website and playable MP4 available at public HTTPS URL'
       - name: Verify LIVE Footprint Map branded full-app URL
