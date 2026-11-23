@@ -629,6 +629,30 @@ jobs:
           assert 'launch-v2.css' in s and 'launch-v2.js' in s
           PYSITE
           cmp index.html _site/index.html
+      - name: Add real-map closeups to chapter 03 (isolated showcase only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          SITE='_site/footprint-launch-20261123'
+          cp .github/footprint-launch-enhancements/map-details-v3.js "$SITE/map-details-v3.js"
+          cp .github/footprint-launch-enhancements/map-details-v3.css "$SITE/map-details-v3.css"
+          node --check "$SITE/map-details-v3.js"
+          python3 - <<'PYDETAIL'
+          from pathlib import Path
+          p=Path('_site/footprint-launch-20261123/index.html')
+          s=p.read_text(encoding='utf-8')
+          assert 'launch-v2.js' in s and 'launch-v2.css' in s
+          assert 'map-details-v3' not in s
+          assert 'data-page="system"' in s
+          s=s.replace('</head>', '  <link rel="stylesheet" href="map-details-v3.css">\n  <script src="map-details-v3.js" defer></script>\n</head>', 1)
+          p.write_text(s,encoding='utf-8')
+          assert 'map-details-v3.css' in s and 'map-details-v3.js' in s
+          for img in ['actual-map.webp','actual-route.webp','phone_02.webp','phone_11.webp']:
+              assert (p.parent/'assets'/img).is_file(), img
+          for icon in ['21_mountain.svg','26_lake.svg','47_coffee.svg','45_museum.svg']:
+              assert (p.parent/'assets/icons'/icon).is_file(), icon
+          PYDETAIL
+          cmp index.html _site/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
@@ -675,4 +699,9 @@ jobs:
           test -n "$VIDEO"
           curl -fsSIL --retry 18 --retry-delay 3 --retry-all-errors --max-time 25 "${BASE}/${VIDEO}?verify=${GITHUB_SHA}" -o /tmp/footprint-launch-video-head.txt
           grep -qi 'content-type: video/mp4' /tmp/footprint-launch-video-head.txt
+          for asset in map-details-v3.js map-details-v3.css; do
+            curl -fsSL --retry 12 --retry-delay 3 --retry-all-errors --max-time 24 "${BASE}/${asset}?verify=${GITHUB_SHA}" -o /tmp/footprint-detail-asset
+            test -s /tmp/footprint-detail-asset
+          done
+          grep -q 'map-details-v3.js' /tmp/footprint-launch-live.html
           echo 'PASS: launch website and playable MP4 available at public HTTPS URL'
