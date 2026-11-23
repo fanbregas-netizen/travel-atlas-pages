@@ -1,0 +1,62 @@
+name: Footprint Map branded public URL — Chromium and WebKit
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/build-footprint-map-alias.py'
+      - '.github/workflows/deploy-pages.yml'
+      - '.github/workflows/footprint-map-branded-url.yml'
+      - 'tests/footprint-map-branded-url.cjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/build-footprint-map-alias.py'
+      - '.github/workflows/deploy-pages.yml'
+      - 'tests/footprint-map-branded-url.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  two-browsers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build canonical V5 root and branded URL
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          while IFS= read -r p || test -n "$p"; do
+            test -n "$p" || continue
+            test -s "$p"
+            mkdir -p "_site/$(dirname "$p")"
+            cp "$p" "_site/$p"
+          done < .github/V5_PRODUCTION_FILES_20261122.txt
+          python3 .github/build-footprint-map-alias.py
+          cmp index.html _site/index.html
+          cmp _site/index.html _site/footprint-map/index.html
+          grep -q "const CACHE='footprint-v5-production-20261122-v2'" _site/sw.js
+          grep -q "const CACHE='footprint-map-branded-" _site/footprint-map/sw.js
+          node --check tests/footprint-map-branded-url.cjs
+          node --check _site/footprint-map/v4-map-runtime.js
+      - name: Install Playwright browsers
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps chromium webkit
+      - name: Serve complete public app (no user data)
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory _site >/tmp/footprint-map-alias-test.log 2>&1 &
+          sleep 2
+          curl -fsS -o /dev/null http://127.0.0.1:8765/footprint-map/
+      - name: Check live app, URL and same-origin data safety
+        run: node tests/footprint-map-branded-url.cjs
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: footprint-map-branded-url-diagnostics
+          path: /tmp/footprint-map-alias-test.log
+          if-no-files-found: ignore
