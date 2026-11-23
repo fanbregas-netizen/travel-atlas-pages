@@ -601,8 +601,10 @@ jobs:
       - name: Install independent Footprint launch showcase
         shell: bash
         run: |
-          python3 .github/footprint-launch-extract.py
+          python3 .github/footprint-launch-extract-v2.py
           test -s _site/footprint-launch-20261123/index.html
+          test -s _site/footprint-launch-20261123/site.js
+          test -s _site/footprint-launch-20261123/style.css
           test -n "$(find _site/footprint-launch-20261123/assets -name '*.mp4' -print -quit)"
           cmp index.html _site/index.html
       - uses: actions/upload-pages-artifact@v3
