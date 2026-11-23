@@ -448,19 +448,27 @@ watchTileVideo(video);tile.append(video,h('span','fp-video-indicator','▶'))}if
   const nearby=h('section','fp-block');
  const status=h('div','fp-social-list');
  const load=btn('查看附近',async()=>{
-   load.disabled=true;status.textContent='正在查找…';
-   try{
-     const result=await window.AtlasServices.nearby(p.lat,p.lng);
-     if(!nearby.isConnected||activePlaceId!==id)return;
-     status.replaceChildren();
-     if(!result.places.length)status.textContent='附近未找到景点';
-     for(const place of result.places){
-       const row=btn(place.name+' · '+place.distance+' 米',()=>chooseResult(place),'fp-subaction');
-       status.append(row);
-     }
-   }catch{if(nearby.isConnected&&activePlaceId===id)status.textContent='附近地点暂时无法读取，可重试'}
-   finally{load.disabled=false}
- },'fp-subaction');
+    load.disabled=true;status.textContent='正在查找真实景点…';
+    try{
+      const result=await window.AtlasServices.nearby(p.lat,p.lng);
+      if(!nearby.isConnected||activePlaceId!==id)return;
+      status.replaceChildren();
+      if(!result.places.length){
+        status.textContent='附近 '+(result.radius/1000).toFixed(1)+' 公里暂无已收录景点，可移动地图后再试';
+        return;
+      }
+      if(result.partial)status.append(h('small','fp-nearby-hint','当前网络不稳定，已显示地图上可找到的真实景点'));
+      for(const place of result.places){
+        const distance=place.distance>=1000?(place.distance/1000).toFixed(1)+' 公里':place.distance+' 米';
+        const row=btn(place.name+' · '+distance,()=>chooseResult(place),'fp-subaction');
+        status.append(row);
+      }
+    }catch(error){
+      console.warn('附近景点服务不可用',error);
+      if(nearby.isConnected&&activePlaceId===id)
+        status.textContent='附近景点服务暂不可用，请稍后重试或通过地图搜索地点';
+    }finally{load.disabled=false}
+  },'fp-subaction');
  nearby.append(sectionHeading('04','附近地点',load),status);
  cardBrief.append(stageBtn);
  sc.append(cardBrief,cardMedia,cardLinks,nearby);
