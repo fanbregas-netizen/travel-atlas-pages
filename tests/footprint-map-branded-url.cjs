@@ -28,8 +28,14 @@ async function check(label,engine){
   assert.doesNotMatch(await (await page.request.get(origin+'/sw.js')).text(),/footprint-map-branded-/);
   const routes=await page.goto(origin+'/footprint-map/journey.html',{waitUntil:'domcontentloaded'});
   assert.equal(routes.status(),200);assert.match(await page.title(),/Footprint Map/);
-  const routeDetail=await page.goto(origin+'/footprint-map/route-view.html',{waitUntil:'domcontentloaded'});
-  assert.equal(routeDetail.status(),200);assert.match(await page.title(),/Footprint Map/);
+  // route-view.html intentionally calls location.replace('./index.html');
+  // inspect its real served HTML: WebKit Playwright may interrupt page.goto
+  // when the route shell redirects in its initial <head>.
+  const routeDetail=await page.request.get(origin+'/footprint-map/route-view.html');
+  assert.equal(routeDetail.status(),200);
+  const routeHtml=await routeDetail.text();
+  assert.match(routeHtml,/<title>Footprint Map · 查看路线<\/title>/);
+  assert.match(routeHtml,/new URL\('\.\/index\.html',location\.href\)/);
   assert.deepEqual(localErrors,[]);
   console.log(JSON.stringify({browser:label,result:'PASS',brandedUrl:'/footprint-map/',oldUrlRetained:true,oldUserStorageSameOrigin:true,productionDbUnchanged:true,allAppAssetsPresent:true,routePages:true,isolatedCache:true}));
  }finally{await context.close();await browser.close()}
