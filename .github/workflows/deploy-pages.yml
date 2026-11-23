@@ -42,7 +42,7 @@ jobs:
           test -s _site/v5-recording-clean-20261123/index.html
           test -s _site/v5-recording-clean-20261123/src/route/route-single-map-v1.js
           grep -q 'fp-v5-recording-clean-20261123-' _site/v5-recording-clean-20261123/index.html
-          grep -q 'fp-v5-recording-clean-20261123-v1' _site/v5-recording-clean-20261123/sw.js
+          grep -q 'fp-v5-recording-clean-20261123-v2' _site/v5-recording-clean-20261123/sw.js
           # Standalone V5 brand splash on actual approved QA product; never replace production root.
           cp -R v5-brand-splash-20261123 _site/v5-brand-splash-20261123
           test -s _site/v5-brand-splash-20261123/index.html

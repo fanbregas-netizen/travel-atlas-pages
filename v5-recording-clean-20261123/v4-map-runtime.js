@@ -1108,7 +1108,7 @@
   function addSearchMarker(lat,lng,name){if(!map)return;removeMapItem(searchPin);const el=document.createElement('div');el.className='search-dot';el.title=name;searchPin=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([lng,lat]).addTo(map)}
   function addLocationMarker(lat,lng){if(!map)return;removeMapItem(locationPin);const el=document.createElement('div');el.className='loc-dot';el.title='当前位置';locationPin=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([lng,lat]).addTo(map)}
   const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const photoSrc=src=>typeof src==='string'&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(src)?src:'';
+  const photoSrc=src=>typeof src==='string'&&/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(src)?src:'';
   const videoType=t=>typeof t==='string' && /^video\//.test(t);
   const makeVideoURL=video=>video?.blob instanceof Blob?URL.createObjectURL(video.blob):null;
   async function storeVideo(f){
@@ -1580,7 +1580,15 @@
     editorVideos.forEach((v,i)=>{const div=document.createElement('div');div.className='photo-thumb video-thumb';div.innerHTML='<span style="font-size:24px">▶</span><span class="video-filename">'+escape(v.name||'视频')+'</span><button class="photo-remove" type="button" aria-label="删除视频">×</button>';div.querySelector('button').onclick=()=>{editorVideos.splice(i,1);renderEditorPhotos()};el.append(div)});
     if(editorPhotos.length<50||editorVideos.length<6){const b=document.createElement('button');b.type='button';b.className='add-photos';b.innerHTML='<span><b>＋</b>照片 / 视频</span>';b.onclick=()=>$('photoUpload').click();el.append(b)}
   }
-  async function shrink(file){return new Promise((resolve,reject)=>{const fr=new FileReader();fr.onerror=()=>reject(Error('图片无法读取'));fr.onload=()=>{const im=new Image();im.onerror=()=>reject(Error('图片格式不支持'));im.onload=()=>{const max=1600,scale=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);c.getContext('2d').drawImage(im,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.86))};im.src=fr.result};fr.readAsDataURL(file)})}
+  async function shrink(file){
+     // One shared image pipeline for new-place editing and the real place card:
+     // GIF/APNG/animated WebP keep their original bytes instead of a flattened JPEG.
+     const core=window.FootprintMediaCore;
+     if(!core?.prepareSelectedFiles)throw Error('媒体模块尚未加载，请刷新后重试');
+     const chosen=await core.prepareSelectedFiles([file]);
+     if(chosen.length!==1||chosen[0].kind!=='photo')throw Error('请选择受支持的图片');
+     return chosen[0].src;
+   }
   let savingEditor=false,ingestingMedia=false;
   async function commitEditor(openMemory=false){
     if(!editing||savingEditor)return;
@@ -1605,7 +1613,7 @@
     let videos=dst?[...(dst.videos||[])]:editorVideos;
     let added=0;
     for(const f of files){try{
-      if(f.type.startsWith('image/')){if(photos.length>=50){toast('照片最多 50 张');continue}const src=await shrink(f);photos.push({src,name:f.name});added++}
+      if(f.type.startsWith('image/')||/\.(?:jpe?g|png|webp|heic|heif|gif|apng|avif|bmp|tiff?|svg|jxl)$/i.test(f.name)){if(photos.length>=50){toast('照片最多 50 张');continue}const src=await shrink(f);photos.push({src,name:f.name});added++}
       else if(f.type.startsWith('video/')||/\.(mp4|mov|webm)$/i.test(f.name)){
         if(videos.length>=6){toast('视频最多 6 条');continue}
         const item=await storeVideo(f);if(item){videos.push(item);added++}
