@@ -38,7 +38,7 @@ async function run(name,engine){
    });db.close();
   });
   await page.evaluate(()=>window.__footprintHome.openSaved('gif-media-qa'));
-  await page.waitForSelector('#fpPlaceCard input[type="file"]',{timeout:15000});
+  await page.waitForSelector('#fpPlaceCard input[type="file"]',{state:'attached',timeout:15000});
   await page.locator('#fpPlaceCard input[type="file"]').setInputFiles([
    {name:'two-frame.gif',mimeType:'image/gif',buffer:Buffer.from(gif64,'base64')},
    {name:'still.png',mimeType:'image/png',buffer:Buffer.from(png64,'base64')}
