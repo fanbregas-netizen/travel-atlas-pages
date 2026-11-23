@@ -585,6 +585,19 @@ jobs:
           grep -q 'map-home-bluegray-v18.js' _site/v4-map-system-review-20261117/index.html
           # Root is still the approved official page, unchanged byte-for-byte.
           cmp index.html _site/index.html
+      # Standalone Footprint Map launch microsite. Production index and data remain untouched.
+      - name: Append Footprint Map launch site (isolated path)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p _site/footprint-map-launch/assets
+          cat footprint-map-launch-src/html-parts/part*.txt > _site/footprint-map-launch/index.html
+          cat footprint-map-launch-src/video-parts/part*.b64 | base64 -d > _site/footprint-map-launch/assets/demo.mp4
+          test -s _site/footprint-map-launch/index.html
+          test -s _site/footprint-map-launch/assets/demo.mp4
+          echo '802c1a04d1260f8fefba63c0cb2dffe1f5d98898b39ba081675b6c20958e8b78  _site/footprint-map-launch/assets/demo.mp4' | sha256sum -c -
+          grep -q 'assets/demo.mp4' _site/footprint-map-launch/index.html
+          cmp index.html _site/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
