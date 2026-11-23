@@ -29,19 +29,15 @@ async function run(name,engine){
   });
   assert.equal(initial.places,0);assert.equal(initial.routes,0);
   assert.equal(initial.ns,'private-travel-footprints-v5-recording-clean-20261123');
+  // Seed through the same map repository used by the app, then synchronize its
+  // loaded places before uploading. A late map startup must not overwrite files.
   await page.evaluate(async()=>{
-   const repo=window.FootprintMediaCore.createRepository(indexedDB);
-   await repo.read('gif-media-qa');
-   const db=await new Promise((resolve,reject)=>{
-     const r=indexedDB.open('private-travel-footprints-v5-recording-clean-20261123',1);
-     r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);
-   });
-   await new Promise((resolve,reject)=>{
-     const tx=db.transaction('places','readwrite');
-     tx.objectStore('places').put({id:'gif-media-qa',title:'动图录屏验证地点',lat:31.23,lng:121.47,
-       starred:true,stage:'plan',note:'原有内容需保留',photos:[],videos:[]});
-     tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
-   });db.close();
+   const record={id:'gif-media-qa',title:'动图录屏验证地点',lat:31.23,lng:121.47,
+    starred:true,stage:'plan',note:'原有内容需保留',photos:[],videos:[]};
+   await window.__atlasPlaceStore.save(record);
+   await window.__atlasFlowRefresh();
+   if(!(await window.FootprintMediaCore.createRepository(indexedDB).read(record.id)))
+    throw Error('seeded place not visible to MediaCore');
   });
   await page.evaluate(()=>window.__footprintHome.openSaved('gif-media-qa'));
   await page.waitForSelector('#fpPlaceCard input[type="file"]',{state:'attached',timeout:15000});
@@ -53,6 +49,7 @@ async function run(name,engine){
    const p=await window.FootprintMediaCore.createRepository(indexedDB).read('gif-media-qa');
    return p?.photos?.length===2;
   },null,{timeout:22000});
+  await page.locator('#fpCardFeedback').filter({hasText:/已保存 2 项影像/}).waitFor({state:'visible',timeout:15000});
   const before=await page.evaluate(async()=>{
    const c=window.FootprintMediaCore,repo=c.createRepository(indexedDB);
    const p=await repo.read('gif-media-qa'),zip=await repo.backup(),parsed=await c.readBackup(zip);
