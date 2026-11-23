@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f8f7f3">
+<meta name="description" content="Footprint Map V5 · 星球落入地图交互验收。以真实 V5 产品作为背景。">
+<title>Footprint Map V5 · 星球落入地图</title>
+<style>
+:root{--paper:#f8f7f3;--ink:#232825;--muted:#868982;--yellow:#d4a92a}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--paper);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+button{-webkit-tap-highlight-color:transparent;font-family:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid #bd900d;outline-offset:3px}
+#realProduct{position:fixed;inset:0;border:0;display:block;width:100%;height:100%;height:100dvh;background:#e8e9e3;z-index:0}
+#curtain{position:fixed;inset:0;z-index:5;background:var(--paper);overflow:hidden;touch-action:pan-y;pointer-events:auto}
+#curtain[hidden],#hero[hidden],#brandCopy[hidden],#brandStar[hidden],#daily[hidden],#inlineLoad[hidden]{display:none!important}
+#hero{position:fixed;left:50%;top:43%;width:min(100vw,478px);aspect-ratio:478/358;transform:translate(-50%,-50%);will-change:transform,opacity;pointer-events:none;isolation:isolate}
+#hero img{display:block;position:relative;width:100%;height:100%;z-index:2;object-fit:contain}
+#tail{position:absolute;left:50%;top:76.5%;width:11%;height:20%;background:#979793;border-radius:40% 40% 60% 60%;opacity:0;transform:translate(-50%,-5%) scaleY(.12);transform-origin:50% 0;z-index:1;pointer-events:none}
+#brandCopy{position:fixed;left:12px;right:12px;top:calc(43% + min(38vw,167px));text-align:center;color:var(--ink);transform-origin:center}
+#brandName{font-size:clamp(23px,6.4vw,30px);font-weight:450;letter-spacing:-.85px}
+#brandTag{font-size:12px;letter-spacing:2.2px;color:#9b9e97;margin-top:8px}
+#brandStar{position:fixed;left:50%;top:calc(43% + min(29vw,125px));transform:translateX(-50%);color:var(--yellow);font-size:20px;line-height:1;text-shadow:0 1px 0 #7c692b;pointer-events:none}
+#skip{position:fixed;z-index:10;right:17px;top:calc(18px + env(safe-area-inset-top));border:1px solid #dcdcd5;background:#ffffffc7;color:#616861;border-radius:20px;padding:8px 13px;font-size:12px}
+#brandStatus{position:fixed;bottom:calc(55px + env(safe-area-inset-bottom));left:16px;right:16px;text-align:center;color:#969a93;font-size:11px;letter-spacing:.3px;opacity:0;transition:opacity .25s;pointer-events:none}
+#daily{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px}
+#dailyOrb{position:relative;width:66px;height:66px;background:#9a9b98;border:1.5px solid #272b28;border-radius:50%;box-shadow:inset -9px -8px 17px #5457531a}
+#dailyOrb:before{content:"";position:absolute;left:18px;top:11px;width:23px;height:14px;border-radius:50%;background:#f5f3eb}
+#dailyStar{position:absolute;inset:-15px;animation:goRound 1.8s linear infinite}
+#dailyStar:after{content:"★";position:absolute;top:-7px;left:calc(50% - 10px);color:var(--yellow);font-size:21px;text-shadow:0 1px 0 #655822}
+@keyframes goRound{to{transform:rotate(360deg)}}
+#dailyLabel{font-size:12px;letter-spacing:1.2px;color:#737b73}
+#routeHalo{position:fixed;z-index:6;width:32px;height:32px;left:-100px;top:-100px;border-radius:50%;border:1.4px solid #585d5a;background:#a1a29f;opacity:0;pointer-events:none;display:grid;place-items:center}
+#routeHalo:after{content:"★";font-size:18px;color:#dfb22d;filter:drop-shadow(0 1px 0 #5d5226)}
+#inlineLoad{position:fixed;z-index:7;right:16px;top:calc(86px + env(safe-area-inset-top));display:flex;align-items:center;gap:9px;padding:10px 13px;border:1px solid #e5e5df;border-radius:20px;background:#fffdfaeb;color:#5d635b;font-size:12px;box-shadow:0 3px 14px #0000000d;pointer-events:none}
+#inlineLoad b{font-size:16px;color:var(--yellow);font-weight:500;animation:goRound 1.2s linear infinite}
+#review{position:fixed;z-index:9;top:calc(16px + env(safe-area-inset-top));left:13px;color:#333}
+#reviewToggle{border:1px solid #e4e2da;border-radius:18px;background:#fffdf4eb;color:#51574f;font-size:11px;line-height:16px;padding:8px 10px;box-shadow:0 3px 14px #0000000d}
+#reviewMenu{display:grid;gap:5px;position:absolute;top:42px;left:0;width:148px;padding:7px;background:#fffdfaef;border-radius:13px;border:1px solid #e1e0d7;box-shadow:0 7px 25px #00000014}
+#reviewMenu[hidden]{display:none}
+#reviewMenu button{background:transparent;border:none;text-align:left;color:#4c534e;border-radius:8px;padding:10px;font-size:12px}
+#reviewMenu button:active{background:#f1efe6}
+#toast{position:fixed;z-index:11;bottom:calc(100px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#fffcf0ed;border:1px solid #e4e0cd;color:#5c6158;border-radius:17px;padding:9px 12px;white-space:nowrap;font-size:11px;pointer-events:none}
+#toast[hidden]{display:none}
+@media(prefers-reduced-motion:reduce){#dailyStar,#inlineLoad b{animation:none}}
+</style>
+</head>
+<body>
+<!-- This is the latest approved V5 QA product in a same-origin frame, not a static map or screenshot.
+     It retains QA IndexedDB isolation, route-only star visibility, saved-place search and all functional UI. -->
+<iframe id="realProduct" title="Footprint Map V5 · 完整地图产品" src="../v5-poi-zh-20261121/" loading="eager"></iframe>
+<div id="curtain" aria-label="Footprint Map 开屏">
+  <div id="hero"><span id="tail"></span><img src="./footprint-orbit.svg" alt="原有手绘双人围绕灰色星球"></div>
+  <span id="brandStar" aria-hidden="true">★</span>
+  <div id="brandCopy"><div id="brandName">Footprint Map</div><div id="brandTag">记录走过的地方</div></div>
+  <div id="daily" hidden><div id="dailyOrb"><div id="dailyStar"></div></div><div id="dailyLabel">正在进入地图</div></div>
+  <div id="brandStatus" role="status" aria-live="polite">地图正在加载，画面会自动衔接</div>
+  <button type="button" id="skip">跳过</button>
+</div>
+<div id="routeHalo" aria-hidden="true"></div>
+<div id="inlineLoad" hidden><b>★</b><span>正在更新地图</span></div>
+<div id="review">
+  <button id="reviewToggle" type="button" aria-expanded="false" aria-controls="reviewMenu">动效验收 ⌄</button>
+  <div id="reviewMenu" hidden>
+    <button type="button" data-mode="first">重播首次开屏</button>
+    <button type="button" data-mode="daily">日常快速启动</button>
+    <button type="button" data-mode="inline">地图内加载</button>
+  </div>
+</div>
+<div id="toast" hidden role="status"></div>
+<script>
+(()=>{
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const iframe=$('realProduct'),curtain=$('curtain'),hero=$('hero'),copy=$('brandCopy'),
+        star=$('brandStar'),tail=$('tail'),daily=$('daily'),halo=$('routeHalo'),
+        status=$('brandStatus'),skip=$('skip'),inline=$('inlineLoad'),toast=$('toast');
+  const firstKey='fp-brand-map-first-seen-preview-20261123';
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  let epoch=0,active=[],toastTimer=0;
+  function notify(message){
+    toast.textContent=message;toast.hidden=false;
+    clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.hidden=true,2200);
+  }
+  function clearMotion(){
+    active.forEach(a=>{try{a.cancel()}catch(_){}});
+    active=[];hero.style.transform='translate(-50%,-50%)';
+    hero.style.opacity='';tail.style.opacity='0';
+    copy.style.opacity='';copy.style.transform='';star.style.opacity='';
+    halo.style.opacity='0';inline.hidden=true;status.style.opacity='0';
+  }
+  function pose(name){
+    const isDaily=name==='daily';
+    curtain.hidden=false;curtain.style.background='var(--paper)';curtain.style.opacity='1';curtain.style.pointerEvents='auto';
+    hero.hidden=isDaily;copy.hidden=isDaily;star.hidden=isDaily;daily.hidden=!isDaily;
+    skip.hidden=false;
+  }
+  function markComplete(){
+    try{localStorage.setItem(firstKey,'1')}catch(_){}
+  }
+  function finish(n){
+    if(n!==epoch)return;
+    markComplete();curtain.hidden=true;curtain.style.opacity='1';
+    skip.hidden=true;clearMotion();daily.hidden=true;
+  }
+  function mapReady(){
+    try{
+      const win=iframe.contentWindow;
+      if(!win||win.location.origin!==location.origin)return false;
+      const snapshot=win.__atlasMapHealth?.();
+      return snapshot?.ready===true;
+    }catch(_){return false}
+  }
+  async function waitMap(n,maxWait=5800){
+    const start=performance.now();
+    while(n===epoch&&performance.now()-start<maxWait){
+      if(mapReady())return true;
+      await wait(110);
+    }
+    return mapReady();
+  }
+  function routeCenter(){
+    try{
+      const node=iframe.contentDocument?.getElementById('dockRoute');
+      if(node){
+        const r=node.getBoundingClientRect(),f=iframe.getBoundingClientRect();
+        if(r.width>0&&r.height>0)return{x:f.left+r.left+r.width/2,y:f.top+r.top+r.height/2};
+      }
+    }catch(_){}
+    return{x:innerWidth/2,y:innerHeight-envBottom()-66};
+  }
+  function envBottom(){return 24}
+  function animate(el,frames,options){
+    const a=el.animate(frames,{fill:'forwards',...options});active.push(a);return a;
+  }
+  async function absorb(n){
+    if(n!==epoch)return;
+    const target=routeCenter(),sx=innerWidth*.5,sy=innerHeight*.43;
+    const dx=target.x-sx,dy=target.y-sy;
+    const tr=(x,y,scale)=>'translate3d('+x+'px,'+y+'px,0) translate(-50%,-50%) scale('+scale+')';
+    status.style.opacity='0';
+    const planet=animate(hero,[
+      {offset:0,transform:tr(0,0,1),opacity:1},
+      {offset:.32,transform:tr(dx*.10,dy*.10,.96),opacity:1},
+      {offset:.76,transform:tr(dx*.91,dy*.88,.24),opacity:1},
+      {offset:.89,transform:tr(dx*1.015,dy*1.025,.108),opacity:1},
+      {offset:1,transform:tr(dx,dy,.118),opacity:0}
+    ],{duration:1150,easing:'cubic-bezier(.25,.75,.17,1)'});
+    animate(tail,[
+      {offset:0,opacity:0,transform:'translate(-50%,-5%) scaleY(.12)'},
+      {offset:.23,opacity:.25,transform:'translate(-50%,-5%) scaleY(.7)'},
+      {offset:.6,opacity:.55,transform:'translate(-50%,-5%) scaleY(1.12)'},
+      {offset:1,opacity:0,transform:'translate(-50%,-5%) scaleY(.08)'}
+    ],{duration:850,easing:'ease-out'});
+    animate(copy,[
+      {offset:0,opacity:1,transform:'scale(1)'},
+      {offset:.25,opacity:1,transform:'scale(1.018,.982)'},
+      {offset:.55,opacity:.68,transform:'scale(.988,1.009)'},
+      {offset:1,opacity:0,transform:'scale(.88)'}
+    ],{duration:610,easing:'cubic-bezier(.28,.8,.2,1)'});
+    animate(star,[{opacity:1,transform:'translateX(-50%) scale(1)'},{offset:.7,opacity:.5,transform:'translateX(-50%) scale(.85)'},{opacity:0,transform:'translateX(-50%) scale(.3)'}],{duration:530,easing:'ease-out'});
+    animate(curtain,[
+      {offset:0,background:'rgba(248,247,243,1)'},
+      {offset:.42,background:'rgba(248,247,243,.94)'},
+      {offset:.77,background:'rgba(248,247,243,.38)'},
+      {offset:1,background:'rgba(248,247,243,0)'}
+    ],{duration:1150,easing:'ease-in-out'});
+    halo.style.left=(target.x-16)+'px';halo.style.top=(target.y-16)+'px';
+    animate(halo,[
+      {offset:0,opacity:0,transform:'scale(.65)'},
+      {offset:.1,opacity:.95,transform:'scale(.94)'},
+      {offset:.47,opacity:1,transform:'scale(1.13)'},
+      {offset:1,opacity:0,transform:'scale(1)'}
+    ],{delay:870,duration:470,easing:'cubic-bezier(.19,.9,.22,1)'});
+    try{await planet.finished}catch(_){}
+    finish(n);
+  }
+  async function start(mode){
+    const n=++epoch;clearMotion();
+    if(mode==='inline'){
+      curtain.hidden=true;inline.hidden=false;
+      await wait(820);if(n!==epoch)return;inline.hidden=true;return;
+    }
+    pose(mode);
+    if(reduced){finish(n);return}
+    if(mode==='daily'){
+      const ready=waitMap(n,5300);
+      await Promise.all([wait(480),ready]);
+      if(n!==epoch)return;
+      const a=animate(curtain,[{opacity:1},{opacity:0}],{duration:240,easing:'ease-out'});
+      try{await a.finished}catch(_){}
+      finish(n);return;
+    }
+    const ready=waitMap(n,6600);
+    await wait(1350);
+    if(n!==epoch)return;
+    if(!mapReady())status.style.opacity='1';
+    const loaded=await ready;
+    if(n!==epoch)return;
+    if(!loaded)notify('地图资源加载较慢，仍可继续使用 V5');
+    await absorb(n);
+  }
+  function skipNow(){
+    ++epoch;clearMotion();curtain.hidden=true;skip.hidden=true;daily.hidden=true;markComplete();
+  }
+  skip.addEventListener('click',skipNow);
+  const toggle=$('reviewToggle'),menu=$('reviewMenu');
+  toggle.addEventListener('click',()=>{
+    menu.hidden=!menu.hidden;
+    toggle.setAttribute('aria-expanded',String(!menu.hidden));
+  });
+  menu.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
+    menu.hidden=true;toggle.setAttribute('aria-expanded','false');start(b.dataset.mode);
+  }));
+  iframe.addEventListener('load',()=>{if(!curtain.hidden&&mapReady())status.style.opacity='0'});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!curtain.hidden)skipNow()});
+  start(localStorage.getItem(firstKey)?'daily':'first');
+  window.__footprintSplashPreview={
+    first:()=>start('first'),daily:()=>start('daily'),inline:()=>start('inline'),
+    skip:skipNow,mapReady:mapReady,routeCenter:routeCenter
+  };
+})();
+</script>
+</body></html>
