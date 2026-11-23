@@ -17,6 +17,12 @@ async function run(name,engine){
   const response=await page.goto(base,{waitUntil:'domcontentloaded',timeout:45000});
   assert.equal(response.status(),200);
   await page.waitForFunction(()=>!!window.FootprintMediaCore?.createRepository&&!!window.__footprintHome?.openSaved,null,{timeout:30000});
+  // The map runtime exposes the home API before its asynchronous IndexedDB
+  // initialization finishes; don't seed test records until its boot has settled.
+  await page.waitForFunction(()=>typeof window.__atlasDemo?.getSaved==='function' &&
+    typeof window.__atlasPlaceStore?.readAll==='function' &&
+    typeof window.__atlasFlowRefresh==='function',null,{timeout:30000});
+  await page.waitForTimeout(1600);
   const initial=await page.evaluate(async()=>{
    const repo=window.FootprintMediaCore.createRepository(indexedDB);
    return {places:(await repo.list()).length,routes:(await repo.listRoutes()).length,ns:window.__fpStorageNamespace};
