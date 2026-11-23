@@ -8,7 +8,7 @@ const getList=()=>{try{return JSON.parse(localStorage.getItem('fp-search-history
 const saveHistory=item=>{try{const all=getList().filter(x=>x.q!==item.q);all.unshift(item);localStorage.setItem('fp-search-history-v1',JSON.stringify(all.slice(0,8)))}catch{}};
 const urlOf=x=>{try{const u=new URL(String(x||'').trim());return ['http:','https:'].includes(u.protocol)?u.href:''}catch{return ''}};
 const safe=(n,lo,hi)=>n!==null&&n!==undefined&&String(n).trim()!==''&&Number.isFinite(+n)&&+n>=lo&&+n<=hi;
-const isPhoto=file=>file.type.startsWith('image/')||/\.(jpe?g|png|webp|heic)$/i.test(file.name);
+const isPhoto=file=>file.type.startsWith('image/')||/\.(jpe?g|png|webp|heic|heif|gif|apng|avif|bmp|tiff?|svg|jxl)$/i.test(file.name);
 let searchSheet,searchVeil,searchInput,searchBody,searchTopPortal,searchTimer,searchController=null,searchToken=0,activeSearch=false,searchUsed=false;
 let placeCard,activePlaceId='',editMode='',busy=false;
 /* Stage21: unsaved local drafts stay tied to the original place ID when the
@@ -82,7 +82,7 @@ function searchReset(){searchController?.abort();searchController=null;clearTime
 /* Real saved search results belong to the same visual identity as the B card.
    Thumbnails and counts are drawn only from the actual persisted place object. */
 function savedSearchRow(p){
- const photo=(Array.isArray(p.photos)?p.photos:[]).find(x=>typeof x?.src==='string'&&/^data:image\/(jpeg|png|webp);base64,/i.test(x.src));
+ const photo=(Array.isArray(p.photos)?p.photos:[]).find(x=>typeof x?.src==='string'&&/^data:image\/(jpeg|png|webp|gif);base64,/i.test(x.src));
  const photoCount=Array.isArray(p.photos)?p.photos.length:0;
  const videoCount=Array.isArray(p.videos)?p.videos.length:0;
  return {id:p.id,name:p.title,saved:true,lat:p.lat,lon:p.lng,
@@ -234,7 +234,13 @@ async function readPlace(id){
  if(failed)throw failed;
  return null;
 }
-const mediaOf=p=>[...(Array.isArray(p.photos)?p.photos:[]).filter(x=>typeof x.src==='string'&&/^data:image\/(jpeg|png|webp);base64,/i.test(x.src)).map(x=>({...x,kind:'photo'})),...(Array.isArray(p.videos)?p.videos:[]).filter(x=>x.bytes||x.blob).map(x=>({...x,kind:'video'}))];
+const mediaOf=p=>[
+ ...(Array.isArray(p.photos)?p.photos:[]).map((x,i)=>({...x,storageIndex:i}))
+   .filter(x=>typeof x.src==='string'&&/^data:image\/(jpeg|png|webp|gif);base64,/i.test(x.src))
+   .map(x=>({...x,kind:'photo'})),
+ ...(Array.isArray(p.videos)?p.videos:[]).map((x,i)=>({...x,storageIndex:i}))
+   .filter(x=>x.bytes||x.blob).map(x=>({...x,kind:'video'}))
+];
 const linksOf=p=>{const o=[...(Array.isArray(p.references)?p.references:[]),...(Array.isArray(p.guides)?p.guides:[])];if(p.url)o.push(p.url);if(p.link)o.push(p.link);const u=new Set();return o.map(x=>typeof x==='string'?{url:x,title:''}:{...x,url:x?.url||x?.link||'',title:x?.title||''}).filter(x=>{x.url=urlOf(x.url);if(!x.url||u.has(x.url))return false;u.add(x.url);return true})};
 function sourceName(url){return window.FootprintGuideLinks?.provider?.(url)||'网页'}
 function sectionHeading(number,name,button){const bar=h('div','fp-subheading');bar.append(h('span','fp-section-index',number),h('strong','fp-section-label',name));if(button)bar.append(button);return bar}
@@ -355,7 +361,7 @@ const sc=h('div','fp-card-scroll');
  if(editMode==='brief'){const edit=h('div','fp-inline-editor');const draft=editorDraft(id,'brief',p.note||'');const area=h('textarea');area.value=draft.value;area.addEventListener('input',()=>{draft.value=area.value;draft.dirty=draft.value!==draft.initial;});area.placeholder=p.stage==='visited'?'记下这次旅程的细节与感受…':'为什么想去这个地方？记录你的旅行灵感…';area.maxLength=12000;area.addEventListener('focus',()=>setTimeout(()=>edit.scrollIntoView({block:'center',behavior:'smooth'}),380)); /* build .18 · 键盘弹起后输入区与保存按钮跟随到可视区 */const actions=h('div','fp-inline-actions');actions.append(btn('保存记录',async()=>{if(busy)return;busy=true;try{const fresh=await readPlace(id);if(!fresh)throw Error('找不到地点');if(!window.FootprintMediaCore)throw Error('存储模块未加载');await window.FootprintMediaCore.createRepository(window.indexedDB).saveBrief(id,area.value.trim());editorDrafts.delete(draftKey(id,'brief'));try{await window.__atlasFlowRefresh?.()}catch(_){}if(activePlaceId===id){editMode='';await renderPlace(id)}}catch(e){if(activePlaceId===id)feedback('保存失败：'+e.message)}finally{busy=false}},'fp-btn-primary'),btn('取消',()=>{if(!discardEditorDraft(id,'brief'))return;editMode='';renderPlace(id)},'fp-btn-muted'));edit.append(area,h('small','fp-editor-draft-hint','未保存的草稿会在当前页面保留；点取消可选择放弃。'),actions);cardBrief.append(edit)}else{const briefText=String(p.note||'').replace(/^原高德地址[：:][^\n]*\n?/,'').trim();cardBrief.append(h('p','fp-brief-text'+(!briefText?' is-empty':''),briefText||(p.stage==='visited'?'暂无旅行手记':'暂无记录')))}
  const cardMedia=h('section','fp-block');
  placeCard.dataset.hasMedia=media.length?'yes':'no';cardMedia.append(sectionHeading('02','照片与视频',btn('＋ 添加',()=>filePicker.click(),'fp-subaction')));
- const filePicker=h('input');filePicker.type='file';filePicker.accept='image/*,video/*';filePicker.multiple=true;filePicker.hidden=true;filePicker.addEventListener('change',()=>addMedia(id,[...filePicker.files]));cardMedia.append(filePicker);
+ const filePicker=h('input');filePicker.type='file';filePicker.accept='image/*,.gif,.apng,.avif,.heic,.heif,video/*';filePicker.multiple=true;filePicker.hidden=true;filePicker.addEventListener('change',()=>addMedia(id,[...filePicker.files]));cardMedia.append(filePicker);
  if(!media.length){const box=h('div','fp-media-empty');box.append(h('span','fp-empty-text','还没有照片或视频'));cardMedia.append(box)}else{const tiles=media.slice(0,5);const mosaic=h('div','fp-media-mosaic'+(tiles.length===1?' one':tiles.length===2?' two':''));tiles.forEach((m,i)=>{const tile=btn('',()=>openViewer(media,i,tile),m.kind==='video'?'fp-video-tile':'');tile.dataset.fpMediaIndex=String(i);if(m.kind==='photo'){const img=h('img');img.src=m.src;img.alt='旅行照片 '+(i+1);img.loading='lazy';tile.append(img)}else {const video=h('video');video.muted=true;video.defaultMuted=true;video.playsInline=true;video.setAttribute('playsinline','');video.setAttribute('webkit-playsinline','');video.loop=true;video.autoplay=false;video.preload='metadata';video.controls=false;video.setAttribute('aria-label','旅行视频动态预览');video.__fpEnsureSource=()=>{
  if(video.dataset.sourceUrl)return;
  const blob=m.blob instanceof Blob?m.blob:new Blob([m.bytes],{type:m.type||'video/mp4'});
@@ -469,7 +475,7 @@ watchTileVideo(video);tile.append(video,h('span','fp-video-indicator','▶'))}if
  }
  return true;
 }
-async function shrinkPhoto(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(Error('无法读取图片'));reader.onload=()=>{const img=new Image();img.onerror=()=>reject(Error('无法解码图片，请改用 JPEG/PNG'));img.onload=()=>{const scale=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);resolve({name:file.name,src:canvas.toDataURL('image/jpeg',.82),addedAt:new Date().toISOString()})};img.src=reader.result};reader.readAsDataURL(file)})}
+async function shrinkPhoto(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(Error('无法读取图片'));reader.onload=()=>{const img=new Image();img.onerror=()=>reject(Error('当前 Safari 无法解码这张图片，请换用 JPEG、PNG、WebP、GIF 或其他受支持格式'));img.onload=()=>{const scale=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);resolve({name:file.name,src:canvas.toDataURL('image/jpeg',.82),addedAt:new Date().toISOString()})};img.src=reader.result};reader.readAsDataURL(file)})}
 async function addMedia(id,files){
  if(!files?.length||busy)return;
  busy=true;if(activePlaceId===id)feedback('正在验证并保存影像…');
@@ -520,6 +526,9 @@ const iphoneGallery=(()=>{
    '#fpMediaViewer[open].fp-ios-gallery .fp-viewer-close{position:absolute!important;top:calc(env(safe-area-inset-top,0px) + 12px)!important;right:max(16px,env(safe-area-inset-right,0px))!important;z-index:99!important;display:grid!important;place-items:center!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;max-width:44px!important;max-height:44px!important;padding:0!important;font-size:0!important;line-height:0!important;background:rgba(41,47,44,.53)!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:14px!important;color:#fff!important}',
    '#fpMediaViewer[open].fp-ios-gallery .fp-viewer-close::before,#fpMediaViewer[open].fp-ios-gallery .fp-viewer-close::after{content:none!important;display:none!important;background:none!important}',
    '#fpMediaViewer[open].fp-ios-gallery .fp-viewer-close>.fp-close-svg{display:block!important;position:relative!important;width:21px!important;height:21px!important;min-width:21px!important;min-height:21px!important;color:#fff!important;pointer-events:none!important;flex:none!important;fill:none!important}',
+   '#fpMediaViewer[open].fp-ios-gallery .fp-viewer-delete{position:absolute!important;z-index:99!important;top:calc(env(safe-area-inset-top,0px) + 12px)!important;left:max(16px,env(safe-area-inset-left,0px))!important;display:grid!important;place-items:center!important;width:52px!important;height:44px!important;min-height:44px!important;padding:0!important;font-size:12px!important;font-weight:500!important;background:rgba(41,47,44,.53)!important;color:#fff!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:14px!important}',
+   '#fpMediaViewer[open].fp-ios-gallery .fp-viewer-delete:disabled{opacity:.45!important;pointer-events:none!important}',
+   '#fpMediaViewer.fp-viewer-immersive .fp-viewer-delete{opacity:0!important;pointer-events:none!important}',
    '#fpMediaViewer .fp-viewer-caption{position:absolute!important;z-index:9!important;left:24px!important;right:24px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 14px)!important;text-align:center!important;pointer-events:none!important;font-size:12px!important;line-height:1.55!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:rgba(255,255,255,.88)!important;transition:opacity .18s ease!important}',
    '#fpMediaViewer.fp-viewer-immersive .fp-viewer-close,#fpMediaViewer.fp-viewer-immersive .fp-viewer-caption{opacity:0!important;pointer-events:none!important}',
    '#fpMediaViewer .fp-gallery-ghost{position:fixed!important;z-index:12!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;pointer-events:none!important;object-fit:contain!important;transform-origin:center center;will-change:transform,opacity,border-radius}',
@@ -616,7 +625,7 @@ const iphoneGallery=(()=>{
   return cell;
  }
  function mediaAt(s){return s.cells?.[1]?.querySelector('img,video')||null}
- function chrome(s,opacity){s.closeButton.style.opacity=String(opacity);s.caption.style.opacity=String(opacity)}
+ function chrome(s,opacity){s.closeButton.style.opacity=String(opacity);s.deleteButton.style.opacity=String(opacity);s.caption.style.opacity=String(opacity)}
  function updateLabel(s){
   const item=s.items[s.index];s.caption.textContent=(s.index+1)+' / '+s.items.length+' · '+(item?.name||'旅行影像');
   s.viewer.__origin=original(s,s.index);
@@ -957,15 +966,37 @@ const iphoneGallery=(()=>{
   }
   closeButton.append(closeIcon);
   closeButton.setAttribute('aria-label','关闭全屏影像');
+  const deleteButton=btn('删除',async()=>{
+    if(busy||current!==s||s.closed||s.closing)return;
+    const item=s.items[s.index],placeId=s.placeId;
+    if(!item||!placeId)return;
+    const title=item.kind==='video'?'这段视频':/^data:image\/gif;base64,/i.test(item.src||'')?'这张 GIF 动图':'这张图片';
+    if(!window.confirm('确定删除'+title+'？\n删除后将从当前地点和后续备份中移除，不能撤销。'))return;
+    busy=true;deleteButton.disabled=true;
+    try{
+      if(!window.FootprintMediaCore)throw Error('媒体存储模块未加载');
+      const repo=window.FootprintMediaCore.createRepository(window.indexedDB);
+      await repo.removeMedia(placeId,{
+        kind:item.kind,index:item.storageIndex,expectedId:item.id,
+        expectedSrc:item.kind==='photo'?item.src:undefined,expectedHash:item.sha256,
+        expectedName:item.name,expectedAddedAt:item.addedAt
+      });
+      cleanup(s);
+      try{await window.__atlasFlowRefresh?.()}catch(error){console.warn('删除后地图刷新延迟',error)}
+      if(activePlaceId===placeId){await renderPlace(placeId);feedback('已删除'+title+'，其余影像不变');}
+    }catch(error){console.error('删除影像失败',error);if(current===s)window.alert('删除失败，未修改原有内容：'+(error?.message||'请重试'));}
+    finally{busy=false;deleteButton.disabled=false;}
+  },'fp-viewer-delete');
+  deleteButton.setAttribute('aria-label','删除当前显示的照片、GIF 或视频');
   const caption=h('div','fp-viewer-caption');
   const scrim=h('div','fp-gallery-scrim');scrim.style.opacity='.22';
   // Do not expose chrome before the photo has begun its shared-element flight.
-  closeButton.style.opacity='0';caption.style.opacity='0';
-  viewer.append(scrim,stage,closeButton,caption);
+  closeButton.style.opacity='0';deleteButton.style.opacity='0';caption.style.opacity='0';
+  viewer.append(scrim,stage,closeButton,deleteButton,caption);
   document.body.append(viewer);
   try{viewer.showModal()}catch(_){viewer.setAttribute('open','')}
   if(window.matchMedia?.('(pointer:coarse)')?.matches)try{viewer.focus({preventScroll:true})}catch(_){}
-  const s={viewer,stage,track,scrim,closeButton,caption,items,index,firstOrigin:originTile,card:placeCard,urls:new Map(),width:0,cells:null,drag:null,locked:false,closed:false,closing:false,suppressClickUntil:0,hiddenOrigins:[]};
+  const s={viewer,stage,track,scrim,closeButton,deleteButton,caption,items,index,placeId:activePlaceId,firstOrigin:originTile,card:placeCard,urls:new Map(),width:0,cells:null,drag:null,locked:false,closed:false,closing:false,suppressClickUntil:0,hiddenOrigins:[]};
   current=s;
   populate(s);
   if(!reduced()){const m=mediaAt(s);if(m)m.style.opacity='0'}

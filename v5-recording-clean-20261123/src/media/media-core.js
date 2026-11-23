@@ -188,7 +188,7 @@
       seen.add(p.id);
       const copy={...p,videos:[]};
       for(const photo of p.photos||[]) {
-        if(!photo || typeof photo.src!=='string' || !/^data:image\/(?:jpeg|png|webp);base64,/i.test(photo.src))
+        if(!photo || typeof photo.src!=='string' || !/^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(photo.src))
           throw error('MISSING_PHOTO_DATA','照片缺少可离线恢复的本地内容：'+String(photo?.name||'未命名照片'));
       }
       for(const video of p.videos||[]) {
@@ -238,6 +238,15 @@
 
   // Only user-selected browser Files are read. Caller explicitly supplies a
   // confirmed placeId to repository.addMedia; EXIF/GPS never auto-assigns.
+  // Preserve original GIF/APNG/animated WebP frames; canvas would flatten them.
+  // PNG and WebP are kept losslessly as well (including alpha/transparency).
+  function unmodifiedImageMime(bytes) {
+    if(bytes.length>=6 && String.fromCharCode(...bytes.slice(0,6)).match(/^GIF8[79]a$/))return 'image/gif';
+    if(bytes.length>=8 && [137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v))return 'image/png';
+    if(bytes.length>=12 && String.fromCharCode(...bytes.slice(0,4))==='RIFF' &&
+       String.fromCharCode(...bytes.slice(8,12))==='WEBP')return 'image/webp';
+    return '';
+  }
   async function prepareSelectedFiles(files,{encodePhoto}={}) {
     const list=Array.from(files||[]);
     if(!list.length || list.length>40)throw error('INVALID_MEDIA','一次请选择 1–40 张照片或视频');
@@ -245,8 +254,8 @@
     for(const file of list){
       if(!file || typeof file.name!=='string' || typeof file.arrayBuffer!=='function' ||
          !Number.isFinite(file.size))throw error('INVALID_MEDIA','文件格式无效');
-      const type=file.type||'',photo=/^image\/(?:jpeg|png|webp|heic|heif)$/i.test(type)||
-        /\.(?:jpe?g|png|webp|heic|heif)$/i.test(file.name);
+      const type=file.type||'',photo=/^image\//i.test(type)||
+        /\.(?:jpe?g|png|webp|heic|heif|gif|apng|avif|bmp|tiff?|svg|jxl)$/i.test(file.name);
       const video=/^video\//i.test(type)||/\.(?:mp4|mov|webm|m4v)$/i.test(file.name);
       if(!photo&&!video)throw error('INVALID_MEDIA','仅支持照片或视频：'+file.name);
       if(photo && file.size>18*1024*1024)throw error('PHOTO_TOO_LARGE','照片超过 18MB，请先压缩');
@@ -260,7 +269,19 @@
       if(hash)base.sha256=hash;
       if(video){result.push({...base,kind:'video',type:type||'video/mp4',bytes:bytes.buffer});continue;}
       let src;
-      if(typeof encodePhoto==='function')src=await encodePhoto(file);
+      const nativeMime=unmodifiedImageMime(bytes);
+      // A purported GIF must really be one; never save a mislabeled file as a broken animation.
+      if((/^image\/gif$/i.test(type)||/\.gif$/i.test(file.name))&&nativeMime!=='image/gif')
+        throw error('INVALID_PHOTO','GIF 文件内容无效：'+file.name);
+      if(nativeMime){
+        if(typeof FileReader==='undefined')throw error('IMAGE_ENCODER_REQUIRED','浏览器暂不支持读取原始图片');
+        src=await new Promise((resolve,reject)=>{
+          const reader=new FileReader();
+          reader.onerror=()=>reject(error('INVALID_PHOTO','无法读取图片：'+file.name));
+          reader.onload=()=>resolve(String(reader.result||''));
+          reader.readAsDataURL(new Blob([bytes],{type:nativeMime}));
+        });
+      } else if(typeof encodePhoto==='function')src=await encodePhoto(file);
       else if(typeof FileReader!=='undefined' && typeof Image!=='undefined' && typeof document!=='undefined')
         src=await new Promise((resolve,reject)=>{
           const reader=new FileReader();
@@ -283,7 +304,7 @@
           reader.readAsDataURL(file);
         });
       else throw error('IMAGE_ENCODER_REQUIRED','缺少本地图片编码器');
-      if(typeof src!=='string'||!/^data:image\/(?:jpeg|png|webp);base64,/i.test(src))
+      if(typeof src!=='string'||!/^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(src))
         throw error('INVALID_PHOTO','图片编码结果不是可保存的本地图片');
       result.push({...base,kind:'photo',src});
     }
@@ -363,8 +384,8 @@
         if(!item || typeof item!=='object' || !['photo','video'].includes(item.kind))
           throw error('INVALID_MEDIA','图片或视频类型无效');
         if(item.kind==='photo'){
-          if(typeof item.src!=='string' || !/^data:image\/(?:jpeg|png|webp);base64,/i.test(item.src) ||
-             item.src.length>24*1024*1024)throw error('INVALID_PHOTO','照片需先转换为本地 JPEG、PNG 或 WebP');
+          if(typeof item.src!=='string' || !/^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(item.src) ||
+             item.src.length>24*1024*1024)throw error('INVALID_PHOTO','图片必须是可离线保存的 JPEG、PNG、WebP 或 GIF');
           prepared.push({...item,kind:undefined,addedAt:item.addedAt||new Date().toISOString()});
         }else {
           const bytes=await binaryOf(item);
@@ -377,6 +398,25 @@
       return mutate(placeId,p=>{
         if(combine(p.photos,photo,'photos').length>50)throw error('PHOTO_LIMIT','单地点最多 50 张照片');
         return {...p,photos:combine(p.photos,photo,'photos'),videos:combine(p.videos,video,'videos')};
+      });
+    }
+    // Remove exactly one user-confirmed image/video inside a single IndexedDB transaction.
+    // The index AND fingerprint are checked so stale galleries cannot delete another item.
+    function removeMedia(placeId,{kind,index,expectedId,expectedSrc,expectedHash,expectedName,expectedAddedAt}={}) {
+      const key=kind==='photo'?'photos':kind==='video'?'videos':null;
+      if(!key||!Number.isSafeInteger(index)||index<0)throw error('INVALID_MEDIA','删除目标无效');
+      return mutate(placeId,p=>{
+        const list=Array.isArray(p[key])?p[key]:[];
+        const selected=list[index];
+        if(!selected)throw error('MEDIA_CHANGED','影像列表已更新，请重新打开');
+        const matches=expectedId?selected.id===expectedId:
+          expectedHash?selected.sha256===expectedHash:
+          (kind==='photo'&&typeof expectedSrc==='string')?selected.src===expectedSrc:
+          typeof expectedName==='string'&&expectedName===selected.name&&
+            expectedAddedAt===selected.addedAt;
+        if(!matches)throw error('MEDIA_CHANGED','影像已改变，未删除任何内容，请重新打开');
+        const next=list.slice();next.splice(index,1);
+        return {...p,[key]:next};
       });
     }
     const routeKey=id=>'journey/'+id;
@@ -492,7 +532,7 @@
       });
       return createBackup(snapshot.places,snapshot.routes);
     }
-    return Object.freeze({read,list,listRoutes,saveRoute,saveBrief,saveGuide,addMedia,restore,backup});
+    return Object.freeze({read,list,listRoutes,saveRoute,saveBrief,saveGuide,addMedia,removeMedia,restore,backup});
   }
   return Object.freeze({DB_NAME,idOf,validPlace,mergePlace,crc32,zipWrite,zipRead,createBackup,readBackup,prepareSelectedFiles,createRepository});
 });
